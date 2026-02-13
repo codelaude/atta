@@ -1,0 +1,153 @@
+---
+type: reference
+aliases: [web-resources]
+priority: high
+version: 2.0
+---
+
+# Web Research Resources
+
+This document lists authoritative web resources each agent should consult for up-to-date information.
+
+---
+
+## Agent Web Resource Matrix
+
+| Agent | Primary Resources | Research Triggers |
+|-------|------------------|-------------------|
+| **scss** | caniuse.com, CSS-Tricks, MDN Web Docs (CSS) | CSS feature recommendations, browser compatibility |
+| **accessibility** | MDN Web Docs (A11y), WCAG 2.1, WAI-ARIA APG, WebAIM | ARIA patterns, WCAG criteria, screen reader behavior |
+| **vue** | Vue.js Official Docs, Vue Composition API docs, VueUse | API features, composition patterns, ecosystem libraries |
+| **typescript** | TypeScript Handbook, TS Release Notes, DefinitelyTyped | Feature compatibility, advanced patterns, type definitions |
+| **tester** | Jest Docs, Testing Library (Vue), Vue Test Utils | Testing patterns, mocking strategies, async testing |
+| **backend-consultant** | Relevant backend framework documentation | Backend APIs, server-side patterns |
+
+---
+
+## SCSS: Styling Specialist
+
+### Primary Resources
+
+**caniuse.com**
+- **Purpose**: Browser support data for CSS features
+- **When to use**: Before recommending any modern CSS feature
+- **Process**: Always cross-reference with project browserslist
+
+**CSS-Tricks**
+- **URL**: https://css-tricks.com/
+- **Purpose**: Modern CSS techniques and patterns
+
+**MDN Web Docs (CSS)**
+- **URL**: https://developer.mozilla.org/en-US/docs/Web/CSS
+- **Purpose**: CSS property documentation and browser compatibility
+
+---
+
+## Accessibility Specialist
+
+### Primary Resources
+
+**WCAG 2.1 Quick Reference**
+- **URL**: https://www.w3.org/WAI/WCAG21/quickref/
+- **Purpose**: Success criteria and techniques
+
+**WAI-ARIA Authoring Practices Guide (APG)**
+- **URL**: https://www.w3.org/WAI/ARIA/apg/
+- **Purpose**: Official ARIA patterns and practices
+
+**WebAIM**
+- **URL**: https://webaim.org/
+- **Purpose**: Practical accessibility guidance and tools
+
+**MDN Web Docs (Accessibility)**
+- **URL**: https://developer.mozilla.org/en-US/docs/Web/Accessibility
+
+---
+
+## Vue: Vue.js Specialist
+
+### Primary Resources
+
+**Vue.js Official Docs**
+- **URL**: https://vuejs.org/guide/
+
+**VueUse**
+- **URL**: https://vueuse.org/
+
+---
+
+## TypeScript Specialist
+
+### Primary Resources
+
+**TypeScript Handbook**
+- **URL**: https://www.typescriptlang.org/docs/handbook/
+
+**DefinitelyTyped**
+- **URL**: https://github.com/DefinitelyTyped/DefinitelyTyped
+
+---
+
+## Tester: Testing Specialist
+
+### Primary Resources
+
+**Jest Documentation**
+- **URL**: https://jestjs.io/docs/
+
+**Vue Test Utils**
+- **URL**: https://test-utils.vuejs.org/
+
+**Testing Library (Vue)**
+- **URL**: https://testing-library.com/docs/vue-testing-library/intro/
+
+---
+
+## General Research Protocol
+
+### When to Research
+
+**Always research for:**
+- Recommending new/modern features
+- Citing official specifications or guidelines
+- Verifying browser/version compatibility
+- Referencing authoritative patterns
+
+**Skip research when:**
+- Information is in project pattern files
+- Question is about project-specific code
+- Answer is established project convention
+
+### Citation Requirements
+
+Every researched recommendation must include:
+1. **Source**: Where the information came from
+2. **URL**: If specific documentation page
+3. **Version**: If version-specific information
+
+---
+
+## Quick Links
+
+### CSS/SCSS
+- [caniuse.com](https://caniuse.com/)
+- [MDN CSS](https://developer.mozilla.org/en-US/docs/Web/CSS)
+- [CSS-Tricks](https://css-tricks.com/)
+
+### Accessibility
+- [WCAG 2.1](https://www.w3.org/WAI/WCAG21/quickref/)
+- [WAI-ARIA APG](https://www.w3.org/WAI/ARIA/apg/)
+- [MDN Accessibility](https://developer.mozilla.org/en-US/docs/Web/Accessibility)
+- [WebAIM](https://webaim.org/)
+
+### Vue.js
+- [Vue 3 Docs](https://vuejs.org/)
+- [VueUse](https://vueuse.org/)
+
+### TypeScript
+- [TS Handbook](https://www.typescriptlang.org/docs/handbook/)
+
+### Testing
+- [Jest Docs](https://jestjs.io/docs/)
+- [Testing Library](https://testing-library.com/)
+- [Vue Test Utils](https://test-utils.vuejs.org/)

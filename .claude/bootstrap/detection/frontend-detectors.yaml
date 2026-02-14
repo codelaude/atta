@@ -1,0 +1,493 @@
+# Frontend Framework Detection Rules
+# Used by /init to identify frontend frameworks and their characteristics
+
+frameworks:
+  # Vue.js
+  - name: Vue.js
+    identifier: vue
+    detection:
+      package_json:
+        dependencies:
+          - vue
+        dev_dependencies:
+          - "@vitejs/plugin-vue"
+          - "@vue/cli-service"
+    version_detection:
+      file: package.json
+      path: dependencies.vue
+    metadata:
+      type: frontend_framework
+      component_model: reactive
+      needs_coordinator: true
+      specialist_type: framework
+
+  # React
+  - name: React
+    identifier: react
+    detection:
+      package_json:
+        dependencies:
+          - react
+          - react-dom
+    version_detection:
+      file: package.json
+      path: dependencies.react
+    metadata:
+      type: frontend_framework
+      component_model: hooks
+      needs_coordinator: true
+      specialist_type: framework
+
+  # Next.js
+  - name: Next.js
+    identifier: nextjs
+    detection:
+      package_json:
+        dependencies:
+          - next
+      config_files:
+        - next.config.js
+        - next.config.mjs
+        - next.config.ts
+    version_detection:
+      file: package.json
+      path: dependencies.next
+    metadata:
+      type: frontend_framework
+      component_model: hooks
+      needs_coordinator: true
+      specialist_type: framework
+      extends: react
+
+  # Angular
+  - name: Angular
+    identifier: angular
+    detection:
+      package_json:
+        dependencies:
+          - "@angular/core"
+          - "@angular/common"
+    version_detection:
+      file: package.json
+      path: dependencies["@angular/core"]
+    metadata:
+      type: frontend_framework
+      component_model: decorators
+      needs_coordinator: true
+      specialist_type: framework
+
+  # Svelte
+  - name: Svelte
+    identifier: svelte
+    detection:
+      package_json:
+        dependencies:
+          - svelte
+        dev_dependencies:
+          - "@sveltejs/kit"
+          - "@sveltejs/vite-plugin-svelte"
+    version_detection:
+      file: package.json
+      path: dependencies.svelte
+    metadata:
+      type: frontend_framework
+      component_model: compiler
+      needs_coordinator: true
+      specialist_type: framework
+
+  # Nuxt
+  - name: Nuxt
+    identifier: nuxt
+    detection:
+      package_json:
+        dependencies:
+          - nuxt
+      config_files:
+        - nuxt.config.js
+        - nuxt.config.ts
+    version_detection:
+      file: package.json
+      path: dependencies.nuxt
+    metadata:
+      type: frontend_framework
+      component_model: reactive
+      needs_coordinator: true
+      specialist_type: framework
+      extends: vue
+
+  # Solid.js
+  - name: Solid.js
+    identifier: solid
+    detection:
+      package_json:
+        dependencies:
+          - solid-js
+    version_detection:
+      file: package.json
+      path: dependencies["solid-js"]
+    metadata:
+      type: frontend_framework
+      component_model: fine_grained_reactivity
+      needs_coordinator: true
+      specialist_type: framework
+
+  # Astro
+  - name: Astro
+    identifier: astro
+    detection:
+      package_json:
+        dependencies:
+          - astro
+      config_files:
+        - astro.config.mjs
+        - astro.config.js
+    version_detection:
+      file: package.json
+      path: dependencies.astro
+    metadata:
+      type: frontend_framework
+      component_model: islands
+      needs_coordinator: true
+      specialist_type: framework
+
+# Styling approaches
+styling:
+  # SCSS/Sass
+  - name: SCSS
+    identifier: scss
+    detection:
+      package_json:
+        dev_dependencies:
+          - sass
+          - dart-sass
+          - node-sass
+      file_patterns:
+        - "**/*.scss"
+        - "**/*.sass"
+    metadata:
+      type: styling
+      preprocessor: true
+      specialist_type: styling
+
+  # Tailwind CSS
+  - name: Tailwind CSS
+    identifier: tailwind
+    detection:
+      package_json:
+        dev_dependencies:
+          - tailwindcss
+      config_files:
+        - tailwind.config.js
+        - tailwind.config.ts
+    metadata:
+      type: styling
+      utility_first: true
+      specialist_type: styling
+
+  # Styled Components
+  - name: Styled Components
+    identifier: styled-components
+    detection:
+      package_json:
+        dependencies:
+          - styled-components
+    metadata:
+      type: styling
+      css_in_js: true
+      specialist_type: styling
+
+  # Emotion
+  - name: Emotion
+    identifier: emotion
+    detection:
+      package_json:
+        dependencies:
+          - "@emotion/react"
+          - "@emotion/styled"
+    metadata:
+      type: styling
+      css_in_js: true
+      specialist_type: styling
+
+  # CSS Modules
+  - name: CSS Modules
+    identifier: css-modules
+    detection:
+      file_patterns:
+        - "**/*.module.css"
+        - "**/*.module.scss"
+    metadata:
+      type: styling
+      scoped: true
+      specialist_type: styling
+
+# State management
+state_management:
+  # Pinia (Vue)
+  - name: Pinia
+    identifier: pinia
+    detection:
+      package_json:
+        dependencies:
+          - pinia
+    metadata:
+      type: state_management
+      framework: vue
+      specialist_type: state
+
+  # Vuex (Vue)
+  - name: Vuex
+    identifier: vuex
+    detection:
+      package_json:
+        dependencies:
+          - vuex
+    metadata:
+      type: state_management
+      framework: vue
+      specialist_type: state
+
+  # Redux (React)
+  - name: Redux
+    identifier: redux
+    detection:
+      package_json:
+        dependencies:
+          - redux
+          - react-redux
+          - "@reduxjs/toolkit"
+    metadata:
+      type: state_management
+      framework: react
+      specialist_type: state
+
+  # Zustand (React)
+  - name: Zustand
+    identifier: zustand
+    detection:
+      package_json:
+        dependencies:
+          - zustand
+    metadata:
+      type: state_management
+      framework: react
+      specialist_type: state
+
+  # MobX
+  - name: MobX
+    identifier: mobx
+    detection:
+      package_json:
+        dependencies:
+          - mobx
+          - mobx-react
+          - mobx-react-lite
+    metadata:
+      type: state_management
+      framework: react
+      specialist_type: state
+
+  # Jotai (React)
+  - name: Jotai
+    identifier: jotai
+    detection:
+      package_json:
+        dependencies:
+          - jotai
+    metadata:
+      type: state_management
+      framework: react
+      specialist_type: state
+
+# Language & Type Systems
+languages:
+  # TypeScript
+  - name: TypeScript
+    identifier: typescript
+    detection:
+      package_json:
+        dev_dependencies:
+          - typescript
+      config_files:
+        - tsconfig.json
+      file_patterns:
+        - "**/*.ts"
+        - "**/*.tsx"
+    version_detection:
+      file: package.json
+      path: devDependencies.typescript
+    metadata:
+      type: language
+      typed: true
+      specialist_type: language
+
+  # JavaScript
+  - name: JavaScript
+    identifier: javascript
+    detection:
+      config_files:
+        - jsconfig.json
+      file_patterns:
+        - "**/*.js"
+        - "**/*.jsx"
+    metadata:
+      type: language
+      typed: false
+      specialist_type: language
+
+# Build tools
+build_tools:
+  # Vite
+  - name: Vite
+    identifier: vite
+    detection:
+      package_json:
+        dev_dependencies:
+          - vite
+      config_files:
+        - vite.config.js
+        - vite.config.ts
+    metadata:
+      type: build_tool
+      specialist_type: build
+
+  # Webpack
+  - name: Webpack
+    identifier: webpack
+    detection:
+      package_json:
+        dev_dependencies:
+          - webpack
+      config_files:
+        - webpack.config.js
+        - webpack.config.ts
+    metadata:
+      type: build_tool
+      specialist_type: build
+
+  # Turbo
+  - name: Turborepo
+    identifier: turbo
+    detection:
+      package_json:
+        dev_dependencies:
+          - turbo
+      config_files:
+        - turbo.json
+    metadata:
+      type: build_tool
+      monorepo: true
+      specialist_type: build
+
+  # Rollup
+  - name: Rollup
+    identifier: rollup
+    detection:
+      package_json:
+        dev_dependencies:
+          - rollup
+      config_files:
+        - rollup.config.js
+        - rollup.config.ts
+    metadata:
+      type: build_tool
+      specialist_type: build
+
+# Testing frameworks
+testing:
+  # Jest
+  - name: Jest
+    identifier: jest
+    detection:
+      package_json:
+        dev_dependencies:
+          - jest
+      config_files:
+        - jest.config.js
+        - jest.config.ts
+    metadata:
+      type: testing
+      unit_test: true
+      specialist_type: testing
+
+  # Vitest
+  - name: Vitest
+    identifier: vitest
+    detection:
+      package_json:
+        dev_dependencies:
+          - vitest
+    metadata:
+      type: testing
+      unit_test: true
+      specialist_type: testing
+
+  # Testing Library
+  - name: Testing Library
+    identifier: testing-library
+    detection:
+      package_json:
+        dev_dependencies:
+          - "@testing-library/react"
+          - "@testing-library/vue"
+          - "@testing-library/svelte"
+    metadata:
+      type: testing
+      component_test: true
+      specialist_type: testing
+
+  # Cypress
+  - name: Cypress
+    identifier: cypress
+    detection:
+      package_json:
+        dev_dependencies:
+          - cypress
+      config_files:
+        - cypress.config.js
+        - cypress.config.ts
+    metadata:
+      type: testing
+      e2e_test: true
+      specialist_type: testing
+
+  # Playwright
+  - name: Playwright
+    identifier: playwright
+    detection:
+      package_json:
+        dev_dependencies:
+          - "@playwright/test"
+      config_files:
+        - playwright.config.js
+        - playwright.config.ts
+    metadata:
+      type: testing
+      e2e_test: true
+      specialist_type: testing
+
+# Accessibility tools
+accessibility:
+  # axe-core
+  - name: axe-core
+    identifier: axe
+    detection:
+      package_json:
+        dev_dependencies:
+          - axe-core
+          - "@axe-core/react"
+          - "@axe-core/vue"
+    metadata:
+      type: accessibility
+      specialist_type: accessibility
+
+  # eslint-plugin-jsx-a11y
+  - name: jsx-a11y
+    identifier: jsx-a11y
+    detection:
+      package_json:
+        dev_dependencies:
+          - eslint-plugin-jsx-a11y
+    metadata:
+      type: accessibility
+      specialist_type: accessibility

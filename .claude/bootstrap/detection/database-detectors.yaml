@@ -1,0 +1,627 @@
+# Database Detection Rules
+# Used by /init to identify databases, ORMs, and data access patterns
+
+# SQL Databases
+sql_databases:
+  # PostgreSQL
+  - name: PostgreSQL
+    identifier: postgresql
+    detection:
+      package_json:
+        dependencies:
+          - pg
+          - pg-promise
+      files:
+        - requirements.txt
+        - pyproject.toml
+        - Gemfile
+        - go.mod
+        - Cargo.toml
+        - pom.xml
+      content_match:
+        requirements.txt: ["psycopg2", "psycopg2-binary", "asyncpg"]
+        pyproject.toml: ["psycopg2", "asyncpg"]
+        Gemfile: "pg"
+        go.mod: "github.com/lib/pq"
+        Cargo.toml: "tokio-postgres"
+        pom.xml: "postgresql"
+      env_vars:
+        - DATABASE_URL containing "postgres://"
+        - POSTGRES_HOST
+        - POSTGRES_PORT
+    metadata:
+      type: database
+      category: sql
+      acid_compliant: true
+      specialist_type: database
+
+  # MySQL
+  - name: MySQL
+    identifier: mysql
+    detection:
+      package_json:
+        dependencies:
+          - mysql
+          - mysql2
+      files:
+        - requirements.txt
+        - pyproject.toml
+        - Gemfile
+        - go.mod
+        - Cargo.toml
+        - pom.xml
+      content_match:
+        requirements.txt: ["pymysql", "mysql-connector-python", "aiomysql"]
+        pyproject.toml: ["pymysql", "aiomysql"]
+        Gemfile: "mysql2"
+        go.mod: "github.com/go-sql-driver/mysql"
+        Cargo.toml: "mysql"
+        pom.xml: "mysql-connector-java"
+      env_vars:
+        - DATABASE_URL containing "mysql://"
+        - MYSQL_HOST
+        - MYSQL_PORT
+    metadata:
+      type: database
+      category: sql
+      acid_compliant: true
+      specialist_type: database
+
+  # MariaDB
+  - name: MariaDB
+    identifier: mariadb
+    detection:
+      package_json:
+        dependencies:
+          - mariadb
+      files:
+        - requirements.txt
+        - pom.xml
+      content_match:
+        requirements.txt: "mariadb"
+        pom.xml: "mariadb-java-client"
+      env_vars:
+        - DATABASE_URL containing "mariadb://"
+        - MARIADB_HOST
+    metadata:
+      type: database
+      category: sql
+      acid_compliant: true
+      specialist_type: database
+
+  # SQLite
+  - name: SQLite
+    identifier: sqlite
+    detection:
+      package_json:
+        dependencies:
+          - sqlite3
+          - better-sqlite3
+      files:
+        - requirements.txt
+        - pom.xml
+        - Gemfile
+      content_match:
+        requirements.txt: "sqlite"
+        pom.xml: "sqlite-jdbc"
+        Gemfile: "sqlite3"
+      file_patterns:
+        - "**/*.db"
+        - "**/*.sqlite"
+        - "**/*.sqlite3"
+    metadata:
+      type: database
+      category: sql
+      embedded: true
+      specialist_type: database
+
+  # Microsoft SQL Server
+  - name: Microsoft SQL Server
+    identifier: mssql
+    detection:
+      package_json:
+        dependencies:
+          - mssql
+          - tedious
+      files:
+        - requirements.txt
+        - pom.xml
+      content_match:
+        requirements.txt: ["pyodbc", "pymssql"]
+        pom.xml: "mssql-jdbc"
+      env_vars:
+        - DATABASE_URL containing "mssql://"
+        - MSSQL_HOST
+    metadata:
+      type: database
+      category: sql
+      acid_compliant: true
+      specialist_type: database
+
+  # Oracle
+  - name: Oracle Database
+    identifier: oracle
+    detection:
+      package_json:
+        dependencies:
+          - oracledb
+      files:
+        - requirements.txt
+        - pom.xml
+      content_match:
+        requirements.txt: "cx_Oracle"
+        pom.xml: "ojdbc"
+      env_vars:
+        - ORACLE_HOST
+        - ORACLE_SID
+    metadata:
+      type: database
+      category: sql
+      acid_compliant: true
+      specialist_type: database
+
+# NoSQL Databases
+nosql_databases:
+  # MongoDB
+  - name: MongoDB
+    identifier: mongodb
+    detection:
+      package_json:
+        dependencies:
+          - mongodb
+          - mongoose
+      files:
+        - requirements.txt
+        - pyproject.toml
+        - Gemfile
+        - go.mod
+        - Cargo.toml
+        - pom.xml
+      content_match:
+        requirements.txt: ["pymongo", "motor"]
+        pyproject.toml: ["pymongo", "motor"]
+        Gemfile: "mongo"
+        go.mod: "go.mongodb.org/mongo-driver"
+        Cargo.toml: "mongodb"
+        pom.xml: "mongo-java-driver"
+      env_vars:
+        - MONGODB_URI
+        - MONGO_URL
+    metadata:
+      type: database
+      category: nosql
+      document_store: true
+      specialist_type: database
+
+  # Redis
+  - name: Redis
+    identifier: redis
+    detection:
+      package_json:
+        dependencies:
+          - redis
+          - ioredis
+      files:
+        - requirements.txt
+        - pyproject.toml
+        - Gemfile
+        - go.mod
+        - Cargo.toml
+        - pom.xml
+      content_match:
+        requirements.txt: ["redis", "aioredis"]
+        pyproject.toml: ["redis", "aioredis"]
+        Gemfile: "redis"
+        go.mod: "github.com/go-redis/redis"
+        Cargo.toml: "redis"
+        pom.xml: "jedis"
+      env_vars:
+        - REDIS_URL
+        - REDIS_HOST
+    metadata:
+      type: database
+      category: nosql
+      key_value_store: true
+      cache: true
+      specialist_type: database
+
+  # Cassandra
+  - name: Cassandra
+    identifier: cassandra
+    detection:
+      package_json:
+        dependencies:
+          - cassandra-driver
+      files:
+        - requirements.txt
+        - pom.xml
+      content_match:
+        requirements.txt: "cassandra-driver"
+        pom.xml: "cassandra-driver-core"
+      env_vars:
+        - CASSANDRA_HOST
+        - CASSANDRA_CONTACT_POINTS
+    metadata:
+      type: database
+      category: nosql
+      wide_column: true
+      specialist_type: database
+
+  # DynamoDB
+  - name: DynamoDB
+    identifier: dynamodb
+    detection:
+      package_json:
+        dependencies:
+          - "@aws-sdk/client-dynamodb"
+          - aws-sdk
+      files:
+        - requirements.txt
+        - pom.xml
+      content_match:
+        requirements.txt: "boto3"
+        pom.xml: "aws-java-sdk-dynamodb"
+      env_vars:
+        - AWS_DYNAMODB_ENDPOINT
+        - DYNAMODB_TABLE
+    metadata:
+      type: database
+      category: nosql
+      key_value_store: true
+      managed: true
+      specialist_type: database
+
+  # Elasticsearch
+  - name: Elasticsearch
+    identifier: elasticsearch
+    detection:
+      package_json:
+        dependencies:
+          - "@elastic/elasticsearch"
+      files:
+        - requirements.txt
+        - pom.xml
+        - Gemfile
+      content_match:
+        requirements.txt: "elasticsearch"
+        pom.xml: "elasticsearch"
+        Gemfile: "elasticsearch"
+      env_vars:
+        - ELASTICSEARCH_URL
+        - ELASTICSEARCH_HOST
+    metadata:
+      type: database
+      category: nosql
+      search_engine: true
+      specialist_type: database
+
+  # CouchDB
+  - name: CouchDB
+    identifier: couchdb
+    detection:
+      package_json:
+        dependencies:
+          - nano
+      files:
+        - requirements.txt
+        - pom.xml
+      content_match:
+        requirements.txt: "couchdb"
+        pom.xml: "ektorp"
+      env_vars:
+        - COUCHDB_URL
+    metadata:
+      type: database
+      category: nosql
+      document_store: true
+      specialist_type: database
+
+  # Neo4j
+  - name: Neo4j
+    identifier: neo4j
+    detection:
+      package_json:
+        dependencies:
+          - neo4j-driver
+      files:
+        - requirements.txt
+        - pom.xml
+      content_match:
+        requirements.txt: "neo4j"
+        pom.xml: "neo4j-java-driver"
+      env_vars:
+        - NEO4J_URI
+        - NEO4J_HOST
+    metadata:
+      type: database
+      category: nosql
+      graph: true
+      specialist_type: database
+
+# ORMs and Query Builders
+orms:
+  # Prisma (Node.js)
+  - name: Prisma
+    identifier: prisma
+    detection:
+      package_json:
+        dependencies:
+          - "@prisma/client"
+        dev_dependencies:
+          - prisma
+      files:
+        - schema.prisma
+    metadata:
+      type: orm
+      language: nodejs
+      specialist_type: orm
+
+  # TypeORM (Node.js)
+  - name: TypeORM
+    identifier: typeorm
+    detection:
+      package_json:
+        dependencies:
+          - typeorm
+      config_files:
+        - ormconfig.json
+        - ormconfig.js
+    metadata:
+      type: orm
+      language: nodejs
+      specialist_type: orm
+
+  # Sequelize (Node.js)
+  - name: Sequelize
+    identifier: sequelize
+    detection:
+      package_json:
+        dependencies:
+          - sequelize
+    metadata:
+      type: orm
+      language: nodejs
+      specialist_type: orm
+
+  # Drizzle (Node.js)
+  - name: Drizzle
+    identifier: drizzle
+    detection:
+      package_json:
+        dependencies:
+          - drizzle-orm
+    metadata:
+      type: orm
+      language: nodejs
+      specialist_type: orm
+
+  # SQLAlchemy (Python)
+  - name: SQLAlchemy
+    identifier: sqlalchemy
+    detection:
+      files:
+        - requirements.txt
+        - pyproject.toml
+      content_match:
+        requirements.txt: "sqlalchemy"
+        pyproject.toml: "sqlalchemy"
+    metadata:
+      type: orm
+      language: python
+      specialist_type: orm
+
+  # Django ORM (Python)
+  - name: Django ORM
+    identifier: django-orm
+    detection:
+      files:
+        - requirements.txt
+        - pyproject.toml
+      content_match:
+        requirements.txt: "django"
+        pyproject.toml: "django"
+      project_indicators:
+        - models.py
+    metadata:
+      type: orm
+      language: python
+      specialist_type: orm
+      integrated: true
+
+  # Tortoise ORM (Python)
+  - name: Tortoise ORM
+    identifier: tortoise-orm
+    detection:
+      files:
+        - requirements.txt
+        - pyproject.toml
+      content_match:
+        requirements.txt: "tortoise-orm"
+        pyproject.toml: "tortoise-orm"
+    metadata:
+      type: orm
+      language: python
+      specialist_type: orm
+      async: true
+
+  # GORM (Go)
+  - name: GORM
+    identifier: gorm
+    detection:
+      files:
+        - go.mod
+      content_match:
+        go.mod: "gorm.io/gorm"
+    metadata:
+      type: orm
+      language: go
+      specialist_type: orm
+
+  # Hibernate (Java)
+  - name: Hibernate
+    identifier: hibernate
+    detection:
+      files:
+        - pom.xml
+        - build.gradle
+      content_match:
+        pom.xml: "hibernate"
+        build.gradle: "hibernate"
+    metadata:
+      type: orm
+      language: java
+      specialist_type: orm
+
+  # JPA (Java)
+  - name: JPA
+    identifier: jpa
+    detection:
+      files:
+        - pom.xml
+        - build.gradle
+      content_match:
+        pom.xml: "javax.persistence"
+        build.gradle: "javax.persistence"
+    metadata:
+      type: orm
+      language: java
+      specialist_type: orm
+      specification: true
+
+  # Active Record (Ruby)
+  - name: Active Record
+    identifier: activerecord
+    detection:
+      files:
+        - Gemfile
+      content_match:
+        Gemfile: "activerecord"
+    metadata:
+      type: orm
+      language: ruby
+      specialist_type: orm
+
+  # Eloquent (PHP)
+  - name: Eloquent
+    identifier: eloquent
+    detection:
+      files:
+        - composer.json
+      content_match:
+        composer.json: "laravel/framework"
+    metadata:
+      type: orm
+      language: php
+      specialist_type: orm
+      integrated: true
+
+  # Diesel (Rust)
+  - name: Diesel
+    identifier: diesel
+    detection:
+      files:
+        - Cargo.toml
+      content_match:
+        Cargo.toml: "diesel"
+    metadata:
+      type: orm
+      language: rust
+      specialist_type: orm
+
+  # Entity Framework (C#)
+  - name: Entity Framework
+    identifier: entity-framework
+    detection:
+      files:
+        - "*.csproj"
+      content_match:
+        "*.csproj": "Microsoft.EntityFrameworkCore"
+    metadata:
+      type: orm
+      language: csharp
+      specialist_type: orm
+
+# Database Migration Tools
+migrations:
+  # Flyway
+  - name: Flyway
+    identifier: flyway
+    detection:
+      files:
+        - pom.xml
+        - build.gradle
+      content_match:
+        pom.xml: "flyway"
+        build.gradle: "flyway"
+    metadata:
+      type: migration_tool
+
+  # Liquibase
+  - name: Liquibase
+    identifier: liquibase
+    detection:
+      files:
+        - pom.xml
+        - build.gradle
+      content_match:
+        pom.xml: "liquibase"
+        build.gradle: "liquibase"
+    metadata:
+      type: migration_tool
+
+  # Alembic (Python)
+  - name: Alembic
+    identifier: alembic
+    detection:
+      files:
+        - requirements.txt
+        - pyproject.toml
+      content_match:
+        requirements.txt: "alembic"
+        pyproject.toml: "alembic"
+      project_indicators:
+        - alembic.ini
+    metadata:
+      type: migration_tool
+      language: python
+
+  # Knex.js
+  - name: Knex.js
+    identifier: knex
+    detection:
+      package_json:
+        dependencies:
+          - knex
+      config_files:
+        - knexfile.js
+        - knexfile.ts
+    metadata:
+      type: migration_tool
+      language: nodejs
+
+# Connection Pooling
+connection_pooling:
+  # PgBouncer (PostgreSQL)
+  - name: PgBouncer
+    identifier: pgbouncer
+    detection:
+      env_vars:
+        - PGBOUNCER_URL
+        - PGBOUNCER_HOST
+    metadata:
+      type: connection_pooler
+      database: postgresql
+
+  # HikariCP (Java)
+  - name: HikariCP
+    identifier: hikaricp
+    detection:
+      files:
+        - pom.xml
+        - build.gradle
+      content_match:
+        pom.xml: "HikariCP"
+        build.gradle: "HikariCP"
+    metadata:
+      type: connection_pooler
+      language: java

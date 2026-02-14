@@ -1,0 +1,613 @@
+# Backend Framework Detection Rules
+# Used by /init to identify backend frameworks, languages, and API patterns
+
+# Python frameworks
+python:
+  # Django
+  - name: Django
+    identifier: django
+    detection:
+      files:
+        - requirements.txt
+        - pyproject.toml
+        - Pipfile
+      content_match:
+        requirements.txt: "django"
+        pyproject.toml: "django"
+      project_indicators:
+        - manage.py
+        - settings.py
+    version_detection:
+      command: "python -c 'import django; print(django.get_version())'"
+      fallback_file: requirements.txt
+    metadata:
+      type: backend_framework
+      language: python
+      api_pattern: rest
+      needs_coordinator: true
+      specialist_type: framework
+
+  # Flask
+  - name: Flask
+    identifier: flask
+    detection:
+      files:
+        - requirements.txt
+        - pyproject.toml
+      content_match:
+        requirements.txt: "flask"
+        pyproject.toml: "flask"
+    metadata:
+      type: backend_framework
+      language: python
+      api_pattern: rest
+      needs_coordinator: true
+      specialist_type: framework
+
+  # FastAPI
+  - name: FastAPI
+    identifier: fastapi
+    detection:
+      files:
+        - requirements.txt
+        - pyproject.toml
+      content_match:
+        requirements.txt: "fastapi"
+        pyproject.toml: "fastapi"
+    metadata:
+      type: backend_framework
+      language: python
+      api_pattern: rest
+      needs_coordinator: true
+      specialist_type: framework
+      openapi: true
+
+  # Pyramid
+  - name: Pyramid
+    identifier: pyramid
+    detection:
+      files:
+        - requirements.txt
+        - pyproject.toml
+      content_match:
+        requirements.txt: "pyramid"
+        pyproject.toml: "pyramid"
+    metadata:
+      type: backend_framework
+      language: python
+      api_pattern: rest
+      needs_coordinator: true
+      specialist_type: framework
+
+  # Python (Language)
+  - name: Python
+    identifier: python
+    detection:
+      files:
+        - requirements.txt
+        - pyproject.toml
+        - Pipfile
+        - setup.py
+      file_patterns:
+        - "**/*.py"
+    version_detection:
+      command: "python --version"
+    metadata:
+      type: language
+      needs_coordinator: true
+      specialist_type: language
+
+# Java frameworks
+java:
+  # Spring Boot
+  - name: Spring Boot
+    identifier: spring-boot
+    detection:
+      files:
+        - pom.xml
+        - build.gradle
+        - build.gradle.kts
+      content_match:
+        pom.xml: "spring-boot-starter"
+        build.gradle: "spring-boot-starter"
+      project_indicators:
+        - src/main/java
+        - src/main/resources/application.properties
+        - src/main/resources/application.yml
+    metadata:
+      type: backend_framework
+      language: java
+      api_pattern: rest
+      needs_coordinator: true
+      specialist_type: framework
+
+  # Micronaut
+  - name: Micronaut
+    identifier: micronaut
+    detection:
+      files:
+        - build.gradle
+        - pom.xml
+      content_match:
+        build.gradle: "micronaut"
+        pom.xml: "micronaut"
+    metadata:
+      type: backend_framework
+      language: java
+      api_pattern: rest
+      needs_coordinator: true
+      specialist_type: framework
+
+  # Quarkus
+  - name: Quarkus
+    identifier: quarkus
+    detection:
+      files:
+        - pom.xml
+        - build.gradle
+      content_match:
+        pom.xml: "quarkus"
+        build.gradle: "quarkus"
+    metadata:
+      type: backend_framework
+      language: java
+      api_pattern: rest
+      needs_coordinator: true
+      specialist_type: framework
+
+  # Java (Language)
+  - name: Java
+    identifier: java
+    detection:
+      files:
+        - pom.xml
+        - build.gradle
+        - build.gradle.kts
+      file_patterns:
+        - "**/*.java"
+    version_detection:
+      command: "java -version"
+    metadata:
+      type: language
+      needs_coordinator: true
+      specialist_type: language
+
+# Node.js frameworks
+nodejs:
+  # Express
+  - name: Express
+    identifier: express
+    detection:
+      package_json:
+        dependencies:
+          - express
+    metadata:
+      type: backend_framework
+      language: nodejs
+      api_pattern: rest
+      needs_coordinator: true
+      specialist_type: framework
+
+  # Fastify
+  - name: Fastify
+    identifier: fastify
+    detection:
+      package_json:
+        dependencies:
+          - fastify
+    metadata:
+      type: backend_framework
+      language: nodejs
+      api_pattern: rest
+      needs_coordinator: true
+      specialist_type: framework
+
+  # NestJS
+  - name: NestJS
+    identifier: nestjs
+    detection:
+      package_json:
+        dependencies:
+          - "@nestjs/core"
+          - "@nestjs/common"
+    metadata:
+      type: backend_framework
+      language: nodejs
+      api_pattern: rest
+      needs_coordinator: true
+      specialist_type: framework
+      typescript: true
+
+  # Koa
+  - name: Koa
+    identifier: koa
+    detection:
+      package_json:
+        dependencies:
+          - koa
+    metadata:
+      type: backend_framework
+      language: nodejs
+      api_pattern: rest
+      needs_coordinator: true
+      specialist_type: framework
+
+  # Hapi
+  - name: Hapi
+    identifier: hapi
+    detection:
+      package_json:
+        dependencies:
+          - "@hapi/hapi"
+    metadata:
+      type: backend_framework
+      language: nodejs
+      api_pattern: rest
+      needs_coordinator: true
+      specialist_type: framework
+
+# Go frameworks
+go:
+  # Gin
+  - name: Gin
+    identifier: gin
+    detection:
+      files:
+        - go.mod
+      content_match:
+        go.mod: "github.com/gin-gonic/gin"
+    metadata:
+      type: backend_framework
+      language: go
+      api_pattern: rest
+      needs_coordinator: true
+      specialist_type: framework
+
+  # Echo
+  - name: Echo
+    identifier: echo
+    detection:
+      files:
+        - go.mod
+      content_match:
+        go.mod: "github.com/labstack/echo"
+    metadata:
+      type: backend_framework
+      language: go
+      api_pattern: rest
+      needs_coordinator: true
+      specialist_type: framework
+
+  # Fiber
+  - name: Fiber
+    identifier: fiber
+    detection:
+      files:
+        - go.mod
+      content_match:
+        go.mod: "github.com/gofiber/fiber"
+    metadata:
+      type: backend_framework
+      language: go
+      api_pattern: rest
+      needs_coordinator: true
+      specialist_type: framework
+
+  # Chi
+  - name: Chi
+    identifier: chi
+    detection:
+      files:
+        - go.mod
+      content_match:
+        go.mod: "github.com/go-chi/chi"
+    metadata:
+      type: backend_framework
+      language: go
+      api_pattern: rest
+      needs_coordinator: true
+      specialist_type: framework
+
+  # Go (Language)
+  - name: Go
+    identifier: go
+    detection:
+      files:
+        - go.mod
+        - go.sum
+      file_patterns:
+        - "**/*.go"
+    version_detection:
+      command: "go version"
+    metadata:
+      type: language
+      needs_coordinator: true
+      specialist_type: language
+
+# Ruby frameworks
+ruby:
+  # Ruby on Rails
+  - name: Ruby on Rails
+    identifier: rails
+    detection:
+      files:
+        - Gemfile
+      content_match:
+        Gemfile: "rails"
+      project_indicators:
+        - config/routes.rb
+        - config/application.rb
+    metadata:
+      type: backend_framework
+      language: ruby
+      api_pattern: rest
+      needs_coordinator: true
+      specialist_type: framework
+
+  # Sinatra
+  - name: Sinatra
+    identifier: sinatra
+    detection:
+      files:
+        - Gemfile
+      content_match:
+        Gemfile: "sinatra"
+    metadata:
+      type: backend_framework
+      language: ruby
+      api_pattern: rest
+      needs_coordinator: true
+      specialist_type: framework
+
+  # Hanami
+  - name: Hanami
+    identifier: hanami
+    detection:
+      files:
+        - Gemfile
+      content_match:
+        Gemfile: "hanami"
+    metadata:
+      type: backend_framework
+      language: ruby
+      api_pattern: rest
+      needs_coordinator: true
+      specialist_type: framework
+
+  # Ruby (Language)
+  - name: Ruby
+    identifier: ruby
+    detection:
+      files:
+        - Gemfile
+        - Gemfile.lock
+      file_patterns:
+        - "**/*.rb"
+    version_detection:
+      command: "ruby --version"
+    metadata:
+      type: language
+      needs_coordinator: true
+      specialist_type: language
+
+# Rust frameworks
+rust:
+  # Actix-web
+  - name: Actix-web
+    identifier: actix-web
+    detection:
+      files:
+        - Cargo.toml
+      content_match:
+        Cargo.toml: "actix-web"
+    metadata:
+      type: backend_framework
+      language: rust
+      api_pattern: rest
+      needs_coordinator: true
+      specialist_type: framework
+
+  # Rocket
+  - name: Rocket
+    identifier: rocket
+    detection:
+      files:
+        - Cargo.toml
+      content_match:
+        Cargo.toml: "rocket"
+    metadata:
+      type: backend_framework
+      language: rust
+      api_pattern: rest
+      needs_coordinator: true
+      specialist_type: framework
+
+  # Axum
+  - name: Axum
+    identifier: axum
+    detection:
+      files:
+        - Cargo.toml
+      content_match:
+        Cargo.toml: "axum"
+    metadata:
+      type: backend_framework
+      language: rust
+      api_pattern: rest
+      needs_coordinator: true
+      specialist_type: framework
+
+  # Rust (Language)
+  - name: Rust
+    identifier: rust
+    detection:
+      files:
+        - Cargo.toml
+        - Cargo.lock
+      file_patterns:
+        - "**/*.rs"
+    version_detection:
+      command: "rustc --version"
+    metadata:
+      type: language
+      needs_coordinator: true
+      specialist_type: language
+
+# PHP frameworks
+php:
+  # Laravel
+  - name: Laravel
+    identifier: laravel
+    detection:
+      files:
+        - composer.json
+      content_match:
+        composer.json: "laravel/framework"
+      project_indicators:
+        - artisan
+    metadata:
+      type: backend_framework
+      language: php
+      api_pattern: rest
+      needs_coordinator: true
+      specialist_type: framework
+
+  # Symfony
+  - name: Symfony
+    identifier: symfony
+    detection:
+      files:
+        - composer.json
+      content_match:
+        composer.json: "symfony/framework-bundle"
+    metadata:
+      type: backend_framework
+      language: php
+      api_pattern: rest
+      needs_coordinator: true
+      specialist_type: framework
+
+  # PHP (Language)
+  - name: PHP
+    identifier: php
+    detection:
+      files:
+        - composer.json
+        - composer.lock
+      file_patterns:
+        - "**/*.php"
+    version_detection:
+      command: "php --version"
+    metadata:
+      type: language
+      needs_coordinator: true
+      specialist_type: language
+
+# C# / .NET frameworks
+dotnet:
+  # ASP.NET Core
+  - name: ASP.NET Core
+    identifier: aspnetcore
+    detection:
+      files:
+        - "*.csproj"
+      content_match:
+        "*.csproj": "Microsoft.AspNetCore"
+    metadata:
+      type: backend_framework
+      language: csharp
+      api_pattern: rest
+      needs_coordinator: true
+      specialist_type: framework
+
+  # C# (Language)
+  - name: C#
+    identifier: csharp
+    detection:
+      files:
+        - "*.csproj"
+        - "*.sln"
+      file_patterns:
+        - "**/*.cs"
+    version_detection:
+      command: "dotnet --version"
+    metadata:
+      type: language
+      needs_coordinator: true
+      specialist_type: language
+
+# API Patterns
+api_patterns:
+  # GraphQL
+  - name: GraphQL
+    identifier: graphql
+    detection:
+      package_json:
+        dependencies:
+          - graphql
+          - apollo-server
+          - apollo-server-express
+          - "@apollo/server"
+      files:
+        - requirements.txt
+        - Cargo.toml
+        - pom.xml
+        - Gemfile
+      content_match:
+        requirements.txt: "graphene"
+        Cargo.toml: "juniper"
+        pom.xml: "graphql-java"
+        Gemfile: "graphql"
+    metadata:
+      type: api_pattern
+      specialist_type: api
+
+  # gRPC
+  - name: gRPC
+    identifier: grpc
+    detection:
+      package_json:
+        dependencies:
+          - "@grpc/grpc-js"
+      files:
+        - requirements.txt
+        - go.mod
+        - Cargo.toml
+        - pom.xml
+      content_match:
+        requirements.txt: "grpcio"
+        go.mod: "google.golang.org/grpc"
+        Cargo.toml: "tonic"
+        pom.xml: "grpc-java"
+    metadata:
+      type: api_pattern
+      specialist_type: api
+
+  # REST
+  - name: REST API
+    identifier: rest
+    detection:
+      # Default if backend framework detected but no specific API pattern
+      default: true
+    metadata:
+      type: api_pattern
+      specialist_type: api
+
+# API Documentation
+api_docs:
+  # Swagger/OpenAPI
+  - name: Swagger/OpenAPI
+    identifier: swagger
+    detection:
+      package_json:
+        dependencies:
+          - swagger-ui-express
+          - "@nestjs/swagger"
+      files:
+        - openapi.yaml
+        - openapi.json
+        - swagger.yaml
+        - swagger.json
+    metadata:
+      type: api_documentation
+      specialist_type: docs

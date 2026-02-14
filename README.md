@@ -1,8 +1,10 @@
-# AI Dev Team Agent
+# AI Dev Team Agent v2.0
 
 A multi-agent system for AI-assisted development that guides, reviews, and validates your work — instead of writing code for you.
 
-Drop the `.claude/` folder into any project, run `/init`, and get a virtual development team tailored to your tech stack.
+Drop the `.claude/` folder into **any project** (Vue, React, Python/Django, Java/Spring Boot, Go, Rust, or anything else), run `/init`, and get a virtual development team dynamically generated for your specific tech stack.
+
+**New in v2.0:** Universal Bootstrap System with 100+ technology detectors, dynamic agent generation from templates, MCP (Model Context Protocol) integration, and full backend support.
 
 ## The Problem
 
@@ -12,22 +14,38 @@ This system takes a different approach: **a team of specialized agents with clea
 
 ## The Architecture
 
+### Three-Tier Agent System (v2.0)
+
 ```
-Project Owner (orchestrator)
-├── FE Team Lead (coordinator)
-│   ├── Vue / React / Angular      (framework specialist)
-│   ├── SCSS / Tailwind            (styling specialist)
-│   ├── Accessibility              (WCAG/ARIA specialist)
-│   ├── TypeScript                 (type safety specialist)
-│   ├── Tester                     (testing specialist)
-│   └── Code Reviewer              (quality reviewer)
-├── Backend Consultant             (advisory or team lead mode)
-├── QA Validator                   (acceptance criteria)
-├── Business Analyst               (requirements)
-├── PR Manager                     (PR descriptions)
-├── Librarian                      (persistent memory)
-└── Rubber Duck                    (guided learning)
+Core Agents (universal, never change)
+├── Project Owner              (orchestrator)
+├── Librarian                  (persistent memory)
+├── Rubber Duck                (guided learning)
+├── Code Reviewer              (quality reviewer)
+├── Business Analyst           (requirements)
+├── QA Validator               (acceptance criteria)
+└── PR Manager                 (PR descriptions)
+
+Coordinators (generated per project)
+├── FE Team Lead               (frontend coordinator, if detected)
+│   ├── [Framework Specialist] (Vue, React, Angular, Svelte, etc.)
+│   ├── [Styling Specialist]   (SCSS, Tailwind, CSS-in-JS, etc.)
+│   ├── [Accessibility]        (WCAG/ARIA specialist)
+│   ├── [Testing Specialist]   (Jest, Vitest, Cypress, Playwright, etc.)
+│   └── [Language Specialist]  (TypeScript, JavaScript)
+│
+└── BE Team Lead               (backend coordinator, if detected)
+    ├── [Language Specialist]  (Python, Java, Go, Rust, Node, etc.)
+    ├── [Framework Specialist] (Django, Spring Boot, Fiber, Express, etc.)
+    ├── [Database Specialist]  (PostgreSQL, MongoDB, Redis, etc.)
+    └── [Testing Specialist]   (pytest, JUnit, go test, cargo test, etc.)
 ```
+
+**Example: Vue + Django Full-Stack Project**
+- **Generates:** FE Team Lead, BE Team Lead, vue specialist, typescript specialist, scss specialist, accessibility specialist, python specialist, django specialist, postgresql specialist, + testing specialists for both stacks
+- **Routing:** Project Owner → FE/BE Team Lead → Domain Specialists
+- **Pattern files:** vue-patterns.md, django-patterns.md, python-patterns.md, postgresql-patterns.md
+- **MCP servers:** Documentation MCP (Vue + Django docs), Database MCP (PostgreSQL), Browser MCP (accessibility testing)
 
 Every agent has constraints — what it does **and what it doesn't do**. The project owner routes but never reads code. The team lead coordinates but never implements. The QA validator reports bugs but never fixes them. Constraints are what make specialization real instead of just a label.
 
@@ -44,68 +62,343 @@ Copy the `.claude/` directory into your project root.
 ```
 
 This interactive setup will:
-- Ask about your project (root path, scope, tech stack, workflow)
-- Auto-detect your framework, language, styling, testing, and build tools
-- Generate tailored pattern files for your specific stack
-- Configure agents (e.g., backend-consultant in advisory vs team lead mode)
-- Write your project context file
+1. **Interview you** about your project (root path, scope, tech stack, workflow, MCP needs)
+2. **Auto-detect** your tech stack using 100+ detectors:
+   - Frameworks: Vue, React, Angular, Svelte, Django, Spring Boot, Express, Fiber, Rails, etc.
+   - Languages: TypeScript, Python, Java, Go, Rust, Ruby, PHP
+   - Databases: PostgreSQL, MySQL, MongoDB, Redis, SQLite, etc.
+   - Tools: Testing frameworks, linters, build tools, CI/CD
+3. **Reconcile & Confirm** detected technologies with your answers
+4. **Generate Agents** dynamically from templates:
+   - Coordinators (FE Team Lead, BE Team Lead) based on detected stacks
+   - Specialists (framework, language, database, styling, testing) per technology
+   - Routing table (INDEX.md) with hierarchy and delegation rules
+5. **Generate Pattern Files** with best practices for your exact stack
+6. **Configure MCP Servers** with smart recommendations:
+   - Documentation MCP for your framework/language docs
+   - Database MCP for schema browsing and query assistance
+   - Browser MCP for accessibility testing
+7. **Write Project Context** and metadata
+
+**Result:** A fully customized agent team ready for your specific project.
 
 ### 3. Start working
 
 ```
+# Frontend examples (Vue project)
 /agent fe-team-lead    Build a searchable dropdown component
-/agent rubber-duck     Help me understand focus management
 /agent vue             How should I structure props for this?
+/agent accessibility   Check keyboard navigation
+
+# Backend examples (Django project)
+/agent be-team-lead    Design REST API for user management
+/agent django          How should I structure this view?
+/agent postgresql      Optimize this query
+
+# Universal commands
+/agent rubber-duck     Help me understand focus management
 /review                Review my changed files
 /preflight             Run full pre-PR validation
 ```
 
-## What's Inside
+## What's Inside (v2.0 Structure)
 
 ```
 .claude/
-├── agents/                        # Agent definitions (one per role)
-│   ├── INDEX.md                   # Registry, hierarchy, and routing
+├── agents/                        # Agent definitions (three-tier system)
+│   ├── INDEX.md                   # Registry, hierarchy, routing (auto-generated)
 │   ├── project-owner.md           # Orchestrator — routes tasks
-│   ├── fe-team-lead.md            # FE coordinator — decomposes features
-│   ├── vue.md                     # Vue.js specialist
-│   ├── scss.md                    # SCSS/BEM specialist
-│   ├── accessibility.md           # WCAG/ARIA specialist
-│   ├── typescript.md              # TypeScript specialist
-│   ├── tester.md                  # Testing specialist
-│   ├── code-reviewer.md           # Cross-domain reviewer
-│   ├── backend-consultant.md      # BE advisor (advisory or team lead)
-│   ├── qa-validator.md            # Acceptance criteria validation
-│   ├── business-analyst.md        # Requirements management
-│   ├── pr-manager.md              # PR description generation
 │   ├── librarian.md               # Persistent memory keeper
 │   ├── rubber-duck.md             # Guided learning (no code generation)
+│   ├── code-reviewer.md           # Cross-domain reviewer
+│   ├── business-analyst.md        # Requirements management
+│   ├── qa-validator.md            # Acceptance criteria validation
+│   ├── pr-manager.md              # PR description generation
+│   ├── coordinators/              # Generated per project
+│   │   ├── fe-team-lead.md        # FE coordinator (if has frontend)
+│   │   └── be-team-lead.md        # BE coordinator (if has backend)
+│   ├── specialists/               # Fully generated from templates
+│   │   ├── [framework].md         # Vue, React, Angular, Django, Spring, etc.
+│   │   ├── [language].md          # Python, Java, Go, TypeScript, etc.
+│   │   ├── [database].md          # PostgreSQL, MongoDB, Redis, etc.
+│   │   ├── [styling].md           # SCSS, Tailwind, CSS-in-JS, etc.
+│   │   ├── [testing].md           # Jest, pytest, JUnit, etc.
+│   │   └── accessibility.md       # WCAG/ARIA specialist (universal)
 │   └── memory/
 │       └── directives.md          # Captured rules across sessions
 │
+├── bootstrap/                     # NEW: Bootstrap system (v2.0)
+│   ├── generator.md               # Core generation logic
+│   ├── detection/                 # Technology detection rules (100+)
+│   │   ├── frontend-detectors.yaml
+│   │   ├── backend-detectors.yaml
+│   │   ├── database-detectors.yaml
+│   │   └── tool-detectors.yaml
+│   ├── mappings/                  # Detection → Template mappings
+│   │   ├── agent-mappings.yaml    # 40+ tech → agent template
+│   │   ├── skill-mappings.yaml    # Dynamic skill generation
+│   │   └── mcp-mappings.yaml      # Tech → MCP recommendations
+│   └── templates/                 # Agent & pattern templates
+│       ├── agents/                # 8 universal agent templates
+│       │   ├── framework-specialist.template.md
+│       │   ├── language-specialist.template.md
+│       │   ├── database-specialist.template.md
+│       │   ├── testing-specialist.template.md
+│       │   ├── styling-specialist.template.md
+│       │   ├── accessibility-specialist.template.md
+│       │   ├── fe-team-lead.template.md
+│       │   ├── be-team-lead.template.md
+│       │   └── INDEX.template.md
+│       ├── patterns/              # 15+ tech stack pattern templates
+│       │   ├── vue-patterns.template.md
+│       │   ├── react-patterns.template.md
+│       │   ├── python-patterns.template.md
+│       │   ├── django-patterns.template.md
+│       │   ├── java-patterns.template.md
+│       │   ├── spring-boot-patterns.template.md
+│       │   └── [more tech stacks...]
+│       └── skills/                # Dynamic skill templates
+│           ├── test.template.md
+│           └── build.template.md
+│
 ├── skills/                        # Slash commands
-│   ├── init/SKILL.md              # Interactive project setup
+│   ├── init/SKILL.md              # Enhanced: MCP + dynamic generation
+│   ├── migrate/SKILL.md           # NEW: v1.0 → v2.0 migration
 │   ├── agent/SKILL.md             # Invoke any agent by ID
 │   ├── team-lead/SKILL.md         # Task decomposition
 │   ├── review/SKILL.md            # Multi-domain code review
 │   ├── lint/SKILL.md              # Pattern-based linting
 │   ├── preflight/SKILL.md         # Full pre-PR validation
-│   └── librarian/SKILL.md         # Knowledge capture
+│   ├── librarian/SKILL.md         # Knowledge capture
+│   └── generated/                 # Generated project-specific skills
 │
 ├── knowledge/                     # Shared knowledge base
 │   ├── quick-reference.md         # "I see X, I do Y" decision tables
 │   ├── web-resources.md           # External documentation links
 │   ├── patterns/                  # Auto-generated by /init
-│   │   └── README.md              # (pattern files created per tech stack)
+│   │   └── [tech]-patterns.md     # Pattern files per detected tech
 │   ├── project/
 │   │   ├── project-context.md     # Auto-generated by /init
+│   │   ├── mcp-config.json        # NEW: MCP server configuration
 │   │   └── developer-profile.md   # Working preferences
 │   ├── templates/
 │   │   └── pr-template.md         # PR description format
 │   └── accs/                      # Acceptance criteria templates
 │
+├── .metadata/                     # NEW: System metadata
+│   ├── version                    # "2.0"
+│   ├── last-init                  # Timestamp of last /init run
+│   └── generated-manifest.json    # What was generated and why
+│
 └── settings.local.json            # Permission configuration
 ```
+
+## Bootstrap System v2.0
+
+The core innovation in v2.0 is **dynamic agent generation**. Instead of hardcoding agents for Vue/SCSS/TypeScript, the system detects your tech stack and generates specialized agents from universal templates.
+
+### How It Works
+
+1. **Detection (100+ Rules)**
+   - Scans `package.json`, `requirements.txt`, `pom.xml`, `go.mod`, etc.
+   - Identifies frameworks, languages, databases, testing tools, build systems
+   - Extracts versions and metadata
+   - Produces a structured detection manifest
+
+2. **Mapping (40+ Technologies)**
+   - Maps detected tech → appropriate agent template
+   - Determines which coordinators to generate (FE Lead, BE Lead, or both)
+   - Selects pattern file templates
+   - Recommends MCP servers
+
+3. **Generation (8 Templates)**
+   - Loads universal templates (framework-specialist, language-specialist, etc.)
+   - Substitutes variables ({{FRAMEWORK_NAME}}, {{RULES}}, {{ANTI_PATTERNS}})
+   - Writes generated agents to `agents/specialists/`
+   - Creates pattern files with tech-specific best practices
+   - Regenerates `INDEX.md` with accurate routing table
+
+4. **MCP Integration**
+   - Interviews you about documentation, database, and browser testing needs
+   - Generates `mcp-config.json` with server definitions
+   - Adds MCP capability sections to relevant agents
+   - Smart recommendations based on detected stack
+
+### Supported Tech Stacks
+
+**Frontend Frameworks:**
+- Vue.js (2.x, 3.x), React (16+, 18+), Angular (2+, 14+)
+- Svelte, Solid.js, Astro, Next.js, Nuxt, Remix
+- Qwik, Preact, Alpine.js
+
+**Backend Frameworks:**
+- **Python:** Django, Flask, FastAPI, Pyramid
+- **Java:** Spring Boot, Quarkus, Micronaut
+- **Node.js:** Express, NestJS, Fastify, Koa
+- **Go:** Fiber, Gin, Echo, Chi
+- **Rust:** Actix, Rocket, Axum
+- **Ruby:** Rails, Sinatra
+- **PHP:** Laravel, Symfony
+
+**Databases:**
+- **SQL:** PostgreSQL, MySQL, SQLite, MS SQL Server, Oracle
+- **NoSQL:** MongoDB, Redis, Cassandra, DynamoDB
+- **ORMs:** Prisma, TypeORM, SQLAlchemy, Hibernate, GORM, Diesel
+
+**Styling:**
+- SCSS, Sass, Less, Tailwind CSS, CSS Modules
+- Styled Components, Emotion, Stitches, Vanilla Extract
+- UnoCSS, WindiCSS
+
+**Testing:**
+- **Frontend:** Jest, Vitest, Mocha, Jasmine, Karma, Cypress, Playwright, Testing Library
+- **Backend:** pytest, unittest, JUnit, TestNG, go test, cargo test, RSpec
+
+**Build Tools:**
+- Vite, Webpack, Rollup, Parcel, esbuild, Turbopack
+- Gradle, Maven, pip, npm, pnpm, yarn, go build, cargo
+
+### What Gets Generated
+
+**For a Vue + Django + PostgreSQL project:**
+```
+agents/coordinators/
+  ├── fe-team-lead.md          (coordinates Vue + TypeScript + SCSS)
+  └── be-team-lead.md          (coordinates Python + Django + PostgreSQL)
+
+agents/specialists/
+  ├── vue.md                   (from framework-specialist template)
+  ├── typescript.md            (from language-specialist template)
+  ├── scss.md                  (from styling-specialist template)
+  ├── accessibility.md         (from accessibility template)
+  ├── python.md                (from language-specialist template)
+  ├── django.md                (from framework-specialist template)
+  ├── postgresql.md            (from database-specialist template)
+  ├── jest.md                  (from testing-specialist template, FE)
+  └── pytest.md                (from testing-specialist template, BE)
+
+knowledge/patterns/
+  ├── vue-patterns.md          (Composition API, reactivity, component structure)
+  ├── python-patterns.md       (PEP 8, type hints, error handling)
+  ├── django-patterns.md       (ORM, views, templates, DRF)
+  └── postgresql-patterns.md   (Query optimization, indexing, transactions)
+
+knowledge/project/
+  └── mcp-config.json          (Documentation MCP: Vue + Django docs,
+                                Database MCP: PostgreSQL connection,
+                                Browser MCP: accessibility testing)
+```
+
+**For a React + Express + MongoDB project:**
+```
+agents/coordinators/
+  ├── fe-team-lead.md          (coordinates React + TypeScript + Tailwind)
+  └── be-team-lead.md          (coordinates Node.js + Express + MongoDB)
+
+agents/specialists/
+  ├── react.md
+  ├── typescript.md
+  ├── tailwind.md
+  ├── accessibility.md
+  ├── express.md
+  ├── mongodb.md
+  ├── vitest.md
+  └── jest.md
+
+knowledge/patterns/
+  ├── react-patterns.md        (Hooks, Context, component composition)
+  ├── express-patterns.md      (Middleware, routing, error handling)
+  └── mongodb-patterns.md      (Schema design, aggregation, indexing)
+```
+
+### Template System
+
+Templates use simple variable substitution:
+
+```markdown
+# Agent: {{FRAMEWORK_NAME}} ({{FRAMEWORK_TYPE}} Framework Specialist)
+
+## Key Rules
+{{#each RULES}}
+- {{this}}
+{{/each}}
+
+## Anti-Patterns to Flag
+| I See | I Do | Severity |
+{{#each ANTI_PATTERNS}}
+| {{pattern}} | {{fix}} | {{severity}} |
+{{/each}}
+
+## Delegates To
+- **Styling** → {{STYLING_SPECIALIST}}
+- **Testing** → {{TESTING_SPECIALIST}}
+```
+
+Variables come from detection + mappings:
+```yaml
+# agent-mappings.yaml
+vue:
+  template: framework-specialist.template.md
+  output: agents/specialists/vue.md
+  variables:
+    FRAMEWORK_NAME: "Vue.js"
+    FRAMEWORK_TYPE: "reactive component"
+    STYLING_SPECIALIST: "scss / tailwind"
+    TESTING_SPECIALIST: "jest / vitest"
+  rules:
+    - "Use Composition API with `<script setup>` for Vue 3"
+    - "Use `ref()` for primitives, `reactive()` for objects"
+  anti_patterns:
+    - pattern: "Using Options API in new Vue 3 code"
+      fix: "Use Composition API with script setup"
+      severity: "HIGH"
+```
+
+**Result:** Fully customized Vue specialist with project-specific rules.
+
+### MCP (Model Context Protocol) Integration
+
+MCP servers provide external context to AI assistants. The bootstrap system:
+
+1. **Detects your needs** during `/init` interview
+2. **Recommends servers** based on detected stack:
+   - **Documentation MCP**: Vue docs, React docs, Django docs, Spring Boot docs, etc.
+   - **Database MCP**: Direct schema browsing and query assistance
+   - **Browser MCP**: Accessibility testing, DOM inspection, visual regression
+3. **Generates config**: `knowledge/project/mcp-config.json` with server definitions
+4. **Updates agents**: Adds "MCP Capabilities" sections to relevant specialists
+
+**Example mcp-config.json:**
+```json
+{
+  "mcpServers": {
+    "vue-docs": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-fetch"],
+      "env": {
+        "ALLOWED_DOMAINS": "vuejs.org"
+      }
+    },
+    "postgres": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-postgres"],
+      "env": {
+        "POSTGRES_CONNECTION": "postgresql://localhost/mydb"
+      }
+    }
+  }
+}
+```
+
+### Extensibility
+
+**To add a new technology:**
+1. Add detection rule to `bootstrap/detection/[category]-detectors.yaml`
+2. Add agent mapping to `bootstrap/mappings/agent-mappings.yaml`
+3. Create pattern template in `bootstrap/templates/patterns/[tech]-patterns.template.md`
+4. Run `/init` — the new tech will be detected and agents generated
+
+**No code changes required.** The entire system is configuration-driven.
 
 ## Key Concepts
 
@@ -121,57 +414,190 @@ The agent whose job is to **not give you answers**. It asks questions, points yo
 
 Captures directives ("remember to...", "always...", "never...") as structured rules that persist across sessions. Over time, frequently-used directives get graduated into pattern files. The knowledge base grows with your project.
 
-### Adaptive Backend
+### Adaptive Coordinators (v2.0)
 
-The backend-consultant agent runs in two modes:
-- **Advisory mode** (FE-only projects): read-only guidance on APIs and integration
-- **Team lead mode** (FE+BE projects): mirrors the FE team lead, delegating to backend-specific patterns
+Coordinators (team leads) are generated based on what's detected:
+- **Frontend only?** → Generates FE Team Lead (coordinates framework, styling, testing specialists)
+- **Backend only?** → Generates BE Team Lead (coordinates language, framework, database specialists)
+- **Full-stack?** → Generates BOTH coordinators, each managing their domain
+- **Monorepo?** → Detects multiple stacks, generates all necessary coordinators and specialists
 
-The mode is set automatically by `/init`.
+The structure adapts automatically to your project architecture.
 
 ## Skills (Slash Commands)
 
 | Command | What it does |
 |---------|-------------|
-| `/init` | Interactive project setup — detects stack, asks questions, generates config |
-| `/agent <id>` | Invoke any specialist by ID (e.g., `/agent vue`, `/agent accessibility`) |
-| `/team-lead` | Decompose a feature into specialist tasks |
+| `/init` | **v2.0 Enhanced:** Interactive project setup — interviews you, detects 100+ technologies, generates agents dynamically, configures MCP servers, creates pattern files |
+| `/migrate` | **NEW:** Upgrade from v1.0 to v2.0 — detects old structure, backs up, restructures, regenerates agents, preserves custom rules |
+| `/agent <id>` | Invoke any specialist by ID (e.g., `/agent vue`, `/agent django`, `/agent postgresql`) |
+| `/team-lead` | Decompose a feature into specialist tasks (works with fe-team-lead or be-team-lead) |
 | `/review` | Multi-domain code review with severity-rated findings |
 | `/lint` | Pattern-based checks against the quick-reference rules |
 | `/preflight` | Full pre-PR pipeline: lint → test → review |
 | `/librarian` | Capture a directive or extract learnings |
 
-## Agent Reference
+## Agent Reference (v2.0)
+
+### Core Agents (Always Available)
 
 | Agent ID | Aliases | Role |
 |----------|---------|------|
-| `project-owner` | `orchestrator` | Routes tasks to the right team |
-| `fe-team-lead` | `lead`, `coordinator` | Decomposes FE features, coordinates specialists |
-| `vue` | `fe-vue` | Vue.js patterns and component architecture |
-| `scss` | `fe-scss` | SCSS, BEM, theming, responsive design |
-| `accessibility` | `a11y`, `fe-a11y` | WCAG 2.1 AA, ARIA patterns, focus management |
-| `typescript` | `ts`, `fe-typescript` | Type safety, interfaces, generics |
-| `tester` | `testing`, `fe-tester` | Jest/Vitest, Vue Test Utils, testing patterns |
-| `code-reviewer` | `reviewer` | Cross-domain code review |
-| `backend-consultant` | `be`, `backend` | Backend architecture (advisory or team lead) |
-| `qa-validator` | `qa` | Validates against acceptance criteria |
-| `business-analyst` | `ba`, `requirements` | Requirements and acceptance criteria management |
-| `pr-manager` | `pm`, `pr` | PR description generation |
+| `project-owner` | `orchestrator` | Routes tasks to the right team or specialist |
 | `librarian` | `knowledge-keeper` | Persistent memory and pattern updates |
 | `rubber-duck` | `guide`, `duck` | Guided learning — questions, not answers |
+| `code-reviewer` | `reviewer` | Cross-domain code review |
+| `business-analyst` | `ba`, `requirements` | Requirements and acceptance criteria management |
+| `qa-validator` | `qa` | Validates against acceptance criteria |
+| `pr-manager` | `pm`, `pr` | PR description generation |
 
-## Adapting to Your Project
+### Coordinators (Generated per Project)
 
-The system starts empty and adapts to whatever you're building. `/init` detects your stack and generates the right pattern files:
+| Agent ID | Generated When | Role |
+|----------|----------------|------|
+| `fe-team-lead` | Frontend detected | Decomposes FE features, coordinates FE specialists |
+| `be-team-lead` | Backend detected | Decomposes BE features, coordinates BE specialists |
 
-- **Vue project?** Gets `vue-patterns.md` with Composition API rules
-- **React project?** Gets `react-patterns.md` with hooks patterns
-- **Tailwind?** Gets `tailwind-patterns.md` instead of SCSS patterns
-- **Vitest instead of Jest?** Testing patterns adjust accordingly
-- **Java backend?** Backend consultant enters team lead mode with `java-patterns.md`
-- **Frontend only?** Backend consultant stays in advisory mode
+### Specialists (Dynamically Generated)
 
-The quick-reference, agent definitions, and skills work regardless of tech stack. The pattern files are what make it specific.
+**Note:** These are examples. Actual agents generated depend on your detected stack.
+
+| Example Agent | Generated From | Applies To |
+|---------------|----------------|------------|
+| `vue`, `react`, `angular`, `svelte` | framework-specialist | Frontend frameworks |
+| `django`, `spring-boot`, `express`, `fiber` | framework-specialist | Backend frameworks |
+| `python`, `java`, `go`, `typescript` | language-specialist | Programming languages |
+| `postgresql`, `mongodb`, `redis`, `mysql` | database-specialist | Databases |
+| `scss`, `tailwind`, `styled-components` | styling-specialist | Styling systems |
+| `jest`, `pytest`, `junit`, `vitest` | testing-specialist | Testing frameworks |
+| `accessibility` | accessibility-specialist | WCAG/ARIA (universal) |
+
+**To see which agents are available in your project:**
+- Check `agents/INDEX.md` after running `/init`
+- The INDEX.md file lists all generated agents with their hierarchy and routing rules
+
+## Adapting to Your Project (v2.0 Examples)
+
+The system starts empty and generates everything based on detection. Here's what `/init` creates for different project types:
+
+### Frontend-Only Projects
+
+**Vue 3 + TypeScript + Vite + Tailwind:**
+- **Agents:** fe-team-lead, vue, typescript, tailwind, accessibility, vitest
+- **Patterns:** vue-patterns.md, tailwind-patterns.md
+- **MCP:** Documentation MCP (Vue docs)
+
+**React 18 + Next.js + Styled Components:**
+- **Agents:** fe-team-lead, react, nextjs, typescript, styled-components, accessibility, jest
+- **Patterns:** react-patterns.md, nextjs-patterns.md
+- **MCP:** Documentation MCP (React + Next.js docs)
+
+### Backend-Only Projects
+
+**Python + Django + PostgreSQL:**
+- **Agents:** be-team-lead, python, django, postgresql, pytest
+- **Patterns:** python-patterns.md, django-patterns.md, postgresql-patterns.md
+- **MCP:** Documentation MCP (Django docs), Database MCP (PostgreSQL)
+
+**Java + Spring Boot + MySQL:**
+- **Agents:** be-team-lead, java, spring-boot, mysql, junit
+- **Patterns:** java-patterns.md, spring-boot-patterns.md, mysql-patterns.md
+- **MCP:** Documentation MCP (Spring docs), Database MCP (MySQL)
+
+**Go + Fiber + MongoDB:**
+- **Agents:** be-team-lead, go, fiber, mongodb, go-test
+- **Patterns:** go-patterns.md, fiber-patterns.md, mongodb-patterns.md
+- **MCP:** Documentation MCP (Go + Fiber docs), Database MCP (MongoDB)
+
+### Full-Stack Projects
+
+**Vue + Django + PostgreSQL (Full-Stack):**
+- **Agents:** fe-team-lead, be-team-lead, vue, typescript, scss, python, django, postgresql, vitest, pytest, accessibility
+- **Patterns:** vue-patterns.md, python-patterns.md, django-patterns.md, postgresql-patterns.md
+- **MCP:** Documentation MCP (Vue + Django), Database MCP (PostgreSQL), Browser MCP
+
+**React + Express + MongoDB:**
+- **Agents:** fe-team-lead, be-team-lead, react, typescript, tailwind, express, mongodb, jest, accessibility
+- **Patterns:** react-patterns.md, express-patterns.md, mongodb-patterns.md
+- **MCP:** Documentation MCP (React + Express), Database MCP (MongoDB)
+
+### Monorepo Projects
+
+**Nx Monorepo (Angular + NestJS):**
+- **Agents:** fe-team-lead, be-team-lead, angular, typescript, scss, nestjs, postgresql, jasmine, jest, accessibility
+- **Patterns:** angular-patterns.md, nestjs-patterns.md, postgresql-patterns.md
+- **Routing:** Project Owner → [FE or BE based on task] → Specialists
+
+**All pattern files, agent specialists, and routing tables are auto-generated.** The core agents (project-owner, librarian, rubber-duck, etc.) remain universal regardless of stack.
+
+## Migrating from v1.0 to v2.0
+
+If you have an existing v1.0 `.claude/` setup, the system will detect it automatically when you run `/init`.
+
+### Migration Path
+
+1. **Automatic Detection**
+   - `/init` recognizes the old flat structure
+   - Offers to migrate or continue with v1.0
+
+2. **Run Migration**
+   ```
+   /migrate
+   ```
+
+3. **What the Migration Does**
+   - Creates backup at `.claude/.backup-v1.0-[timestamp]/`
+   - Archives old tech-specific agents to `agents/legacy/`
+   - Detects your tech stack
+   - Generates new agents from templates
+   - Preserves custom rules from old agents
+   - Merges `directives.md` content
+   - Creates bootstrap infrastructure
+   - Generates `INDEX.md` with routing
+
+4. **What Gets Preserved**
+   - All custom rules and anti-patterns you added
+   - Directives.md content
+   - Project context
+   - Knowledge base files
+   - Settings and preferences
+
+5. **Rollback (If Needed)**
+   ```
+   /migrate --rollback
+   ```
+   Restores from backup and returns to v1.0 structure.
+
+### Key Differences: v1.0 vs v2.0
+
+| Feature | v1.0 | v2.0 |
+|---------|------|------|
+| **Agent Structure** | Flat, 14 hardcoded agents | Three-tier: core/coordinators/specialists |
+| **Tech Support** | Vue/SCSS/TypeScript focused | 100+ technologies, universal |
+| **Agent Generation** | Static files | Dynamic from templates |
+| **Backend Support** | Advisory mode only | Full BE team lead + specialists |
+| **Pattern Files** | Generated per tech | Generated per tech (expanded) |
+| **Routing** | Static INDEX.md | Dynamic INDEX.md regenerated per project |
+| **MCP Integration** | None | Full MCP configuration + recommendations |
+| **Extensibility** | Edit agent files | Add YAML rules, no code changes |
+| **Detection** | Basic (10-15 technologies) | Comprehensive (100+ technologies) |
+| **Monorepo Support** | Limited | Full (multiple stacks in one project) |
+
+### Should You Migrate?
+
+**Migrate if you:**
+- Work with multiple tech stacks across projects
+- Want backend support beyond advisory guidance
+- Need MCP server integration
+- Want the system to adapt to new technologies automatically
+- Work on full-stack or polyglot projects
+
+**Stay on v1.0 if you:**
+- Your project is 100% Vue/TypeScript/SCSS and will stay that way
+- You've heavily customized agent files and don't want to regenerate
+- v1.0 meets all your needs and you prefer stability
+
+Both versions are fully functional. v2.0 is about universality and extensibility.
 
 ## Portability
 
@@ -229,6 +655,23 @@ Codex supports skill files but requires them in its own format.
 
 The knowledge base is the most portable layer — structured markdown works everywhere. Start there even if you never build agents. The agent hierarchy and automatic routing are Claude Code-specific features that add the most value but require the most adaptation for other tools.
 
+## By the Numbers (v2.0)
+
+- **100+ Technology Detectors** across frontend, backend, databases, and tools
+- **8 Universal Agent Templates** that generate project-specific specialists
+- **40+ Technology Mappings** connecting detected tech to agent templates
+- **15+ Pattern File Templates** for different tech stacks
+- **50+ Potential Agents** depending on your project's complexity
+- **3-Tier Agent Architecture** (7 core + 2 coordinators + N specialists)
+- **3 MCP Integration Points** (documentation, database, browser)
+- **100% Configuration-Driven** — add new tech via YAML, no code changes
+
+**What this means:**
+- Works with virtually any modern web project
+- Adapts to your exact stack automatically
+- Extensible without touching TypeScript/JavaScript code
+- Scales from simple frontend apps to complex full-stack systems
+
 ## Philosophy
 
 **The conversation is disposable. The context is permanent.**
@@ -236,6 +679,25 @@ The knowledge base is the most portable layer — structured markdown works ever
 The agents, skills, knowledge base, and directives are all pre-prepared context. Instead of explaining conventions every session, they're in files. Instead of correcting the same mistakes, they're in anti-pattern lists. When you do correct something new, the librarian captures it so it doesn't happen again.
 
 The quality of what AI gives you is directly proportional to the context you give it.
+
+---
+
+## Version History
+
+**v2.0** (2026-02-14) — Bootstrap System
+- Universal tech stack support (100+ detectors)
+- Dynamic agent generation from templates
+- MCP integration with smart recommendations
+- Full backend support (Django, Spring Boot, Go, Rust, etc.)
+- Three-tier agent architecture
+- Configuration-driven extensibility
+
+**v1.0** — Multi-Agent Foundation
+- 14 hardcoded agents for Vue/TypeScript/SCSS
+- Pattern file generation
+- Agent hierarchy and routing
+- Skills system (slash commands)
+- Librarian and persistent memory
 
 ---
 

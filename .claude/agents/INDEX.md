@@ -1,81 +1,128 @@
 ---
 type: agent_registry
 priority: critical
-version: 3.0
+version: 2.0
+generated: true
 ---
 
 # Agent System Registry
 
-> A virtual software house team for guided development.
-> Each agent provides expertise, reviews, and recommendations. You remain in control.
+> **Note:** This file is **auto-generated** by `/init` based on your detected tech stack.
+> It will be regenerated each time you run `/init` to reflect your current project structure.
 
-## Agent Registry
+## About This System
 
-| Agent | ID | Aliases | Role | Reports To |
-|-------|-----|---------|------|------------|
-| **Project Owner** | `project-owner` | `orchestrator` | Orchestrator | User |
-| **FE Team Lead** | `fe-team-lead` | `lead`, `coordinator` | FE Coordinator | Project Owner |
-| **Rubber Duck** | `rubber-duck` | `guide`, `duck` | Guided Learning | User |
-| **Vue** | `vue` | `fe-vue` | Vue.js specialist | FE Team Lead |
-| **SCSS** | `scss` | `fe-scss` | SCSS/BEM specialist | FE Team Lead |
-| **Accessibility** | `accessibility` | `fe-a11y`, `a11y` | WCAG/ARIA specialist | FE Team Lead |
-| **TypeScript** | `typescript` | `fe-typescript`, `ts` | TypeScript specialist | FE Team Lead |
-| **Tester** | `tester` | `fe-tester`, `testing` | Testing specialist | FE Team Lead |
-| **Code Reviewer** | `code-reviewer` | `reviewer` | Code reviewer | FE Team Lead |
-| **QA Validator** | `qa-validator` | `qa` | QA / ACC Validation | Project Owner |
-| **Business Analyst** | `business-analyst` | `ba`, `requirements` | Requirements / Docs | Project Owner |
-| **PR Manager** | `pr-manager` | `pm`, `pr` | PR preparation | Project Owner |
-| **Backend Consultant** | `backend-consultant` | `be`, `backend` | Backend advisor | Project Owner |
-| **Librarian** | `librarian` | `knowledge-keeper` | Knowledge keeper | Project Owner |
+A virtual software development team with specialized agents that provide expertise, reviews, and recommendations. You remain in control - agents guide, they don't replace you.
 
-## Hierarchy
+## Agent Hierarchy (Auto-Generated)
+
+The agent structure adapts to your project:
+- **Core Agents**: Universal, always available (project-owner, librarian, rubber-duck, etc.)
+- **Coordinators**: Generated if frontend/backend detected (fe-team-lead, be-team-lead)
+- **Specialists**: Generated based on detected technologies (Vue, React, Django, Java, PostgreSQL, etc.)
+
+**Your current agent structure will appear here after running `/init`.**
+
+---
+
+## Template Structure (Before Init)
+
+Until you run `/init`, here's the expected structure:
 
 ```
-Project Owner (orchestrator)
-├── FE Team Lead (coordinator)
-│   ├── vue (specialist)
-│   ├── scss (specialist)
-│   ├── typescript (specialist)
-│   ├── accessibility (specialist)
-│   ├── tester (specialist)
-│   ├── code-reviewer (reviewer)
-│   └── pr-manager (organization)
-├── Backend Consultant (advisor)
-├── QA Validator (qa)
-├── Business Analyst (ba)
-├── Rubber Duck (guided learning)
-└── Librarian (knowledge keeper)
+Core Agents (universal)
+├── Project Owner         (orchestrator)
+├── Librarian             (persistent memory)
+├── Rubber Duck           (guided learning)
+├── Code Reviewer         (quality reviewer)
+├── Business Analyst      (requirements)
+├── QA Validator          (acceptance criteria)
+└── PR Manager            (PR descriptions)
+
+Coordinators (generated per project)
+├── FE Team Lead          (if frontend detected)
+│   ├── [Framework]       (Vue, React, Angular, etc.)
+│   ├── [Language]        (TypeScript, JavaScript)
+│   ├── [Styling]         (SCSS, Tailwind, CSS-in-JS)
+│   ├── [Testing]         (Jest, Vitest, Cypress)
+│   └── [Accessibility]   (WCAG/ARIA)
+│
+└── BE Team Lead          (if backend detected)
+    ├── [Language]        (Python, Java, Go, Node, etc.)
+    ├── [Framework]       (Django, Spring, Express, Fiber, etc.)
+    ├── [Database]        (PostgreSQL, MongoDB, MySQL, etc.)
+    └── [Testing]         (pytest, JUnit, go test, etc.)
 ```
 
-## Routing
+---
 
-| Task Pattern | Route To |
-|-------------|----------|
-| New component / complex FE feature | fe-team-lead (coordinates specialists) |
-| Style / CSS / SCSS | fe-team-lead -> scss |
-| Accessibility / WCAG / ARIA | fe-team-lead -> accessibility |
-| Tests / coverage | fe-team-lead -> tester |
-| Types / TypeScript / interfaces | fe-team-lead -> typescript |
-| Code review / critique | code-reviewer |
-| QA / acceptance criteria | qa-validator |
-| Requirements / documentation | business-analyst |
-| Backend / API / server-side | backend-consultant |
-| PR preparation | pr-manager |
-| "Remember to..." / directives | librarian (auto-activates) |
-| Cross-cutting (FE + BE) | project-owner (coordinates fe-team-lead + backend-consultant) |
-| Guided learning mode | rubber-duck |
+## How to Initialize
+
+Run the initialization command to detect your tech stack and generate the appropriate agents:
+
+```bash
+/init
+```
+
+This will:
+1. Auto-detect your tech stack (100+ technology detectors)
+2. Generate coordinators (FE/BE team leads) based on detected stacks
+3. Generate specialists for each detected technology
+4. Create this INDEX.md file with your actual agent hierarchy
+5. Set up routing rules for your specific project
+
+---
+
+## After Initialization
+
+Once initialized, this file will contain:
+
+### 1. Agent Registry Table
+A complete list of all agents in your project with their IDs, aliases, roles, and reporting structure.
+
+### 2. Visual Hierarchy
+A tree view showing how agents relate to each other and who coordinates whom.
+
+### 3. Routing Rules
+Task patterns and which agent to invoke for each type of work.
+
+### 4. Key Principles
+How agents work, their constraints, and collaboration patterns.
+
+---
+
+## Manual Agent Structure (If Not Using Init)
+
+If you're not using the `/init` system and want to manually configure agents:
+
+1. **Core agents** are at `.claude/agents/` root
+2. **Create coordinators** in `.claude/agents/coordinators/` if needed
+3. **Create specialists** in `.claude/agents/specialists/` for your tech stack
+4. **Update this file** manually with your agent registry and routing rules
+
+---
 
 ## Key Principles
 
-- **Agents guide, they don't auto-generate** code
+- **Agents guide, they don't auto-generate** code (except when explicitly requested)
 - **Stateless** invocations (except Librarian-captured directives)
 - **Conflicts escalate to user** for final decision
 - **Knowledge-driven**: all agents reference `.claude/knowledge/` patterns
+- **Constraints are real**: Each agent has boundaries on what it can/cannot do
+
+---
 
 ## Files
 
-- Agent definitions: `.claude/agents/<agent-id>.md`
-- Skills (slash commands): `.claude/skills/`
-- Knowledge base: `.claude/knowledge/`
-- Web resources reference: `.claude/knowledge/web-resources.md`
-- Persistent memory: `.claude/agents/memory/directives.md`
+- **Core agents**: `.claude/agents/<agent-id>.md`
+- **Coordinators**: `.claude/agents/coordinators/<team-lead>.md`
+- **Specialists**: `.claude/agents/specialists/<specialist>.md`
+- **Legacy agents** (reference only): `.claude/agents/legacy/`
+- **Skills** (slash commands): `.claude/skills/`
+- **Knowledge base**: `.claude/knowledge/`
+- **Pattern files**: `.claude/knowledge/patterns/`
+- **Project context**: `.claude/knowledge/project/project-context.md`
+
+---
+
+**To get started, run `/init` to generate your custom agent team!**

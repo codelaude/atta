@@ -1,0 +1,615 @@
+# Tool Detection Rules
+# Linters, formatters, CI/CD, containerization, and dev tools
+
+# Linters
+linters:
+  # ESLint
+  - name: ESLint
+    identifier: eslint
+    detection:
+      package_json:
+        dev_dependencies:
+          - eslint
+      config_files:
+        - .eslintrc
+        - .eslintrc.js
+        - .eslintrc.json
+        - .eslintrc.yml
+        - eslint.config.js
+    metadata:
+      type: linter
+      language: javascript
+
+  # Prettier
+  - name: Prettier
+    identifier: prettier
+    detection:
+      package_json:
+        dev_dependencies:
+          - prettier
+      config_files:
+        - .prettierrc
+        - .prettierrc.js
+        - .prettierrc.json
+        - prettier.config.js
+    metadata:
+      type: formatter
+      language: javascript
+
+  # Pylint
+  - name: Pylint
+    identifier: pylint
+    detection:
+      files:
+        - requirements.txt
+        - pyproject.toml
+      content_match:
+        requirements.txt: "pylint"
+        pyproject.toml: "pylint"
+      config_files:
+        - .pylintrc
+        - pylint.rc
+    metadata:
+      type: linter
+      language: python
+
+  # Black
+  - name: Black
+    identifier: black
+    detection:
+      files:
+        - requirements.txt
+        - pyproject.toml
+      content_match:
+        requirements.txt: "black"
+        pyproject.toml: "black"
+    metadata:
+      type: formatter
+      language: python
+
+  # Flake8
+  - name: Flake8
+    identifier: flake8
+    detection:
+      files:
+        - requirements.txt
+        - pyproject.toml
+      content_match:
+        requirements.txt: "flake8"
+        pyproject.toml: "flake8"
+      config_files:
+        - .flake8
+        - setup.cfg
+        - tox.ini
+    metadata:
+      type: linter
+      language: python
+
+  # mypy (Python type checker)
+  - name: mypy
+    identifier: mypy
+    detection:
+      files:
+        - requirements.txt
+        - pyproject.toml
+      content_match:
+        requirements.txt: "mypy"
+        pyproject.toml: "mypy"
+      config_files:
+        - mypy.ini
+    metadata:
+      type: type_checker
+      language: python
+
+  # Ruff (Python linter)
+  - name: Ruff
+    identifier: ruff
+    detection:
+      files:
+        - requirements.txt
+        - pyproject.toml
+      content_match:
+        requirements.txt: "ruff"
+        pyproject.toml: "ruff"
+    metadata:
+      type: linter
+      language: python
+
+  # Clippy (Rust linter)
+  - name: Clippy
+    identifier: clippy
+    detection:
+      files:
+        - Cargo.toml
+      command: "cargo clippy --version"
+    metadata:
+      type: linter
+      language: rust
+
+  # rustfmt (Rust formatter)
+  - name: rustfmt
+    identifier: rustfmt
+    detection:
+      files:
+        - Cargo.toml
+      config_files:
+        - rustfmt.toml
+        - .rustfmt.toml
+    metadata:
+      type: formatter
+      language: rust
+
+  # golangci-lint (Go linter)
+  - name: golangci-lint
+    identifier: golangci-lint
+    detection:
+      files:
+        - go.mod
+      config_files:
+        - .golangci.yml
+        - .golangci.yaml
+    metadata:
+      type: linter
+      language: go
+
+  # gofmt (Go formatter)
+  - name: gofmt
+    identifier: gofmt
+    detection:
+      files:
+        - go.mod
+    metadata:
+      type: formatter
+      language: go
+
+  # RuboCop (Ruby linter)
+  - name: RuboCop
+    identifier: rubocop
+    detection:
+      files:
+        - Gemfile
+      content_match:
+        Gemfile: "rubocop"
+      config_files:
+        - .rubocop.yml
+    metadata:
+      type: linter
+      language: ruby
+
+  # PHP CS Fixer
+  - name: PHP CS Fixer
+    identifier: php-cs-fixer
+    detection:
+      files:
+        - composer.json
+      content_match:
+        composer.json: "php-cs-fixer"
+      config_files:
+        - .php-cs-fixer.php
+    metadata:
+      type: formatter
+      language: php
+
+  # Checkstyle (Java)
+  - name: Checkstyle
+    identifier: checkstyle
+    detection:
+      files:
+        - pom.xml
+        - build.gradle
+      content_match:
+        pom.xml: "checkstyle"
+        build.gradle: "checkstyle"
+      config_files:
+        - checkstyle.xml
+    metadata:
+      type: linter
+      language: java
+
+# CI/CD
+cicd:
+  # GitHub Actions
+  - name: GitHub Actions
+    identifier: github-actions
+    detection:
+      directory_exists:
+        - .github/workflows
+      file_patterns:
+        - ".github/workflows/*.yml"
+        - ".github/workflows/*.yaml"
+    metadata:
+      type: ci_cd
+      platform: github
+
+  # GitLab CI
+  - name: GitLab CI
+    identifier: gitlab-ci
+    detection:
+      files:
+        - .gitlab-ci.yml
+    metadata:
+      type: ci_cd
+      platform: gitlab
+
+  # CircleCI
+  - name: CircleCI
+    identifier: circleci
+    detection:
+      directory_exists:
+        - .circleci
+      files:
+        - .circleci/config.yml
+    metadata:
+      type: ci_cd
+      platform: circleci
+
+  # Jenkins
+  - name: Jenkins
+    identifier: jenkins
+    detection:
+      files:
+        - Jenkinsfile
+    metadata:
+      type: ci_cd
+      platform: jenkins
+
+  # Travis CI
+  - name: Travis CI
+    identifier: travis
+    detection:
+      files:
+        - .travis.yml
+    metadata:
+      type: ci_cd
+      platform: travis
+
+  # Azure Pipelines
+  - name: Azure Pipelines
+    identifier: azure-pipelines
+    detection:
+      files:
+        - azure-pipelines.yml
+    metadata:
+      type: ci_cd
+      platform: azure
+
+# Containerization
+containers:
+  # Docker
+  - name: Docker
+    identifier: docker
+    detection:
+      files:
+        - Dockerfile
+        - docker-compose.yml
+        - docker-compose.yaml
+        - .dockerignore
+    metadata:
+      type: containerization
+      platform: docker
+
+  # Kubernetes
+  - name: Kubernetes
+    identifier: kubernetes
+    detection:
+      directory_exists:
+        - k8s
+        - kubernetes
+      file_patterns:
+        - "**/*-deployment.yaml"
+        - "**/*-service.yaml"
+        - "**/kustomization.yaml"
+    metadata:
+      type: orchestration
+      platform: kubernetes
+
+  # Helm
+  - name: Helm
+    identifier: helm
+    detection:
+      files:
+        - Chart.yaml
+        - values.yaml
+      directory_exists:
+        - charts
+    metadata:
+      type: package_manager
+      platform: kubernetes
+
+# Package Managers (supplementary to language detection)
+package_managers:
+  # npm
+  - name: npm
+    identifier: npm
+    detection:
+      files:
+        - package.json
+        - package-lock.json
+    metadata:
+      type: package_manager
+      language: nodejs
+
+  # Yarn
+  - name: Yarn
+    identifier: yarn
+    detection:
+      files:
+        - yarn.lock
+    metadata:
+      type: package_manager
+      language: nodejs
+
+  # pnpm
+  - name: pnpm
+    identifier: pnpm
+    detection:
+      files:
+        - pnpm-lock.yaml
+    metadata:
+      type: package_manager
+      language: nodejs
+
+  # Bun
+  - name: Bun
+    identifier: bun
+    detection:
+      files:
+        - bun.lockb
+    metadata:
+      type: package_manager
+      language: nodejs
+
+  # pip
+  - name: pip
+    identifier: pip
+    detection:
+      files:
+        - requirements.txt
+    metadata:
+      type: package_manager
+      language: python
+
+  # Poetry
+  - name: Poetry
+    identifier: poetry
+    detection:
+      files:
+        - poetry.lock
+        - pyproject.toml
+      content_match:
+        pyproject.toml: "[tool.poetry]"
+    metadata:
+      type: package_manager
+      language: python
+
+  # Pipenv
+  - name: Pipenv
+    identifier: pipenv
+    detection:
+      files:
+        - Pipfile
+        - Pipfile.lock
+    metadata:
+      type: package_manager
+      language: python
+
+  # Cargo
+  - name: Cargo
+    identifier: cargo
+    detection:
+      files:
+        - Cargo.toml
+        - Cargo.lock
+    metadata:
+      type: package_manager
+      language: rust
+
+  # Maven
+  - name: Maven
+    identifier: maven
+    detection:
+      files:
+        - pom.xml
+    metadata:
+      type: package_manager
+      language: java
+
+  # Gradle
+  - name: Gradle
+    identifier: gradle
+    detection:
+      files:
+        - build.gradle
+        - build.gradle.kts
+        - settings.gradle
+    metadata:
+      type: package_manager
+      language: java
+
+  # Bundler
+  - name: Bundler
+    identifier: bundler
+    detection:
+      files:
+        - Gemfile
+        - Gemfile.lock
+    metadata:
+      type: package_manager
+      language: ruby
+
+  # Composer
+  - name: Composer
+    identifier: composer
+    detection:
+      files:
+        - composer.json
+        - composer.lock
+    metadata:
+      type: package_manager
+      language: php
+
+  # NuGet
+  - name: NuGet
+    identifier: nuget
+    detection:
+      files:
+        - "*.csproj"
+        - packages.config
+    metadata:
+      type: package_manager
+      language: csharp
+
+# Monorepo Tools
+monorepo:
+  # Nx
+  - name: Nx
+    identifier: nx
+    detection:
+      files:
+        - nx.json
+      package_json:
+        dev_dependencies:
+          - nx
+    metadata:
+      type: monorepo_tool
+
+  # Lerna
+  - name: Lerna
+    identifier: lerna
+    detection:
+      files:
+        - lerna.json
+      package_json:
+        dev_dependencies:
+          - lerna
+    metadata:
+      type: monorepo_tool
+
+  # Turborepo
+  - name: Turborepo
+    identifier: turborepo
+    detection:
+      files:
+        - turbo.json
+      package_json:
+        dev_dependencies:
+          - turbo
+    metadata:
+      type: monorepo_tool
+
+# Version Control
+vcs:
+  # Git
+  - name: Git
+    identifier: git
+    detection:
+      directory_exists:
+        - .git
+      files:
+        - .gitignore
+        - .gitattributes
+    metadata:
+      type: version_control
+
+  # Git Hooks
+  - name: Husky
+    identifier: husky
+    detection:
+      package_json:
+        dev_dependencies:
+          - husky
+      directory_exists:
+        - .husky
+    metadata:
+      type: git_hooks
+
+  # Pre-commit (Python)
+  - name: pre-commit
+    identifier: pre-commit
+    detection:
+      files:
+        - .pre-commit-config.yaml
+    metadata:
+      type: git_hooks
+
+# Environment Management
+environment:
+  # dotenv
+  - name: dotenv
+    identifier: dotenv
+    detection:
+      files:
+        - .env
+        - .env.example
+        - .env.local
+      package_json:
+        dependencies:
+          - dotenv
+    metadata:
+      type: environment
+
+  # direnv
+  - name: direnv
+    identifier: direnv
+    detection:
+      files:
+        - .envrc
+    metadata:
+      type: environment
+
+# Documentation
+documentation:
+  # Storybook
+  - name: Storybook
+    identifier: storybook
+    detection:
+      package_json:
+        dev_dependencies:
+          - "@storybook/react"
+          - "@storybook/vue"
+          - "@storybook/vue3"
+      directory_exists:
+        - .storybook
+    metadata:
+      type: documentation
+      component_library: true
+
+  # Docusaurus
+  - name: Docusaurus
+    identifier: docusaurus
+    detection:
+      package_json:
+        dependencies:
+          - "@docusaurus/core"
+      files:
+        - docusaurus.config.js
+    metadata:
+      type: documentation
+      static_site: true
+
+  # VitePress
+  - name: VitePress
+    identifier: vitepress
+    detection:
+      package_json:
+        dev_dependencies:
+          - vitepress
+    metadata:
+      type: documentation
+      static_site: true
+
+  # Sphinx (Python)
+  - name: Sphinx
+    identifier: sphinx
+    detection:
+      files:
+        - requirements.txt
+        - pyproject.toml
+      content_match:
+        requirements.txt: "sphinx"
+        pyproject.toml: "sphinx"
+      config_files:
+        - conf.py
+    metadata:
+      type: documentation
+      language: python

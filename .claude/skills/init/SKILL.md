@@ -1,313 +1,647 @@
 ---
 name: init
-description: Interactive project setup that detects tech stack, asks clarifying questions, and generates tailored knowledge files and agent configuration. Run this when starting with a new project.
+description: Interactive project setup with dynamic agent generation. Detects tech stack, generates specialized agents, creates pattern files, and configures MCP servers based on your project's needs.
 ---
 
-You are now running **project initialization** — an interactive setup that configures the agent system for this specific project.
+You are now running **project initialization** — an interactive setup that uses the adaptive bootstrap system to configure agents tailored to your project.
 
 ## How to Use
 
 ```
 /init                    # Full interactive setup
-/init --rescan           # Re-detect tech stack and update files (skip questions already answered)
+/init --rescan           # Re-detect tech stack and regenerate (skip questions)
 ```
 
 ---
 
-## What This Skill Does
+## What This Skill Does (Bootstrap v2.0)
 
-1. **Ask** the user key questions about the project
-2. **Detect** the tech stack from config files
-3. **Reconcile** detected info with user answers
-4. **Generate** tailored knowledge files, pattern files, and agent configuration
-5. **Report** what was set up
+1. **Ask** key questions about your project
+2. **Detect** tech stack from config files using bootstrap detection rules
+3. **Generate** specialized agents dynamically from templates
+4. **Configure** MCP servers based on detected stack
+5. **Create** pattern files with best practices
+6. **Generate** routing table (INDEX.md)
+7. **Report** what was created
+
+**NEW in v2.0:** Agents are now generated dynamically! This system adapts to ANY tech stack.
+
+---
+
+## Bootstrap System Integration
+
+Before starting, note that this skill uses:
+- **Detection rules**: `.claude/bootstrap/detection/*.yaml` (100+ tech detectors)
+- **Agent templates**: `.claude/bootstrap/templates/agents/*.template.md` (8 templates)
+- **Pattern templates**: `.claude/bootstrap/templates/patterns/*.template.md`
+- **Mappings**: `.claude/bootstrap/mappings/*.yaml` (tech → templates)
+- **Generator logic**: `.claude/bootstrap/generator.md` (how to generate)
+
+Read these files to understand detection and generation logic.
 
 ---
 
 ## Phase 1: User Interview
 
-Before scanning anything, ask these questions using AskUserQuestion. Group related questions together (max 4 per call).
+Ask questions using AskUserQuestion. Group related questions (max 4 per call).
 
 ### Round 1: Project Basics
+
+Use AskUserQuestion with these 3 questions:
 
 **Question 1 — Project root**
 > "Is the current directory the project root, or is the source code in a subdirectory?"
 - Options: "Current directory is root", "Source is in a subdirectory", "This is a monorepo"
-- _Why:_ Many projects have the actual code nested (e.g., `ui.frontend/`, `packages/app/`, `src/`)
+- header: "Project root"
 
 **Question 2 — Project scope**
 > "What does this project include?"
 - Options: "Frontend only", "Frontend + Backend", "Backend only", "Full-stack monorepo"
-- _Why:_ Determines which agents to activate and how to configure backend-consultant
+- header: "Project scope"
 
 **Question 3 — Your role**
 > "What's your primary role on this project?"
 - Options: "Frontend developer", "Backend developer", "Full-stack developer", "Tech lead"
-- _Why:_ Adjusts agent hierarchy and which specialists are prioritized
+- header: "Your role"
 
-### Round 2: Commands & Paths (based on Round 1 answers)
+### Round 2: Commands & Paths
+
+Based on Round 1 answers, ask conditionally:
 
 **If subdirectory or monorepo:**
-> "Where should npm/build commands be run from? (relative to project root)"
-- Free text input expected
-- _Why:_ Critical for `/preflight`, `/lint`, test execution
+> "Where should build commands be run from? (relative to project root)"
+- Free text input
 
-**If Frontend + Backend or Full-stack:**
+**If Frontend + Backend or Backend only:**
 > "What backend technology does this project use?"
-- Options: "Java (Maven/Gradle)", "Node.js (Express/Fastify/Nest)", "Python (Django/Flask/FastAPI)", "Other"
-- _Why:_ Configures the backend-consultant agent with the right domain knowledge
+- Options: "Python (Django/Flask/FastAPI)", "Java (Spring Boot/Maven/Gradle)", "Node.js (Express/Fastify/NestJS)", "Go (Gin/Fiber/Echo)", "Rust", "Ruby (Rails)", "Other"
 
 **If Frontend + Backend:**
 > "Where is the backend code relative to project root?"
-- Free text input expected
+- Free text input
 
 ### Round 3: Workflow Preferences
 
 **Question — Git workflow**
 > "What's your branching strategy?"
 - Options: "Feature branches off main", "Feature branches off develop", "Trunk-based (main only)", "Other"
-- _Why:_ Configures `/review` and `/preflight` git diff base branch
 
-**Question — Command runner**
+**Question — Package manager** (if Node.js project)
 > "How do you run commands?"
 - Options: "npm", "yarn", "pnpm", "bun"
-- _Why:_ All generated scripts and commands use the right runner
+
+### Round 4: MCP Configuration (NEW in v2.0)
+
+After detecting the tech stack (Phase 2), ask about MCP servers:
+
+> "Model Context Protocol (MCP) servers can extend agent capabilities. Based on your project, I recommend:"
+
+Build recommendations by reading `.claude/bootstrap/mappings/mcp-mappings.yaml` and checking detected stack.
+
+Present up to 3 high-priority recommendations:
+
+```markdown
+**Recommended MCP Servers:**
+
+✨ **Documentation MCP** (High Priority)
+   - Why: [Framework] detected - provides live API references
+   - Access: [framework specialist], [language specialist], [team lead]
+   - Setup: Automatic (configure sources based on detected frameworks)
+
+💾 **Database MCP** (High Priority)
+   - Why: [Database] detected - can inspect schemas and validate queries
+   - Access: [database specialist], be-team-lead
+   - ⚠️  Requires: Database connection string (read-only mode)
+   - Security: Read-only access, no data modifications
+
+🌐 **Browser MCP** (Medium Priority)
+   - Why: Frontend project - helps with E2E testing and accessibility validation
+   - Access: accessibility, tester, fe-team-lead
+
+Would you like to configure MCP servers?
+```
+
+Use AskUserQuestion with multiSelect enabled:
+- Documentation MCP
+- Database MCP
+- Browser MCP
+- Filesystem MCP (if monorepo)
+- None - skip MCP configuration
+
+For each selected MCP, gather required config (connection strings, etc.)
 
 ---
 
 ## Phase 2: Auto-Detection
 
-After the interview, scan the project automatically. Use the paths the user confirmed.
+**Read bootstrap detection files** to understand what to detect:
+- `.claude/bootstrap/detection/frontend-detectors.yaml`
+- `.claude/bootstrap/detection/backend-detectors.yaml`
+- `.claude/bootstrap/detection/database-detectors.yaml`
+- `.claude/bootstrap/detection/tool-detectors.yaml`
 
-### Detect Tech Stack
+Scan the project following the detection rules.
 
-Scan config files at the confirmed project root (and subdirectories if specified):
+### Detection Strategy
 
-#### Package & Runtime
-| File | Detects |
-|------|---------|
-| `package.json` | Dependencies, scripts, browserslist |
-| `yarn.lock` / `pnpm-lock.yaml` / `bun.lockb` | Package manager confirmation |
-| `.nvmrc` / `.node-version` | Node version |
+1. **Read package.json** (if exists):
+   - Check dependencies and devDependencies against detection rules
+   - Extract versions for detected packages
+   - Note scripts (test, build, lint commands)
 
-#### Frontend Framework
-| Dependency | Detects |
-|------------|---------|
-| `vue` | Vue.js (check v2 vs v3) |
-| `react` / `react-dom` | React |
-| `@angular/core` | Angular |
-| `svelte` | Svelte |
-| `next` | Next.js |
-| `nuxt` | Nuxt |
-| `astro` | Astro |
+2. **Scan for config files**:
+   - Look for framework configs (vite.config, tsconfig.json, etc.)
+   - Look for backend configs (pom.xml, go.mod, requirements.txt, etc.)
+   - Look for database indicators
 
-#### Language & Types
-| File | Detects |
-|------|---------|
-| `tsconfig.json` | TypeScript (strict mode, target, paths) |
-| `jsconfig.json` | JavaScript with aliases |
+3. **Check file patterns**:
+   - Search for *.ts, *.tsx → TypeScript
+   - Search for *.py → Python
+   - Search for *.java → Java
+   - Search for *.go → Go
+   - Etc.
 
-#### Styling
-| Indicator | Detects |
-|-----------|---------|
-| `sass` / `dart-sass` in devDeps | SCSS |
-| `tailwindcss` in devDeps | Tailwind |
-| `styled-components` in deps | CSS-in-JS |
-| `@emotion/react` in deps | Emotion |
+4. **Sample source files** (up to 10):
+   - Detect naming conventions
+   - Detect component patterns (Composition API vs Options API, hooks vs class, etc.)
+   - Detect import patterns
+   - Detect styling approach
 
-#### Testing
-| Indicator | Detects |
-|-----------|---------|
-| `jest` in devDeps | Jest |
-| `vitest` in devDeps | Vitest |
-| `@testing-library/*` in devDeps | Testing Library |
-| `cypress` in devDeps | Cypress |
-| `playwright` in devDeps | Playwright |
+### Build Detection Manifest
 
-#### State Management
-| Dependency | Detects |
-|------------|---------|
-| `pinia` | Pinia |
-| `vuex` | Vuex |
-| `redux` / `@reduxjs/toolkit` | Redux |
-| `zustand` | Zustand |
+Create a structured detection result:
 
-#### Build Tools
-| File | Detects |
-|------|---------|
-| `vite.config.*` | Vite |
-| `webpack.config.*` | Webpack |
-| `next.config.*` | Next.js built-in |
-| `turbo.json` | Turborepo |
-
-#### Backend (if user indicated FE+BE)
-| File | Detects |
-|------|---------|
-| `pom.xml` | Java / Maven |
-| `build.gradle` | Java / Gradle |
-| `requirements.txt` / `pyproject.toml` | Python |
-| `go.mod` | Go |
-| `Cargo.toml` | Rust |
-| `Gemfile` | Ruby |
-| `composer.json` | PHP |
-
-### Detect Conventions
-
-Sample up to 10 source files to detect:
-- Naming conventions (files, components, variables)
-- Component patterns (Composition vs Options API, functional vs class)
-- Import patterns (relative vs absolute, barrel exports)
-- Styling approach (BEM, CSS Modules, utility classes)
-- Test file location and naming
+```javascript
+{
+  "frontend": {
+    "framework": { "name": "Vue.js", "id": "vue", "version": "3.2.0" },
+    "language": { "name": "TypeScript", "id": "typescript", "version": "5.3.3" },
+    "styling": { "name": "SCSS", "id": "scss" },
+    "testing": { "name": "Jest", "id": "jest" },
+    "build_tool": { "name": "Vite", "id": "vite" }
+  },
+  "backend": {
+    "language": { "name": "Python", "id": "python", "version": "3.11" },
+    "framework": { "name": "Django", "id": "django", "version": "5.0" },
+    "database": { "name": "PostgreSQL", "id": "postgresql" }
+  },
+  "detected_stack": ["vue", "typescript", "scss", "jest", "python", "django", "postgresql"]
+}
+```
 
 ---
 
 ## Phase 3: Reconcile & Confirm
 
-Present the detected stack to the user for confirmation:
+Present detection results to user for confirmation:
 
 ```markdown
-## Detected Configuration
+## 🔍 Detected Configuration
 
-**Project root**: /path/to/project
-**Command directory**: /path/to/project/ui.frontend
-**Package manager**: npm
+**Project root**: [path]
+**Bootstrap system**: v2.0 (adaptive agent generation)
 
-### Frontend
-- Framework: Vue 3.x
-- Language: TypeScript (strict)
-- Styling: SCSS (Dart Sass)
-- Testing: Jest + Vue Test Utils
-- State: Pinia
-- Build: Vite
+### Frontend Stack
+{{#if HAS_FRONTEND}}
+- **Framework**: {{FRONTEND_FRAMEWORK}} {{VERSION}}
+- **Language**: {{LANGUAGE}}
+- **Styling**: {{STYLING}}
+- **Testing**: {{TESTING_FRAMEWORK}}
+- **Build**: {{BUILD_TOOL}}
+{{#if STATE_MANAGEMENT}}
+- **State**: {{STATE_MANAGEMENT}}
+{{/if}}
+{{else}}
+No frontend framework detected
+{{/if}}
 
-### Backend
-- Technology: Java (Maven)
-- Path: /path/to/project/core
+### Backend Stack
+{{#if HAS_BACKEND}}
+- **Language**: {{BACKEND_LANGUAGE}} {{VERSION}}
+- **Framework**: {{BACKEND_FRAMEWORK}}
+- **Database**: {{DATABASE}}
+- **ORM**: {{ORM}} (if detected)
+{{else}}
+No backend framework detected
+{{/if}}
 
-### Agents to activate
-- **FE team**: fe-team-lead, vue, scss, typescript, accessibility, tester, code-reviewer
-- **BE team**: backend-consultant (team lead mode — Java/Maven)
-- **Cross-cutting**: project-owner, librarian, rubber-duck, qa-validator, business-analyst, pr-manager
+### Agents to Generate
 
-Does this look correct? Any adjustments?
+**Core agents** (always present):
+- project-owner, librarian, rubber-duck, code-reviewer, business-analyst, qa-validator, pr-manager
+
+{{#if HAS_FRONTEND}}
+**Frontend team**:
+- fe-team-lead (coordinator)
+- {{FRONTEND_FRAMEWORK}} specialist (from template)
+{{#if HAS_LANGUAGE}}
+- {{LANGUAGE}} specialist
+{{/if}}
+{{#if HAS_STYLING}}
+- {{STYLING}} specialist
+{{/if}}
+- accessibility specialist
+{{#if HAS_TESTING}}
+- {{TESTING_FRAMEWORK}} specialist
+{{/if}}
+{{/if}}
+
+{{#if HAS_BACKEND}}
+**Backend team**:
+- be-team-lead (coordinator)
+- {{BACKEND_LANGUAGE}} specialist
+- {{BACKEND_FRAMEWORK}} specialist
+{{#if HAS_DATABASE}}
+- {{DATABASE}} specialist
+{{/if}}
+{{/if}}
+
+### MCP Servers
+{{#if MCP_SELECTED}}
+{{#each MCP_SERVERS}}
+- {{name}}: {{status}}
+{{/each}}
+{{else}}
+None configured (can add later)
+{{/if}}
+
+**Total agents to generate**: {{AGENT_COUNT}}
+
+Does this look correct? Any adjustments needed?
 ```
 
-Wait for user confirmation before writing files.
+Wait for user confirmation. If user wants changes, loop back to questions.
 
 ---
 
-## Phase 4: Generate Files
+## Phase 4: Generate Agents (NEW - Bootstrap System)
 
-### Always write:
+Now use the bootstrap system to generate agents dynamically!
 
-**`.claude/knowledge/project/project-context.md`**
-```markdown
-# Project Context
+### Step 1: Load Agent Mappings
 
-## Tech Stack
-- **Frontend**: [Framework] [Version]
-- **Language**: [TypeScript/JavaScript]
-- **Styling**: [Approach]
-- **Testing**: [Framework]
-- **State Management**: [Library]
-- **Build Tool**: [Tool]
-- **Backend**: [Technology] (or "N/A — frontend only")
-- **Node**: [version]
-- **Package Manager**: [npm/yarn/pnpm/bun]
+Read `.claude/bootstrap/mappings/agent-mappings.yaml` to determine which agents to generate based on detected stack.
 
-## Project Structure
-[Directory tree, top 3 levels]
-
-## Key Paths
-- **Project root**: [path]
-- **Command directory** (run npm/yarn here): [path]
-- **Source**: [path]
-- **Components**: [path]
-- **Tests**: [path]
-- **Styles**: [path]
-- **Backend source**: [path] (if applicable)
-
-## Build Commands
-- **Dev**: [command]
-- **Build**: [command]
-- **Test**: [command]
-- **Lint**: [command]
-
-## Git Workflow
-- **Base branch**: [main/develop]
-- **Branch pattern**: [feature/*, bugfix/*]
-
-## Conventions
-- [Detected conventions list]
+For each detected technology, find its mapping:
+```yaml
+# Example: Vue detected
+vue:
+  template: framework-specialist.template.md
+  output: agents/specialists/vue.md
+  variables:
+    FRAMEWORK_NAME: "Vue.js"
+    FRAMEWORK_ID: "vue"
+    ...
+  rules: [...]
+  anti_patterns: [...]
 ```
 
-### Conditionally write pattern files:
+### Step 2: Generate Coordinators
 
-| Detected | File Created |
-|----------|-------------|
-| Vue 3 | `patterns/vue-patterns.md` |
-| Vue 2 | `patterns/vue-patterns.md` (Options API focus) |
-| React | `patterns/react-patterns.md` |
-| Angular | `patterns/angular-patterns.md` |
-| TypeScript | `patterns/typescript-patterns.md` |
-| SCSS | `patterns/scss-patterns.md` |
-| Tailwind | `patterns/tailwind-patterns.md` |
-| Jest / Vitest | `patterns/testing-patterns.md` |
-| i18n library | `patterns/i18n-patterns.md` |
-| Java backend | `patterns/java-patterns.md` |
-| Python backend | `patterns/python-patterns.md` |
-| Node backend | `patterns/node-backend-patterns.md` |
+**If has_frontend:**
+1. Read template: `.claude/bootstrap/templates/agents/fe-team-lead.template.md`
+2. Substitute variables:
+   - FRONTEND_FRAMEWORK
+   - FRONTEND_SPECIALISTS (list of detected frontend agents)
+   - PATTERN_FILES (list of pattern files to reference)
+   - MCP_SERVERS (if configured)
+3. Write to: `.claude/agents/coordinators/fe-team-lead.md`
 
-Each pattern file should contain:
-- Key rules detected from existing code
-- Anti-patterns relevant to the technology
-- Conventions found in the codebase
-- References to official documentation
+**If has_backend:**
+1. Read template: `.claude/bootstrap/templates/agents/be-team-lead.template.md`
+2. Substitute variables:
+   - BACKEND_LANGUAGE
+   - BACKEND_FRAMEWORK
+   - BACKEND_SPECIALISTS
+   - DATABASE
+   - MCP_SERVERS
+3. Write to: `.claude/agents/coordinators/be-team-lead.md`
 
-### Configure backend-consultant mode:
+### Step 3: Generate Specialists
 
-**If project is FE only:**
-- backend-consultant operates in **advisory mode**: read-only, general API/integration guidance, no delegation
-- Simplify project-owner routing (no BE routing needed)
+For each detected technology in the stack:
 
-**If project is FE + BE:**
-- backend-consultant operates in **team lead mode**: mirrors fe-team-lead behavior for the backend domain
-- Can delegate to BE-specific patterns and coordinate with fe-team-lead on cross-cutting concerns
-- Write backend-specific pattern files
-- project-owner routes BE tasks to backend-consultant just like FE tasks to fe-team-lead
+1. **Load template** based on mapping:
+   - Framework → `framework-specialist.template.md`
+   - Language → `language-specialist.template.md`
+   - Database → `database-specialist.template.md`
+   - etc.
 
-**Update `.claude/agents/INDEX.md`** routing table to reflect the actual project scope.
+2. **Prepare variables** from mapping + detection:
+   ```javascript
+   {
+     FRAMEWORK_NAME: "Vue.js",
+     FRAMEWORK_ID: "vue",
+     FRAMEWORK_VERSION: "3.2.0",
+     TEAM_LEAD: "fe-team-lead",
+     RULES: [...rules from mapping...],
+     ANTI_PATTERNS: [...anti-patterns from mapping...],
+     DOCUMENTATION_URLS: ["https://vuejs.org/api/"],
+     HAS_MCP_ACCESS: user_configured_doc_mcp,
+     MCP_SERVERS: [...]
+   }
+   ```
+
+3. **Perform template substitution**:
+   - Replace `{{VARIABLE}}` with values
+   - Process `{{#if CONDITION}}...{{/if}}`
+   - Process `{{#each ARRAY}}...{{/each}}`
+   - Build anti-pattern tables
+   - Build delegation sections
+
+4. **Write generated agent**:
+   - Output path from mapping (e.g., `agents/specialists/vue.md`)
+   - Add header comment: `<!-- Auto-generated by /init v2.0 -->`
+
+5. **Track in manifest**:
+   - Add to `.metadata/generated-manifest.json`
+
+### Step 4: Generate Pattern Files
+
+For each detected technology with a pattern template:
+
+1. Check if pattern template exists:
+   - `.claude/bootstrap/templates/patterns/python-patterns.template.md`
+   - `.claude/bootstrap/templates/patterns/django-patterns.template.md`
+   - etc.
+
+2. Load template and substitute variables:
+   - PROJECT_NAME
+   - VERSION
+   - GENERATED_DATE
+   - Conditional sections based on detection
+
+3. Write to `.claude/knowledge/patterns/{tech}-patterns.md`
+
+4. Track in manifest
 
 ---
 
-## Phase 5: Report
+## Phase 5: Generate INDEX.md (NEW)
+
+Dynamically generate the routing table based on generated agents.
+
+### Build Agent Registry Table
 
 ```markdown
-## Init Complete
+| Agent | ID | Aliases | Role | Reports To |
+|-------|-----|---------|------|------------|
+| Project Owner | `project-owner` | `orchestrator` | Routes tasks | User |
+{{#if HAS_FRONTEND}}
+| FE Team Lead | `fe-team-lead` | `lead` | FE Coordinator | Project Owner |
+{{#each FRONTEND_SPECIALISTS}}
+| {{name}} | `{{id}}` | - | {{role}} | FE Team Lead |
+{{/each}}
+{{/if}}
+{{#if HAS_BACKEND}}
+| BE Team Lead | `be-team-lead` | - | BE Coordinator | Project Owner |
+{{#each BACKEND_SPECIALISTS}}
+| {{name}} | `{{id}}` | - | {{role}} | BE Team Lead |
+{{/each}}
+{{/if}}
+| Code Reviewer | `code-reviewer` | `reviewer` | Quality review | Team Leads |
+| ... | ... | ... | ... | ... |
+```
+
+### Build Hierarchy Visualization
+
+```
+Project Owner (orchestrator)
+{{#if HAS_FRONTEND}}
+├── FE Team Lead (coordinator)
+{{#each FRONTEND_SPECIALISTS}}
+│   ├── {{id}} ({{role}})
+{{/each}}
+{{/if}}
+{{#if HAS_BACKEND}}
+├── BE Team Lead (coordinator)
+{{#each BACKEND_SPECIALISTS}}
+│   ├── {{id}} ({{role}})
+{{/each}}
+{{/if}}
+├── Code Reviewer (cross-domain)
+├── QA Validator (qa)
+├── Business Analyst (ba)
+├── PR Manager (pr)
+├── Rubber Duck (guided learning)
+└── Librarian (knowledge keeper)
+```
+
+### Build Routing Rules
+
+Auto-generate routing based on specialists:
+
+```markdown
+| Task Pattern | Route To |
+|-------------|----------|
+{{#if HAS_FRONTEND}}
+| New {{FRAMEWORK}} component | fe-team-lead → {{FRAMEWORK}} |
+| Styling / {{STYLING}} | fe-team-lead → {{STYLING}} |
+| Accessibility / WCAG | fe-team-lead → accessibility |
+{{/if}}
+{{#if HAS_BACKEND}}
+| {{BACKEND_FRAMEWORK}} API endpoint | be-team-lead → {{BACKEND_FRAMEWORK}} |
+| {{DATABASE}} query / schema | be-team-lead → {{DATABASE}} |
+{{/if}}
+| Code review | code-reviewer |
+| Requirements | business-analyst |
+| "Remember to..." | librarian |
+```
+
+### Write INDEX.md
+
+Write to `.claude/agents/INDEX.md` with:
+- Auto-generated header comment
+- Registry table
+- Hierarchy
+- Routing rules
+- Timestamp
+
+---
+
+## Phase 6: Configure MCP Servers (NEW)
+
+If user selected MCP servers, generate configuration:
+
+### Write MCP Config
+
+File: `.claude/knowledge/project/mcp-config.json`
+
+```json
+{
+  "version": "1.0",
+  "generated_at": "{{TIMESTAMP}}",
+  "servers": [
+    {{#if HAS_DOCUMENTATION_MCP}}
+    {
+      "id": "docs-mcp",
+      "name": "Documentation MCP",
+      "type": "documentation",
+      "enabled": true,
+      "access": [{{SPECIALIST_IDS_WITH_ACCESS}}],
+      "config": {
+        "sources": [
+          {{#each DOCUMENTATION_SOURCES}}
+          "{{this}}"
+          {{/each}}
+        ]
+      }
+    },
+    {{/if}}
+    {{#if HAS_DATABASE_MCP}}
+    {
+      "id": "db-mcp",
+      "name": "Database MCP",
+      "type": "database",
+      "enabled": true,
+      "access": ["{{DATABASE_SPECIALIST}}", "be-team-lead"],
+      "config": {
+        "connection": "{{DATABASE_CONNECTION_STRING}}",
+        "readonly": true
+      }
+    },
+    {{/if}}
+  ],
+  "global_access": ["librarian", "project-owner"]
+}
+```
+
+### Add MCP Sections to Generated Agents
+
+For agents with MCP access, ensure their generated content includes:
+
+```markdown
+## MCP Capabilities
+
+This agent has access to:
+- **{{MCP_NAME}}**: {{DESCRIPTION}}
+
+Use for:
+- {{USE_CASE_1}}
+- {{USE_CASE_2}}
+```
+
+---
+
+## Phase 7: Generate Manifest (NEW)
+
+Create tracking manifest for all generated files.
+
+File: `.claude/.metadata/generated-manifest.json`
+
+```json
+{
+  "version": "2.0",
+  "generated_at": "{{TIMESTAMP}}",
+  "project_root": "{{PROJECT_ROOT}}",
+  "detected_stack": ["vue", "typescript", "scss", "python", "django", "postgresql"],
+  "generated_files": {
+    "agents": [
+      {
+        "file": "agents/coordinators/fe-team-lead.md",
+        "template": "fe-team-lead.template.md",
+        "technology": "coordinator",
+        "timestamp": "{{TIMESTAMP}}"
+      },
+      {
+        "file": "agents/specialists/vue.md",
+        "template": "framework-specialist.template.md",
+        "technology": "vue",
+        "version": "3.2.0",
+        "timestamp": "{{TIMESTAMP}}"
+      },
+      ...
+    ],
+    "patterns": [
+      "knowledge/patterns/vue-patterns.md",
+      "knowledge/patterns/python-patterns.md",
+      ...
+    ],
+    "config": [
+      "knowledge/project/project-context.md",
+      "knowledge/project/mcp-config.json",
+      "agents/INDEX.md"
+    ]
+  },
+  "mcp_servers_configured": ["docs-mcp", "db-mcp"]
+}
+```
+
+Update `.metadata/last-init` with current timestamp.
+
+---
+
+## Phase 8: Report
+
+```markdown
+## ✅ Initialization Complete
+
+### 🎉 Bootstrap System v2.0
+
+Your project now has a **dynamically generated agent team** tailored to your tech stack!
 
 ### Files Created/Updated
+
+**Configuration:**
 - `.claude/knowledge/project/project-context.md`
-- `.claude/knowledge/patterns/[tech]-patterns.md` (one per detected tech)
-- `.claude/agents/INDEX.md` (routing updated)
+{{#if HAS_MCP}}
+- `.claude/knowledge/project/mcp-config.json`
+{{/if}}
+- `.claude/agents/INDEX.md` (dynamic routing)
+- `.claude/.metadata/generated-manifest.json`
 
-### Active Agents
-| Agent | Status | Mode |
-|-------|--------|------|
-| fe-team-lead | Active | Coordinating [list of FE specialists] |
-| backend-consultant | Active/Advisory | [Team lead mode / Advisory mode] |
-| project-owner | Active | Routing [FE / FE + BE] |
-| ... | ... | ... |
+**Pattern Files** ({{PATTERN_COUNT}}):
+{{#each PATTERN_FILES}}
+- `.claude/knowledge/patterns/{{this}}`
+{{/each}}
 
-### Quick Start
-- `/agent fe-team-lead` — Decompose a frontend task
+**Generated Agents** ({{AGENT_COUNT}}):
+
+**Coordinators:**
+{{#each COORDINATORS}}
+- `.claude/agents/coordinators/{{this}}.md`
+{{/each}}
+
+**Specialists:**
+{{#each SPECIALISTS}}
+- `.claude/agents/specialists/{{this}}.md`
+{{/each}}
+
+{{#if HAS_MCP}}
+### 🔌 MCP Servers Configured
+
+{{#each MCP_SERVERS}}
+- **{{name}}**: {{status}}
+  - Access: {{agents}}
+{{/each}}
+{{/if}}
+
+### 🤖 Active Agent Hierarchy
+
+\```
+{{HIERARCHY_VISUALIZATION}}
+\```
+
+### 🚀 Quick Start
+
+- `/agent {{PRIMARY_COORDINATOR}}` — Decompose a task
+- `/agent {{PRIMARY_SPECIALIST}}` — Get framework-specific guidance
 - `/agent rubber-duck` — Guided learning mode
-- `/review` — Review changed files
+- `/review` — Multi-agent code review
 - `/preflight` — Full pre-PR validation
 
-### Next Steps
-- Run `/init --rescan` anytime the tech stack changes
-- Use `/agent librarian` to capture project-specific rules
+### 📝 Next Steps
+
+- **Add patterns**: Use `/agent librarian` to capture project-specific rules
+- **Update stack**: Run `/init --rescan` when dependencies change
+- **Customize agents**: Edit generated agents in `agents/specialists/` (preserved on rescan)
+- **Add specialists**: Manually add to `agents/specialists/` for custom domains
+
+---
+
+**Bootstrap System**: Detected {{TECH_COUNT}} technologies, generated {{AGENT_COUNT}} agents from {{TEMPLATE_COUNT}} templates.
+
+_Your `.claude/` system is now adaptive! It will regenerate specialists as your tech stack evolves._
 ```
 
 ---
@@ -315,17 +649,40 @@ Each pattern file should contain:
 ## Rescan Mode (`--rescan`)
 
 When `--rescan` is used:
-- Skip the user interview (use previously stored answers from project-context.md)
-- Re-detect tech stack from config files
-- Update pattern files with new findings
-- Preserve manual edits (only update auto-generated sections)
-- Report what changed
+
+1. **Skip user interview** - Read previous answers from `project-context.md` and `mcp-config.json`
+2. **Re-run detection** - Scan project files again
+3. **Compare with manifest** - Check what was previously generated
+4. **Regenerate changed** - If new tech detected, generate new specialists
+5. **Preserve custom edits** - Don't overwrite manually edited sections (check for custom markers)
+6. **Update INDEX.md** - Regenerate routing with new specialists
+7. **Report changes** - Show what was added/updated/removed
 
 ---
 
 ## Related Skills
 
-- `/agent librarian` — Capture additional patterns and directives
-- `/agent fe-team-lead` — Decompose tasks using detected stack
-- `/review` — Review against generated patterns
+- `/agent librarian` — Capture project-specific patterns and directives
+- `/agent {{team-lead}}` — Decompose tasks using generated specialists
+- `/review` — Multi-agent code review with generated specialists
 - `/preflight` — Full pre-PR validation
+
+---
+
+## Troubleshooting
+
+**If generation fails:**
+1. Check `.claude/bootstrap/` files exist
+2. Verify detection rules in YAML files
+3. Check template syntax in `.template.md` files
+4. Review manifest for errors: `.metadata/generated-manifest.json`
+
+**To regenerate single agent:**
+Run `/init --rescan` - it will detect and regenerate as needed
+
+**To start fresh:**
+Delete `.metadata/generated-manifest.json` and run `/init`
+
+---
+
+_Bootstrap System v2.0 - Adaptive agent generation for any tech stack_

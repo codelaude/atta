@@ -300,10 +300,11 @@ Result:
 ### Pattern File Generation
 
 For each agent that has `pattern_file` specified:
-1. Check if pattern template exists: `bootstrap/templates/patterns/{tech}-patterns.template.md`
-2. If exists, load and substitute variables
-3. Write to `knowledge/patterns/{pattern_file}`
-4. Link agent to pattern file in Knowledge Base section
+1. Check if rich pattern template exists: `bootstrap/templates/patterns/{tech}-patterns.template.md`
+2. **If template exists**: load and substitute variables (full rich content)
+3. **If template does NOT exist**: generate a basic pattern file from the agent mapping's `rules` and `anti_patterns` arrays — this ensures every detected technology gets a pattern file
+4. Write to `knowledge/patterns/{pattern_file}`
+5. Link agent to pattern file in Knowledge Base section
 
 ---
 

@@ -358,22 +358,33 @@ For each detected technology in the stack:
 
 ### Step 4: Generate Pattern Files
 
-For each detected technology with a pattern template:
+For each detected technology, generate a pattern file:
 
-1. Check if pattern template exists:
-   - `.claude/bootstrap/templates/patterns/python-patterns.template.md`
-   - `.claude/bootstrap/templates/patterns/django-patterns.template.md`
-   - etc.
+1. **Check if a rich pattern template exists**:
+   - Look for `.claude/bootstrap/templates/patterns/{tech}-patterns.template.md`
+   - If found: load template and substitute variables (PROJECT_NAME, VERSION, GENERATED_DATE, conditional sections)
 
-2. Load template and substitute variables:
-   - PROJECT_NAME
-   - VERSION
-   - GENERATED_DATE
-   - Conditional sections based on detection
+2. **If no template exists, generate from mapping rules**:
+   - Read the technology's entry in `agent-mappings.yaml`
+   - Extract `rules` and `anti_patterns` arrays
+   - Generate a basic pattern file with:
+     ```markdown
+     # {TECH_NAME} Patterns
+
+     > Auto-generated from detection rules. Enrich with `/agent librarian`.
+
+     ## Key Rules
+     {rules from mapping as bullet points}
+
+     ## Anti-Patterns to Flag
+     | I See | I Do | Severity |
+     {anti_patterns from mapping as table rows}
+     ```
+   - This ensures every detected technology gets a pattern file, even without a dedicated template
 
 3. Write to `.claude/knowledge/patterns/{tech}-patterns.md`
 
-4. Track in manifest
+4. Track in manifest (note whether generated from template or from mapping rules)
 
 ---
 

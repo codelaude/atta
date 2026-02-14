@@ -383,12 +383,14 @@ MCP servers provide external context to AI assistants. The bootstrap system:
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-postgres"],
       "env": {
-        "POSTGRES_CONNECTION": "postgresql://localhost/mydb"
+        "POSTGRES_CONNECTION": "${DATABASE_URL}"
       }
     }
   }
 }
 ```
+
+> **Security:** Never hardcode database credentials in `mcp-config.json`. Use environment variable references (e.g., `${DATABASE_URL}`) and add the config file to `.gitignore` if it contains sensitive values.
 
 ### Extensibility
 

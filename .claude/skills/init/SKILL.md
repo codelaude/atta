@@ -111,8 +111,8 @@ Present up to 3 high-priority recommendations:
 💾 **Database MCP** (High Priority)
    - Why: [Database] detected - can inspect schemas and validate queries
    - Access: [database specialist], be-team-lead
-   - ⚠️  Requires: Database connection string (read-only mode)
-   - Security: Read-only access, no data modifications
+   - ⚠️  Requires: Database connection string (read-only recommended)
+   - ⚠️  **Security**: Connection strings are stored in plain text in `mcp-config.json`. Use environment variables (e.g., `$DATABASE_URL`) instead of hardcoded credentials. Add `mcp-config.json` to `.gitignore` if it contains secrets.
 
 🌐 **Browser MCP** (Medium Priority)
    - Why: Frontend project - helps with E2E testing and accessibility validation
@@ -473,6 +473,10 @@ Write to `.claude/agents/INDEX.md` with:
 ## Phase 6: Configure MCP Servers (NEW)
 
 If user selected MCP servers, generate configuration:
+
+### Security: Connection Strings
+
+> **Important:** If the user provides database connection strings or other credentials, use environment variable references (e.g., `$DATABASE_URL`) in the config file instead of hardcoded values. Warn the user that `mcp-config.json` will be stored in plain text and should be added to `.gitignore` if it contains secrets. Never commit credentials to version control.
 
 ### Write MCP Config
 

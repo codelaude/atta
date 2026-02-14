@@ -257,6 +257,8 @@ Result:
 - `{{#each ARRAY}}{{this}}{{/each}}` - Array iteration
 - `{{#each ARRAY}}{{property}}{{/each}}` - Object array iteration
 
+> **Note:** There is no external template engine (like Handlebars or Mustache). The `{{syntax}}` is pseudo-code that instructs Claude Code on what to replace when generating files. During `/init`, Claude reads the template, performs the substitutions itself using the variables from mappings and detection, and writes the final output. The syntax is documentation for the AI, not executable code.
+
 ---
 
 ## Phase 4: Agent Generation
@@ -400,7 +402,8 @@ Based on your project, I recommend these MCP servers:
   ☐ Database MCP
      Reason: PostgreSQL detected - can inspect schemas and validate queries
      Access: postgresql, be-team-lead agents
-     ⚠️  Requires database connection string (read-only mode)
+     ⚠️  Requires database connection string (read-only recommended)
+     ⚠️  Security: Use environment variables (e.g., $DATABASE_URL), never hardcode credentials
 
 🔧 MEDIUM PRIORITY:
   ☐ Browser MCP

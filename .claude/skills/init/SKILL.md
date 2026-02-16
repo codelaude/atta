@@ -83,7 +83,7 @@ Question: "Would you like to configure MCP (Model Context Protocol) servers?"
 
 Options:
 - "Yes, configure MCPs (Recommended)" — Adds live documentation, database access, and other AI capabilities
-- "No, skip for now" — You can configure later with `/init --mcp-only`
+- "No, skip for now" — You can configure later by rerunning `/init`
 
 Description for "Yes" option:
 "MCP servers extend AI capabilities with:
@@ -496,13 +496,9 @@ File: `.claude/knowledge/project/mcp-config.json`
 
 ```json
 {
-  "version": "1.0",
-  "generated_at": "{{TIMESTAMP}}",
-  "servers": [
+  "mcpServers": {
     {{#if CONTEXT7_SELECTED}}
-    {
-      "id": "context7",
-      "name": "Context7",
+    "context7": {
       "type": "stdio",
       "command": "{{NPX_PATH}}",
       "args": ["-y", "@upstash/context7-mcp"],
@@ -512,12 +508,10 @@ File: `.claude/knowledge/project/mcp-config.json`
         {{/if}}
         "CONTEXT7_API_KEY": "${CONTEXT7_API_KEY}"
       }
-    },
+    }{{#if HAS_DATABASE_MCP}},{{/if}}
     {{/if}}
     {{#if HAS_DATABASE_MCP}}
-    {
-      "id": "db-mcp",
-      "name": "Database MCP",
+    "{{DATABASE_TYPE}}": {
       "type": "stdio",
       "command": "{{NPX_PATH}}",
       "args": ["-y", "@modelcontextprotocol/server-{{DATABASE_TYPE}}"],
@@ -527,18 +521,24 @@ File: `.claude/knowledge/project/mcp-config.json`
         {{/if}}
         "{{DATABASE_ENV_VAR}}": "${DATABASE_URL}"
       }
-    },
+    }
     {{/if}}
-  ],
-  "global_access": ["librarian", "project-owner"]
+  }
 }
 ```
+
+> **Note:** This format is compatible with Claude Desktop and Cursor. The `mcpServers` object uses server IDs as keys.
 
 **Variables to substitute:**
 - `{{NPX_PATH}}`: Full path to npx if using nvm (e.g., `/Users/username/.nvm/versions/node/v22.22.0/bin/npx`), or just `"npx"` if not
 - `{{NODE_BIN_PATH}}`: Full path to Node bin directory if using nvm (e.g., `/Users/username/.nvm/versions/node/v22.22.0/bin`)
 - `{{USING_NVM}}`: Boolean - true if nvm detected
 - `{{CONTEXT7_API_KEY}}`: Prompt user for API key or use env var reference
+
+> **Security Notes:**
+> - Never hardcode credentials - always use environment variable references (e.g., `${DATABASE_URL}`)
+> - Add `mcp-config.json` to `.gitignore` if it contains secrets
+> - The `-y` flag in `npx -y` auto-accepts the latest package version. For production, consider pinning to specific versions (e.g., `@upstash/context7-mcp@1.2.3`) to reduce supply-chain risks
 
 ### Add MCP Sections to Generated Agents
 

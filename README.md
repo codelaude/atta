@@ -193,11 +193,6 @@ This interactive setup will:
 └── settings.local.json            # Permission configuration
 ```
 
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-=======
-=======
->>>>>>> main
 ## Bootstrap System v2.0
 
 The core innovation in v2.0 is **dynamic agent generation**. Instead of hardcoding agents for Vue/SCSS/TypeScript, the system detects your tech stack and generates specialized agents from universal templates.
@@ -267,6 +262,7 @@ The core innovation in v2.0 is **dynamic agent generation**. Instead of hardcodi
 
 **For a Vue + Django + PostgreSQL project:**
 ```
+.claude/
 agents/coordinators/
   ├── fe-team-lead.md          (coordinates Vue + TypeScript + SCSS)
   └── be-team-lead.md          (coordinates Python + Django + PostgreSQL)
@@ -366,7 +362,6 @@ vue:
 MCP servers provide external context to AI assistants. The bootstrap system:
 
 1. **Detects your needs** during `/init` interview
-<<<<<<< HEAD
 2. **Checks Node.js version** (MCP servers require Node.js 18+)
 3. **Recommends servers** based on detected stack:
    - **[Context7](https://github.com/upstash/context7)**: Up-to-date, version-specific documentation (recommended for all projects)
@@ -374,26 +369,14 @@ MCP servers provide external context to AI assistants. The bootstrap system:
    - **Database MCP**: Direct schema browsing and query assistance
    - **Browser MCP**: Accessibility testing, DOM inspection, visual regression
    - **[Serena](https://github.com/oraios/serena)**: Semantic code intelligence via language server (optional, best for Cursor/Claude Desktop)
-4. **Generates config**: `knowledge/project/mcp-config.json` with proper paths for nvm users
+4. **Generates config**: `.claude/knowledge/project/mcp-config.json` with proper paths for nvm users
 5. **Updates agents**: Adds "MCP Capabilities" sections to relevant specialists
 
 **Example mcp-config.json (for nvm users):**
-=======
-2. **Recommends servers** based on detected stack:
-   - **[Context7](https://github.com/upstash/context7)**: Up-to-date, version-specific documentation for your frameworks and libraries (recommended for all projects)
-   - **Database MCP**: Direct schema browsing and query assistance
-   - **Browser MCP**: Accessibility testing, DOM inspection, visual regression
-   - **[Serena](https://github.com/oraios/serena)**: Semantic code intelligence via language server (optional, best for Cursor/Claude Desktop)
-3. **Generates config**: `knowledge/project/mcp-config.json` with server definitions
-4. **Updates agents**: Adds "MCP Capabilities" sections to relevant specialists
-
-**Example mcp-config.json:**
->>>>>>> main
 ```json
 {
   "mcpServers": {
     "context7": {
-<<<<<<< HEAD
       "type": "stdio",
       "command": "/Users/username/.nvm/versions/node/v22.22.0/bin/npx",
       "args": ["-y", "@upstash/context7-mcp"],
@@ -408,15 +391,6 @@ MCP servers provide external context to AI assistants. The bootstrap system:
       "args": ["-y", "@modelcontextprotocol/server-postgres"],
       "env": {
         "PATH": "/Users/username/.nvm/versions/node/v22.22.0/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin",
-=======
-      "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp"]
-    },
-    "postgres": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-postgres"],
-      "env": {
->>>>>>> main
         "POSTGRES_CONNECTION": "${DATABASE_URL}"
       }
     }
@@ -424,15 +398,12 @@ MCP servers provide external context to AI assistants. The bootstrap system:
 }
 ```
 
-<<<<<<< HEAD
 > **Important:**
 > - **Node.js 18+ required** for all MCP servers
 > - **nvm users:** Use full path to `npx` and include `PATH` in `env` (as shown above). Using just `"npx"` will use system default Node, which may be outdated.
-> - **Security:** Never hardcode credentials. Use environment variable references (e.g., `${DATABASE_URL}`) and add `mcp-config.json` to `.gitignore` if it contains secrets.
+> - **Security - Credentials:** Never hardcode credentials. Use environment variable references (e.g., `${DATABASE_URL}`) and add `mcp-config.json` to `.gitignore` if it contains secrets.
+> - **Security - Package integrity:** The examples use `npx -y` which automatically fetches the latest package version. For production use, consider pinning to specific versions (e.g., `@upstash/context7-mcp@1.2.3`) or verifying package integrity to reduce supply-chain risks.
 > - **Context7 API key:** Get free key at https://console.upstash.com/context7
-=======
-> **Security:** Never hardcode database credentials in `mcp-config.json`. Use environment variable references (e.g., `${DATABASE_URL}`) and add the config file to `.gitignore` if it contains sensitive values.
->>>>>>> main
 
 ### Extensibility
 
@@ -444,10 +415,6 @@ MCP servers provide external context to AI assistants. The bootstrap system:
 
 **No code changes required.** The entire system is configuration-driven.
 
-<<<<<<< HEAD
->>>>>>> Stashed changes
-=======
->>>>>>> main
 ## Key Concepts
 
 ### Agents guide, they don't generate

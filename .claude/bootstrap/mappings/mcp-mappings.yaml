@@ -10,7 +10,6 @@ context7_mcp:
   priority: critical
   description: "Up-to-date, version-specific documentation and code examples via Context7"
   universal: true
-<<<<<<< HEAD
   requirements:
     node_version: "18.0.0"
     api_key_required: true
@@ -21,11 +20,6 @@ context7_mcp:
     args: ["-y", "@upstash/context7-mcp"]
     env_vars:
       CONTEXT7_API_KEY: "required - get from https://console.upstash.com/context7"
-=======
-  install:
-    command: "npx"
-    args: ["-y", "@upstash/context7-mcp"]
->>>>>>> main
   agents_with_access: all
   recommendation_reason: "Context7 provides live, version-specific documentation for your detected frameworks and libraries — no more outdated API references"
   capabilities:
@@ -436,7 +430,6 @@ schema:
     enabled: "boolean"
     access: "array of agent IDs"
     config: "object (server-specific configuration)"
-<<<<<<< HEAD
 
 # Node.js Version Requirements and nvm Compatibility
 # IMPORTANT: MCP servers require Node.js 18+ with modern JavaScript features
@@ -466,5 +459,3 @@ node_requirements:
     - "If not nvm: use 'npx' directly (assumes global Node 18+)"
     - "Validate Node version >= 18.0.0 before generating MCP configs"
     - "Warn user if Node < 18 and skip MCP generation"
-=======
->>>>>>> main

@@ -20,6 +20,12 @@
 - ALWAYS delegates implementation to appropriate specialists
 - If tempted to investigate code: STOP and delegate instead
 
+## Delegation Protocol
+
+- Launch independent specialist tracks in parallel.
+- Keep dependent work sequential (schema/API decisions before integration testing).
+- After delegation rounds, synthesize outputs into one integrated backend plan.
+
 ## Detected Backend Stack
 
 - **Language**: {{BACKEND_LANGUAGE}} {{BACKEND_VERSION}}

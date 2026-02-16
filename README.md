@@ -607,11 +607,11 @@ This system was built for Claude Code but the ideas travel. The `.claude/` folde
 
 | Layer | Claude Code | GitHub Copilot | OpenAI Codex |
 |-------|-------------|----------------|--------------|
-| Agents | Sub-agents with routing | Skills (from .claude/) | Skills |
-| Workflows | Skills (slash commands) | Skills (from .claude/) | Skills |
+| Agents | Sub-agents with routing | Agents + skills (CLI/IDE) | Sub-agents + skills |
+| Workflows | Skills (slash commands) | Skills + delegation (`/agent`, `/delegate`) | Skills + tool-driven orchestration |
 | Knowledge base | Pattern files | Pattern files | Pattern files |
 | Memory | Librarian agent | Instruction file | Skill + file |
-| Hierarchy | Native routing | Manual selection | Manual selection |
+| Hierarchy | Native routing | Delegation supported, hierarchy quality depends on prompt design | Native routing (prompt-defined) |
 
 ### Using with GitHub Copilot
 
@@ -624,18 +624,20 @@ GitHub Copilot can read the `.claude/` folder directly — no separate configura
 
 **What works:**
 - Skills (slash commands) — Copilot reads `SKILL.md` files and executes them
+- Agent delegation — Copilot can delegate tasks to custom agents (`/agent`, `/delegate`)
+- Parallel tool execution — Copilot CLI can execute tools in parallel when suitable
 - Knowledge base — pattern files, quick-reference, and project context are all available
 - Agent expertise — each agent definition is readable as a skill, giving Copilot access to the specialist knowledge
 
-**Limitations:**
-- No agent hierarchy or automatic routing — you pick the skill manually instead of having the project owner route for you
-- No sub-agent delegation — the team lead can't automatically invoke specialists
+**Current constraints:**
+- CLI docs do not yet define sub-agent semantics as explicitly as IDE sub-agent docs
+- Automatic routing quality varies with how well coordinator prompts are structured
 - No dynamic agent personas — skills run as Copilot, not as a named specialist with constraints
 - Memory/librarian workflow requires manual management of the directives file
 
 ### Using with OpenAI Codex
 
-Codex supports skill files but requires them in its own format.
+Codex supports both skill-style prompts and sub-agent delegation, including running independent specialist tracks in parallel.
 
 **Setup:**
 1. Create a `.codex/` directory in your project root
@@ -644,18 +646,19 @@ Codex supports skill files but requires them in its own format.
 
 **What works:**
 - Skills — each slash command can be ported as a Codex skill
+- Sub-agent routing — project-owner/team-leads can delegate to specialists
+- Parallel delegation — FE/BE and multi-specialist tracks can run concurrently when independent
 - Knowledge base — pattern files and decision tables work as instruction context
 - Agent expertise — specialist knowledge can be packaged into individual skills
 
-**Limitations:**
-- No sub-agents or hierarchy — each specialist becomes a standalone skill
-- No automatic routing — you choose which skill to invoke
-- No built-in memory system — directives must be managed manually or via a custom skill
-- Skills need manual sync if you update the `.claude/` originals
+**Current constraints:**
+- No automatic import from `.claude/` into `.codex/` — keep sync explicit
+- Memory/librarian workflow still depends on `directives.md` discipline
+- Routing quality depends on clear coordinator prompts and boundaries
 
 ### The Bottom Line
 
-The knowledge base is the most portable layer — structured markdown works everywhere. Start there even if you never build agents. The agent hierarchy and automatic routing are Claude Code-specific features that add the most value but require the most adaptation for other tools.
+The knowledge base is still the most portable layer. Claude Code and Codex can run this hierarchy directly, and Copilot can approximate it well via delegation; in Copilot, outcome quality depends more heavily on how explicit your coordinator prompts and routing rules are. Start with patterns, then layer routing rules and specialist prompts.
 
 ## By the Numbers (v2.0)
 

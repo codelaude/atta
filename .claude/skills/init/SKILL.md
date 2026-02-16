@@ -98,33 +98,42 @@ After detecting the tech stack (Phase 2), ask about MCP servers:
 
 Build recommendations by reading `.claude/bootstrap/mappings/mcp-mappings.yaml` and checking detected stack.
 
-Present up to 3 high-priority recommendations:
+Present recommendations, starting with Context7 (always recommended):
 
 ```markdown
 **Recommended MCP Servers:**
 
-✨ **Documentation MCP** (High Priority)
-   - Why: [Framework] detected - provides live API references
-   - Access: [framework specialist], [language specialist], [team lead]
-   - Setup: Automatic (configure sources based on detected frameworks)
+📚 **Context7** (Recommended for all projects)
+   - Why: Provides up-to-date, version-specific documentation and code examples directly in your prompt
+   - Access: All agents
+   - Setup: `npx -y @upstash/context7-mcp` (no configuration needed)
+   - Free and open source: https://github.com/upstash/context7
 
-💾 **Database MCP** (High Priority)
+💾 **Database MCP** (High Priority — if database detected)
    - Why: [Database] detected - can inspect schemas and validate queries
    - Access: [database specialist], be-team-lead
    - ⚠️  Requires: Database connection string (read-only recommended)
    - ⚠️  **Security**: Connection strings are stored in plain text in `mcp-config.json`. Use environment variables (e.g., `$DATABASE_URL`) instead of hardcoded credentials. Add `mcp-config.json` to `.gitignore` if it contains secrets.
 
-🌐 **Browser MCP** (Medium Priority)
+🌐 **Browser MCP** (Medium Priority — if frontend detected)
    - Why: Frontend project - helps with E2E testing and accessibility validation
    - Access: accessibility, tester, fe-team-lead
+
+🔍 **Serena** (Optional — code intelligence)
+   - Why: Semantic code understanding via language server (30+ languages)
+   - Access: code-reviewer, fe-team-lead, be-team-lead
+   - Setup: `uvx serena --workspace .`
+   - Note: Most valuable for Cursor/Claude Desktop users. Claude Code has built-in code navigation.
+   - Free and open source: https://github.com/oraios/serena
 
 Would you like to configure MCP servers?
 ```
 
 Use AskUserQuestion with multiSelect enabled:
-- Documentation MCP
+- Context7 (Recommended)
 - Database MCP
 - Browser MCP
+- Serena (code intelligence)
 - Filesystem MCP (if monorepo)
 - None - skip MCP configuration
 

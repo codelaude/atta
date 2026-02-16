@@ -106,13 +106,28 @@ The bootstrap system automates MCP configuration during `/init`:
 - Add `mcp-config.json` to `.gitignore` if it contains secrets
 - Use read-only database connections where possible
 
-### Package Integrity
-- The examples use `npx -y` which automatically fetches the latest package version
-- **For production use**, pin to specific versions to reduce supply-chain risks:
-  ```json
-  "args": ["-y", "@upstash/context7-mcp@1.2.3"]
-  ```
-- Consider verifying package integrity or vendoring packages locally for sensitive environments
+### Package Integrity (CRITICAL)
+
+**⚠️ Supply-Chain Security Warning:**
+
+The examples use `npx -y` which fetches the latest package version on every MCP start. This creates supply-chain risk:
+- Compromised npm packages can execute arbitrary code
+- MCPs run with access to API keys and database credentials in the `env` section
+- This affects all projects if packages are compromised
+
+**For production or sensitive environments:**
+1. **Pin to specific, audited versions:**
+   ```json
+   "args": ["-y", "@upstash/context7-mcp@1.2.3"]
+   ```
+2. **Verify package integrity** before use (check npm package signatures, review code)
+3. **Consider local installation** instead of `npx`:
+   - Install packages globally or locally: `npm install -g @upstash/context7-mcp@1.2.3`
+   - Reference installed binary directly instead of using `npx`
+4. **Use read-only credentials** where possible (especially for database MCPs)
+5. **Audit regularly** - review what packages you're running and their permissions
+
+The unpinned examples are for development convenience only.
 
 ### Node.js Requirements
 - **Node.js 18+** required for all MCP servers

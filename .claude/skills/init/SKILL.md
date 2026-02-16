@@ -128,6 +128,8 @@ MCP servers are **separate processes** independent of the project's Node version
   - I'll install Node 18+ first
   - Skip MCP configuration
   ```
+- **If "I'll install Node 18+ first"**: Skip MCP configuration and inform user to rerun `/init` after installing Node 18+. Continue to Phase 2 (Auto-Detection).
+- **If "Skip MCP configuration"**: Skip MCP configuration. Continue to Phase 2 (Auto-Detection).
 - **If no**: Offer to install Node 18+ or skip MCPs
 
 **Result**: MCP configs use the selected Node 18+ version's npx path, project stays on its own Node version.
@@ -154,7 +156,7 @@ Present recommendations, starting with Context7 (always recommended):
    - Why: [Database] detected - can inspect schemas and validate queries
    - Access: [database specialist], be-team-lead
    - ⚠️  Requires: Database connection string (read-only recommended)
-   - ⚠️  **Security**: Connection strings are stored in plain text in `mcp-config.json`. Use environment variables (e.g., `$DATABASE_URL`) instead of hardcoded credentials. Add `mcp-config.json` to `.gitignore` if it contains secrets.
+   - ⚠️  **Security**: Connection strings are stored in plain text in `mcp-config.json`. Use environment variables (e.g., `${DATABASE_URL}`) instead of hardcoded credentials. Add `mcp-config.json` to `.gitignore` if it contains secrets.
 
 🌐 **Browser MCP** (Medium Priority — if frontend detected)
    - Why: Frontend project - helps with E2E testing and accessibility validation
@@ -472,7 +474,7 @@ If user selected MCP servers, generate configuration:
 
 ### Security: Connection Strings
 
-> **Important:** If the user provides database connection strings or other credentials, use environment variable references (e.g., `$DATABASE_URL`) in the config file instead of hardcoded values. Warn the user that `mcp-config.json` will be stored in plain text and should be added to `.gitignore` if it contains secrets. Never commit credentials to version control.
+> **Important:** If the user provides database connection strings or other credentials, use environment variable references (e.g., `${DATABASE_URL}`) in the config file instead of hardcoded values. Warn the user that `mcp-config.json` will be stored in plain text and should be added to `.gitignore` if it contains secrets. Never commit credentials to version control.
 
 ### Node.js Path Detection (Critical for nvm users)
 
@@ -492,7 +494,20 @@ Use the Node version selected in Round 4 (not necessarily the project's current 
 
 ### Write MCP Config
 
-> **Security Warning:** Using `npx -y` fetches the latest package version without verification. For production use, pin to specific versions (e.g., `@upstash/context7-mcp@1.2.3`) to reduce supply-chain risks.
+> **CRITICAL SECURITY WARNING:**
+>
+> The generated config uses `npx -y` with unpinned package versions for quick setup. This means:
+> - ⚠️ **Every MCP start fetches the latest npm package version**
+> - ⚠️ **Compromised packages can execute arbitrary code with access to API keys and database credentials**
+> - ⚠️ **This affects ALL projects initialized with `/init` if packages are compromised**
+>
+> **For production or sensitive environments:**
+> 1. Pin to specific, audited versions: `"args": ["-y", "@upstash/context7-mcp@1.2.3"]`
+> 2. Verify package integrity before use
+> 3. Consider vendoring/installing packages locally instead of using `npx`
+> 4. Use read-only database credentials where possible
+>
+> The examples below use unpinned versions for development convenience only.
 
 File: `.claude/knowledge/project/mcp-config.json`
 
@@ -532,15 +547,24 @@ File: `.claude/knowledge/project/mcp-config.json`
 > **Note:** This format is compatible with Claude Desktop and Cursor. The `mcpServers` object uses server IDs as keys.
 
 **Variables to substitute:**
-- `{{NPX_PATH}}`: Full path to npx if using nvm (e.g., `/Users/username/.nvm/versions/node/v22.22.0/bin/npx`), or just `"npx"` if not
-- `{{NODE_BIN_PATH}}`: Full path to Node bin directory if using nvm (e.g., `/Users/username/.nvm/versions/node/v22.22.0/bin`)
+- `{{NPX_PATH}}`: Full expanded path to npx if using nvm (e.g., `/Users/username/.nvm/versions/node/v22.22.0/bin/npx` on Unix or `C:\Users\username\AppData\Roaming\nvm\v22.22.0\npx.cmd` on Windows), or just `"npx"` if not using nvm. **Important:** Always expand `~` to full home directory path - tilde expansion doesn't work in JSON configs.
+- `{{NODE_BIN_PATH}}`: Full expanded path to Node bin directory if using nvm (e.g., `/Users/username/.nvm/versions/node/v22.22.0/bin` or `C:\Users\username\AppData\Roaming\nvm\v22.22.0`)
 - `{{USING_NVM}}`: Boolean - true if nvm detected
-- `{{CONTEXT7_API_KEY}}`: Prompt user for API key or use env var reference
+- `{{CONTEXT7_API_KEY}}`: Always use environment variable reference `${CONTEXT7_API_KEY}` - never hardcode the key. Remind user to set this in their environment or `.env` file.
 
 > **Security Notes:**
-> - Never hardcode credentials - always use environment variable references (e.g., `${DATABASE_URL}`)
+>
+> **Credentials:**
+> - Never hardcode credentials - always use environment variable references (e.g., `${DATABASE_URL}`, `${CONTEXT7_API_KEY}`)
 > - Add `mcp-config.json` to `.gitignore` if it contains secrets
-> - The `-y` flag in `npx -y` auto-accepts the latest package version. For production, consider pinning to specific versions (e.g., `@upstash/context7-mcp@1.2.3`) to reduce supply-chain risks
+> - Use read-only database credentials where possible
+>
+> **Supply-Chain Security (CRITICAL):**
+> - The generated config uses unpinned versions (`npx -y @upstash/context7-mcp`) for quick setup
+> - **This is a development convenience, NOT production-ready**
+> - For production: pin to specific, audited versions (e.g., `@upstash/context7-mcp@1.2.3`)
+> - Alternative: Install packages locally and reference them directly instead of using `npx`
+> - Remember: MCPs run with access to all secrets in the `env` section
 
 ### Add MCP Sections to Generated Agents
 
@@ -599,7 +623,7 @@ File: `.claude/.metadata/generated-manifest.json`
       ".claude/agents/INDEX.md"
     ]
   },
-  "mcp_servers_configured": ["docs-mcp", "db-mcp"]
+  "mcp_servers_configured": ["context7", "postgres"]
 }
 ```
 

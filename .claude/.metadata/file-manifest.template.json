@@ -1,9 +1,9 @@
 {
   "description": "File manifest template for tracking framework vs user files in .claude/ directory. This is a data template, not a JSON Schema.",
-  "framework_version": "2.1",
-  "user_version": "2.1",
-  "manifest_created": "2026-02-16T00:00:00Z",
-  "last_update": "2026-02-16T00:00:00Z",
+  "framework_version": "{{FRAMEWORK_VERSION}}",
+  "user_version": "{{USER_VERSION}}",
+  "manifest_created": "{{TIMESTAMP}}",
+  "last_update": "{{TIMESTAMP}}",
   "files": {
     "bootstrap/": {
       "source": "framework",

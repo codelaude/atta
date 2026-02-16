@@ -12,6 +12,7 @@ You are running the **update** skill to manage framework updates for the `.claud
 /update pull               # Pull and apply framework updates
 /update pull --dry-run     # Preview what would change without applying
 /update pull --interactive # Apply with interactive merge for conflicts
+/update rollback           # Restore from backup
 /update --history          # Show update history
 ```
 
@@ -153,7 +154,11 @@ never_touch:
   - knowledge/accs/**/*
   - agents-config.json
   - settings.local.json
-  - .claude/.backup-*/**/*
+  - .metadata/file-manifest.json
+  - .metadata/framework-version
+  - .metadata/update-history.json
+
+note: "Backup directories (.claude-backup-*) are created as siblings outside .claude/"
 ```
 
 **Generated (Optional Update)**
@@ -227,7 +232,6 @@ Note: Run /init --rescan after update to regenerate from new templates
 To apply this update:
 - `/update pull` - Apply automatically (safe updates + smart merge)
 - `/update pull --interactive` - Review each merge manually
-- `/update --cancel` - Cancel, don't update
 ```
 
 ---

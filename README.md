@@ -100,7 +100,7 @@ This interactive setup will:
 |---------|-------------|
 | `/init` | Interactive project setup — detects 100+ technologies, generates agents, configures MCPs |
 | `/update` | Check for and apply framework updates — smart merge preserves customizations |
-| `/migrate` | Upgrade from v1.0 to v2.0/v2.1 — preserves custom rules |
+| `/migrate` | Migrate from v1.0 to v2.0, or add update system to existing v2.0 projects |
 | `/agent <id>` | Invoke any specialist (e.g., `/agent vue`, `/agent django`) |
 | `/team-lead` | Decompose a feature into specialist tasks |
 | `/review` | Multi-domain code review with severity-rated findings |

@@ -100,8 +100,8 @@ Records history of all framework updates applied.
         "files_updated": 23,
         "files_merged": 2,
         "files_preserved": 14,
-        "backup_location": ".claude/.backup-update-v2.0-to-v2.1-20260216-143000",
-        "notes": "Improved detection, MCP mappings, agent templates"
+        "backup_location": ".claude-backup-update-v2.0-to-v2.1-20260216-143000",
+        "notes": "Update system with file tracking and smart merge"
       }
     ]
   }

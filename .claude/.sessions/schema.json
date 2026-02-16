@@ -1,0 +1,106 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://codelaude.com/schemas/session.json",
+  "title": "AI Dev Team Session",
+  "description": "Tracks a single skill invocation session with agent usage",
+  "type": "object",
+  "required": ["schemaVersion", "sessionId", "timestamp", "startedBy"],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "description": "Schema version for migration compatibility (semver format)",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "default": "1.0.0"
+    },
+    "sessionId": {
+      "type": "string",
+      "description": "Unique identifier for this session (UUID v4)",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "description": "ISO 8601 timestamp when session started",
+      "format": "date-time"
+    },
+    "startedBy": {
+      "type": "string",
+      "enum": ["user", "skill", "agent"],
+      "description": "Who initiated this session"
+    },
+    "skill": {
+      "type": "object",
+      "description": "Skill that was invoked (if any)",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Skill name (e.g., 'init', 'review', 'team-lead')"
+        },
+        "args": {
+          "type": "string",
+          "description": "Arguments passed to the skill"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["completed", "failed", "interrupted"],
+          "description": "Final status of the skill execution"
+        }
+      },
+      "required": ["name", "status"]
+    },
+    "agents": {
+      "type": "array",
+      "description": "Agents invoked during this session",
+      "items": {
+        "type": "object",
+        "required": ["name", "role", "invokedAt", "status"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Agent name (e.g., 'vue-specialist', 'project-owner')"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["universal", "coordinator", "specialist"],
+            "description": "Agent's role in the hierarchy"
+          },
+          "invokedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the agent was invoked"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["completed", "failed"],
+            "description": "Outcome of the agent invocation"
+          }
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional session metadata",
+      "properties": {
+        "projectPath": {
+          "type": "string",
+          "description": "Absolute path to the project"
+        },
+        "claudeDir": {
+          "type": "string",
+          "description": "Claude directory used (typically .claude, customizable via settings)"
+        },
+        "duration": {
+          "type": "number",
+          "description": "Session duration in milliseconds"
+        },
+        "tokensUsed": {
+          "type": ["number", "null"],
+          "description": "Total tokens used (future: v3.5)"
+        },
+        "costUSD": {
+          "type": ["number", "null"],
+          "description": "Estimated cost in USD (future: v3.5)"
+        }
+      }
+    }
+  }
+}

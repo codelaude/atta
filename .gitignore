@@ -1,1 +1,6 @@
 .DS_Store
+
+# Development workspace (includes PLAN.md and ROADMAP files)
+.claude_dev/
+dev/
+.env.claude

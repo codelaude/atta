@@ -10,9 +10,16 @@ context7_mcp:
   priority: critical
   description: "Up-to-date, version-specific documentation and code examples via Context7"
   universal: true
+  requirements:
+    node_version: "18.0.0"
+    api_key_required: true
+    api_key_url: "https://console.upstash.com/context7"
+    api_key_note: "Free tier available"
   install:
     command: "npx"
     args: ["-y", "@upstash/context7-mcp"]
+    env_vars:
+      CONTEXT7_API_KEY: "required - get from https://console.upstash.com/context7"
   agents_with_access: all
   recommendation_reason: "Context7 provides live, version-specific documentation for your detected frameworks and libraries — no more outdated API references"
   capabilities:
@@ -423,3 +430,47 @@ schema:
     enabled: "boolean"
     access: "array of agent IDs"
     config: "object (server-specific configuration)"
+
+# Node.js Version Requirements and nvm Compatibility
+# IMPORTANT: MCP servers require Node.js 18+ with modern JavaScript features
+node_requirements:
+  minimum_version: "18.0.0"
+  detection:
+    - "Check current Node version: node --version"
+    - "If using nvm: nvm current"
+    - "Get full npx path: which npx"
+
+  # For nvm users: MCP configs must use full paths and include PATH in env
+  nvm_configuration:
+    issue: "Using just 'npx' will use system default Node (may be outdated)"
+    solution: "Use full path to npx from correct Node version + include PATH in env"
+
+    # Unix/Linux/macOS (nvm)
+    unix_example:
+      command: "/Users/username/.nvm/versions/node/v22.22.0/bin/npx"
+      env:
+        PATH: "/Users/username/.nvm/versions/node/v22.22.0/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+        CONTEXT7_API_KEY: "${CONTEXT7_API_KEY}"
+
+    # Windows (nvm-windows)
+    windows_example:
+      command: "C:\\Users\\username\\AppData\\Roaming\\nvm\\v22.22.0\\npx.cmd"
+      env:
+        PATH: "C:\\Users\\username\\AppData\\Roaming\\nvm\\v22.22.0;C:\\Windows\\system32;C:\\Windows"
+        CONTEXT7_API_KEY: "${CONTEXT7_API_KEY}"
+
+    windows_note: "On Windows, check %NVM_HOME% environment variable for nvm-windows installation path"
+
+  # Generation instructions for /init
+  generation_logic:
+    - "Detect OS platform (process.platform or equivalent)"
+    - "Unix/Linux/macOS: Check if nvm installed (~/.nvm/ exists or $NVM_DIR set)"
+    - "Windows: Check if nvm-windows installed (%NVM_HOME% set or check default paths)"
+    - "If nvm detected: get current Node version (nvm current)"
+    - "Unix: Get full npx path (which npx or $NVM_DIR/versions/node/{version}/bin/npx)"
+    - "Windows: Get full npx path (%NVM_HOME%\\v{version}\\npx.cmd)"
+    - "Build PATH env var with Node bin directory first (expand all ~ and % variables to full paths)"
+    - "If not nvm: use 'npx' directly (assumes global Node 18+)"
+    - "Validate Node version >= 18.0.0 before generating MCP configs"
+    - "If Node < 18 and nvm available with Node 18+: offer to use different Node version for MCPs (they run as separate processes)"
+    - "If Node < 18 and no Node 18+ available: warn and skip MCP generation"

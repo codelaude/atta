@@ -1,100 +1,142 @@
 ---
 name: init
-description: Interactive project setup with dynamic agent generation. Detects tech stack, generates specialized agents, creates pattern files, and configures MCP servers based on your project's needs.
+description: Interactive project setup that detects tech stack, asks clarifying questions, and generates tailored knowledge files and agent configuration. Run this when starting with a new project.
 ---
 
-You are now running **project initialization** — an interactive setup that uses the adaptive bootstrap system to configure agents tailored to your project.
+You are now running **project initialization** — an interactive setup that configures the agent system for this specific project.
 
 ## How to Use
 
 ```
 /init                    # Full interactive setup
-/init --rescan           # Re-detect tech stack and regenerate (skip questions)
+/init --rescan           # Re-detect tech stack and update files (skip questions already answered)
 ```
 
 ---
 
-## What This Skill Does (Bootstrap v2.0)
+## What This Skill Does
 
-1. **Ask** key questions about your project
-2. **Detect** tech stack from config files using bootstrap detection rules
-3. **Generate** specialized agents dynamically from templates
-4. **Configure** MCP servers based on detected stack
-5. **Create** pattern files with best practices
-6. **Generate** routing table (INDEX.md)
-7. **Report** what was created
-
-**NEW in v2.0:** Agents are now generated dynamically! This system adapts to ANY tech stack.
-
----
-
-## Bootstrap System Integration
-
-Before starting, note that this skill uses:
-- **Detection rules**: `.claude/bootstrap/detection/*.yaml` (100+ tech detectors)
-- **Agent templates**: `.claude/bootstrap/templates/agents/*.template.md` (8 templates)
-- **Pattern templates**: `.claude/bootstrap/templates/patterns/*.template.md`
-- **Mappings**: `.claude/bootstrap/mappings/*.yaml` (tech → templates)
-- **Generator logic**: `.claude/bootstrap/generator.md` (how to generate)
-
-Read these files to understand detection and generation logic.
+1. **Ask** the user key questions about the project
+2. **Detect** the tech stack from config files
+3. **Reconcile** detected info with user answers
+4. **Generate** tailored knowledge files, pattern files, and agent configuration
+5. **Report** what was set up
 
 ---
 
 ## Phase 1: User Interview
 
-Ask questions using AskUserQuestion. Group related questions (max 4 per call).
+Before scanning anything, ask these questions using AskUserQuestion. Group related questions together (max 4 per call).
 
 ### Round 1: Project Basics
-
-Use AskUserQuestion with these 3 questions:
 
 **Question 1 — Project root**
 > "Is the current directory the project root, or is the source code in a subdirectory?"
 - Options: "Current directory is root", "Source is in a subdirectory", "This is a monorepo"
-- header: "Project root"
+- _Why:_ Many projects have the actual code nested (e.g., `ui.frontend/`, `packages/app/`, `src/`)
 
 **Question 2 — Project scope**
 > "What does this project include?"
 - Options: "Frontend only", "Frontend + Backend", "Backend only", "Full-stack monorepo"
-- header: "Project scope"
+- _Why:_ Determines which agents to activate and how to configure backend-consultant
 
 **Question 3 — Your role**
 > "What's your primary role on this project?"
 - Options: "Frontend developer", "Backend developer", "Full-stack developer", "Tech lead"
-- header: "Your role"
+- _Why:_ Adjusts agent hierarchy and which specialists are prioritized
 
-### Round 2: Commands & Paths
-
-Based on Round 1 answers, ask conditionally:
+### Round 2: Commands & Paths (based on Round 1 answers)
 
 **If subdirectory or monorepo:**
-> "Where should build commands be run from? (relative to project root)"
-- Free text input
+> "Where should npm/build commands be run from? (relative to project root)"
+- Free text input expected
+- _Why:_ Critical for `/preflight`, `/lint`, test execution
 
-**If Frontend + Backend or Backend only:**
+**If Frontend + Backend or Full-stack:**
 > "What backend technology does this project use?"
-- Options: "Python (Django/Flask/FastAPI)", "Java (Spring Boot/Maven/Gradle)", "Node.js (Express/Fastify/NestJS)", "Go (Gin/Fiber/Echo)", "Rust", "Ruby (Rails)", "Other"
+- Options: "Java (Maven/Gradle)", "Node.js (Express/Fastify/Nest)", "Python (Django/Flask/FastAPI)", "Other"
+- _Why:_ Configures the backend-consultant agent with the right domain knowledge
 
 **If Frontend + Backend:**
 > "Where is the backend code relative to project root?"
-- Free text input
+- Free text input expected
 
 ### Round 3: Workflow Preferences
 
 **Question — Git workflow**
 > "What's your branching strategy?"
 - Options: "Feature branches off main", "Feature branches off develop", "Trunk-based (main only)", "Other"
+- _Why:_ Configures `/review` and `/preflight` git diff base branch
 
-**Question — Package manager** (if Node.js project)
+**Question — Command runner**
 > "How do you run commands?"
 - Options: "npm", "yarn", "pnpm", "bun"
 
 ### Round 4: MCP Configuration (NEW in v2.0)
 
-After detecting the tech stack (Phase 2), ask about MCP servers:
+**First, explain what MCPs are and ask if user wants them:**
 
-> "Model Context Protocol (MCP) servers can extend agent capabilities. Based on your project, I recommend:"
+Use AskUserQuestion:
+
+```
+Question: "Would you like to configure MCP (Model Context Protocol) servers?"
+
+Options:
+- "Yes, configure MCPs (Recommended)" — Adds live documentation, database access, and other AI capabilities
+- "No, skip for now" — You can configure later by rerunning `/init`
+
+Description for "Yes" option:
+"MCP servers extend AI capabilities with:
+- Context7: Live, version-specific documentation for your frameworks
+- Database MCP: Direct schema inspection and query validation
+- Browser MCP: Accessibility testing and DOM inspection
+- Runs as separate processes (won't affect your project's Node version)"
+```
+
+**If user selects "No":** Skip to Phase 2 (Auto-Detection).
+
+**If user selects "Yes":** Continue with Node.js detection below.
+
+---
+
+**Node.js Detection (only runs if user wants MCPs):**
+
+> "MCP servers require Node.js 18+. Let me check your Node setup..."
+
+MCP servers are **separate processes** independent of the project's Node version.
+
+**Detection steps:**
+
+1. **Check current Node**: Run `node --version`
+2. **If using nvm**: List available versions with `nvm list` or check `~/.nvm/versions/node/`
+3. **Parse and filter**: Find all installed Node versions >= 18.0.0
+
+**If current Node >= 18.0.0:**
+- Use current Node for MCPs
+- Continue to MCP recommendations
+
+**If current Node < 18.0.0 (e.g., project uses Node 14):**
+> "Your project uses Node v14.19.0. MCP servers need Node 18+, but will run separately (your project stays on v14)."
+
+- Check if nvm has Node 18+ installed
+- **If yes**: Use AskUserQuestion to select which Node 18+ version to use for MCPs:
+  ```
+  Which Node version should MCPs use?
+  - Node v22.22.0 (Recommended)
+  - Node v20.11.0
+  - Node v18.19.0
+  - I'll install Node 18+ first
+  - Skip MCP configuration
+  ```
+- **If "I'll install Node 18+ first"**: Skip MCP configuration and inform user to rerun `/init` after installing Node 18+. Continue to Phase 2 (Auto-Detection).
+- **If "Skip MCP configuration"**: Skip MCP configuration. Continue to Phase 2 (Auto-Detection).
+- **If no**: Offer to install Node 18+ or skip MCPs
+
+**Result**: MCP configs use the selected Node 18+ version's npx path, project stays on its own Node version.
+
+---
+
+**MCP Recommendations (only if Node 18+ available):**
 
 Build recommendations by reading `.claude/bootstrap/mappings/mcp-mappings.yaml` and checking detected stack.
 
@@ -106,14 +148,15 @@ Present recommendations, starting with Context7 (always recommended):
 📚 **Context7** (Recommended for all projects)
    - Why: Provides up-to-date, version-specific documentation and code examples directly in your prompt
    - Access: All agents
-   - Setup: `npx -y @upstash/context7-mcp` (no configuration needed)
+   - Setup: `npx -y @upstash/context7-mcp`
+   - ⚠️  **Requires API key** (free tier available): https://console.upstash.com/context7
    - Free and open source: https://github.com/upstash/context7
 
 💾 **Database MCP** (High Priority — if database detected)
    - Why: [Database] detected - can inspect schemas and validate queries
    - Access: [database specialist], be-team-lead
    - ⚠️  Requires: Database connection string (read-only recommended)
-   - ⚠️  **Security**: Connection strings are stored in plain text in `mcp-config.json`. Use environment variables (e.g., `$DATABASE_URL`) instead of hardcoded credentials. Add `mcp-config.json` to `.gitignore` if it contains secrets.
+   - ⚠️  **Security**: Connection strings are stored in plain text in `mcp-config.json`. Use environment variables (e.g., `${DATABASE_URL}`) instead of hardcoded credentials. Add `mcp-config.json` to `.gitignore` if it contains secrets.
 
 🌐 **Browser MCP** (Medium Priority — if frontend detected)
    - Why: Frontend project - helps with E2E testing and accessibility validation
@@ -143,265 +186,211 @@ For each selected MCP, gather required config (connection strings, etc.)
 
 ## Phase 2: Auto-Detection
 
-**Read bootstrap detection files** to understand what to detect:
-- `.claude/bootstrap/detection/frontend-detectors.yaml`
-- `.claude/bootstrap/detection/backend-detectors.yaml`
-- `.claude/bootstrap/detection/database-detectors.yaml`
-- `.claude/bootstrap/detection/tool-detectors.yaml`
+After the interview, scan the project automatically. Use the paths the user confirmed.
 
-Scan the project following the detection rules.
+### Detect Tech Stack
 
-### Detection Strategy
+Scan config files at the confirmed project root (and subdirectories if specified):
 
-1. **Read package.json** (if exists):
-   - Check dependencies and devDependencies against detection rules
-   - Extract versions for detected packages
-   - Note scripts (test, build, lint commands)
+#### Package & Runtime
+| File | Detects |
+|------|---------|
+| `package.json` | Dependencies, scripts, browserslist |
+| `yarn.lock` / `pnpm-lock.yaml` / `bun.lockb` | Package manager confirmation |
+| `.nvmrc` / `.node-version` | Node version |
 
-2. **Scan for config files**:
-   - Look for framework configs (vite.config, tsconfig.json, etc.)
-   - Look for backend configs (pom.xml, go.mod, requirements.txt, etc.)
-   - Look for database indicators
+#### Frontend Framework
+| Dependency | Detects |
+|------------|---------|
+| `vue` | Vue.js (check v2 vs v3) |
+| `react` / `react-dom` | React |
+| `@angular/core` | Angular |
+| `svelte` | Svelte |
+| `next` | Next.js |
+| `nuxt` | Nuxt |
+| `astro` | Astro |
 
-3. **Check file patterns**:
-   - Search for *.ts, *.tsx → TypeScript
-   - Search for *.py → Python
-   - Search for *.java → Java
-   - Search for *.go → Go
-   - Etc.
+#### Language & Types
+| File | Detects |
+|------|---------|
+| `tsconfig.json` | TypeScript (strict mode, target, paths) |
+| `jsconfig.json` | JavaScript with aliases |
 
-4. **Sample source files** (up to 10):
-   - Detect naming conventions
-   - Detect component patterns (Composition API vs Options API, hooks vs class, etc.)
-   - Detect import patterns
-   - Detect styling approach
+#### Styling
+| Indicator | Detects |
+|-----------|---------|
+| `sass` / `dart-sass` in devDeps | SCSS |
+| `tailwindcss` in devDeps | Tailwind |
+| `styled-components` in deps | CSS-in-JS |
+| `@emotion/react` in deps | Emotion |
 
-### Build Detection Manifest
+#### Testing
+| Indicator | Detects |
+|-----------|---------|
+| `jest` in devDeps | Jest |
+| `vitest` in devDeps | Vitest |
+| `@testing-library/*` in devDeps | Testing Library |
+| `cypress` in devDeps | Cypress |
+| `playwright` in devDeps | Playwright |
 
-Create a structured detection result:
+#### State Management
+| Dependency | Detects |
+|------------|---------|
+| `pinia` | Pinia |
+| `vuex` | Vuex |
+| `redux` / `@reduxjs/toolkit` | Redux |
+| `zustand` | Zustand |
 
-```javascript
-{
-  "frontend": {
-    "framework": { "name": "Vue.js", "id": "vue", "version": "3.2.0" },
-    "language": { "name": "TypeScript", "id": "typescript", "version": "5.3.3" },
-    "styling": { "name": "SCSS", "id": "scss" },
-    "testing": { "name": "Jest", "id": "jest" },
-    "build_tool": { "name": "Vite", "id": "vite" }
-  },
-  "backend": {
-    "language": { "name": "Python", "id": "python", "version": "3.11" },
-    "framework": { "name": "Django", "id": "django", "version": "5.0" },
-    "database": { "name": "PostgreSQL", "id": "postgresql" }
-  },
-  "detected_stack": ["vue", "typescript", "scss", "jest", "python", "django", "postgresql"]
-}
-```
+#### Build Tools
+| File | Detects |
+|------|---------|
+| `vite.config.*` | Vite |
+| `webpack.config.*` | Webpack |
+| `next.config.*` | Next.js built-in |
+| `turbo.json` | Turborepo |
+
+#### Backend (if user indicated FE+BE)
+| File | Detects |
+|------|---------|
+| `pom.xml` | Java / Maven |
+| `build.gradle` | Java / Gradle |
+| `requirements.txt` / `pyproject.toml` | Python |
+| `go.mod` | Go |
+| `Cargo.toml` | Rust |
+| `Gemfile` | Ruby |
+| `composer.json` | PHP |
+
+### Detect Conventions
+
+Sample up to 10 source files to detect:
+- Naming conventions (files, components, variables)
+- Component patterns (Composition vs Options API, functional vs class)
+- Import patterns (relative vs absolute, barrel exports)
+- Styling approach (BEM, CSS Modules, utility classes)
+- Test file location and naming
 
 ---
 
 ## Phase 3: Reconcile & Confirm
 
-Present detection results to user for confirmation:
+Present the detected stack to the user for confirmation:
 
 ```markdown
-## 🔍 Detected Configuration
+## Detected Configuration
 
-**Project root**: [path]
-**Bootstrap system**: v2.0 (adaptive agent generation)
+**Project root**: /path/to/project
+**Command directory**: /path/to/project/ui.frontend
+**Package manager**: npm
 
-### Frontend Stack
-{{#if HAS_FRONTEND}}
-- **Framework**: {{FRONTEND_FRAMEWORK}} {{VERSION}}
-- **Language**: {{LANGUAGE}}
-- **Styling**: {{STYLING}}
-- **Testing**: {{TESTING_FRAMEWORK}}
-- **Build**: {{BUILD_TOOL}}
-{{#if STATE_MANAGEMENT}}
-- **State**: {{STATE_MANAGEMENT}}
-{{/if}}
-{{else}}
-No frontend framework detected
-{{/if}}
+### Frontend
+- Framework: Vue 3.x
+- Language: TypeScript (strict)
+- Styling: SCSS (Dart Sass)
+- Testing: Jest + Vue Test Utils
+- State: Pinia
+- Build: Vite
 
-### Backend Stack
-{{#if HAS_BACKEND}}
-- **Language**: {{BACKEND_LANGUAGE}} {{VERSION}}
-- **Framework**: {{BACKEND_FRAMEWORK}}
-- **Database**: {{DATABASE}}
-- **ORM**: {{ORM}} (if detected)
-{{else}}
-No backend framework detected
-{{/if}}
+### Backend
+- Technology: Java (Maven)
+- Path: /path/to/project/core
 
-### Agents to Generate
+### Agents to activate
+- **FE team**: fe-team-lead, vue, scss, typescript, accessibility, tester, code-reviewer
+- **BE team**: backend-consultant (team lead mode — Java/Maven)
+- **Cross-cutting**: project-owner, librarian, rubber-duck, qa-validator, business-analyst, pr-manager
 
-**Core agents** (always present):
-- project-owner, librarian, rubber-duck, code-reviewer, business-analyst, qa-validator, pr-manager
-
-{{#if HAS_FRONTEND}}
-**Frontend team**:
-- fe-team-lead (coordinator)
-- {{FRONTEND_FRAMEWORK}} specialist (from template)
-{{#if HAS_LANGUAGE}}
-- {{LANGUAGE}} specialist
-{{/if}}
-{{#if HAS_STYLING}}
-- {{STYLING}} specialist
-{{/if}}
-- accessibility specialist
-{{#if HAS_TESTING}}
-- {{TESTING_FRAMEWORK}} specialist
-{{/if}}
-{{/if}}
-
-{{#if HAS_BACKEND}}
-**Backend team**:
-- be-team-lead (coordinator)
-- {{BACKEND_LANGUAGE}} specialist
-- {{BACKEND_FRAMEWORK}} specialist
-{{#if HAS_DATABASE}}
-- {{DATABASE}} specialist
-{{/if}}
-{{/if}}
-
-### MCP Servers
-{{#if MCP_SELECTED}}
-{{#each MCP_SERVERS}}
-- {{name}}: {{status}}
-{{/each}}
-{{else}}
-None configured (can add later)
-{{/if}}
-
-**Total agents to generate**: {{AGENT_COUNT}}
-
-Does this look correct? Any adjustments needed?
+Does this look correct? Any adjustments?
 ```
 
-Wait for user confirmation. If user wants changes, loop back to questions.
+Wait for user confirmation before writing files.
 
 ---
 
-## Phase 4: Generate Agents (NEW - Bootstrap System)
+## Phase 4: Generate Files
 
-Now use the bootstrap system to generate agents dynamically!
+### Always write:
 
-### Step 1: Load Agent Mappings
+**`.claude/knowledge/project/project-context.md`**
+```markdown
+# Project Context
 
-Read `.claude/bootstrap/mappings/agent-mappings.yaml` to determine which agents to generate based on detected stack.
+## Tech Stack
+- **Frontend**: [Framework] [Version]
+- **Language**: [TypeScript/JavaScript]
+- **Styling**: [Approach]
+- **Testing**: [Framework]
+- **State Management**: [Library]
+- **Build Tool**: [Tool]
+- **Backend**: [Technology] (or "N/A — frontend only")
+- **Node**: [version]
+- **Package Manager**: [npm/yarn/pnpm/bun]
 
-For each detected technology, find its mapping:
-```yaml
-# Example: Vue detected
-vue:
-  template: framework-specialist.template.md
-  output: agents/specialists/vue.md
-  variables:
-    FRAMEWORK_NAME: "Vue.js"
-    FRAMEWORK_ID: "vue"
-    ...
-  rules: [...]
-  anti_patterns: [...]
+## Project Structure
+[Directory tree, top 3 levels]
+
+## Key Paths
+- **Project root**: [path]
+- **Command directory** (run npm/yarn here): [path]
+- **Source**: [path]
+- **Components**: [path]
+- **Tests**: [path]
+- **Styles**: [path]
+- **Backend source**: [path] (if applicable)
+
+## Build Commands
+- **Dev**: [command]
+- **Build**: [command]
+- **Test**: [command]
+- **Lint**: [command]
+
+## Git Workflow
+- **Base branch**: [main/develop]
+- **Branch pattern**: [feature/*, bugfix/*]
+
+## Conventions
+- [Detected conventions list]
 ```
 
-### Step 2: Generate Coordinators
+### Conditionally write pattern files:
 
-**If has_frontend:**
-1. Read template: `.claude/bootstrap/templates/agents/fe-team-lead.template.md`
-2. Substitute variables:
-   - FRONTEND_FRAMEWORK
-   - FRONTEND_SPECIALISTS (list of detected frontend agents)
-   - PATTERN_FILES (list of pattern files to reference)
-   - MCP_SERVERS (if configured)
-3. Write to: `.claude/agents/coordinators/fe-team-lead.md`
+| Detected | File Created |
+|----------|-------------|
+| Vue 3 | `patterns/vue-patterns.md` |
+| Vue 2 | `patterns/vue-patterns.md` (Options API focus) |
+| React | `patterns/react-patterns.md` |
+| Angular | `patterns/angular-patterns.md` |
+| TypeScript | `patterns/typescript-patterns.md` |
+| SCSS | `patterns/scss-patterns.md` |
+| Tailwind | `patterns/tailwind-patterns.md` |
+| Jest / Vitest | `patterns/testing-patterns.md` |
+| i18n library | `patterns/i18n-patterns.md` |
+| Java backend | `patterns/java-patterns.md` |
+| Python backend | `patterns/python-patterns.md` |
+| Node backend | `patterns/node-backend-patterns.md` |
 
-**If has_backend:**
-1. Read template: `.claude/bootstrap/templates/agents/be-team-lead.template.md`
-2. Substitute variables:
-   - BACKEND_LANGUAGE
-   - BACKEND_FRAMEWORK
-   - BACKEND_SPECIALISTS
-   - DATABASE
-   - MCP_SERVERS
-3. Write to: `.claude/agents/coordinators/be-team-lead.md`
+Each pattern file should contain:
+- Key rules detected from existing code
+- Anti-patterns relevant to the technology
+- Conventions found in the codebase
+- References to official documentation
 
-### Step 3: Generate Specialists
+### Configure backend-consultant mode:
 
-For each detected technology in the stack:
+**If project is FE only:**
+- backend-consultant operates in **advisory mode**: read-only, general API/integration guidance, no delegation
+- Simplify project-owner routing (no BE routing needed)
 
-1. **Load template** based on mapping:
-   - Framework → `framework-specialist.template.md`
-   - Language → `language-specialist.template.md`
-   - Database → `database-specialist.template.md`
-   - etc.
+**If project is FE + BE:**
+- backend-consultant operates in **team lead mode**: mirrors fe-team-lead behavior for the backend domain
+- Can delegate to BE-specific patterns and coordinate with fe-team-lead on cross-cutting concerns
+- Write backend-specific pattern files
+- project-owner routes BE tasks to backend-consultant just like FE tasks to fe-team-lead
 
-2. **Prepare variables** from mapping + detection:
-   ```javascript
-   {
-     FRAMEWORK_NAME: "Vue.js",
-     FRAMEWORK_ID: "vue",
-     FRAMEWORK_VERSION: "3.2.0",
-     TEAM_LEAD: "fe-team-lead",
-     RULES: [...rules from mapping...],
-     ANTI_PATTERNS: [...anti-patterns from mapping...],
-     DOCUMENTATION_URLS: ["https://vuejs.org/api/"],
-     HAS_MCP_ACCESS: user_configured_doc_mcp,
-     MCP_SERVERS: [...]
-   }
-   ```
-
-3. **Perform template substitution**:
-   - Replace `{{VARIABLE}}` with values
-   - Process `{{#if CONDITION}}...{{/if}}`
-   - Process `{{#each ARRAY}}...{{/each}}`
-   - Build anti-pattern tables
-   - Build delegation sections
-
-4. **Write generated agent**:
-   - Output path from mapping (e.g., `agents/specialists/vue.md`)
-   - Add header comment: `<!-- Auto-generated by /init v2.0 -->`
-
-5. **Track in manifest**:
-   - Add to `.metadata/generated-manifest.json`
-
-### Step 4: Generate Pattern Files
-
-For each detected technology, generate a pattern file:
-
-1. **Check if a rich pattern template exists**:
-   - Look for `.claude/bootstrap/templates/patterns/{tech}-patterns.template.md`
-   - If found: load template and substitute variables (PROJECT_NAME, VERSION, GENERATED_DATE, conditional sections)
-
-2. **If no template exists, generate from mapping rules**:
-   - Read the technology's entry in `agent-mappings.yaml`
-   - Extract `rules` and `anti_patterns` arrays
-   - Generate a basic pattern file with:
-     ```markdown
-     # {TECH_NAME} Patterns
-
-     > Auto-generated from detection rules. Enrich with `/agent librarian`.
-
-     ## Key Rules
-     {rules from mapping as bullet points}
-
-     ## Anti-Patterns to Flag
-     | I See | I Do | Severity |
-     {anti_patterns from mapping as table rows}
-     ```
-   - This ensures every detected technology gets a pattern file, even without a dedicated template
-
-3. Write to `.claude/knowledge/patterns/{tech}-patterns.md`
-
-4. Track in manifest (note whether generated from template or from mapping rules)
+**Update `.claude/agents/INDEX.md`** routing table to reflect the actual project scope.
 
 ---
 
-## Phase 5: Generate INDEX.md (NEW)
-
-Dynamically generate the routing table based on generated agents.
-
-### Build Agent Registry Table
+## Phase 5: Report
 
 ```markdown
 | Agent | ID | Aliases | Role | Reports To |
@@ -485,50 +474,97 @@ If user selected MCP servers, generate configuration:
 
 ### Security: Connection Strings
 
-> **Important:** If the user provides database connection strings or other credentials, use environment variable references (e.g., `$DATABASE_URL`) in the config file instead of hardcoded values. Warn the user that `mcp-config.json` will be stored in plain text and should be added to `.gitignore` if it contains secrets. Never commit credentials to version control.
+> **Important:** If the user provides database connection strings or other credentials, use environment variable references (e.g., `${DATABASE_URL}`) in the config file instead of hardcoded values. Warn the user that `mcp-config.json` will be stored in plain text and should be added to `.gitignore` if it contains secrets. Never commit credentials to version control.
+
+### Node.js Path Detection (Critical for nvm users)
+
+Use the Node version selected in Round 4 (not necessarily the project's current Node):
+
+1. **If nvm is installed:**
+   - Use the **Node version selected by user** (e.g., v22.22.0 even if project uses v14)
+   - Build full npx path: `~/.nvm/versions/node/v{SELECTED_VERSION}/bin/npx`
+   - Build PATH env var: `~/.nvm/versions/node/v{SELECTED_VERSION}/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin`
+   - Use full path for `command` field
+   - Include PATH in `env` field
+2. **If nvm is NOT installed:**
+   - Use `"npx"` directly as command
+   - Assume global Node 18+ is available
+
+**Key principle:** MCP servers run as separate processes with their own Node version. They don't affect the project's Node version. A Node 14 project can have MCPs running on Node 22.
 
 ### Write MCP Config
+
+> **CRITICAL SECURITY WARNING:**
+>
+> The generated config uses `npx -y` with unpinned package versions for quick setup. This means:
+> - ⚠️ **Every MCP start fetches the latest npm package version**
+> - ⚠️ **Compromised packages can execute arbitrary code with access to API keys and database credentials**
+> - ⚠️ **This affects ALL projects initialized with `/init` if packages are compromised**
+>
+> **For production or sensitive environments:**
+> 1. Pin to specific, audited versions: `"args": ["-y", "@upstash/context7-mcp@1.2.3"]`
+> 2. Verify package integrity before use
+> 3. Consider vendoring/installing packages locally instead of using `npx`
+> 4. Use read-only database credentials where possible
+>
+> The examples below use unpinned versions for development convenience only.
 
 File: `.claude/knowledge/project/mcp-config.json`
 
 ```json
 {
-  "version": "1.0",
-  "generated_at": "{{TIMESTAMP}}",
-  "servers": [
-    {{#if HAS_DOCUMENTATION_MCP}}
-    {
-      "id": "docs-mcp",
-      "name": "Documentation MCP",
-      "type": "documentation",
-      "enabled": true,
-      "access": [{{SPECIALIST_IDS_WITH_ACCESS}}],
-      "config": {
-        "sources": [
-          {{#each DOCUMENTATION_SOURCES}}
-          "{{this}}"
-          {{/each}}
-        ]
+  "mcpServers": {
+    {{#if CONTEXT7_SELECTED}}
+    "context7": {
+      "type": "stdio",
+      "command": "{{NPX_PATH}}",
+      "args": ["-y", "@upstash/context7-mcp"],  // Consider pinning: "@upstash/context7-mcp@1.2.3"
+      "env": {
+        {{#if USING_NVM}}
+        "PATH": "{{NODE_BIN_PATH}}:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+        {{/if}}
+        "CONTEXT7_API_KEY": "${CONTEXT7_API_KEY}"
       }
-    },
+    }{{#if HAS_DATABASE_MCP}},{{/if}}
     {{/if}}
     {{#if HAS_DATABASE_MCP}}
-    {
-      "id": "db-mcp",
-      "name": "Database MCP",
-      "type": "database",
-      "enabled": true,
-      "access": ["{{DATABASE_SPECIALIST}}", "be-team-lead"],
-      "config": {
-        "connection": "{{DATABASE_CONNECTION_STRING}}",
-        "readonly": true
+    "{{DATABASE_TYPE}}": {
+      "type": "stdio",
+      "command": "{{NPX_PATH}}",
+      "args": ["-y", "@modelcontextprotocol/server-{{DATABASE_TYPE}}"],  // Consider pinning version
+      "env": {
+        {{#if USING_NVM}}
+        "PATH": "{{NODE_BIN_PATH}}:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+        {{/if}}
+        "{{DATABASE_ENV_VAR}}": "${DATABASE_URL}"
       }
-    },
+    }
     {{/if}}
-  ],
-  "global_access": ["librarian", "project-owner"]
+  }
 }
 ```
+
+> **Note:** This format is compatible with Claude Desktop and Cursor. The `mcpServers` object uses server IDs as keys.
+
+**Variables to substitute:**
+- `{{NPX_PATH}}`: Full expanded path to npx if using nvm (e.g., `/Users/username/.nvm/versions/node/v22.22.0/bin/npx` on Unix or `C:\Users\username\AppData\Roaming\nvm\v22.22.0\npx.cmd` on Windows), or just `"npx"` if not using nvm. **Important:** Always expand `~` to full home directory path - tilde expansion doesn't work in JSON configs.
+- `{{NODE_BIN_PATH}}`: Full expanded path to Node bin directory if using nvm (e.g., `/Users/username/.nvm/versions/node/v22.22.0/bin` or `C:\Users\username\AppData\Roaming\nvm\v22.22.0`)
+- `{{USING_NVM}}`: Boolean - true if nvm detected
+- `{{CONTEXT7_API_KEY}}`: Always use environment variable reference `${CONTEXT7_API_KEY}` - never hardcode the key. Remind user to set this in their environment or `.env` file.
+
+> **Security Notes:**
+>
+> **Credentials:**
+> - Never hardcode credentials - always use environment variable references (e.g., `${DATABASE_URL}`, `${CONTEXT7_API_KEY}`)
+> - Add `mcp-config.json` to `.gitignore` if it contains secrets
+> - Use read-only database credentials where possible
+>
+> **Supply-Chain Security (CRITICAL):**
+> - The generated config uses unpinned versions (`npx -y @upstash/context7-mcp`) for quick setup
+> - **This is a development convenience, NOT production-ready**
+> - For production: pin to specific, audited versions (e.g., `@upstash/context7-mcp@1.2.3`)
+> - Alternative: Install packages locally and reference them directly instead of using `npx`
+> - Remember: MCPs run with access to all secrets in the `env` section
 
 ### Add MCP Sections to Generated Agents
 
@@ -562,13 +598,13 @@ File: `.claude/.metadata/generated-manifest.json`
   "generated_files": {
     "agents": [
       {
-        "file": "agents/coordinators/fe-team-lead.md",
+        "file": ".claude/agents/coordinators/fe-team-lead.md",
         "template": "fe-team-lead.template.md",
         "technology": "coordinator",
         "timestamp": "{{TIMESTAMP}}"
       },
       {
-        "file": "agents/specialists/vue.md",
+        "file": ".claude/agents/specialists/vue.md",
         "template": "framework-specialist.template.md",
         "technology": "vue",
         "version": "3.2.0",
@@ -577,17 +613,17 @@ File: `.claude/.metadata/generated-manifest.json`
       ...
     ],
     "patterns": [
-      "knowledge/patterns/vue-patterns.md",
-      "knowledge/patterns/python-patterns.md",
+      ".claude/knowledge/patterns/vue-patterns.md",
+      ".claude/knowledge/patterns/python-patterns.md",
       ...
     ],
     "config": [
-      "knowledge/project/project-context.md",
-      "knowledge/project/mcp-config.json",
-      "agents/INDEX.md"
+      ".claude/knowledge/project/project-context.md",
+      ".claude/knowledge/project/mcp-config.json",
+      ".claude/agents/INDEX.md"
     ]
   },
-  "mcp_servers_configured": ["docs-mcp", "db-mcp"]
+  "mcp_servers_configured": ["context7", "postgres"]
 }
 ```
 
@@ -605,67 +641,27 @@ Update `.metadata/last-init` with current timestamp.
 Your project now has a **dynamically generated agent team** tailored to your tech stack!
 
 ### Files Created/Updated
-
-**Configuration:**
 - `.claude/knowledge/project/project-context.md`
-{{#if HAS_MCP}}
-- `.claude/knowledge/project/mcp-config.json`
-{{/if}}
-- `.claude/agents/INDEX.md` (dynamic routing)
-- `.claude/.metadata/generated-manifest.json`
+- `.claude/knowledge/patterns/[tech]-patterns.md` (one per detected tech)
+- `.claude/agents/INDEX.md` (routing updated)
 
-**Pattern Files** ({{PATTERN_COUNT}}):
-{{#each PATTERN_FILES}}
-- `.claude/knowledge/patterns/{{this}}`
-{{/each}}
+### Active Agents
+| Agent | Status | Mode |
+|-------|--------|------|
+| fe-team-lead | Active | Coordinating [list of FE specialists] |
+| backend-consultant | Active/Advisory | [Team lead mode / Advisory mode] |
+| project-owner | Active | Routing [FE / FE + BE] |
+| ... | ... | ... |
 
-**Generated Agents** ({{AGENT_COUNT}}):
-
-**Coordinators:**
-{{#each COORDINATORS}}
-- `.claude/agents/coordinators/{{this}}.md`
-{{/each}}
-
-**Specialists:**
-{{#each SPECIALISTS}}
-- `.claude/agents/specialists/{{this}}.md`
-{{/each}}
-
-{{#if HAS_MCP}}
-### 🔌 MCP Servers Configured
-
-{{#each MCP_SERVERS}}
-- **{{name}}**: {{status}}
-  - Access: {{agents}}
-{{/each}}
-{{/if}}
-
-### 🤖 Active Agent Hierarchy
-
-\```
-{{HIERARCHY_VISUALIZATION}}
-\```
-
-### 🚀 Quick Start
-
-- `/agent {{PRIMARY_COORDINATOR}}` — Decompose a task
-- `/agent {{PRIMARY_SPECIALIST}}` — Get framework-specific guidance
+### Quick Start
+- `/agent fe-team-lead` — Decompose a frontend task
 - `/agent rubber-duck` — Guided learning mode
-- `/review` — Multi-agent code review
+- `/review` — Review changed files
 - `/preflight` — Full pre-PR validation
 
-### 📝 Next Steps
-
-- **Add patterns**: Use `/agent librarian` to capture project-specific rules
-- **Update stack**: Run `/init --rescan` when dependencies change
-- **Customize agents**: Edit generated agents in `agents/specialists/` (preserved on rescan)
-- **Add specialists**: Manually add to `agents/specialists/` for custom domains
-
----
-
-**Bootstrap System**: Detected {{TECH_COUNT}} technologies, generated {{AGENT_COUNT}} agents from {{TEMPLATE_COUNT}} templates.
-
-_Your `.claude/` system is now adaptive! It will regenerate specialists as your tech stack evolves._
+### Next Steps
+- Run `/init --rescan` anytime the tech stack changes
+- Use `/agent librarian` to capture project-specific rules
 ```
 
 ---
@@ -673,40 +669,17 @@ _Your `.claude/` system is now adaptive! It will regenerate specialists as your 
 ## Rescan Mode (`--rescan`)
 
 When `--rescan` is used:
-
-1. **Skip user interview** - Read previous answers from `project-context.md` and `mcp-config.json`
-2. **Re-run detection** - Scan project files again
-3. **Compare with manifest** - Check what was previously generated
-4. **Regenerate changed** - If new tech detected, generate new specialists
-5. **Preserve custom edits** - Don't overwrite manually edited sections (check for custom markers)
-6. **Update INDEX.md** - Regenerate routing with new specialists
-7. **Report changes** - Show what was added/updated/removed
+- Skip the user interview (use previously stored answers from project-context.md)
+- Re-detect tech stack from config files
+- Update pattern files with new findings
+- Preserve manual edits (only update auto-generated sections)
+- Report what changed
 
 ---
 
 ## Related Skills
 
-- `/agent librarian` — Capture project-specific patterns and directives
-- `/agent {{team-lead}}` — Decompose tasks using generated specialists
-- `/review` — Multi-agent code review with generated specialists
+- `/agent librarian` — Capture additional patterns and directives
+- `/agent fe-team-lead` — Decompose tasks using detected stack
+- `/review` — Review against generated patterns
 - `/preflight` — Full pre-PR validation
-
----
-
-## Troubleshooting
-
-**If generation fails:**
-1. Check `.claude/bootstrap/` files exist
-2. Verify detection rules in YAML files
-3. Check template syntax in `.template.md` files
-4. Review manifest for errors: `.metadata/generated-manifest.json`
-
-**To regenerate single agent:**
-Run `/init --rescan` - it will detect and regenerate as needed
-
-**To start fresh:**
-Delete `.metadata/generated-manifest.json` and run `/init`
-
----
-
-_Bootstrap System v2.0 - Adaptive agent generation for any tech stack_

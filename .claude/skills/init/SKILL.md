@@ -641,8 +641,8 @@ This manifest enables the `/update` skill to track which files are framework vs 
 
 ```json
 {
-  "framework_version": "2.0",
-  "user_version": "2.0",
+  "framework_version": "2.1",
+  "user_version": "2.1",
   "manifest_created": "{{TIMESTAMP}}",
   "last_update": "{{TIMESTAMP}}",
   "files": {
@@ -729,7 +729,10 @@ This manifest enables the `/update` skill to track which files are framework vs 
       "knowledge/project/**/*",
       "knowledge/accs/**/*",
       "agents-config.json",
-      "settings.local.json"
+      "settings.local.json",
+      ".metadata/file-manifest.json",
+      ".metadata/framework-version",
+      ".metadata/update-history.json"
     ],
     "generated_optional": [
       "agents/coordinators/**/*",
@@ -744,7 +747,7 @@ This manifest enables the `/update` skill to track which files are framework vs 
 
 Also create `.claude/.metadata/framework-version`:
 ```
-2.0
+2.1
 ```
 
 And `.claude/.metadata/update-history.json`:
@@ -754,7 +757,7 @@ And `.claude/.metadata/update-history.json`:
     {
       "type": "initial-setup",
       "timestamp": "{{TIMESTAMP}}",
-      "notes": "Project initialized with bootstrap system v2.0"
+      "notes": "Project initialized with bootstrap system v2.1"
     }
   ]
 }

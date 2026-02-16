@@ -81,13 +81,14 @@ Read version information:
 
 **Current version**: 2.0
 **Latest version**: 2.1
-**Released**: 2026-02-15
+**Released**: 2026-02-16
 
 ### What's New in v2.1
-- Improved tech detection (15 new detectors)
-- Enhanced MCP mappings (Context7, Serena support)
-- Better agent templates (clearer boundaries)
-- Documentation improvements
+- `/update` skill for safe framework updates
+- File tracking system with smart merge
+- Preserves all customizations during updates
+- Update history and rollback support
+- Opt-in for existing v2.0 projects
 
 ### Impact Analysis
 Run `/update pull --dry-run` to see what would change.
@@ -239,9 +240,9 @@ When user runs `/update pull`:
 
 ```bash
 timestamp=$(date +%Y%m%d-%H%M%S)
-backup_dir=".claude/.backup-update-v2.0-to-v2.1-$timestamp"
+backup_dir=".claude-backup-update-v2.0-to-v2.1-$timestamp"
 
-# Backup entire .claude directory
+# Backup entire .claude directory (as sibling, not subdirectory)
 cp -r .claude/ "$backup_dir/"
 echo "✓ Backup created: $backup_dir"
 ```
@@ -363,8 +364,8 @@ Write updated tracking files:
       "files_updated": 23,
       "files_merged": 2,
       "files_preserved": 14,
-      "backup_location": ".claude/.backup-update-v2.0-to-v2.1-20260216-143000",
-      "notes": "Improved detection, MCP mappings, agent templates"
+      "backup_location": ".claude-backup-update-v2.0-to-v2.1-20260216-143000",
+      "notes": "Update system with file tracking and smart merge"
     }
   ]
 }
@@ -397,7 +398,7 @@ Write updated tracking files:
 - settings.local.json
 
 ### Backup Location
-`.claude/.backup-update-v2.0-to-v2.1-20260216-143000/`
+`.claude-backup-update-v2.0-to-v2.1-20260216-143000/`
 
 ### Next Steps
 
@@ -419,11 +420,12 @@ Write updated tracking files:
 
 ### What's New in v2.1
 
-- 15 new technology detectors (Astro, Qwik, Bun, Deno, etc.)
-- Context7 and Serena MCP server support
-- Improved agent templates with clearer boundaries
-- Better error messages and validation
-- Enhanced documentation with more examples
+- `/update` skill for safe framework updates
+- File tracking system (file-manifest.json)
+- Smart merge preserves customizations
+- Update history and rollback support
+- Three-tier file classification (framework/generated/user)
+- Automatic backups before every update
 
 ---
 
@@ -439,7 +441,7 @@ When user runs `/update rollback`:
 
 ### 5.1. Find Latest Update Backup
 
-Look for `.claude/.backup-update-*` directories, sorted by timestamp.
+Look for `.claude-backup-update-*` directories (sibling to .claude/), sorted by timestamp.
 
 ### 5.2. Confirm with User
 
@@ -450,7 +452,7 @@ Found recent update backup:
 - **From**: v2.0
 - **To**: v2.1
 - **Date**: 2026-02-16 14:30:00
-- **Backup**: .claude/.backup-update-v2.0-to-v2.1-20260216-143000/
+- **Backup**: .claude-backup-update-v2.0-to-v2.1-20260216-143000/
 
 This will restore your `.claude/` directory to the state before the update.
 
@@ -462,16 +464,16 @@ Proceed with rollback? [y/N]
 ### 5.3. Restore Backup
 
 ```bash
-# Create safety backup of current state
+# Create safety backup of current state (as sibling directory)
 timestamp=$(date +%Y%m%d-%H%M%S)
-cp -r .claude/ ".claude/.pre-rollback-backup-$timestamp/"
+cp -r .claude/ ".claude-pre-rollback-backup-$timestamp/"
 
 # Restore from update backup
 rm -rf .claude/
-cp -r .claude/.backup-update-v2.0-to-v2.1-20260216-143000/ .claude/
+cp -r .claude-backup-update-v2.0-to-v2.1-20260216-143000/ .claude/
 
 echo "✓ Rollback complete"
-echo "✓ Current state backed up to: .claude/.pre-rollback-backup-$timestamp/"
+echo "✓ Current state backed up to: .claude-pre-rollback-backup-$timestamp/"
 ```
 
 ### 5.4. Report
@@ -480,14 +482,14 @@ echo "✓ Current state backed up to: .claude/.pre-rollback-backup-$timestamp/"
 ## ✅ Rollback Complete
 
 Restored from backup:
-- `.claude/.backup-update-v2.0-to-v2.1-20260216-143000/`
+- `.claude-backup-update-v2.0-to-v2.1-20260216-143000/`
 
 Framework version:
 - **Was**: 2.1
 - **Now**: 2.0
 
 Your current state before rollback was saved to:
-- `.claude/.pre-rollback-backup-20260216-143500/`
+- `.claude-pre-rollback-backup-20260216-143500/`
 
 You can now continue working on framework v2.0.
 ```
@@ -505,8 +507,8 @@ Show complete update history:
 - Files updated: 23
 - Files merged: 2
 - Files preserved: 14
-- Backup: `.claude/.backup-update-v2.0-to-v2.1-20260216-143000/`
-- Notes: Improved detection, MCP mappings, agent templates
+- Backup: `.claude-backup-update-v2.0-to-v2.1-20260216-143000/`
+- Notes: Update system with file tracking and smart merge
 
 ### v1.0 → v2.0 (2026-01-10 09:15:00) [Migration]
 - Migrated from v1.0 to v2.0 bootstrap system
@@ -567,8 +569,12 @@ NEVER_TOUCH_PATTERNS = [
     "knowledge/accs/**/*",
     "agents-config.json",
     "settings.local.json",
-    ".backup-*/**/*",
+    ".metadata/file-manifest.json",
+    ".metadata/framework-version",
+    ".metadata/update-history.json",
 ]
+
+# Note: Backup directories are outside .claude/ so not included here
 ```
 
 ### Generated (Optional)
@@ -715,4 +721,4 @@ Update workflow:
 
 ---
 
-_Update Skill v2.0 — Safe framework updates that preserve your customizations_
+_Update Skill v2.1 — Safe framework updates that preserve your customizations_

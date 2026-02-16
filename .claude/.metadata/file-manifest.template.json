@@ -1,6 +1,5 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "description": "File manifest for tracking framework vs user files in .claude/ directory",
+  "description": "File manifest template for tracking framework vs user files in .claude/ directory. This is a data template, not a JSON Schema.",
   "framework_version": "2.1",
   "user_version": "2.1",
   "manifest_created": "2026-02-16T00:00:00Z",
@@ -266,7 +265,10 @@
       "knowledge/project/**/*",
       "knowledge/accs/**/*",
       "agents-config.json",
-      "settings.local.json"
+      "settings.local.json",
+      ".metadata/file-manifest.json",
+      ".metadata/framework-version",
+      ".metadata/update-history.json"
     ],
     "generated_optional": [
       "agents/coordinators/**/*",

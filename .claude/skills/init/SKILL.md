@@ -71,7 +71,118 @@ Before scanning anything, ask these questions using AskUserQuestion. Group relat
 **Question — Command runner**
 > "How do you run commands?"
 - Options: "npm", "yarn", "pnpm", "bun"
+<<<<<<< Updated upstream
 - _Why:_ All generated scripts and commands use the right runner
+=======
+
+### Round 4: MCP Configuration (NEW in v2.0)
+
+**First, explain what MCPs are and ask if user wants them:**
+
+Use AskUserQuestion:
+
+```
+Question: "Would you like to configure MCP (Model Context Protocol) servers?"
+
+Options:
+- "Yes, configure MCPs (Recommended)" — Adds live documentation, database access, and other AI capabilities
+- "No, skip for now" — You can configure later with `/init --mcp-only`
+
+Description for "Yes" option:
+"MCP servers extend AI capabilities with:
+- Context7: Live, version-specific documentation for your frameworks
+- Database MCP: Direct schema inspection and query validation
+- Browser MCP: Accessibility testing and DOM inspection
+- Runs as separate processes (won't affect your project's Node version)"
+```
+
+**If user selects "No":** Skip to Phase 2 (Auto-Detection).
+
+**If user selects "Yes":** Continue with Node.js detection below.
+
+---
+
+**Node.js Detection (only runs if user wants MCPs):**
+
+> "MCP servers require Node.js 18+. Let me check your Node setup..."
+
+MCP servers are **separate processes** independent of the project's Node version.
+
+**Detection steps:**
+
+1. **Check current Node**: Run `node --version`
+2. **If using nvm**: List available versions with `nvm list` or check `~/.nvm/versions/node/`
+3. **Parse and filter**: Find all installed Node versions >= 18.0.0
+
+**If current Node >= 18.0.0:**
+- Use current Node for MCPs
+- Continue to MCP recommendations
+
+**If current Node < 18.0.0 (e.g., project uses Node 14):**
+> "Your project uses Node v14.19.0. MCP servers need Node 18+, but will run separately (your project stays on v14)."
+
+- Check if nvm has Node 18+ installed
+- **If yes**: Use AskUserQuestion to select which Node 18+ version to use for MCPs:
+  ```
+  Which Node version should MCPs use?
+  - Node v22.22.0 (Recommended)
+  - Node v20.11.0
+  - Node v18.19.0
+  - I'll install Node 18+ first
+  - Skip MCP configuration
+  ```
+- **If no**: Offer to install Node 18+ or skip MCPs
+
+**Result**: MCP configs use the selected Node 18+ version's npx path, project stays on its own Node version.
+
+---
+
+**MCP Recommendations (only if Node 18+ available):**
+
+Build recommendations by reading `.claude/bootstrap/mappings/mcp-mappings.yaml` and checking detected stack.
+
+Present recommendations, starting with Context7 (always recommended):
+
+```markdown
+**Recommended MCP Servers:**
+
+📚 **Context7** (Recommended for all projects)
+   - Why: Provides up-to-date, version-specific documentation and code examples directly in your prompt
+   - Access: All agents
+   - Setup: `npx -y @upstash/context7-mcp`
+   - ⚠️  **Requires API key** (free tier available): https://console.upstash.com/context7
+   - Free and open source: https://github.com/upstash/context7
+
+💾 **Database MCP** (High Priority — if database detected)
+   - Why: [Database] detected - can inspect schemas and validate queries
+   - Access: [database specialist], be-team-lead
+   - ⚠️  Requires: Database connection string (read-only recommended)
+   - ⚠️  **Security**: Connection strings are stored in plain text in `mcp-config.json`. Use environment variables (e.g., `$DATABASE_URL`) instead of hardcoded credentials. Add `mcp-config.json` to `.gitignore` if it contains secrets.
+
+🌐 **Browser MCP** (Medium Priority — if frontend detected)
+   - Why: Frontend project - helps with E2E testing and accessibility validation
+   - Access: accessibility, tester, fe-team-lead
+
+🔍 **Serena** (Optional — code intelligence)
+   - Why: Semantic code understanding via language server (30+ languages)
+   - Access: code-reviewer, fe-team-lead, be-team-lead
+   - Setup: `uvx serena --workspace .`
+   - Note: Most valuable for Cursor/Claude Desktop users. Claude Code has built-in code navigation.
+   - Free and open source: https://github.com/oraios/serena
+
+Would you like to configure MCP servers?
+```
+
+Use AskUserQuestion with multiSelect enabled:
+- Context7 (Recommended)
+- Database MCP
+- Browser MCP
+- Serena (code intelligence)
+- Filesystem MCP (if monorepo)
+- None - skip MCP configuration
+
+For each selected MCP, gather required config (connection strings, etc.)
+>>>>>>> Stashed changes
 
 ---
 
@@ -284,7 +395,232 @@ Each pattern file should contain:
 ## Phase 5: Report
 
 ```markdown
+<<<<<<< Updated upstream
 ## Init Complete
+=======
+| Agent | ID | Aliases | Role | Reports To |
+|-------|-----|---------|------|------------|
+| Project Owner | `project-owner` | `orchestrator` | Routes tasks | User |
+{{#if HAS_FRONTEND}}
+| FE Team Lead | `fe-team-lead` | `lead` | FE Coordinator | Project Owner |
+{{#each FRONTEND_SPECIALISTS}}
+| {{name}} | `{{id}}` | - | {{role}} | FE Team Lead |
+{{/each}}
+{{/if}}
+{{#if HAS_BACKEND}}
+| BE Team Lead | `be-team-lead` | - | BE Coordinator | Project Owner |
+{{#each BACKEND_SPECIALISTS}}
+| {{name}} | `{{id}}` | - | {{role}} | BE Team Lead |
+{{/each}}
+{{/if}}
+| Code Reviewer | `code-reviewer` | `reviewer` | Quality review | Team Leads |
+| ... | ... | ... | ... | ... |
+```
+
+### Build Hierarchy Visualization
+
+```
+Project Owner (orchestrator)
+{{#if HAS_FRONTEND}}
+├── FE Team Lead (coordinator)
+{{#each FRONTEND_SPECIALISTS}}
+│   ├── {{id}} ({{role}})
+{{/each}}
+{{/if}}
+{{#if HAS_BACKEND}}
+├── BE Team Lead (coordinator)
+{{#each BACKEND_SPECIALISTS}}
+│   ├── {{id}} ({{role}})
+{{/each}}
+{{/if}}
+├── Code Reviewer (cross-domain)
+├── QA Validator (qa)
+├── Business Analyst (ba)
+├── PR Manager (pr)
+├── Rubber Duck (guided learning)
+└── Librarian (knowledge keeper)
+```
+
+### Build Routing Rules
+
+Auto-generate routing based on specialists:
+
+```markdown
+| Task Pattern | Route To |
+|-------------|----------|
+{{#if HAS_FRONTEND}}
+| New {{FRAMEWORK}} component | fe-team-lead → {{FRAMEWORK}} |
+| Styling / {{STYLING}} | fe-team-lead → {{STYLING}} |
+| Accessibility / WCAG | fe-team-lead → accessibility |
+{{/if}}
+{{#if HAS_BACKEND}}
+| {{BACKEND_FRAMEWORK}} API endpoint | be-team-lead → {{BACKEND_FRAMEWORK}} |
+| {{DATABASE}} query / schema | be-team-lead → {{DATABASE}} |
+{{/if}}
+| Code review | code-reviewer |
+| Requirements | business-analyst |
+| "Remember to..." | librarian |
+```
+
+### Write INDEX.md
+
+Write to `.claude/agents/INDEX.md` with:
+- Auto-generated header comment
+- Registry table
+- Hierarchy
+- Routing rules
+- Timestamp
+
+---
+
+## Phase 6: Configure MCP Servers (NEW)
+
+If user selected MCP servers, generate configuration:
+
+### Security: Connection Strings
+
+> **Important:** If the user provides database connection strings or other credentials, use environment variable references (e.g., `$DATABASE_URL`) in the config file instead of hardcoded values. Warn the user that `mcp-config.json` will be stored in plain text and should be added to `.gitignore` if it contains secrets. Never commit credentials to version control.
+
+### Node.js Path Detection (Critical for nvm users)
+
+Use the Node version selected in Round 4 (not necessarily the project's current Node):
+
+1. **If nvm is installed:**
+   - Use the **Node version selected by user** (e.g., v22.22.0 even if project uses v14)
+   - Build full npx path: `~/.nvm/versions/node/v{SELECTED_VERSION}/bin/npx`
+   - Build PATH env var: `~/.nvm/versions/node/v{SELECTED_VERSION}/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin`
+   - Use full path for `command` field
+   - Include PATH in `env` field
+2. **If nvm is NOT installed:**
+   - Use `"npx"` directly as command
+   - Assume global Node 18+ is available
+
+**Key principle:** MCP servers run as separate processes with their own Node version. They don't affect the project's Node version. A Node 14 project can have MCPs running on Node 22.
+
+### Write MCP Config
+
+File: `.claude/knowledge/project/mcp-config.json`
+
+```json
+{
+  "version": "1.0",
+  "generated_at": "{{TIMESTAMP}}",
+  "servers": [
+    {{#if CONTEXT7_SELECTED}}
+    {
+      "id": "context7",
+      "name": "Context7",
+      "type": "stdio",
+      "command": "{{NPX_PATH}}",
+      "args": ["-y", "@upstash/context7-mcp"],
+      "env": {
+        {{#if USING_NVM}}
+        "PATH": "{{NODE_BIN_PATH}}:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+        {{/if}}
+        "CONTEXT7_API_KEY": "${CONTEXT7_API_KEY}"
+      }
+    },
+    {{/if}}
+    {{#if HAS_DATABASE_MCP}}
+    {
+      "id": "db-mcp",
+      "name": "Database MCP",
+      "type": "stdio",
+      "command": "{{NPX_PATH}}",
+      "args": ["-y", "@modelcontextprotocol/server-{{DATABASE_TYPE}}"],
+      "env": {
+        {{#if USING_NVM}}
+        "PATH": "{{NODE_BIN_PATH}}:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+        {{/if}}
+        "{{DATABASE_ENV_VAR}}": "${DATABASE_URL}"
+      }
+    },
+    {{/if}}
+  ],
+  "global_access": ["librarian", "project-owner"]
+}
+```
+
+**Variables to substitute:**
+- `{{NPX_PATH}}`: Full path to npx if using nvm (e.g., `/Users/username/.nvm/versions/node/v22.22.0/bin/npx`), or just `"npx"` if not
+- `{{NODE_BIN_PATH}}`: Full path to Node bin directory if using nvm (e.g., `/Users/username/.nvm/versions/node/v22.22.0/bin`)
+- `{{USING_NVM}}`: Boolean - true if nvm detected
+- `{{CONTEXT7_API_KEY}}`: Prompt user for API key or use env var reference
+
+### Add MCP Sections to Generated Agents
+
+For agents with MCP access, ensure their generated content includes:
+
+```markdown
+## MCP Capabilities
+
+This agent has access to:
+- **{{MCP_NAME}}**: {{DESCRIPTION}}
+
+Use for:
+- {{USE_CASE_1}}
+- {{USE_CASE_2}}
+```
+
+---
+
+## Phase 7: Generate Manifest (NEW)
+
+Create tracking manifest for all generated files.
+
+File: `.claude/.metadata/generated-manifest.json`
+
+```json
+{
+  "version": "2.0",
+  "generated_at": "{{TIMESTAMP}}",
+  "project_root": "{{PROJECT_ROOT}}",
+  "detected_stack": ["vue", "typescript", "scss", "python", "django", "postgresql"],
+  "generated_files": {
+    "agents": [
+      {
+        "file": "agents/coordinators/fe-team-lead.md",
+        "template": "fe-team-lead.template.md",
+        "technology": "coordinator",
+        "timestamp": "{{TIMESTAMP}}"
+      },
+      {
+        "file": "agents/specialists/vue.md",
+        "template": "framework-specialist.template.md",
+        "technology": "vue",
+        "version": "3.2.0",
+        "timestamp": "{{TIMESTAMP}}"
+      },
+      ...
+    ],
+    "patterns": [
+      "knowledge/patterns/vue-patterns.md",
+      "knowledge/patterns/python-patterns.md",
+      ...
+    ],
+    "config": [
+      "knowledge/project/project-context.md",
+      "knowledge/project/mcp-config.json",
+      "agents/INDEX.md"
+    ]
+  },
+  "mcp_servers_configured": ["docs-mcp", "db-mcp"]
+}
+```
+
+Update `.metadata/last-init` with current timestamp.
+
+---
+
+## Phase 8: Report
+
+```markdown
+## ✅ Initialization Complete
+
+### 🎉 Bootstrap System v2.0
+
+Your project now has a **dynamically generated agent team** tailored to your tech stack!
+>>>>>>> Stashed changes
 
 ### Files Created/Updated
 - `.claude/knowledge/project/project-context.md`

@@ -1,0 +1,461 @@
+# MCP Mappings
+# Recommends MCP servers based on detected tech stack
+# Used by /init to suggest relevant MCPs to users
+
+# Context7 MCP (Recommended for ALL projects)
+# Provides up-to-date, version-specific documentation directly in the prompt
+# https://github.com/upstash/context7
+context7_mcp:
+  enabled_by_default: true
+  priority: critical
+  description: "Up-to-date, version-specific documentation and code examples via Context7"
+  universal: true
+  requirements:
+    node_version: "18.0.0"
+    api_key_required: true
+    api_key_url: "https://console.upstash.com/context7"
+    api_key_note: "Free tier available"
+  install:
+    command: "npx"
+    args: ["-y", "@upstash/context7-mcp"]
+    env_vars:
+      CONTEXT7_API_KEY: "required - get from https://console.upstash.com/context7"
+  agents_with_access: all
+  recommendation_reason: "Context7 provides live, version-specific documentation for your detected frameworks and libraries — no more outdated API references"
+  capabilities:
+    - "Version-specific documentation lookup"
+    - "Code examples from official sources"
+    - "API reference browsing"
+    - "Framework-specific guides"
+
+# Serena MCP (Optional — code intelligence via language server)
+# Provides semantic code understanding across 30+ languages
+# https://github.com/oraios/serena
+# Note: Most useful for Cursor/Claude Desktop. Claude Code has built-in
+# code navigation, so Serena adds incremental (not essential) value.
+serena_mcp:
+  enabled_by_default: false
+  priority: low
+  description: "Semantic code understanding and symbol-level navigation via Serena"
+  universal: true
+  install:
+    command: "uvx"
+    args: ["serena", "--workspace", "."]
+  agents_with_access:
+    - code-reviewer
+    - fe-team-lead
+    - be-team-lead
+  recommendation_reason: "Serena provides IDE-like code intelligence (go to definition, find references, symbol search) — most valuable for Cursor/Claude Desktop users"
+  capabilities:
+    - "Symbol-level navigation (30+ languages)"
+    - "Go to definition / find references"
+    - "Semantic code search"
+    - "Intelligent code editing"
+
+# Documentation MCP (Legacy — consider Context7 instead)
+documentation_mcp:
+  enabled_by_default: false
+  priority: medium
+  description: "Browse official documentation during conversations (generic fetch-based)"
+  note: "Context7 is recommended over generic documentation MCP for most use cases"
+
+  # Frontend framework documentation
+  vue:
+    condition: has_vue
+    sources:
+      - url: "https://vuejs.org/api/"
+        name: "Vue.js API Reference"
+      - url: "https://vueuse.org"
+        name: "VueUse Composables"
+    agents_with_access:
+      - vue
+      - typescript
+      - fe-team-lead
+    recommendation_reason: "Vue.js detected - MCP can provide live API references and composable documentation"
+
+  react:
+    condition: has_react
+    sources:
+      - url: "https://react.dev"
+        name: "React Documentation"
+      - url: "https://react-typescript-cheatsheet.netlify.app"
+        name: "React TypeScript Cheatsheet"
+    agents_with_access:
+      - react
+      - typescript
+      - fe-team-lead
+    recommendation_reason: "React detected - MCP can provide up-to-date hooks and API documentation"
+
+  nextjs:
+    condition: has_nextjs
+    sources:
+      - url: "https://nextjs.org/docs"
+        name: "Next.js Documentation"
+    agents_with_access:
+      - nextjs
+      - react
+      - typescript
+      - fe-team-lead
+    recommendation_reason: "Next.js detected - MCP can help with App Router and Server Components documentation"
+
+  angular:
+    condition: has_angular
+    sources:
+      - url: "https://angular.io/docs"
+        name: "Angular Documentation"
+    agents_with_access:
+      - angular
+      - typescript
+      - fe-team-lead
+    recommendation_reason: "Angular detected - MCP can provide API docs and best practices"
+
+  svelte:
+    condition: has_svelte
+    sources:
+      - url: "https://svelte.dev/docs"
+        name: "Svelte Documentation"
+    agents_with_access:
+      - svelte
+      - typescript
+      - fe-team-lead
+    recommendation_reason: "Svelte detected - MCP can provide reactive patterns and API docs"
+
+  # Backend framework documentation
+  django:
+    condition: has_django
+    sources:
+      - url: "https://docs.djangoproject.com/"
+        name: "Django Documentation"
+    agents_with_access:
+      - django
+      - python
+      - be-team-lead
+    recommendation_reason: "Django detected - MCP can provide ORM, views, and middleware documentation"
+
+  fastapi:
+    condition: has_fastapi
+    sources:
+      - url: "https://fastapi.tiangolo.com"
+        name: "FastAPI Documentation"
+    agents_with_access:
+      - fastapi
+      - python
+      - be-team-lead
+    recommendation_reason: "FastAPI detected - MCP can help with async patterns and Pydantic models"
+
+  flask:
+    condition: has_flask
+    sources:
+      - url: "https://flask.palletsprojects.com/"
+        name: "Flask Documentation"
+    agents_with_access:
+      - flask
+      - python
+      - be-team-lead
+    recommendation_reason: "Flask detected - MCP can provide routing and extension documentation"
+
+  spring_boot:
+    condition: has_spring_boot
+    sources:
+      - url: "https://spring.io/projects/spring-boot"
+        name: "Spring Boot Documentation"
+    agents_with_access:
+      - spring-boot
+      - java
+      - be-team-lead
+    recommendation_reason: "Spring Boot detected - MCP can provide annotation and configuration docs"
+
+  express:
+    condition: has_express
+    sources:
+      - url: "https://expressjs.com/en/4x/api.html"
+        name: "Express.js API Reference"
+    agents_with_access:
+      - express
+      - typescript
+      - be-team-lead
+    recommendation_reason: "Express.js detected - MCP can provide middleware and routing documentation"
+
+  # Language documentation
+  typescript:
+    condition: has_typescript
+    sources:
+      - url: "https://www.typescriptlang.org/docs/"
+        name: "TypeScript Documentation"
+    agents_with_access:
+      - typescript
+      - fe-team-lead
+      - be-team-lead
+    recommendation_reason: "TypeScript detected - MCP can help with type system and utility types"
+
+  python:
+    condition: has_python
+    sources:
+      - url: "https://docs.python.org/3/"
+        name: "Python Documentation"
+    agents_with_access:
+      - python
+      - be-team-lead
+    recommendation_reason: "Python detected - MCP can provide standard library and language reference"
+
+  go:
+    condition: has_go
+    sources:
+      - url: "https://go.dev/doc/"
+        name: "Go Documentation"
+    agents_with_access:
+      - go
+      - be-team-lead
+    recommendation_reason: "Go detected - MCP can provide language spec and standard library docs"
+
+  rust:
+    condition: has_rust
+    sources:
+      - url: "https://doc.rust-lang.org/book/"
+        name: "The Rust Programming Language"
+      - url: "https://doc.rust-lang.org/std/"
+        name: "Rust Standard Library"
+    agents_with_access:
+      - rust
+      - be-team-lead
+    recommendation_reason: "Rust detected - MCP can help with ownership, lifetimes, and stdlib"
+
+  # Web standards
+  web_standards:
+    condition: has_frontend
+    sources:
+      - url: "https://developer.mozilla.org/en-US/docs/Web"
+        name: "MDN Web Docs"
+      - url: "https://www.w3.org/WAI/WCAG21/quickref/"
+        name: "WCAG Quick Reference"
+    agents_with_access:
+      - fe-team-lead
+      - accessibility
+      - vue
+      - react
+      - angular
+      - svelte
+    recommendation_reason: "Frontend project detected - MCP provides web standards and accessibility docs"
+
+# Database MCP
+database_mcp:
+  enabled_by_default: false
+  priority: high
+  description: "Query databases directly for schema inspection and validation"
+  security_warning: "Database MCP will have read access to your data. Only enable if comfortable."
+
+  postgresql:
+    condition: has_postgresql
+    connection_config:
+      type: "postgresql"
+      readonly: true
+      require_ssl: false
+    agents_with_access:
+      - postgresql
+      - be-team-lead
+      - librarian
+    recommendation_reason: "PostgreSQL detected - MCP can inspect schemas, validate queries, and check indexes"
+    capabilities:
+      - "Inspect table schemas"
+      - "Validate query syntax"
+      - "Check index usage"
+      - "View constraints and relationships"
+
+  mysql:
+    condition: has_mysql
+    connection_config:
+      type: "mysql"
+      readonly: true
+      require_ssl: false
+    agents_with_access:
+      - mysql
+      - be-team-lead
+      - librarian
+    recommendation_reason: "MySQL detected - MCP can inspect schemas and validate queries"
+    capabilities:
+      - "Inspect table schemas"
+      - "Validate query syntax"
+      - "Check index usage"
+
+  mongodb:
+    condition: has_mongodb
+    connection_config:
+      type: "mongodb"
+      readonly: true
+    agents_with_access:
+      - mongodb
+      - be-team-lead
+      - librarian
+    recommendation_reason: "MongoDB detected - MCP can inspect collections and validate queries"
+    capabilities:
+      - "Inspect collection schemas"
+      - "Validate aggregation pipelines"
+      - "Check index usage"
+
+  redis:
+    condition: has_redis
+    connection_config:
+      type: "redis"
+      readonly: true
+    agents_with_access:
+      - redis
+      - be-team-lead
+    recommendation_reason: "Redis detected - MCP can inspect keys and data structures"
+    capabilities:
+      - "Inspect key patterns"
+      - "Check data types"
+      - "Validate commands"
+
+# Browser MCP
+browser_mcp:
+  enabled_by_default: false
+  priority: medium
+  description: "Automate browser interactions for testing and validation"
+
+  e2e_testing:
+    condition: has_e2e_tests
+    agents_with_access:
+      - tester
+      - accessibility
+      - fe-team-lead
+    recommendation_reason: "E2E tests detected - MCP can help with browser automation and testing"
+    capabilities:
+      - "Headless browser for testing"
+      - "Screenshot capture"
+      - "Network inspection"
+      - "Console log capture"
+
+  accessibility_testing:
+    condition: has_frontend
+    agents_with_access:
+      - accessibility
+      - fe-team-lead
+    recommendation_reason: "Frontend project - MCP can validate accessibility in live browser"
+    capabilities:
+      - "Automated accessibility audits"
+      - "Keyboard navigation testing"
+      - "Screen reader compatibility"
+      - "Color contrast checks"
+
+# Filesystem MCP
+filesystem_mcp:
+  enabled_by_default: false
+  priority: low
+  description: "Advanced file operations beyond standard tools"
+
+  monorepo:
+    condition: has_monorepo
+    agents_with_access:
+      - project-owner
+      - fe-team-lead
+      - be-team-lead
+    recommendation_reason: "Monorepo detected - MCP can help navigate complex file structures"
+    capabilities:
+      - "Batch file operations"
+      - "Advanced search and replace"
+      - "File watching"
+
+# Git MCP
+git_mcp:
+  enabled_by_default: false
+  priority: low
+  description: "Advanced git operations and repository analysis"
+
+  large_repo:
+    condition: has_git_and_large_history
+    agents_with_access:
+      - project-owner
+      - librarian
+    recommendation_reason: "Large repository - MCP can help with history analysis and complex git operations"
+    capabilities:
+      - "Branch analysis"
+      - "Commit history mining"
+      - "Merge conflict resolution assistance"
+      - "Blame and attribution"
+
+# API Testing MCP
+api_testing_mcp:
+  enabled_by_default: false
+  priority: medium
+  description: "Test and validate API endpoints"
+
+  rest_api:
+    condition: has_backend_api
+    agents_with_access:
+      - be-team-lead
+      - tester
+      - qa-validator
+    recommendation_reason: "Backend API detected - MCP can help test endpoints and validate responses"
+    capabilities:
+      - "Send HTTP requests"
+      - "Validate response schemas"
+      - "Test authentication flows"
+      - "Load testing"
+
+  graphql_api:
+    condition: has_graphql
+    agents_with_access:
+      - graphql
+      - be-team-lead
+      - tester
+    recommendation_reason: "GraphQL API detected - MCP can validate schemas and test queries"
+    capabilities:
+      - "Schema introspection"
+      - "Query validation"
+      - "Mutation testing"
+
+# Custom MCP
+custom_mcp:
+  enabled_by_default: false
+  priority: low
+  description: "User-specified MCP server"
+
+  user_defined:
+    agents_with_access:
+      - project-owner
+    recommendation_reason: "Custom MCP servers can be configured for project-specific needs"
+
+# Global access agents (can use any MCP)
+global_access_agents:
+  - librarian
+  - project-owner
+  - rubber-duck
+
+# MCP configuration schema
+schema:
+  server:
+    id: "string (unique identifier)"
+    name: "string (display name)"
+    type: "documentation | database | browser | filesystem | git | api_testing | custom"
+    enabled: "boolean"
+    access: "array of agent IDs"
+    config: "object (server-specific configuration)"
+
+# Node.js Version Requirements and nvm Compatibility
+# IMPORTANT: MCP servers require Node.js 18+ with modern JavaScript features
+node_requirements:
+  minimum_version: "18.0.0"
+  detection:
+    - "Check current Node version: node --version"
+    - "If using nvm: nvm current"
+    - "Get full npx path: which npx"
+
+  # For nvm users: MCP configs must use full paths and include PATH in env
+  nvm_configuration:
+    issue: "Using just 'npx' will use system default Node (may be outdated)"
+    solution: "Use full path to npx from correct Node version + include PATH in env"
+    example:
+      command: "/Users/username/.nvm/versions/node/v22.22.0/bin/npx"
+      env:
+        PATH: "/Users/username/.nvm/versions/node/v22.22.0/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+        CONTEXT7_API_KEY: "${CONTEXT7_API_KEY}"
+
+  # Generation instructions for /init
+  generation_logic:
+    - "Detect if nvm is installed (check ~/.nvm/ exists)"
+    - "If nvm: get current Node version (nvm current)"
+    - "If nvm: get full npx path (which npx or ~/.nvm/versions/node/{version}/bin/npx)"
+    - "If nvm: build PATH env var with Node bin directory first"
+    - "If not nvm: use 'npx' directly (assumes global Node 18+)"
+    - "Validate Node version >= 18.0.0 before generating MCP configs"
+    - "Warn user if Node < 18 and skip MCP generation"

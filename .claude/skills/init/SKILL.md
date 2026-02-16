@@ -631,7 +631,143 @@ Update `.metadata/last-init` with current timestamp.
 
 ---
 
-## Phase 8: Report
+## Phase 8: Create File Manifest (NEW v2.1)
+
+Create file tracking manifest for the update system.
+
+File: `.claude/.metadata/file-manifest.json`
+
+This manifest enables the `/update` skill to track which files are framework vs user content, allowing safe framework updates that preserve customizations.
+
+```json
+{
+  "framework_version": "2.0",
+  "user_version": "2.0",
+  "manifest_created": "{{TIMESTAMP}}",
+  "last_update": "{{TIMESTAMP}}",
+  "files": {
+    "bootstrap/": {
+      "source": "framework",
+      "customized": false,
+      "safe_to_replace": true,
+      "framework_hash": "{{CALCULATED_HASH}}"
+    },
+    "docs/": {
+      "source": "framework",
+      "customized": false,
+      "safe_to_replace": true
+    },
+    "skills/init/SKILL.md": {
+      "source": "framework",
+      "customized": false,
+      "safe_to_replace": true
+    },
+    "agents/project-owner.md": {
+      "source": "framework",
+      "customized": false,
+      "requires_merge": false,
+      "framework_hash": "{{CALCULATED_HASH}}",
+      "user_hash": "{{CALCULATED_HASH}}",
+      "customizations": {
+        "personality_name": null,
+        "sections_modified": [],
+        "rules_added": false
+      }
+    },
+    "agents/coordinators/fe-team-lead.md": {
+      "source": "generated",
+      "regenerate_on_init": true,
+      "template": "fe-team-lead.template.md"
+    },
+    "agents/specialists/vue.md": {
+      "source": "generated",
+      "regenerate_on_init": true,
+      "template": "framework-specialist.template.md",
+      "technology": "vue"
+    },
+    "knowledge/patterns/vue-patterns.md": {
+      "source": "generated",
+      "regenerate_on_init": false,
+      "template": "vue-patterns.template.md",
+      "note": "Pattern files evolve with project, not updated by framework"
+    },
+    "knowledge/project/project-context.md": {
+      "source": "user",
+      "protected": true,
+      "never_touch": true
+    },
+    "agents-config.json": {
+      "source": "user",
+      "protected": true,
+      "never_touch": true
+    },
+    "settings.local.json": {
+      "source": "user",
+      "protected": true,
+      "never_touch": true
+    }
+  },
+  "classification": {
+    "tier_1_safe_replace": [
+      "bootstrap/**/*",
+      "docs/**/*",
+      "skills/*/SKILL.md",
+      "knowledge/templates/**/*"
+    ],
+    "tier_2_merge_required": [
+      "agents/project-owner.md",
+      "agents/librarian.md",
+      "agents/rubber-duck.md",
+      "agents/code-reviewer.md",
+      "agents/business-analyst.md",
+      "agents/qa-validator.md",
+      "agents/pr-manager.md"
+    ],
+    "tier_3_never_touch": [
+      "agents/memory/**/*",
+      "agents/legacy/**/*",
+      "knowledge/project/**/*",
+      "knowledge/accs/**/*",
+      "agents-config.json",
+      "settings.local.json"
+    ],
+    "generated_optional": [
+      "agents/coordinators/**/*",
+      "agents/specialists/**/*",
+      "knowledge/patterns/**/*",
+      "agents/INDEX.md",
+      "skills/generated/**/*"
+    ]
+  }
+}
+```
+
+Also create `.claude/.metadata/framework-version`:
+```
+2.0
+```
+
+And `.claude/.metadata/update-history.json`:
+```json
+{
+  "updates": [
+    {
+      "type": "initial-setup",
+      "timestamp": "{{TIMESTAMP}}",
+      "notes": "Project initialized with bootstrap system v2.0"
+    }
+  ]
+}
+```
+
+These files enable the update system:
+- Users can run `/update check` to check for framework updates
+- Users can run `/update pull` to safely update framework files
+- All customizations will be preserved during updates
+
+---
+
+## Phase 9: Report
 
 ```markdown
 ## ✅ Initialization Complete

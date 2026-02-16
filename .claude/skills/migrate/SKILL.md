@@ -8,8 +8,9 @@ You are running **migration** from a previous `.claude/` version to v2.0 (Bootst
 ## How to Use
 
 ```
-/migrate                # Migrate to v2.0
-/migrate --rollback     # Restore from backup
+/migrate                       # Migrate to v2.0
+/migrate --rollback            # Restore from backup
+/migrate --add-update-system   # Add update tracking to existing v2.0 project
 ```
 
 ---
@@ -227,6 +228,268 @@ If person-named agents are detected (petra.md, lory.md, ducky.md, etc.):
 
 2. **Rename and update** internal references
 3. **Then proceed** with standard v1.0 → v2.0 migration
+
+---
+
+## Add Update System to Existing v2.0 (`--add-update-system`)
+
+When `--add-update-system` is used on an **existing v2.0 project**:
+
+This adds the update tracking system to a v2.0 project that was created before the update system existed.
+
+### Prerequisites
+
+- Project must already be v2.0 (has `.claude/.metadata/version` = "2.0")
+- Has `.claude/bootstrap/` directory
+- Has generated agents (coordinators, specialists)
+
+If not v2.0, run `/migrate` first.
+
+### Step 1: Verify v2.0 Project
+
+```bash
+# Check version
+if [ ! -f .claude/.metadata/version ] || [ "$(cat .claude/.metadata/version)" != "2.0" ]; then
+  echo "⚠️  This is not a v2.0 project. Run /migrate first."
+  exit 1
+fi
+
+# Check bootstrap exists
+if [ ! -d .claude/bootstrap ]; then
+  echo "⚠️  Bootstrap directory missing. This doesn't appear to be v2.0."
+  exit 1
+fi
+
+echo "✓ Verified v2.0 project"
+```
+
+### Step 2: Analyze Current Files
+
+Scan `.claude/` directory and classify all files:
+
+1. **Compare against framework template**:
+   - Read each file
+   - Calculate hash
+   - Compare with framework version (if available)
+   - Detect customizations
+
+2. **Check generated-manifest.json**:
+   - See which files were generated
+   - Check for `"customized": true` flag
+   - Extract customization details
+
+3. **Identify user files**:
+   - `knowledge/project/*` - user content
+   - `knowledge/accs/*` - user content
+   - `agents/memory/*` - user content
+   - `agents-config.json` - user content (if exists)
+   - `settings.local.json` - user content (if exists)
+
+### Step 3: Build File Manifest
+
+Create `.claude/.metadata/file-manifest.json`:
+
+```json
+{
+  "framework_version": "2.0",
+  "user_version": "2.0",
+  "manifest_created": "[current timestamp]",
+  "last_update": "[current timestamp]",
+  "files": {
+    "bootstrap/": {
+      "source": "framework",
+      "customized": false,
+      "safe_to_replace": true,
+      "framework_hash": "[calculated]"
+    },
+    "agents/project-owner.md": {
+      "source": "framework",
+      "customized": true,
+      "requires_merge": true,
+      "framework_hash": "[from template]",
+      "user_hash": "[calculated]",
+      "customizations": {
+        "personality_name": "[detected or null]",
+        "sections_modified": ["[detected sections]"],
+        "rules_added": false
+      }
+    },
+    "agents/coordinators/fe-team-lead.md": {
+      "source": "generated",
+      "regenerate_on_init": true,
+      "template": "fe-team-lead.template.md",
+      "customized": true,
+      "user_rules_may_exist": true
+    },
+    "knowledge/project/": {
+      "source": "user",
+      "protected": true,
+      "never_touch": true,
+      "description": "User project documentation"
+    }
+  },
+  "classification": {
+    "tier_1_safe_replace": [
+      "bootstrap/**/*",
+      "docs/**/*",
+      "skills/*/SKILL.md",
+      "knowledge/templates/**/*"
+    ],
+    "tier_2_merge_required": [
+      "agents/project-owner.md",
+      "agents/librarian.md",
+      "(... other core agents with customizations)"
+    ],
+    "tier_3_never_touch": [
+      "agents/memory/**/*",
+      "knowledge/project/**/*",
+      "knowledge/accs/**/*",
+      "agents-config.json",
+      "settings.local.json"
+    ],
+    "generated_optional": [
+      "agents/coordinators/**/*",
+      "agents/specialists/**/*",
+      "knowledge/patterns/**/*"
+    ]
+  }
+}
+```
+
+### Step 4: Add Framework Version Tracking
+
+Create `.claude/.metadata/framework-version`:
+```
+2.0
+```
+
+This tracks the framework version separately from user version.
+
+### Step 5: Initialize Update History
+
+Create `.claude/.metadata/update-history.json`:
+```json
+{
+  "updates": [
+    {
+      "type": "update-system-initialized",
+      "timestamp": "[current timestamp]",
+      "notes": "Added update tracking to existing v2.0 project"
+    }
+  ]
+}
+```
+
+### Step 6: Report
+
+```markdown
+## ✅ Update System Added
+
+Your v2.0 project now has update tracking enabled!
+
+### What Was Added
+
+1. **File Manifest** (`.metadata/file-manifest.json`)
+   - Tracks 45 files (23 framework, 7 generated, 15 user)
+   - Detected customizations: 3 core agents
+   - Protected user files: 15
+
+2. **Framework Version** (`.metadata/framework-version`)
+   - Current: 2.0
+
+3. **Update History** (`.metadata/update-history.json`)
+   - Initialized tracking
+
+### Detected Customizations
+
+**Core Agents** (will require merge on update):
+- agents/project-owner.md (custom personality detected)
+- agents/librarian.md (modified sections)
+- agents/rubber-duck.md (custom rules added)
+
+**User Content** (always protected):
+- knowledge/project/* (8 files)
+- knowledge/accs/* (3 files)
+- agents/memory/directives.md
+- agents-config.json
+- settings.local.json
+
+### Next Steps
+
+You can now use the update system:
+
+1. **Check for updates**:
+   ```
+   /update check
+   ```
+
+2. **Preview updates**:
+   ```
+   /update pull --dry-run
+   ```
+
+3. **Apply updates**:
+   ```
+   /update pull
+   ```
+
+The update system will:
+- ✓ Replace framework files safely
+- ✓ Merge customized files intelligently
+- ✓ Never touch your user content
+- ✓ Create backups before every update
+
+---
+
+**Update system ready!** Your customizations are tracked and will be preserved during framework updates.
+```
+
+### Detection Algorithm for Customizations
+
+For each core agent file, detect customizations by:
+
+1. **Personality Names**:
+   - Look for custom names in agent config or front matter
+   - Check if agent is referenced by non-standard name
+
+2. **Modified Sections**:
+   - Compare against original template (if available)
+   - Identify added/removed/modified sections
+   - Common sections: Role, Constraints, Context, Rules
+
+3. **Added Rules**:
+   - Look for "Custom Rules" or "Project Rules" sections
+   - Check for user-added anti-patterns or checklists
+
+4. **Hash Comparison**:
+   - Calculate hash of current file
+   - Compare with framework template hash
+   - If different → customized
+
+### Error Handling
+
+If file manifest can't be created:
+```markdown
+⚠️  Could not analyze all files
+
+Some files could not be analyzed:
+- agents/project-owner.md (permission denied)
+- bootstrap/mappings/agent-mappings.yaml (invalid YAML)
+
+Please fix these issues and run again.
+```
+
+If already has update system:
+```markdown
+✓ Update system already enabled
+
+Your project already has:
+- .metadata/file-manifest.json
+- .metadata/framework-version
+- .metadata/update-history.json
+
+No action needed. You can use /update check to check for framework updates.
+```
 
 ---
 

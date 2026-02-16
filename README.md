@@ -1,8 +1,10 @@
-# AI Dev Team Agent v2.0
+# AI Dev Team Agent v2.1
 
 A multi-agent system for AI-assisted development that guides, reviews, and validates your work — instead of writing code for you.
 
 Drop the `.claude/` folder into **any project** (Vue, React, Python/Django, Java/Spring Boot, Go, Rust, or anything else), run `/init`, and get a virtual development team dynamically generated for your specific tech stack.
+
+**New in v2.1:** Update system with file tracking and smart merge. Pull framework updates safely while preserving all your customizations.
 
 **New in v2.0:** Universal Bootstrap System with 100+ technology detectors, dynamic agent generation from templates, MCP (Model Context Protocol) integration, and full backend support.
 
@@ -97,7 +99,8 @@ This interactive setup will:
 | Command | What it does |
 |---------|-------------|
 | `/init` | Interactive project setup — detects 100+ technologies, generates agents, configures MCPs |
-| `/migrate` | Upgrade from v1.0 to v2.0 — preserves custom rules |
+| `/update` | Check for and apply framework updates — smart merge preserves customizations |
+| `/migrate` | Upgrade from v1.0 to v2.0/v2.1 — preserves custom rules |
 | `/agent <id>` | Invoke any specialist (e.g., `/agent vue`, `/agent django`) |
 | `/team-lead` | Decompose a feature into specialist tasks |
 | `/review` | Multi-domain code review with severity-rated findings |
@@ -153,6 +156,13 @@ This interactive setup will:
 - **[Design Philosophy](.claude/docs/philosophy.md)** - Core principles & architectural decisions
 
 ## Version History
+
+**v2.1** (2026-02-16) — Update System
+- `/update` skill for safe framework updates
+- File tracking system with smart merge
+- Preserves all customizations during updates
+- Update history and rollback support
+- Opt-in for existing v2.0 projects via `/migrate --add-update-system`
 
 **v2.0** (2026-02-14) — Bootstrap System
 - Universal tech stack support (100+ detectors)

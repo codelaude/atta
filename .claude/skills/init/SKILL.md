@@ -492,6 +492,8 @@ Use the Node version selected in Round 4 (not necessarily the project's current 
 
 ### Write MCP Config
 
+> **Security Warning:** Using `npx -y` fetches the latest package version without verification. For production use, pin to specific versions (e.g., `@upstash/context7-mcp@1.2.3`) to reduce supply-chain risks.
+
 File: `.claude/knowledge/project/mcp-config.json`
 
 ```json
@@ -501,7 +503,7 @@ File: `.claude/knowledge/project/mcp-config.json`
     "context7": {
       "type": "stdio",
       "command": "{{NPX_PATH}}",
-      "args": ["-y", "@upstash/context7-mcp"],
+      "args": ["-y", "@upstash/context7-mcp"],  // Consider pinning: "@upstash/context7-mcp@1.2.3"
       "env": {
         {{#if USING_NVM}}
         "PATH": "{{NODE_BIN_PATH}}:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin",
@@ -514,7 +516,7 @@ File: `.claude/knowledge/project/mcp-config.json`
     "{{DATABASE_TYPE}}": {
       "type": "stdio",
       "command": "{{NPX_PATH}}",
-      "args": ["-y", "@modelcontextprotocol/server-{{DATABASE_TYPE}}"],
+      "args": ["-y", "@modelcontextprotocol/server-{{DATABASE_TYPE}}"],  // Consider pinning version
       "env": {
         {{#if USING_NVM}}
         "PATH": "{{NODE_BIN_PATH}}:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin",

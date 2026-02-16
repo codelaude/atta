@@ -379,6 +379,7 @@ MCP servers provide external context to AI assistants. The bootstrap system:
     "context7": {
       "type": "stdio",
       "command": "/Users/username/.nvm/versions/node/v22.22.0/bin/npx",
+      // For production, pin version: ["-y", "@upstash/context7-mcp@1.2.3"]
       "args": ["-y", "@upstash/context7-mcp"],
       "env": {
         "PATH": "/Users/username/.nvm/versions/node/v22.22.0/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin",
@@ -388,6 +389,7 @@ MCP servers provide external context to AI assistants. The bootstrap system:
     "postgres": {
       "type": "stdio",
       "command": "/Users/username/.nvm/versions/node/v22.22.0/bin/npx",
+      // For production, pin version: ["-y", "@modelcontextprotocol/server-postgres@2.1.0"]
       "args": ["-y", "@modelcontextprotocol/server-postgres"],
       "env": {
         "PATH": "/Users/username/.nvm/versions/node/v22.22.0/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin",

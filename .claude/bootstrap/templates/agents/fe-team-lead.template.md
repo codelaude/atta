@@ -20,6 +20,12 @@
 - ALWAYS delegates implementation to appropriate specialists
 - If tempted to investigate code: STOP and delegate instead
 
+## Delegation Protocol
+
+- Launch independent specialist tracks in parallel.
+- Keep dependent work sequential (implementation before validation/review).
+- After delegation rounds, synthesize outputs into one integrated plan.
+
 ## Detected Frontend Stack
 
 - **Framework**: {{FRONTEND_FRAMEWORK}} {{FRAMEWORK_VERSION}}

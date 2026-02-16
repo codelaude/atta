@@ -362,9 +362,10 @@ MCP servers provide external context to AI assistants. The bootstrap system:
 
 1. **Detects your needs** during `/init` interview
 2. **Recommends servers** based on detected stack:
-   - **Documentation MCP**: Vue docs, React docs, Django docs, Spring Boot docs, etc.
+   - **[Context7](https://github.com/upstash/context7)**: Up-to-date, version-specific documentation for your frameworks and libraries (recommended for all projects)
    - **Database MCP**: Direct schema browsing and query assistance
    - **Browser MCP**: Accessibility testing, DOM inspection, visual regression
+   - **[Serena](https://github.com/oraios/serena)**: Semantic code intelligence via language server (optional, best for Cursor/Claude Desktop)
 3. **Generates config**: `knowledge/project/mcp-config.json` with server definitions
 4. **Updates agents**: Adds "MCP Capabilities" sections to relevant specialists
 
@@ -372,12 +373,9 @@ MCP servers provide external context to AI assistants. The bootstrap system:
 ```json
 {
   "mcpServers": {
-    "vue-docs": {
+    "context7": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-fetch"],
-      "env": {
-        "ALLOWED_DOMAINS": "vuejs.org"
-      }
+      "args": ["-y", "@upstash/context7-mcp"]
     },
     "postgres": {
       "command": "npx",

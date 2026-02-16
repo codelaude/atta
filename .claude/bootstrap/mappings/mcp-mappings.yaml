@@ -2,11 +2,55 @@
 # Recommends MCP servers based on detected tech stack
 # Used by /init to suggest relevant MCPs to users
 
-# Documentation MCP
+# Context7 MCP (Recommended for ALL projects)
+# Provides up-to-date, version-specific documentation directly in the prompt
+# https://github.com/upstash/context7
+context7_mcp:
+  enabled_by_default: true
+  priority: critical
+  description: "Up-to-date, version-specific documentation and code examples via Context7"
+  universal: true
+  install:
+    command: "npx"
+    args: ["-y", "@upstash/context7-mcp"]
+  agents_with_access: all
+  recommendation_reason: "Context7 provides live, version-specific documentation for your detected frameworks and libraries — no more outdated API references"
+  capabilities:
+    - "Version-specific documentation lookup"
+    - "Code examples from official sources"
+    - "API reference browsing"
+    - "Framework-specific guides"
+
+# Serena MCP (Optional — code intelligence via language server)
+# Provides semantic code understanding across 30+ languages
+# https://github.com/oraios/serena
+# Note: Most useful for Cursor/Claude Desktop. Claude Code has built-in
+# code navigation, so Serena adds incremental (not essential) value.
+serena_mcp:
+  enabled_by_default: false
+  priority: low
+  description: "Semantic code understanding and symbol-level navigation via Serena"
+  universal: true
+  install:
+    command: "uvx"
+    args: ["serena", "--workspace", "."]
+  agents_with_access:
+    - code-reviewer
+    - fe-team-lead
+    - be-team-lead
+  recommendation_reason: "Serena provides IDE-like code intelligence (go to definition, find references, symbol search) — most valuable for Cursor/Claude Desktop users"
+  capabilities:
+    - "Symbol-level navigation (30+ languages)"
+    - "Go to definition / find references"
+    - "Semantic code search"
+    - "Intelligent code editing"
+
+# Documentation MCP (Legacy — consider Context7 instead)
 documentation_mcp:
   enabled_by_default: false
-  priority: high
-  description: "Browse official documentation during conversations"
+  priority: medium
+  description: "Browse official documentation during conversations (generic fetch-based)"
+  note: "Context7 is recommended over generic documentation MCP for most use cases"
 
   # Frontend framework documentation
   vue:

@@ -1,0 +1,325 @@
+# Skill Mappings
+# Maps detected project characteristics → generated skills
+# Generated skills wrap project-specific commands with Claude context
+
+# Testing Skills
+testing:
+  # npm test
+  npm-test:
+    condition: has_npm_test_script
+    template: test.template.md
+    output: skills/generated/test-npm.md
+    variables:
+      SKILL_NAME: "test"
+      TEST_COMMAND: "npm test"
+      TEST_FRAMEWORK: "detected_from_package_json"
+      COVERAGE_COMMAND: "npm test -- --coverage"
+
+  # yarn test
+  yarn-test:
+    condition: has_yarn_test_script
+    template: test.template.md
+    output: skills/generated/test-yarn.md
+    variables:
+      SKILL_NAME: "test"
+      TEST_COMMAND: "yarn test"
+      TEST_FRAMEWORK: "detected_from_package_json"
+      COVERAGE_COMMAND: "yarn test --coverage"
+
+  # pytest
+  pytest:
+    condition: has_pytest
+    template: test.template.md
+    output: skills/generated/test-pytest.md
+    variables:
+      SKILL_NAME: "test"
+      TEST_COMMAND: "pytest"
+      TEST_FRAMEWORK: "pytest"
+      COVERAGE_COMMAND: "pytest --cov"
+      VERBOSE_FLAG: "-v"
+
+  # go test
+  go-test:
+    condition: has_go
+    template: test.template.md
+    output: skills/generated/test-go.md
+    variables:
+      SKILL_NAME: "test"
+      TEST_COMMAND: "go test ./..."
+      TEST_FRAMEWORK: "go test"
+      COVERAGE_COMMAND: "go test -cover ./..."
+      VERBOSE_FLAG: "-v"
+
+  # cargo test
+  cargo-test:
+    condition: has_rust
+    template: test.template.md
+    output: skills/generated/test-cargo.md
+    variables:
+      SKILL_NAME: "test"
+      TEST_COMMAND: "cargo test"
+      TEST_FRAMEWORK: "cargo test"
+      COVERAGE_COMMAND: "cargo tarpaulin"
+      VERBOSE_FLAG: "--verbose"
+
+  # Maven test
+  maven-test:
+    condition: has_maven
+    template: test.template.md
+    output: skills/generated/test-maven.md
+    variables:
+      SKILL_NAME: "test"
+      TEST_COMMAND: "mvn test"
+      TEST_FRAMEWORK: "JUnit"
+      COVERAGE_COMMAND: "mvn test jacoco:report"
+
+  # Gradle test
+  gradle-test:
+    condition: has_gradle
+    template: test.template.md
+    output: skills/generated/test-gradle.md
+    variables:
+      SKILL_NAME: "test"
+      TEST_COMMAND: "./gradlew test"
+      TEST_FRAMEWORK: "JUnit"
+      COVERAGE_COMMAND: "./gradlew test jacocoTestReport"
+
+# Build Skills
+build:
+  # npm build
+  npm-build:
+    condition: has_npm_build_script
+    template: build.template.md
+    output: skills/generated/build-npm.md
+    variables:
+      SKILL_NAME: "build"
+      BUILD_COMMAND: "npm run build"
+      BUILD_TOOL: "detected_from_package_json"
+      OUTPUT_DIR: "dist"
+
+  # yarn build
+  yarn-build:
+    condition: has_yarn_build_script
+    template: build.template.md
+    output: skills/generated/build-yarn.md
+    variables:
+      SKILL_NAME: "build"
+      BUILD_COMMAND: "yarn build"
+      BUILD_TOOL: "detected_from_package_json"
+      OUTPUT_DIR: "dist"
+
+  # go build
+  go-build:
+    condition: has_go
+    template: build.template.md
+    output: skills/generated/build-go.md
+    variables:
+      SKILL_NAME: "build"
+      BUILD_COMMAND: "go build"
+      BUILD_TOOL: "go"
+      OUTPUT_DIR: "."
+
+  # cargo build
+  cargo-build:
+    condition: has_rust
+    template: build.template.md
+    output: skills/generated/build-cargo.md
+    variables:
+      SKILL_NAME: "build"
+      BUILD_COMMAND: "cargo build --release"
+      BUILD_TOOL: "cargo"
+      OUTPUT_DIR: "target/release"
+
+  # Maven build
+  maven-build:
+    condition: has_maven
+    template: build.template.md
+    output: skills/generated/build-maven.md
+    variables:
+      SKILL_NAME: "build"
+      BUILD_COMMAND: "mvn clean package"
+      BUILD_TOOL: "maven"
+      OUTPUT_DIR: "target"
+
+  # Gradle build
+  gradle-build:
+    condition: has_gradle
+    template: build.template.md
+    output: skills/generated/build-gradle.md
+    variables:
+      SKILL_NAME: "build"
+      BUILD_COMMAND: "./gradlew build"
+      BUILD_TOOL: "gradle"
+      OUTPUT_DIR: "build"
+
+# Lint Skills
+lint:
+  # ESLint
+  eslint:
+    condition: has_eslint
+    template: lint.template.md
+    output: skills/generated/lint-eslint.md
+    variables:
+      SKILL_NAME: "lint"
+      LINT_COMMAND: "npm run lint"
+      FIX_COMMAND: "npm run lint -- --fix"
+      LINTER: "ESLint"
+
+  # Pylint
+  pylint:
+    condition: has_pylint
+    template: lint.template.md
+    output: skills/generated/lint-pylint.md
+    variables:
+      SKILL_NAME: "lint"
+      LINT_COMMAND: "pylint src/"
+      FIX_COMMAND: "black src/ && isort src/"
+      LINTER: "Pylint"
+
+  # Clippy (Rust)
+  clippy:
+    condition: has_rust
+    template: lint.template.md
+    output: skills/generated/lint-clippy.md
+    variables:
+      SKILL_NAME: "lint"
+      LINT_COMMAND: "cargo clippy"
+      FIX_COMMAND: "cargo clippy --fix"
+      LINTER: "Clippy"
+
+  # golangci-lint
+  golangci:
+    condition: has_golangci_lint
+    template: lint.template.md
+    output: skills/generated/lint-golangci.md
+    variables:
+      SKILL_NAME: "lint"
+      LINT_COMMAND: "golangci-lint run"
+      FIX_COMMAND: "golangci-lint run --fix"
+      LINTER: "golangci-lint"
+
+# Format Skills
+format:
+  # Prettier
+  prettier:
+    condition: has_prettier
+    template: format.template.md
+    output: skills/generated/format-prettier.md
+    variables:
+      SKILL_NAME: "format"
+      FORMAT_COMMAND: "npm run format"
+      CHECK_COMMAND: "npm run format -- --check"
+      FORMATTER: "Prettier"
+
+  # Black (Python)
+  black:
+    condition: has_black
+    template: format.template.md
+    output: skills/generated/format-black.md
+    variables:
+      SKILL_NAME: "format"
+      FORMAT_COMMAND: "black src/"
+      CHECK_COMMAND: "black --check src/"
+      FORMATTER: "Black"
+
+  # rustfmt
+  rustfmt:
+    condition: has_rust
+    template: format.template.md
+    output: skills/generated/format-rustfmt.md
+    variables:
+      SKILL_NAME: "format"
+      FORMAT_COMMAND: "cargo fmt"
+      CHECK_COMMAND: "cargo fmt -- --check"
+      FORMATTER: "rustfmt"
+
+  # gofmt
+  gofmt:
+    condition: has_go
+    template: format.template.md
+    output: skills/generated/format-gofmt.md
+    variables:
+      SKILL_NAME: "format"
+      FORMAT_COMMAND: "go fmt ./..."
+      CHECK_COMMAND: "gofmt -l ."
+      FORMATTER: "gofmt"
+
+# Deployment Skills (conditional based on detected infrastructure)
+deploy:
+  # Docker deployment
+  docker-deploy:
+    condition: has_dockerfile
+    template: deploy.template.md
+    output: skills/generated/deploy-docker.md
+    variables:
+      SKILL_NAME: "deploy"
+      DEPLOY_TYPE: "docker"
+      BUILD_COMMAND: "docker build -t app:latest ."
+      RUN_COMMAND: "docker run -p 3000:3000 app:latest"
+
+  # Kubernetes deployment
+  k8s-deploy:
+    condition: has_kubernetes
+    template: deploy.template.md
+    output: skills/generated/deploy-k8s.md
+    variables:
+      SKILL_NAME: "deploy"
+      DEPLOY_TYPE: "kubernetes"
+      BUILD_COMMAND: "kubectl apply -f k8s/"
+      STATUS_COMMAND: "kubectl get pods"
+
+  # Heroku deployment
+  heroku-deploy:
+    condition: has_heroku
+    template: deploy.template.md
+    output: skills/generated/deploy-heroku.md
+    variables:
+      SKILL_NAME: "deploy"
+      DEPLOY_TYPE: "heroku"
+      BUILD_COMMAND: "git push heroku main"
+      STATUS_COMMAND: "heroku ps"
+
+# Database Skills
+database:
+  # Database migrations
+  migrations:
+    condition: has_migrations
+    template: database.template.md
+    output: skills/generated/db-migrate.md
+    variables:
+      SKILL_NAME: "migrate"
+      MIGRATE_COMMAND: "detected_from_orm"
+      ROLLBACK_COMMAND: "detected_from_orm"
+      STATUS_COMMAND: "detected_from_orm"
+
+# Development Server Skills
+dev:
+  # npm dev server
+  npm-dev:
+    condition: has_npm_dev_script
+    template: dev.template.md
+    output: skills/generated/dev-npm.md
+    variables:
+      SKILL_NAME: "dev"
+      DEV_COMMAND: "npm run dev"
+      PORT: "detected_from_config"
+
+  # Python dev server
+  python-dev:
+    condition: has_django_or_flask
+    template: dev.template.md
+    output: skills/generated/dev-python.md
+    variables:
+      SKILL_NAME: "dev"
+      DEV_COMMAND: "python manage.py runserver"
+      PORT: "8000"
+
+  # Go dev server
+  go-dev:
+    condition: has_go_main
+    template: dev.template.md
+    output: skills/generated/dev-go.md
+    variables:
+      SKILL_NAME: "dev"
+      DEV_COMMAND: "go run main.go"
+      PORT: "detected_from_code"

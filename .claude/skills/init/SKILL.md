@@ -71,9 +71,6 @@ Before scanning anything, ask these questions using AskUserQuestion. Group relat
 **Question — Command runner**
 > "How do you run commands?"
 - Options: "npm", "yarn", "pnpm", "bun"
-<<<<<<< Updated upstream
-- _Why:_ All generated scripts and commands use the right runner
-=======
 
 ### Round 4: MCP Configuration (NEW in v2.0)
 
@@ -182,7 +179,6 @@ Use AskUserQuestion with multiSelect enabled:
 - None - skip MCP configuration
 
 For each selected MCP, gather required config (connection strings, etc.)
->>>>>>> Stashed changes
 
 ---
 
@@ -395,9 +391,6 @@ Each pattern file should contain:
 ## Phase 5: Report
 
 ```markdown
-<<<<<<< Updated upstream
-## Init Complete
-=======
 | Agent | ID | Aliases | Role | Reports To |
 |-------|-----|---------|------|------------|
 | Project Owner | `project-owner` | `orchestrator` | Routes tasks | User |
@@ -579,13 +572,13 @@ File: `.claude/.metadata/generated-manifest.json`
   "generated_files": {
     "agents": [
       {
-        "file": "agents/coordinators/fe-team-lead.md",
+        "file": ".claude/agents/coordinators/fe-team-lead.md",
         "template": "fe-team-lead.template.md",
         "technology": "coordinator",
         "timestamp": "{{TIMESTAMP}}"
       },
       {
-        "file": "agents/specialists/vue.md",
+        "file": ".claude/agents/specialists/vue.md",
         "template": "framework-specialist.template.md",
         "technology": "vue",
         "version": "3.2.0",
@@ -594,14 +587,14 @@ File: `.claude/.metadata/generated-manifest.json`
       ...
     ],
     "patterns": [
-      "knowledge/patterns/vue-patterns.md",
-      "knowledge/patterns/python-patterns.md",
+      ".claude/knowledge/patterns/vue-patterns.md",
+      ".claude/knowledge/patterns/python-patterns.md",
       ...
     ],
     "config": [
-      "knowledge/project/project-context.md",
-      "knowledge/project/mcp-config.json",
-      "agents/INDEX.md"
+      ".claude/knowledge/project/project-context.md",
+      ".claude/knowledge/project/mcp-config.json",
+      ".claude/agents/INDEX.md"
     ]
   },
   "mcp_servers_configured": ["docs-mcp", "db-mcp"]
@@ -620,7 +613,6 @@ Update `.metadata/last-init` with current timestamp.
 ### 🎉 Bootstrap System v2.0
 
 Your project now has a **dynamically generated agent team** tailored to your tech stack!
->>>>>>> Stashed changes
 
 ### Files Created/Updated
 - `.claude/knowledge/project/project-context.md`

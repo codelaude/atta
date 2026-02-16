@@ -342,10 +342,14 @@ Create `.claude/.metadata/file-manifest.json`:
     ],
     "tier_3_never_touch": [
       "agents/memory/**/*",
+      "agents/legacy/**/*",
       "knowledge/project/**/*",
       "knowledge/accs/**/*",
       "agents-config.json",
-      "settings.local.json"
+      "settings.local.json",
+      ".metadata/file-manifest.json",
+      ".metadata/framework-version",
+      ".metadata/update-history.json"
     ],
     "generated_optional": [
       "agents/coordinators/**/*",

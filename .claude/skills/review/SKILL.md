@@ -23,7 +23,13 @@ You are now acting as the **Code Reviewer** with automated pattern checking capa
 **If no argument provided:**
 ```bash
 # Detect base branch dynamically: main, master, or develop (whichever exists)
-BASE=$(git rev-parse --verify --quiet origin/main && echo main || (git rev-parse --verify --quiet origin/master && echo master || echo develop))
+if git rev-parse --verify --quiet origin/main >/dev/null 2>&1; then
+  BASE=main
+elif git rev-parse --verify --quiet origin/master >/dev/null 2>&1; then
+  BASE=master
+else
+  BASE=develop
+fi
 git diff --name-only origin/$BASE...HEAD
 ```
 Review all changed files.

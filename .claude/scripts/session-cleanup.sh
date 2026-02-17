@@ -17,7 +17,14 @@ if [ -z "$CLAUDE_DIR" ]; then
   extract_claude_dir() {
     local file="$1"
     if command -v python3 >/dev/null 2>&1; then
-      python3 -c "import json,sys; d=json.load(open('$file')); print(d.get('claudeDir','.claude'))" 2>/dev/null
+      python3 -c "
+import json,sys
+try:
+    d=json.load(open('$file'))
+    print(d.get('claudeDir','.claude'))
+except (FileNotFoundError, json.JSONDecodeError):
+    print('.claude')
+" 2>/dev/null
     else
       grep -o '"claudeDir" *: *"[^"]*"' "$file" 2>/dev/null | sed 's/.*: *"//;s/"//' || echo ".claude"
     fi

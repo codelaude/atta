@@ -39,7 +39,6 @@ Content:
   "metadata": {
     "projectPath": "{current-working-directory}",
     "claudeDir": "{claudeDir-from-settings}",
-    "duration": null,
     "tokensUsed": null,
     "costUSD": null
   }

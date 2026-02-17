@@ -24,7 +24,7 @@ If the user passed `--quick`, skip directly to the **Quick Reference Card** sect
 
 Before starting the interactive tutorial, initialize session tracking.
 
-**Step 1: Get timestamp, UUID, and ISO-8601 timestamp**
+**Step 1: Get session timestamps, UUID, and Unix start time**
 
 Run these commands:
 ```bash
@@ -57,7 +57,6 @@ Set `args` to the actual arguments the user passed (e.g. `"--quick"`), or `""` i
   "metadata": {
     "projectPath": "{current-working-directory}",
     "claudeDir": "{claudeDir}",
-    "duration": null,
     "tokensUsed": null,
     "costUSD": null
   }
@@ -300,8 +299,7 @@ If user selects "I'm ready — let me try it!": proceed directly to **Finalize S
 
 Display this (whether reached from the end of the tutorial, from the `--quick` flag, or from the Welcome skip):
 
----
-
+```markdown
 ## AI Dev Team — Quick Reference
 
 ### Getting Started
@@ -355,6 +353,7 @@ Display this (whether reached from the end of the tutorial, from the `--quick` f
 ---
 
 *AI Dev Team Framework v2.2 — run `/update` to keep agents current*
+```
 
 ---
 

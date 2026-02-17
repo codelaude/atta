@@ -99,7 +99,7 @@ If the user selects the quick reference, skip to the **Quick Reference Card** se
 
 ### 1a. Read the Agent Registry
 
-Check if `{claudeDir}/agents/INDEX.md` exists. If it does, read it to get the actual agent list. If not, use the default agent list below.
+Check if `.claude/agents/INDEX.md` exists. If it does, read it to get the actual agent list. If not, use the default agent list below.
 
 ### 1b. Display the Team
 
@@ -203,7 +203,7 @@ Use AskUserQuestion:
 
 Based on their answer, invoke the Project Owner agent inline:
 
-**Read** `{claudeDir}/agents/project-owner.md` and act as the Project Owner for this step.
+**Read** `.claude/agents/project-owner.md` and act as the Project Owner for this step.
 
 As Project Owner, decompose the chosen example task:
 

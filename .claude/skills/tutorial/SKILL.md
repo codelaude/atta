@@ -24,27 +24,33 @@ If the user passed `--quick`, skip directly to the **Quick Reference Card** sect
 
 Before starting the interactive tutorial, initialize session tracking.
 
-**Step 1: Get timestamp and generate session ID**
+**Step 1: Get timestamp, UUID, and ISO-8601 timestamp**
 
 Run these commands:
 ```bash
 date +%Y-%m-%d-%H%M%S
 uuidgen | tr '[:upper:]' '[:lower:]'
+date -u +%Y-%m-%dT%H:%M:%SZ
+date +%s
 ```
+
+This gives you (in order): filename timestamp, session UUID, ISO-8601 timestamp for the JSON field, and Unix start time for duration calculation.
 
 **Step 2: Create session file**
 
 File: `{claudeDir}/.sessions/session-{TIMESTAMP}.json`
 
+Set `args` to the actual arguments the user passed (e.g. `"--quick"`), or `""` if none.
+
 ```json
 {
   "schemaVersion": "1.0.0",
   "sessionId": "{UUID}",
-  "timestamp": "{ISO-8601-timestamp}",
+  "timestamp": "{ISO-8601-UTC-from-step-1}",
   "startedBy": "user",
   "skill": {
     "name": "tutorial",
-    "args": "",
+    "args": "{args-passed-by-user-or-empty-string}",
     "status": "in_progress"
   },
   "agents": [],
@@ -58,7 +64,7 @@ File: `{claudeDir}/.sessions/session-{TIMESTAMP}.json`
 }
 ```
 
-Record the session filename and the Unix start timestamp (`date +%s`) — you will need both at the end.
+Record the session filename and the Unix start timestamp (4th command above) — you will need both at the end.
 
 ---
 
@@ -368,8 +374,10 @@ Edit `{claudeDir}/.sessions/session-{TIMESTAMP}.json`:
 **Step 3: Run cleanup**
 
 ```bash
-{claudeDir}/scripts/session-cleanup.sh
+.claude/scripts/session-cleanup.sh
 ```
+
+> Note: The cleanup script always lives in `.claude/scripts/` (framework source), regardless of `{claudeDir}`. Pass `{claudeDir}` as an argument if sessions are in a non-default location: `.claude/scripts/session-cleanup.sh {claudeDir}`
 
 ---
 

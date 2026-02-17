@@ -28,11 +28,11 @@ Content:
 {
   "schemaVersion": "1.0.0",
   "sessionId": "{generate-uuid-v4}",
-  "timestamp": "{ISO-8601-timestamp}",
+  "timestamp": "{output of: date -u +%Y-%m-%dT%H:%M:%SZ}",
   "startedBy": "user",
   "skill": {
     "name": "{skill-name}",
-    "args": "{args}",
+    "args": "{actual args passed by user, or empty string}",
     "status": "in_progress"
   },
   "agents": [],
@@ -105,10 +105,18 @@ Execute cleanup script to maintain 10-session limit:
 ## Integration Steps
 
 ### 1. At Skill Start
-- Generate timestamp: `date +%Y-%m-%d-%H%M%S`
-- Generate UUID: `uuidgen | tr '[:upper:]' '[:lower:]'` or use a pseudo-random string
-- Create session JSON file with "in_progress" status
-- Store the filename for later reference
+
+Run all four commands together:
+```bash
+date +%Y-%m-%d-%H%M%S          # filename timestamp
+uuidgen | tr '[:upper:]' '[:lower:]'  # session UUID
+date -u +%Y-%m-%dT%H:%M:%SZ    # ISO-8601 UTC for "timestamp" JSON field
+date +%s                        # Unix start time for duration calculation
+```
+
+- Set `skill.args` to the actual arguments passed by the user (e.g. `"--flag value"`), or `""` if none — never hardcode
+- Create session JSON file with `"status": "in_progress"`
+- Store the filename and Unix start time for use at finalization
 
 ### 2. During Execution
 - When invoking agents: Add entry to "agents" array

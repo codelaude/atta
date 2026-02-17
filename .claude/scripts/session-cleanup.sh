@@ -4,7 +4,7 @@
 # Keeps only the 10 most recent session files
 # Usage:
 #   .claude/scripts/session-cleanup.sh                    # Auto-detect from settings
-#   .claude/scripts/session-cleanup.sh .claude_dev        # Explicit claudeDir
+#   .claude/scripts/session-cleanup.sh /path/to/claudeDir  # Explicit claudeDir
 
 set -euo pipefail
 
@@ -13,10 +13,27 @@ CLAUDE_DIR="${1:-}"
 
 if [ -z "$CLAUDE_DIR" ]; then
   # Auto-detect from settings.json or settings.local.json
+  # Try python3 first (robust JSON parsing), fall back to grep
+  extract_claude_dir() {
+    local file="$1"
+    if command -v python3 >/dev/null 2>&1; then
+      python3 -c "
+import json,sys
+try:
+    d=json.load(open('$file'))
+    print(d.get('claudeDir','.claude'))
+except (FileNotFoundError, json.JSONDecodeError):
+    print('.claude')
+" 2>/dev/null
+    else
+      grep -o '"claudeDir" *: *"[^"]*"' "$file" 2>/dev/null | sed 's/.*: *"//;s/"//' || echo ".claude"
+    fi
+  }
+
   if [ -f ".claude/settings.local.json" ]; then
-    CLAUDE_DIR=$(grep -o '"claudeDir": *"[^"]*"' .claude/settings.local.json | cut -d'"' -f4 || echo ".claude")
+    CLAUDE_DIR=$(extract_claude_dir ".claude/settings.local.json")
   elif [ -f ".claude/settings.json" ]; then
-    CLAUDE_DIR=$(grep -o '"claudeDir": *"[^"]*"' .claude/settings.json | cut -d'"' -f4 || echo ".claude")
+    CLAUDE_DIR=$(extract_claude_dir ".claude/settings.json")
   else
     CLAUDE_DIR=".claude"
   fi

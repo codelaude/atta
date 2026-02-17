@@ -1,5 +1,11 @@
 # Tool Detection Rules
 # Linters, formatters, CI/CD, containerization, and dev tools
+#
+# DETECTION NOTE:
+# Some entries include a `command` field (e.g., `command: "cargo clippy --version"`).
+# This is optional metadata — the generator MAY run these commands during /init
+# to verify tool availability. Primary detection uses file-based checks.
+# If a command fails, the generator should fall back to file-based detection only.
 
 # Linters
 linters:

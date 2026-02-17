@@ -1,12 +1,41 @@
 # Skill Mappings
 # Maps detected project characteristics → generated skills
 # Generated skills wrap project-specific commands with Claude context
+#
+# CONDITION REFERENCE:
+# Conditions are evaluated by the generator during /init Phase 2 (Auto-Detection).
+# Each condition maps to a detection check performed on the project files:
+#
+#   has_npm           — package.json exists with npm lockfile (or no lockfile)
+#   has_yarn          — yarn.lock exists
+#   has_test_script   — "test" script exists in package.json scripts
+#   has_build_script  — "build" script exists in package.json scripts
+#   has_dev_script    — "dev" or "start" script exists in package.json scripts
+#   has_pytest        — pytest in requirements.txt/pyproject.toml or pytest.ini exists
+#   has_go            — go.mod exists
+#   has_rust          — Cargo.toml exists
+#   has_maven         — pom.xml exists
+#   has_gradle        — build.gradle or build.gradle.kts exists
+#   has_eslint        — .eslintrc.* or eslint.config.* exists, or eslint in devDeps
+#   has_pylint        — pylint in requirements.txt/pyproject.toml
+#   has_golangci_lint — .golangci.yml exists or golangci-lint in go tools
+#   has_prettier      — prettier in devDeps or .prettierrc.* exists
+#   has_black         — black in requirements.txt/pyproject.toml
+#   has_dockerfile    — Dockerfile exists
+#   has_kubernetes    — k8s/ directory exists or *.yaml with apiVersion field
+#   has_heroku        — Procfile exists or heroku in package.json engines
+#   has_orm           — ORM detected (Prisma, TypeORM, Sequelize, Django ORM, SQLAlchemy, etc.)
+#   has_django        — django in requirements.txt/pyproject.toml
+#   has_flask         — flask in requirements.txt/pyproject.toml
+#
+# Compound conditions use AND/OR:
+#   has_npm AND has_test_script — npm project with a test script defined
 
 # Testing Skills
 testing:
-  # npm test
+  # npm test (detected from package.json scripts.test)
   npm-test:
-    condition: has_npm_test_script
+    condition: has_npm AND has_test_script
     template: test.template.md
     output: skills/generated/test-npm.md
     variables:
@@ -17,7 +46,7 @@ testing:
 
   # yarn test
   yarn-test:
-    condition: has_yarn_test_script
+    condition: has_yarn AND has_test_script
     template: test.template.md
     output: skills/generated/test-yarn.md
     variables:
@@ -86,9 +115,9 @@ testing:
 
 # Build Skills
 build:
-  # npm build
+  # npm build (detected from package.json scripts.build)
   npm-build:
-    condition: has_npm_build_script
+    condition: has_npm AND has_build_script
     template: build.template.md
     output: skills/generated/build-npm.md
     variables:
@@ -99,7 +128,7 @@ build:
 
   # yarn build
   yarn-build:
-    condition: has_yarn_build_script
+    condition: has_yarn AND has_build_script
     template: build.template.md
     output: skills/generated/build-yarn.md
     variables:
@@ -281,22 +310,22 @@ deploy:
 
 # Database Skills
 database:
-  # Database migrations
+  # Database migrations (ORM detected)
   migrations:
-    condition: has_migrations
+    condition: has_orm
     template: database.template.md
     output: skills/generated/db-migrate.md
     variables:
-      SKILL_NAME: "migrate"
+      SKILL_NAME: "db-migrate"
       MIGRATE_COMMAND: "detected_from_orm"
       ROLLBACK_COMMAND: "detected_from_orm"
       STATUS_COMMAND: "detected_from_orm"
 
 # Development Server Skills
 dev:
-  # npm dev server
+  # npm dev server (detected from package.json scripts.dev)
   npm-dev:
-    condition: has_npm_dev_script
+    condition: has_npm AND has_dev_script
     template: dev.template.md
     output: skills/generated/dev-npm.md
     variables:
@@ -306,7 +335,7 @@ dev:
 
   # Python dev server
   python-dev:
-    condition: has_django_or_flask
+    condition: has_django OR has_flask
     template: dev.template.md
     output: skills/generated/dev-python.md
     variables:
@@ -316,7 +345,7 @@ dev:
 
   # Go dev server
   go-dev:
-    condition: has_go_main
+    condition: has_go
     template: dev.template.md
     output: skills/generated/dev-go.md
     variables:

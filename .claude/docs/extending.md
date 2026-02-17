@@ -170,7 +170,7 @@ custom_api_mcp:
 ## File Structure Reference
 
 ```
-.claude/
+{claudeDir}/
 ├── bootstrap/
 │   ├── detection/
 │   │   ├── frontend-detectors.yaml   # Add frontend framework detection here

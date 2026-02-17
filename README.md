@@ -1,8 +1,10 @@
-# AI Dev Team Agent v2.1
+# AI Dev Team Agent v2
 
 A multi-agent system for AI-assisted development that guides, reviews, and validates your work — instead of writing code for you.
 
 Drop the `.claude/` folder into **any project** (Vue, React, Python/Django, Java/Spring Boot, Go, Rust, or anything else), run `/init`, and get a virtual development team dynamically generated for your specific tech stack.
+
+**New in v2.2:** Session tracking infrastructure for future pattern detection and learning features. Foundation for v2.5+ intelligence capabilities.
 
 **New in v2.1:** Update system with file tracking and smart merge. Pull framework updates safely while preserving all your customizations.
 
@@ -151,11 +153,20 @@ This interactive setup will:
 ## Documentation
 
 - **[Bootstrap System](.claude/docs/bootstrap-system.md)** - How detection & agent generation works
+- **[Session Tracking](.claude/docs/session-tracking.md)** - What's tracked, privacy, and future features
 - **[MCP Setup Guide](.claude/docs/mcp-setup.md)** - Configure Model Context Protocol servers
 - **[Extending the System](.claude/docs/extending.md)** - Add new technologies & custom agents
 - **[Design Philosophy](.claude/docs/philosophy.md)** - Core principles & architectural decisions
 
 ## Version History
+
+**v2.2** (2026-02-16) — Session Tracking (Foundation Sprint)
+- Session tracking infrastructure for skill executions
+- JSON schema with versioning support (v1.0.0)
+- Automatic cleanup (keeps last 10 sessions)
+- Comprehensive documentation (687 lines, 4 guides)
+- Foundation for pattern detection (v2.5) and analytics (v3.5)
+- Developed using dogfooding (framework building itself)
 
 **v2.1** (2026-02-16) — Update System
 - `/update` skill for safe framework updates

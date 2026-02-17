@@ -236,10 +236,10 @@ Run the skill and verify:
 /agent vue-specialist "Review component"
 
 # Check session was created
-ls -lh .claude/.sessions/session-*.json
+ls -lh {claudeDir}/.sessions/session-*.json
 
 # Verify content
-cat .claude/.sessions/session-2026-02-16-223500.json
+cat {claudeDir}/.sessions/session-2026-02-16-223500.json
 
 # Run it 11 more times and verify cleanup keeps only 10
 for i in {1..11}; do
@@ -248,7 +248,7 @@ for i in {1..11}; do
 done
 
 # Should only have 10 sessions
-ls .claude/.sessions/session-*.json | wc -l  # Should output: 10
+ls {claudeDir}/.sessions/session-*.json | wc -l  # Should output: 10
 ```
 
 ## Common Pitfalls
@@ -265,6 +265,6 @@ After integrating session tracking:
 
 1. ✅ Test the integration thoroughly
 2. ✅ Update skill documentation to mention tracking
-3. ✅ Monitor `.claude/.sessions/` to verify cleanup works
+3. ✅ Monitor `{claudeDir}/.sessions/` to verify cleanup works
 4. 🔜 In v2.5: Use session data for pattern detection
 5. 🔜 In v3.5: Add token/cost tracking to sessions

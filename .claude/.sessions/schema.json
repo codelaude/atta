@@ -41,8 +41,8 @@
         },
         "status": {
           "type": "string",
-          "enum": ["completed", "failed", "interrupted"],
-          "description": "Final status of the skill execution"
+          "enum": ["in_progress", "completed", "failed", "interrupted"],
+          "description": "Status of the skill execution"
         }
       },
       "required": ["name", "status"]
@@ -70,8 +70,8 @@
           },
           "status": {
             "type": "string",
-            "enum": ["completed", "failed"],
-            "description": "Outcome of the agent invocation"
+            "enum": ["in_progress", "completed", "failed"],
+            "description": "Status of the agent invocation"
           }
         }
       }

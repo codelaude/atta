@@ -21,11 +21,12 @@ Before proceeding with the skill logic, initialize session tracking:
 
 Use the current timestamp for the filename and generate a session ID.
 
-File: `.claude/.sessions/session-{YYYY-MM-DD-HHMMSS}.json`
+File: `{claudeDir}/.sessions/session-{YYYY-MM-DD-HHMMSS}.json`
 
 Content:
 ```json
 {
+  "schemaVersion": "1.0.0",
   "sessionId": "{generate-uuid-v4}",
   "timestamp": "{ISO-8601-timestamp}",
   "startedBy": "user",
@@ -62,7 +63,7 @@ When you invoke an agent (e.g., using Task tool or /agent skill), update the ses
 ```markdown
 Update session file to track agent invocation:
 
-Edit `.claude/.sessions/session-{timestamp}.json`:
+Edit `{claudeDir}/.sessions/session-{timestamp}.json`:
 - Add to "agents" array:
   ```json
   {
@@ -86,7 +87,7 @@ At the end of skill execution (success or failure):
 
 **Step 1: Update session status**
 
-Edit `.claude/.sessions/session-{timestamp}.json`:
+Edit `{claudeDir}/.sessions/session-{timestamp}.json`:
 - Change `"status": "in_progress"` to `"completed"` (or "failed"/"interrupted")
 - Update `"duration"` to elapsed milliseconds
 
@@ -140,7 +141,7 @@ If an error occurs during execution:
 After integrating session tracking:
 
 1. Run your skill
-2. Check `.claude/.sessions/` for the new session file
+2. Check `{claudeDir}/.sessions/` for the new session file
 3. Verify the JSON structure matches the schema
 4. Run the skill 11+ times
 5. Verify cleanup keeps only 10 most recent sessions
@@ -160,7 +161,7 @@ Key points from `/init`:
 
 ## Quick Reference
 
-**Session file path**: `.claude/.sessions/session-{timestamp}.json`
+**Session file path**: `{claudeDir}/.sessions/session-{timestamp}.json`
 
 **Cleanup command**: `.claude/scripts/session-cleanup.sh`
 

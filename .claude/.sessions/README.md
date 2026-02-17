@@ -40,14 +40,14 @@ Each session file contains:
   "skill": {
     "name": "init",
     "args": "",
-    "status": "completed | failed | interrupted"
+    "status": "in_progress | completed | failed | interrupted"
   },
   "agents": [
     {
       "name": "project-owner",
       "role": "coordinator",
       "invokedAt": "2026-02-16T14:30:05.000Z",
-      "status": "completed | failed"
+      "status": "in_progress | completed | failed"
     }
   ],
   "metadata": {

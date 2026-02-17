@@ -44,6 +44,7 @@ to_delete=$((session_count - MAX_SESSIONS))
 
 # Delete oldest sessions (by filename, which includes timestamp)
 # Sort alphabetically (oldest first), take first $to_delete files, delete them
-find "$SESSIONS_DIR" -name "session-*.json" -type f | sort | head -n "$to_delete" | xargs rm -f
+# Use -print0/-0 to safely handle filenames with spaces or special characters
+find "$SESSIONS_DIR" -name "session-*.json" -type f -print0 | sort -z | head -z -n "$to_delete" | xargs -0 -r rm -f
 
 echo "Deleted $to_delete old session(s). Kept $MAX_SESSIONS most recent."

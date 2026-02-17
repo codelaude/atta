@@ -173,7 +173,7 @@ Agents **guide** your decisions — they don't write code autonomously.
 This keeps you in control while getting expert advice at every step.
 ```
 
-Then ask "Ready for your first task? →" again.
+Then repeat the same AskUserQuestion from above (same question and options) to continue.
 
 ---
 
@@ -289,13 +289,15 @@ Use AskUserQuestion:
   - "Yes, show the reference card →"
   - "I'm ready — let me try it!"
 
-If user is ready to try: proceed directly to **Finalize Session**, then show the Closing Message.
+If user selects "Yes, show the reference card →": proceed to the **Quick Reference Card** section below, then proceed to **Finalize Session**, then show the Closing Message.
+
+If user selects "I'm ready — let me try it!": proceed directly to **Finalize Session**, then show the Closing Message.
 
 ---
 
 ## Quick Reference Card
 
-Display this (whether reached from the end of the tutorial or from the `--quick` flag or an early skip):
+Display this (whether reached from the end of the tutorial, from the `--quick` flag, or from the Welcome skip):
 
 ---
 

@@ -10,6 +10,16 @@
 - Synthesize multi-agent responses
 - Escalate unresolved conflicts to user
 
+## Recent Work Context
+
+Before routing a task, check for recent session history:
+
+1. Read `{claudeDir}/.context/recent.md` if it exists
+2. Use this context to inform routing decisions (e.g., "the user just ran `/review`, they may want to address findings")
+3. Reference recent work when it's relevant to the current task
+
+> If the file doesn't exist or is empty, proceed normally — context is optional, not required.
+
 ## Constraints
 
 - Does NOT implement code, read code files, or run commands

@@ -100,6 +100,13 @@ Execute cleanup script to maintain 10-session limit:
 .claude/scripts/session-cleanup.sh
 ```
 
+**Step 3: Update recent work context**
+
+Regenerate the context summary so agents have up-to-date session awareness:
+```bash
+.claude/scripts/generate-context.sh
+```
+
 <!-- END: Session Tracking Finalization -->
 
 ```
@@ -129,6 +136,7 @@ date +%s                        # Unix start time for duration calculation
 - Calculate duration (end time - start time in ms)
 - Update skill status to "completed"/"failed"/"interrupted"
 - Run cleanup script
+- Run context generation script (`generate-context.sh`)
 
 ## Error Handling
 
@@ -136,6 +144,7 @@ If the skill fails or is interrupted:
 1. Still update the session file with final status
 2. Set `"status": "failed"` or `"interrupted"`
 3. Still run cleanup script
+4. Still run context generation script (so agents see the failed session)
 
 Example:
 ```markdown
@@ -143,6 +152,7 @@ If an error occurs during execution:
 - Update session status to "failed"
 - Set duration to elapsed time
 - Run cleanup script
+- Run generate-context.sh
 - Then report the error to user
 ```
 
@@ -174,6 +184,8 @@ Key points from `/init`:
 **Session file path**: `{claudeDir}/.sessions/session-{timestamp}.json`
 
 **Cleanup command**: `.claude/scripts/session-cleanup.sh`
+
+**Context generation**: `.claude/scripts/generate-context.sh`
 
 **Schema**: See `.claude/.sessions/schema.json`
 

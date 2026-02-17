@@ -57,11 +57,14 @@ Set `args` to the actual arguments the user passed (e.g. `"--quick"`), or `""` i
   "metadata": {
     "projectPath": "{current-working-directory}",
     "claudeDir": "{claudeDir}",
+    "duration": null,
     "tokensUsed": null,
     "costUSD": null
   }
 }
 ```
+
+> `duration` starts as `null` — it is set to elapsed milliseconds at finalization.
 
 Record the session filename and the Unix start timestamp (4th command above) — you will need both at the end.
 
@@ -370,8 +373,8 @@ Compute: `(current_unix_timestamp - start_unix_timestamp) * 1000` = duration in 
 **Step 2: Update session file**
 
 Edit `{claudeDir}/.sessions/session-{TIMESTAMP}.json`:
-- Change `"status": "in_progress"` → `"completed"`
-- Set `"duration"` to elapsed milliseconds
+- Change **`skill.status`** from `"in_progress"` → `"completed"`
+- Set **`metadata.duration`** to elapsed milliseconds
 
 **Step 3: Run cleanup**
 

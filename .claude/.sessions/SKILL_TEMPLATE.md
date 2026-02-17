@@ -39,11 +39,14 @@ Content:
   "metadata": {
     "projectPath": "{current-working-directory}",
     "claudeDir": "{claudeDir-from-settings}",
+    "duration": null,
     "tokensUsed": null,
     "costUSD": null
   }
 }
 ```
+
+> `duration` starts as `null` — it is set to elapsed milliseconds at finalization.
 
 **Record the session filename in a variable for later updates.**
 
@@ -87,8 +90,8 @@ At the end of skill execution (success or failure):
 **Step 1: Update session status**
 
 Edit `{claudeDir}/.sessions/session-{timestamp}.json`:
-- Change `"status": "in_progress"` to `"completed"` (or "failed"/"interrupted")
-- Update `"duration"` to elapsed milliseconds
+- Change **`skill.status`** from `"in_progress"` to `"completed"` (or `"failed"`/`"interrupted"`)
+- Set **`metadata.duration`** to elapsed milliseconds
 
 **Step 2: Run cleanup**
 

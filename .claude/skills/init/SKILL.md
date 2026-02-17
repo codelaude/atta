@@ -816,6 +816,71 @@ When `--rescan` is used:
 
 ---
 
+## Error Handling & Recovery
+
+When initialization cannot continue, stop early and provide a concrete recovery path.
+
+### Detection Fails (No clear stack found)
+
+Show:
+
+```markdown
+⚠️ I couldn't confidently detect your tech stack.
+
+What I checked:
+- package/runtime files (package.json, lockfiles, tsconfig, build configs)
+- framework indicators (Vue/React/Angular/Svelte/etc.)
+- backend indicators (pom.xml, pyproject.toml, go.mod, etc.)
+
+Recovery options:
+1. Confirm the correct project root or source subdirectory and rerun `/init`
+2. Tell me your stack explicitly (framework, language, test runner, styling, backend)
+3. Continue with a minimal core-agent setup now, then run `/init --rescan` later
+```
+
+### Path Errors (Wrong command/source directory)
+
+Show:
+
+```markdown
+⚠️ The configured path does not exist or is not readable.
+
+Recovery options:
+1. Provide a valid relative path from project root
+2. Use current directory as root and rerun `/init`
+3. Skip path-specific detection and continue with confirmed defaults
+```
+
+### MCP Setup Blocked (Node < 18 or missing prerequisites)
+
+Show:
+
+```markdown
+⚠️ MCP configuration is currently blocked by runtime prerequisites.
+
+Recovery options:
+1. Select an installed Node 18+ runtime for MCPs
+2. Install Node 18+ and rerun `/init`
+3. Skip MCP setup now and continue initialization
+
+You can add MCPs later by rerunning `/init`.
+```
+
+### Write Failure (Permission or filesystem issue)
+
+Show:
+
+```markdown
+⚠️ I couldn't write one or more generated files.
+
+Recovery options:
+1. Verify write permissions for `.claude/` and retry `/init`
+2. Share the failing path and I'll suggest a safe manual fix
+3. Continue without that file and regenerate later with `/init --rescan`
+```
+
+---
+
 ## Related Skills
 
 - `/agent librarian` — Capture additional patterns and directives

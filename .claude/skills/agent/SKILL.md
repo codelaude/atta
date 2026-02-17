@@ -56,3 +56,39 @@ Include:
 /agent librarian Remember to always use TypeScript strict mode
 /agent rubber-duck Help me understand how to implement this feature
 ```
+
+---
+
+## Error Handling & Recovery
+
+### Agent Not Found
+
+If no file exists for the requested ID, show:
+
+```markdown
+⚠️ Agent `{agent-id}` was not found in this project.
+
+Recovery options:
+1. Run `/init` to generate coordinators/specialists for your stack
+2. Check `agents/INDEX.md` for available agent IDs
+3. Route through a core fallback now:
+   - Planning/routing: `/agent project-owner`
+   - Quality: `/agent code-reviewer`
+   - Documentation/requirements: `/agent business-analyst`
+```
+
+### Agent Stuck (Cannot progress or missing required context)
+
+If the selected agent cannot complete the request, show:
+
+```markdown
+⚠️ `{agent-id}` is blocked and cannot complete this task as-is.
+
+Why it is blocked:
+- Missing scope, files, or constraints needed for a safe recommendation
+
+Recovery options:
+1. Route this to `/agent project-owner` for decomposition and delegation
+2. Narrow the request to a specific file/feature
+3. Ask for a focused review pass with `/review` or validation pass with `/preflight`
+```

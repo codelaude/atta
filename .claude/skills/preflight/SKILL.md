@@ -146,3 +146,59 @@ Or manually:
 - `/review` - Code review only
 - `/agent pr-manager` - PR description generation
 - `/agent librarian` - Learning capture
+
+---
+
+## Error Handling & Recovery
+
+### Cannot Resolve Changed Files
+
+If base branch detection fails, show:
+
+```markdown
+⚠️ I couldn't determine changed files from the remote base branch.
+
+Recovery options:
+1. Run preflight on local diff only (`git diff --name-only`)
+2. Provide explicit targets through `/lint` and `/review`
+3. Fetch remotes, then rerun `/preflight`
+```
+
+### Lint Blocked
+
+If critical lint rules fail, show:
+
+```markdown
+⚠️ Preflight stopped: critical lint violations found.
+
+Recovery options:
+1. Fix critical lint issues first, then rerun `/preflight`
+2. Run `/lint <target>` to focus on one area at a time
+3. Use `/review --quick <target>` for fast critical-only validation
+```
+
+### Tests Fail
+
+If tests fail, show:
+
+```markdown
+⚠️ Preflight stopped: test execution failed.
+
+Recovery options:
+1. Fix failing tests and rerun `/preflight`
+2. Isolate failures with your test runner command, then retry
+3. If test infra is temporarily unstable, run `/preflight --skip-tests` and clearly note this risk in your PR
+```
+
+### Review Step Unavailable
+
+If review tooling/context is missing, show:
+
+```markdown
+⚠️ Review step could not run with full context.
+
+Recovery options:
+1. Rerun `/init` to regenerate missing context
+2. Execute `/review <target>` manually
+3. Continue with lint+test result only and flag review as pending
+```

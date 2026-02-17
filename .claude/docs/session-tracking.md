@@ -30,7 +30,7 @@ Each time you run a skill, the system can create a session file with:
   },
   "agents": [
     {
-      "name": "vue-specialist",
+      "name": "vue",
       "role": "specialist",
       "invokedAt": "2026-02-16T14:30:05.000Z",
       "status": "completed"
@@ -94,7 +94,7 @@ session-2026-02-16-143000.json
 As agents are invoked, they're added to the session:
 ```json
 "agents": [
-  {"name": "vue-specialist", "status": "completed"},
+  {"name": "vue", "status": "completed"},
   {"name": "accessibility", "status": "completed"}
 ]
 ```
@@ -110,7 +110,7 @@ When the skill completes:
 
 ### v2.5: Pattern Detection (Planned)
 Session history will enable:
-- "You often invoke vue-specialist after accessibility—want to create a workflow?"
+- "You often invoke vue after accessibility—want to create a workflow?"
 - "This pattern caused issues last 3 times—here's what worked instead"
 - Learning from your corrections and preferences
 

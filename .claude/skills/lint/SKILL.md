@@ -78,6 +78,36 @@ For each file, check against the rules above based on file type.
 
 ### Step 4: Report Results
 
+---
+
+## Error Handling & Recovery
+
+### No Target Files Found
+
+Show:
+
+```markdown
+⚠️ No files matched the lint target.
+
+Recovery options:
+1. Specify a file or folder explicitly (for example: `/lint src/components`)
+2. Ensure there are changed files in git (`git diff --name-only`)
+3. Run `/init --rescan` if project paths recently changed
+```
+
+### Pattern Files Missing
+
+Show:
+
+```markdown
+⚠️ Pattern knowledge files are missing or incomplete.
+
+Recovery options:
+1. Run `/init` (or `/init --rescan`) to regenerate pattern files
+2. Continue with core lint checks only (critical rules)
+3. Add missing project context in `.claude/knowledge/project/project-context.md`
+```
+
 Format output as:
 
 ```markdown

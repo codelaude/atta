@@ -157,3 +157,46 @@ After `/review`:
 - Run `/preflight` for full pre-PR validation
 - Use `/agent vue` for Vue-specific deep dive
 - Use `/agent accessibility` for accessibility deep dive
+
+---
+
+## Error Handling & Recovery
+
+### Cannot Determine Diff Scope
+
+If git base detection fails or no remote base exists, show:
+
+```markdown
+⚠️ I couldn't resolve a review diff against the base branch.
+
+Recovery options:
+1. Review local changes only (`git diff --name-only`)
+2. Provide a file/folder target explicitly (`/review path/to/file`)
+3. Fetch remotes and retry when `origin/main|master|develop` is available
+```
+
+### Empty Review Scope
+
+Show:
+
+```markdown
+⚠️ No files found to review.
+
+Recovery options:
+1. Pass a target explicitly (`/review src/components/search`)
+2. Stage or modify files, then rerun `/review`
+3. Use `/review --quick <file>` for a targeted critical-pass check
+```
+
+### Agent Context Missing
+
+If required reviewer context/patterns are unavailable, show:
+
+```markdown
+⚠️ Review context is incomplete (missing generated agents or patterns).
+
+Recovery options:
+1. Run `/init` to generate missing agents/pattern files
+2. Continue with baseline critical checks only
+3. Route to `/agent code-reviewer` for a manual focused review
+```

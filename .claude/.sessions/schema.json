@@ -56,7 +56,7 @@
         "properties": {
           "name": {
             "type": "string",
-            "description": "Agent name (e.g., 'vue-specialist', 'project-owner')"
+            "description": "Agent name (e.g., 'vue', 'project-owner')"
           },
           "role": {
             "type": "string",

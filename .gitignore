@@ -1,5 +1,8 @@
 .DS_Store
 
+# Generated context files (keep README, ignore generated content)
+.claude/.context/recent.md
+
 # Development workspace (includes PLAN.md and ROADMAP files)
 .claude_dev/
 dev/

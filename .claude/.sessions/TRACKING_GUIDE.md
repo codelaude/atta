@@ -141,6 +141,9 @@ When invoking project-owner:
 
 ## Step 5: Cleanup Old Sessions
 <Remove sessions beyond 10 most recent>
+
+## Step 6: Update Recent Work Context
+<Run generate-context.sh to refresh .context/recent.md>
 ```
 
 ## Status Values
@@ -155,14 +158,32 @@ When invoking project-owner:
 - `completed`: Agent finished its task
 - `failed`: Agent encountered an error
 
+## Context Generation
+
+After finalizing sessions and running cleanup, regenerate the recent work context:
+
+```bash
+.claude/scripts/generate-context.sh
+```
+
+Or with an explicit Claude directory:
+```bash
+.claude/scripts/generate-context.sh {claudeDir}
+```
+
+This produces `{claudeDir}/.context/recent.md` — a bullet-point summary of the last 5 sessions. Agents (especially Project Owner) read this file to understand recent project activity.
+
+See `{claudeDir}/.context/README.md` for format details.
+
 ## Best Practices
 
 1. **Always start tracking** at the beginning of skill execution
 2. **Update agent invocations** in real-time as they happen
 3. **Finalize at the end** even if the skill fails
 4. **Run cleanup** after finalizing to maintain 10-session limit
-5. **Use descriptive args** to help future analytics
-6. **Keep it lightweight** - no conversation logs, just metadata
+5. **Generate context** after cleanup to keep agents informed
+6. **Use descriptive args** to help future analytics
+7. **Keep it lightweight** - no conversation logs, just metadata
 
 ## Future Extensions (v2.5+)
 

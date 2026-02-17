@@ -4,7 +4,7 @@ A multi-agent system for AI-assisted development that guides, reviews, and valid
 
 Drop the `.claude/` folder into **any project** (Vue, React, Python/Django, Java/Spring Boot, Go, Rust, or anything else), run `/init`, and get a virtual development team dynamically generated for your specific tech stack.
 
-**New in v2.2:** Interactive `/tutorial` onboarding, session tracking infrastructure, and error handling for skills. Foundation for v2.5+ intelligence capabilities.
+**New in v2.2:** Interactive `/tutorial` onboarding, session tracking, recent work context for agents, and error handling for skills. Foundation for v2.5+ intelligence capabilities.
 
 **New in v2.1:** Update system with file tracking and smart merge. Pull framework updates safely while preserving all your customizations.
 
@@ -164,7 +164,8 @@ This interactive setup will:
 **v2.2** (2026-02-17) — Tutorial, Session Tracking & Quality Pass
 - `/tutorial` skill — interactive 5-minute onboarding with 3 steps + quick reference card
 - Session tracking infrastructure for skill executions (JSON schema v1.0.0, auto-cleanup)
-- Error handling & recovery sections for `/review` and `/preflight`
+- Recent work context — agents (Project Owner) read last 5 session summaries for continuity
+- Error handling & recovery sections for `/review`, `/preflight`, `/init`, `/lint`, `/agent`
 - 20 new bootstrap templates (15 pattern templates, 4 skill templates, 1 agent template)
 - Comprehensive bug fixes across bootstrap pipeline, mappings, scripts, and documentation
 - macOS compatibility fix for session cleanup script

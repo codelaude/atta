@@ -1,5 +1,12 @@
 # Database Detection Rules
 # Used by /init to identify databases, ORMs, and data access patterns
+#
+# CONTENT_MATCH FORMAT:
+# Values can be a string (single match) or array (any match):
+#   content_match:
+#     requirements.txt: "single-package"          # Match one string
+#     requirements.txt: ["pkg1", "pkg2", "pkg3"]  # Match any of these
+# Both forms are valid. The generator must handle both.
 
 # SQL Databases
 sql_databases:

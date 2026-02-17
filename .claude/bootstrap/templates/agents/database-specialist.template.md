@@ -107,7 +107,7 @@ All schema changes must:
 ## Performance Monitoring
 
 Watch for:
-- Slow queries (> {{SLOW_QUERY_THRESHOLD}}ms)
+- Slow queries (> {{SLOW_QUERY_THRESHOLD|default:100}}ms)
 - Missing indexes (full table scans)
 - Lock contention
 - Connection pool exhaustion

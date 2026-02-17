@@ -315,7 +315,7 @@ browser_mcp:
   e2e_testing:
     condition: has_e2e_tests
     agents_with_access:
-      - tester
+      - testing-specialist
       - accessibility
       - fe-team-lead
     recommendation_reason: "E2E tests detected - MCP can help with browser automation and testing"
@@ -383,7 +383,7 @@ api_testing_mcp:
     condition: has_backend_api
     agents_with_access:
       - be-team-lead
-      - tester
+      - testing-specialist
       - qa-validator
     recommendation_reason: "Backend API detected - MCP can help test endpoints and validate responses"
     capabilities:
@@ -397,7 +397,7 @@ api_testing_mcp:
     agents_with_access:
       - graphql
       - be-team-lead
-      - tester
+      - testing-specialist
     recommendation_reason: "GraphQL API detected - MCP can validate schemas and test queries"
     capabilities:
       - "Schema introspection"

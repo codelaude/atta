@@ -33,7 +33,7 @@ Check for version indicators:
 2. **Check for bootstrap directory** — if `.claude/bootstrap/` exists, already v2.0
 3. **Check agent structure**:
    - Flat agents at `.claude/agents/` root with tech-specific names (vue.md, scss.md, typescript.md) → v1.0
-   - Person-named agents (petra.md, lory.md, etc.) → pre-v1.0
+   - Person-named agents (names that don't match known role IDs) → pre-v1.0
    - No agents directory → fresh install (redirect to `/init`)
 
 ### Version Detection Rules
@@ -213,21 +213,19 @@ When `--rollback` is used:
 
 ## Pre-v1.0 Migration (Person-Named Agents)
 
-If person-named agents are detected (petra.md, lory.md, ducky.md, etc.):
+If agent files use person names instead of role names (e.g., any `.md` file in `agents/` that doesn't match a known role ID):
 
-1. **Map to role names**:
-   - petra → project-owner
-   - lory → fe-team-lead
-   - ducky → rubber-duck
-   - diogo → code-reviewer
-   - emilija → qa-validator
-   - grz → business-analyst
-   - tiago → pr-manager
-   - pedro → backend-consultant
-   - kathy → librarian
+1. **Detect non-role agent files**: Scan `.claude/agents/` for `.md` files whose names don't match known role IDs (`project-owner`, `fe-team-lead`, `be-team-lead`, `rubber-duck`, `code-reviewer`, `qa-validator`, `business-analyst`, `pr-manager`, `librarian`)
+2. **Read each file**: Analyze the content to determine which role it fulfills based on its described responsibilities, framing statements, and role sections
+3. **Ask the user**: Present the detected mappings and ask for confirmation:
+   ```
+   I found agent files that appear to use custom names instead of role IDs:
+   - [name].md → appears to be: [detected-role] (based on: [reason])
 
-2. **Rename and update** internal references
-3. **Then proceed** with standard v1.0 → v2.0 migration
+   Should I rename these to their role-based IDs?
+   ```
+4. **Rename and update** internal references (only after user confirmation)
+5. **Then proceed** with standard v1.0 → v2.0 migration
 
 ---
 

@@ -130,6 +130,8 @@ safe_replace:
   - skills/review/SKILL.md
   - skills/preflight/SKILL.md
   - skills/team-lead/SKILL.md
+  - skills/update/SKILL.md
+  - skills/tutorial/SKILL.md
   - knowledge/templates/**/*
 ```
 
@@ -152,7 +154,7 @@ never_touch:
   - agents/legacy/**/*
   - knowledge/project/**/*
   - knowledge/accs/**/*
-  - agents-config.json
+  - agents-config.json    # Optional user file (may not exist in all projects)
   - settings.local.json
   - .metadata/file-manifest.json
   - .metadata/framework-version

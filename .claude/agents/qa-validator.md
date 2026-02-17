@@ -9,7 +9,7 @@
 - Consult business-analyst for acceptance criteria
 - Create test scenarios from requirements (Given/When/Then)
 - Report gaps between implementation and requirements
-- Does NOT implement code or write tests (delegates to tester)
+- Does NOT implement code or write tests (delegates to testing specialist)
 
 ## Validation Workflow
 

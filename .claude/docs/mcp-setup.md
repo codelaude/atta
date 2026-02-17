@@ -37,7 +37,7 @@ The bootstrap system automates MCP configuration during `/init`:
 
 **Why use it:** Validate accessibility in a live browser environment.
 
-- Works with: accessibility specialist, FE Team Lead, tester
+- Works with: accessibility specialist, FE Team Lead, testing specialist
 - Use cases: Keyboard navigation testing, screen reader compatibility, color contrast checks
 
 ### Serena (Optional - Code Intelligence)

@@ -38,7 +38,7 @@ Before scanning anything, ask these questions using AskUserQuestion. Group relat
 **Question 2 — Project scope**
 > "What does this project include?"
 - Options: "Frontend only", "Frontend + Backend", "Backend only", "Full-stack monorepo"
-- _Why:_ Determines which agents to activate and how to configure backend-consultant
+- _Why:_ Determines which agents to activate and how to configure be-team-lead
 
 **Question 3 — Your role**
 > "What's your primary role on this project?"
@@ -55,7 +55,7 @@ Before scanning anything, ask these questions using AskUserQuestion. Group relat
 **If Frontend + Backend or Full-stack:**
 > "What backend technology does this project use?"
 - Options: "Java (Maven/Gradle)", "Node.js (Express/Fastify/Nest)", "Python (Django/Flask/FastAPI)", "Other"
-- _Why:_ Configures the backend-consultant agent with the right domain knowledge
+- _Why:_ Configures the be-team-lead agent with the right domain knowledge
 
 **If Frontend + Backend:**
 > "Where is the backend code relative to project root?"
@@ -160,7 +160,7 @@ Present recommendations, starting with Context7 (always recommended):
 
 🌐 **Browser MCP** (Medium Priority — if frontend detected)
    - Why: Frontend project - helps with E2E testing and accessibility validation
-   - Access: accessibility, tester, fe-team-lead
+   - Access: accessibility, testing-specialist, fe-team-lead
 
 🔍 **Serena** (Optional — code intelligence)
    - Why: Semantic code understanding via language server (30+ languages)
@@ -295,8 +295,8 @@ Present the detected stack to the user for confirmation:
 - Path: /path/to/project/core
 
 ### Agents to activate
-- **FE team**: fe-team-lead, vue, scss, typescript, accessibility, tester, code-reviewer
-- **BE team**: backend-consultant (team lead mode — Java/Maven)
+- **FE team**: fe-team-lead, vue, scss, typescript, accessibility, testing-specialist, code-reviewer
+- **BE team**: be-team-lead (Java/Maven)
 - **Cross-cutting**: project-owner, librarian, rubber-duck, qa-validator, business-analyst, pr-manager
 
 Does this look correct? Any adjustments?
@@ -374,17 +374,17 @@ Each pattern file should contain:
 - Conventions found in the codebase
 - References to official documentation
 
-### Configure backend-consultant mode:
+### Configure BE team lead mode:
 
 **If project is FE only:**
-- backend-consultant operates in **advisory mode**: read-only, general API/integration guidance, no delegation
+- No be-team-lead generated — project-owner handles any backend-adjacent questions directly
 - Simplify project-owner routing (no BE routing needed)
 
 **If project is FE + BE:**
-- backend-consultant operates in **team lead mode**: mirrors fe-team-lead behavior for the backend domain
-- Can delegate to BE-specific patterns and coordinate with fe-team-lead on cross-cutting concerns
+- Generate be-team-lead from bootstrap template — mirrors fe-team-lead behavior for the backend domain
+- Can delegate to BE-specific specialists and coordinate with fe-team-lead on cross-cutting concerns
 - Write backend-specific pattern files
-- project-owner routes BE tasks to backend-consultant just like FE tasks to fe-team-lead
+- project-owner routes BE tasks to be-team-lead just like FE tasks to fe-team-lead
 
 **Update `.claude/agents/INDEX.md`** routing table to reflect the actual project scope.
 
@@ -788,7 +788,7 @@ Your project now has a **dynamically generated agent team** tailored to your tec
 | Agent | Status | Mode |
 |-------|--------|------|
 | fe-team-lead | Active | Coordinating [list of FE specialists] |
-| backend-consultant | Active/Advisory | [Team lead mode / Advisory mode] |
+| be-team-lead | Active | Coordinating [list of BE specialists] |
 | project-owner | Active | Routing [FE / FE + BE] |
 | ... | ... | ... |
 
@@ -819,6 +819,7 @@ When `--rescan` is used:
 ## Related Skills
 
 - `/agent librarian` — Capture additional patterns and directives
-- `/agent fe-team-lead` — Decompose tasks using detected stack
+- `/agent be-team-lead` — Decompose backend tasks
+- `/agent fe-team-lead` — Decompose frontend tasks
 - `/review` — Review against generated patterns
 - `/preflight` — Full pre-PR validation

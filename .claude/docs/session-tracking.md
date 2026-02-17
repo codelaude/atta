@@ -13,7 +13,9 @@ This infrastructure enables future intelligence features:
 
 ## What Gets Tracked
 
-Each time you run a skill (`/init`, `/review`, `/agent`, etc.), the system creates a session file with:
+Each time you run a skill, the system can create a session file with:
+
+> **Note**: Session tracking is currently integrated into the `/tutorial` skill. Integration into remaining skills (`/init`, `/review`, `/agent`, etc.) is planned for a future update.
 
 ```json
 {
@@ -130,7 +132,7 @@ If you're building custom skills and want to integrate session tracking:
 
 ## Disabling Session Tracking
 
-Session tracking will be integrated into skills in future updates. If you prefer not to use it, you can:
+Session tracking is currently integrated into `/tutorial` only. Full integration into all skills is planned for a future update. If you prefer not to use it, you can:
 
 1. **Delete session files manually**:
    ```bash
@@ -159,6 +161,9 @@ Note: Session tracking is foundational infrastructure—disabling it will preven
 ```
 
 ### Generated Files (Local, Gitignored)
+
+> **Note**: When `{claudeDir}` is set to a custom path (e.g., a separate workspace directory), session JSON files are written there — separate from the framework docs above. When using the default (`{claudeDir}` = `.claude`), session files co-exist alongside framework docs in `.claude/.sessions/`. The `.gitignore` pattern `*.json` in `.sessions/` ensures generated session files are not committed.
+
 ```
 {claudeDir}/.sessions/
 ├── session-2026-02-16-143000.json

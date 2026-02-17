@@ -44,7 +44,9 @@ Preflight runs these checks in sequence:
 ### Step 1: Gather Changed Files
 
 ```bash
-git diff --name-only origin/develop...HEAD
+# Detect base branch dynamically: main, master, or develop (whichever exists)
+BASE=$(git rev-parse --verify --quiet origin/main && echo main || (git rev-parse --verify --quiet origin/master && echo master || echo develop))
+git diff --name-only origin/$BASE...HEAD
 ```
 
 If no changes found, check unstaged changes:

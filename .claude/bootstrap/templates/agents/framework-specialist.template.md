@@ -75,7 +75,7 @@ This agent has access to the following MCP servers:
 **Purpose**: {{description}}
 
 **Usage in this role:**
-{{#each use_cases}}
+{{#each USE_CASES}}
 - {{this}}
 {{/each}}
 

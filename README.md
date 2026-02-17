@@ -4,7 +4,7 @@ A multi-agent system for AI-assisted development that guides, reviews, and valid
 
 Drop the `.claude/` folder into **any project** (Vue, React, Python/Django, Java/Spring Boot, Go, Rust, or anything else), run `/init`, and get a virtual development team dynamically generated for your specific tech stack.
 
-**New in v2.2:** Session tracking infrastructure for future pattern detection and learning features. Foundation for v2.5+ intelligence capabilities.
+**New in v2.2:** Interactive `/tutorial` onboarding, session tracking infrastructure, and error handling for skills. Foundation for v2.5+ intelligence capabilities.
 
 **New in v2.1:** Update system with file tracking and smart merge. Pull framework updates safely while preserving all your customizations.
 
@@ -108,6 +108,7 @@ This interactive setup will:
 | `/review` | Multi-domain code review with severity-rated findings |
 | `/lint` | Pattern-based checks against project rules |
 | `/preflight` | Full pre-PR pipeline: lint → test → review |
+| `/tutorial` | Interactive 5-minute onboarding walkthrough — meet your team, route a task, learn the quality pipeline |
 | `/librarian` | Capture a directive or extract learnings |
 
 ## Key Features
@@ -160,12 +161,13 @@ This interactive setup will:
 
 ## Version History
 
-**v2.2** (2026-02-16) — Session Tracking (Foundation Sprint)
-- Session tracking infrastructure for skill executions
-- JSON schema with versioning support (v1.0.0)
-- Automatic cleanup (keeps last 10 sessions)
-- Comprehensive documentation (687 lines, 4 guides)
-- Foundation for pattern detection (v2.5) and analytics (v3.5)
+**v2.2** (2026-02-17) — Tutorial, Session Tracking & Quality Pass
+- `/tutorial` skill — interactive 5-minute onboarding with 3 steps + quick reference card
+- Session tracking infrastructure for skill executions (JSON schema v1.0.0, auto-cleanup)
+- Error handling & recovery sections for `/review` and `/preflight`
+- 20 new bootstrap templates (15 pattern templates, 4 skill templates, 1 agent template)
+- Comprehensive bug fixes across bootstrap pipeline, mappings, scripts, and documentation
+- macOS compatibility fix for session cleanup script
 - Developed using dogfooding (framework building itself)
 
 **v2.1** (2026-02-16) — Update System

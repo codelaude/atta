@@ -108,8 +108,7 @@ agents/specialists/
   ├── accessibility.md
   ├── express.md
   ├── mongodb.md
-  ├── vitest.md
-  └── jest.md
+  └── jest.md                  (handles Vitest/Jest, from testing-specialist template)
 
 knowledge/patterns/
   ├── react-patterns.md        (Hooks, Context, component composition)

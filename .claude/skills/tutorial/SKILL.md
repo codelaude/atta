@@ -229,7 +229,8 @@ I'm routing this as follows:
 ```
 
 Update session file to record the project-owner agent invocation:
-- Add to `agents` array: `{ "name": "project-owner", "role": "universal", "invokedAt": "{now}", "status": "completed" }`
+- Run `date -u +%Y-%m-%dT%H:%M:%SZ` to get the current ISO-8601 UTC timestamp
+- Add to `agents` array: `{ "name": "project-owner", "role": "universal", "invokedAt": "{output of above command}", "status": "completed" }`
 
 ### 2d. Continue Prompt
 

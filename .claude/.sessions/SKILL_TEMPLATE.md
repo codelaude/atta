@@ -69,7 +69,7 @@ Edit `{claudeDir}/.sessions/session-{timestamp}.json`:
   {
     "name": "{agent-name}",
     "role": "{universal|coordinator|specialist}",
-    "invokedAt": "{current-ISO-timestamp}",
+    "invokedAt": "{output of: date -u +%Y-%m-%dT%H:%M:%SZ}",
     "status": "in_progress"
   }
   ```

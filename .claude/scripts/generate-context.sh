@@ -58,27 +58,32 @@ EOF
   exit 0
 fi
 
-# Collect last N session files (newest first by filename timestamp)
-session_files=$(find "$SESSIONS_DIR" -name "session-*.json" -type f | sort -r | head -n "$MAX_RECENT")
-
-if [ -z "$session_files" ]; then
+# Require python3 for JSON parsing
+if ! command -v python3 >/dev/null 2>&1; then
   cat > "$OUTPUT_FILE" <<'EOF'
 # Recent Work Context
 
 *Auto-generated — do not edit manually.*
 
-No recent sessions found. Run a skill (e.g., `/init`, `/tutorial`) to start tracking.
+Unable to generate context: python3 is required but not found.
 EOF
+  echo "Warning: python3 not found. Wrote placeholder to $OUTPUT_FILE" >&2
   exit 0
 fi
 
-# Generate recent.md using python3
+# Generate recent.md — Python discovers and parses session files directly
+# (no shell interpolation of filenames into Python source)
 python3 -c "
-import json, sys, os
+import json, glob, os, sys
 
-files = '''$session_files'''.strip().split('\n')
+sessions_dir = sys.argv[1]
+max_recent = int(sys.argv[2])
+
+# Discover session files (newest first by filename timestamp)
+pattern = os.path.join(sessions_dir, 'session-*.json')
+files = sorted(glob.glob(pattern), reverse=True)[:max_recent]
+
 lines = []
-
 for f in files:
     try:
         with open(f) as fh:
@@ -123,7 +128,7 @@ for f in files:
         if agent_names:
             parts.append('Agents: ' + ', '.join(agent_names))
 
-        lines.append('- ' + ' — '.join(parts))
+        lines.append('- ' + ' \u2014 '.join(parts))
 
     except (json.JSONDecodeError, FileNotFoundError, KeyError):
         continue
@@ -138,7 +143,9 @@ header = '''# Recent Work Context
 if lines:
     print(header + '\n'.join(lines))
 else:
-    print(header + 'No valid session data found.')
-" > "$OUTPUT_FILE"
+    print(header + 'No recent sessions found. Run a skill (e.g., \`/init\`, \`/tutorial\`) to start tracking.')
+" "$SESSIONS_DIR" "$MAX_RECENT" > "$OUTPUT_FILE"
 
-echo "Updated $OUTPUT_FILE ($(echo "$session_files" | wc -l | tr -d ' ') session(s))"
+# Count files for status message
+file_count=$(find "$SESSIONS_DIR" -name "session-*.json" -type f | head -n "$MAX_RECENT" | wc -l | tr -d ' ')
+echo "Updated $OUTPUT_FILE ($file_count session(s))"

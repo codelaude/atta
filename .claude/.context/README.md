@@ -10,7 +10,7 @@ This directory holds auto-generated context files that help agents understand re
 
 ## How It Works
 
-1. After each skill session completes, `generate-context.sh` runs automatically
+1. Skills run `generate-context.sh` during their finalization step (after session cleanup)
 2. The script reads the last 5 session JSON files from `{claudeDir}/.sessions/`
 3. It produces `recent.md` with one-line summaries per session
 4. Agents (especially Project Owner) read `recent.md` for recent work awareness

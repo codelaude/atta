@@ -1,6 +1,6 @@
 ---
 name: review
-description: Comprehensive code review with automated pattern checks. Use when reviewing changed files against Vue, TypeScript, SCSS, accessibility, and testing conventions.
+description: Comprehensive code review with automated pattern checks. Use when reviewing changed files against Vue, TypeScript, SCSS, accessibility, security, and testing conventions.
 ---
 
 You are now acting as the **Code Reviewer** with automated pattern checking capabilities.
@@ -24,15 +24,17 @@ You are now acting as the **Code Reviewer** with automated pattern checking capa
 ```bash
 # Detect base branch dynamically: main, master, or develop (whichever exists)
 if git rev-parse --verify --quiet origin/main >/dev/null 2>&1; then
-  BASE=main
+  FILES=$(git diff --name-only origin/main...HEAD)
 elif git rev-parse --verify --quiet origin/master >/dev/null 2>&1; then
-  BASE=master
+  FILES=$(git diff --name-only origin/master...HEAD)
+elif git rev-parse --verify --quiet origin/develop >/dev/null 2>&1; then
+  FILES=$(git diff --name-only origin/develop...HEAD)
 else
-  BASE=develop
+  # No remote base found — fall back to uncommitted changes
+  FILES=$(git diff --name-only)
 fi
-git diff --name-only origin/$BASE...HEAD
 ```
-Review all changed files.
+Review all files in `$FILES`. If `$FILES` is empty, trigger the "Empty Review Scope" recovery.
 
 **If file/folder argument:**
 Read the specified target.
@@ -55,12 +57,27 @@ Apply these pattern checks automatically:
 | `.scss` | `@import` | Should be `@use` |
 | `.test.ts` | `config.global` | Should use local provide |
 | `.vue` | Styled `<ul>` without role | Missing `role="list"` |
+| `.vue` | `v-html` | `grep "v-html"` |
+| `.jsx/.tsx` | `dangerouslySetInnerHTML` | `grep "dangerouslySetInnerHTML"` |
+
+Security CRITICAL checks (patterns contain regex alternation, listed separately):
+
+```bash
+# Hardcoded secrets (all files)
+grep -E "(AKIA[0-9A-Z]{16}|-----BEGIN.*PRIVATE KEY)"
+
+# eval/exec with variables (all files)
+grep -E "eval[[:space:]]*\(|exec[[:space:]]*\("
+
+# SQL string concatenation / interpolation (all files)
+grep -Ei "((SELECT|INSERT|UPDATE|DELETE)[^\n]{0,80}\+|\+[^\n]{0,80}(SELECT|INSERT|UPDATE|DELETE)|f['\"][^\n]{0,200}(SELECT|INSERT|UPDATE|DELETE)|\$\{[^}]+\}[^\n]{0,80}(SELECT|INSERT|UPDATE|DELETE))"
+```
 
 #### HIGH Checks
 
 | File Type | Pattern | Check |
 |-----------|---------|-------|
-| `.ts/.vue` | `\|\|` for nullish | Should be `??` |
+| `.ts/.vue` | Double-pipe for nullish | Should be `??` |
 | `.vue` | `inject` function default | Should be object literal |
 | `.vue` | `setTimeout` no cleanup | Missing `beforeUnmount` |
 | `.vue` | `<div @click>` | Should be `<button>` |
@@ -103,10 +120,16 @@ After automated checks, review for:
 - [ ] Async tests use `flushPromises`
 - [ ] Cleanup in `afterEach`
 
-#### Security
-- [ ] No `v-html` without sanitization
-- [ ] No `eval()` or `new Function()`
-- [ ] Input validation on user data
+#### Security (OWASP Top 10:2025)
+- [ ] No `v-html` / `dangerouslySetInnerHTML` without sanitization (A05)
+- [ ] No `eval()` or `new Function()` with user input (A05)
+- [ ] Input validation on user data at system boundaries (A05)
+- [ ] No hardcoded secrets, API keys, or tokens (A04)
+- [ ] Parameterized queries only — no SQL string concatenation (A05)
+- [ ] Authorization checks on endpoints/routes (A01)
+- [ ] HTTPS enforced, no mixed content (A04)
+- [ ] No sensitive data in logs or error messages (A09)
+- [ ] Proper error handling — no silent failures or leaked stack traces (A10)
 
 ### Step 5: Generate Review Output
 
@@ -121,6 +144,7 @@ After automated checks, review for:
 | TypeScript | [status] |
 | SCSS | [status] |
 | Accessibility | [status] |
+| Security | [status] |
 | Testing | [status] |
 
 **Verdict:** [APPROVED / CHANGES REQUESTED / NEEDS DISCUSSION]
@@ -153,8 +177,10 @@ When `--quick` flag is used:
 ## Integration
 
 After `/review`:
+- Run `/security-audit` for deep security analysis (OWASP Top 10, deps, secrets)
 - Run `/lint` for pattern-only checks
 - Run `/preflight` for full pre-PR validation
+- Use `/agent security-specialist` for interactive security guidance
 - Use `/agent vue` for Vue-specific deep dive
 - Use `/agent accessibility` for accessibility deep dive
 

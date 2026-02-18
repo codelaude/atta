@@ -32,6 +32,7 @@ Load YAML detection rules from:
 2. `bootstrap/detection/backend-detectors.yaml`
 3. `bootstrap/detection/database-detectors.yaml`
 4. `bootstrap/detection/tool-detectors.yaml`
+5. `bootstrap/detection/security-tools.yaml`
 
 ### Detection Process
 
@@ -119,6 +120,13 @@ detected:
   build_tools:
     - vite:
         version: "5.0.0"
+  security:
+    - snyk:
+        detected_via: file (.snyk)
+        metadata:
+          type: dependency_scanner
+          category: security
+          triggers_security_specialist: true
 ```
 
 ---
@@ -175,6 +183,19 @@ if has_any_backend_framework:
     mapping: coordinators.be-team-lead,
     specialists: [list of detected backend specialists]
   })
+
+// Security specialist (cross-cutting — attaches to whichever team lead exists)
+// Only tools with triggers_security_specialist: true cause generation
+has_security_tools = (detected.security || []).some(s => s.metadata.triggers_security_specialist)
+if has_security_tools:
+  security_mapping = security['security-specialist']
+  // Assign to coordinator if present (prefer backend), otherwise safe fallback
+  if has_any_backend_framework:
+    security_mapping.variables.TEAM_LEAD = 'be-team-lead'
+  elif has_any_frontend_framework:
+    security_mapping.variables.TEAM_LEAD = 'fe-team-lead'
+  else:
+    security_mapping.variables.TEAM_LEAD = 'project-owner'
 ```
 
 ### Agent Generation Queue

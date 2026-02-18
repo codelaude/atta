@@ -1,0 +1,302 @@
+# Security Tool Detection Rules
+# Detects security scanning tools, dependency auditing, and secrets management
+#
+# DETECTION NOTE:
+# Some entries include a `command` field for optional runtime verification.
+# Primary detection uses file-based checks. If a command fails, the generator
+# should fall back to file-based detection only.
+#
+# When a security tool with `triggers_security_specialist: true` is detected,
+# the generator SHOULD create:
+# 1. security-specialist agent (from security-specialist.template.md)
+# 2. security-patterns pattern file (from security-patterns.template.md)
+#
+# Tools WITHOUT this flag (e.g., npm-audit, pip-audit) are detected for
+# informational purposes but do not trigger specialist generation.
+
+# Dependency Scanning
+dependency_scanning:
+  # Snyk
+  - name: Snyk
+    identifier: snyk
+    detection:
+      files:
+        - .snyk
+      package_json:
+        dev_dependencies:
+          - snyk
+      config_files:
+        - .snyk
+    metadata:
+      type: dependency_scanner
+      category: security
+      triggers_security_specialist: true
+
+  # Dependabot (GitHub)
+  - name: Dependabot
+    identifier: dependabot
+    detection:
+      files:
+        - .github/dependabot.yml
+        - .github/dependabot.yaml
+    metadata:
+      type: dependency_scanner
+      category: security
+      platform: github
+      triggers_security_specialist: true
+
+  # Renovate
+  - name: Renovate
+    identifier: renovate
+    detection:
+      files:
+        - renovate.json
+        - renovate.json5
+        - .renovaterc
+        - .renovaterc.json
+    metadata:
+      type: dependency_scanner
+      category: security
+      triggers_security_specialist: true
+
+  # npm audit (built-in, detect via package-lock.json)
+  - name: npm audit
+    identifier: npm-audit
+    detection:
+      files:
+        - package-lock.json
+      command: "npm audit --json"
+    metadata:
+      type: dependency_scanner
+      category: security
+      language: nodejs
+
+  # pip-audit (Python)
+  - name: pip-audit
+    identifier: pip-audit
+    detection:
+      files:
+        - requirements.txt
+        - pyproject.toml
+      content_match:
+        requirements.txt: "pip-audit"
+        pyproject.toml: "pip-audit"
+      command: "pip-audit --version"
+    metadata:
+      type: dependency_scanner
+      category: security
+      language: python
+
+  # cargo-audit (Rust)
+  - name: cargo-audit
+    identifier: cargo-audit
+    detection:
+      files:
+        - Cargo.toml
+      command: "cargo audit --version"
+    metadata:
+      type: dependency_scanner
+      category: security
+      language: rust
+
+  # bundler-audit (Ruby)
+  - name: bundler-audit
+    identifier: bundler-audit
+    detection:
+      files:
+        - Gemfile
+      content_match:
+        Gemfile: "bundler-audit"
+      command: "bundle-audit --version"
+    metadata:
+      type: dependency_scanner
+      category: security
+      language: ruby
+
+# Static Analysis Security Testing (SAST)
+sast:
+  # Semgrep
+  - name: Semgrep
+    identifier: semgrep
+    detection:
+      files:
+        - .semgrep.yml
+        - .semgrep.yaml
+      config_files:
+        - .semgrep.yml
+        - .semgrep.yaml
+        - .semgrepignore
+      command: "semgrep --version"
+    metadata:
+      type: sast
+      category: security
+      triggers_security_specialist: true
+
+  # SonarQube / SonarCloud
+  - name: SonarQube
+    identifier: sonarqube
+    detection:
+      files:
+        - sonar-project.properties
+      config_files:
+        - sonar-project.properties
+        - .sonarcloud.properties
+    metadata:
+      type: sast
+      category: security
+      triggers_security_specialist: true
+
+  # CodeQL (GitHub)
+  - name: CodeQL
+    identifier: codeql
+    detection:
+      files:
+        - .github/codeql/codeql-config.yml
+      file_patterns:
+        - ".github/workflows/*codeql*"
+    metadata:
+      type: sast
+      category: security
+      platform: github
+      triggers_security_specialist: true
+
+  # Bandit (Python)
+  - name: Bandit
+    identifier: bandit
+    detection:
+      files:
+        - .bandit
+        - pyproject.toml
+      content_match:
+        pyproject.toml: "[tool.bandit]"
+      command: "bandit --version"
+    metadata:
+      type: sast
+      category: security
+      language: python
+
+  # Brakeman (Ruby on Rails)
+  - name: Brakeman
+    identifier: brakeman
+    detection:
+      files:
+        - Gemfile
+      content_match:
+        Gemfile: "brakeman"
+      command: "brakeman --version"
+    metadata:
+      type: sast
+      category: security
+      language: ruby
+
+  # ESLint Security Plugin
+  - name: eslint-plugin-security
+    identifier: eslint-security
+    detection:
+      package_json:
+        dev_dependencies:
+          - eslint-plugin-security
+          - eslint-plugin-no-unsanitized
+    metadata:
+      type: sast
+      category: security
+      language: javascript
+
+# Secrets Detection
+secrets_detection:
+  # Gitleaks
+  - name: Gitleaks
+    identifier: gitleaks
+    detection:
+      files:
+        - .gitleaks.toml
+      config_files:
+        - .gitleaks.toml
+      command: "gitleaks version"
+    metadata:
+      type: secrets_scanner
+      category: security
+      triggers_security_specialist: true
+
+  # TruffleHog
+  - name: TruffleHog
+    identifier: trufflehog
+    detection:
+      files:
+        - .trufflehog-config.yaml
+      command: "trufflehog --version"
+    metadata:
+      type: secrets_scanner
+      category: security
+      triggers_security_specialist: true
+
+  # detect-secrets (Yelp)
+  - name: detect-secrets
+    identifier: detect-secrets
+    detection:
+      files:
+        - .secrets.baseline
+      config_files:
+        - .secrets.baseline
+      command: "detect-secrets --version"
+    metadata:
+      type: secrets_scanner
+      category: security
+
+  # git-secrets (AWS)
+  - name: git-secrets
+    identifier: git-secrets
+    detection:
+      files:
+        - .gitallowed
+      command: "git secrets --list"
+    metadata:
+      type: secrets_scanner
+      category: security
+
+# Security Headers & Middleware
+security_middleware:
+  # Helmet.js (Express)
+  - name: Helmet
+    identifier: helmet
+    detection:
+      package_json:
+        dependencies:
+          - helmet
+    metadata:
+      type: security_middleware
+      category: security
+      language: nodejs
+      framework: express
+
+  # django-csp
+  - name: django-csp
+    identifier: django-csp
+    detection:
+      files:
+        - requirements.txt
+        - pyproject.toml
+      content_match:
+        requirements.txt: "django-csp"
+        pyproject.toml: "django-csp"
+    metadata:
+      type: security_middleware
+      category: security
+      language: python
+      framework: django
+
+  # Spring Security
+  - name: Spring Security
+    identifier: spring-security
+    detection:
+      files:
+        - pom.xml
+        - build.gradle
+      content_match:
+        pom.xml: "spring-boot-starter-security"
+        build.gradle: "spring-boot-starter-security"
+    metadata:
+      type: security_middleware
+      category: security
+      language: java
+      framework: spring

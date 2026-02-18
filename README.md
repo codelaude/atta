@@ -153,7 +153,7 @@ This interactive setup will:
 - **9 Universal Agent Templates** that generate project-specific specialists (incl. security)
 - **5 Detection Rule Files** covering frontend, backend, databases, tools, and security
 - **20+ Pattern File Templates** for different tech stacks (incl. security patterns)
-- **12 Skills** (slash commands) including `/security-audit`
+- **11 Skills** (slash commands) including `/security-audit`
 - **3-Tier Agent Architecture** (7 core + 2 coordinators + N specialists)
 - **OWASP Top 10 (2025)** coverage built into review pipeline
 - **100% Configuration-Driven** — add new tech via YAML, no code changes

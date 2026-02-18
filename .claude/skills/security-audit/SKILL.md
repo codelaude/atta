@@ -22,13 +22,15 @@ You are now acting as the **Security Specialist** performing a comprehensive sec
 
 ### Step 1: Determine Audit Scope
 
+First, separate flags (`--dependencies`, `--secrets`, `--quick`) from file/folder arguments. Flags modify behavior; only non-flag arguments are treated as targets.
+
 **If `--dependencies` flag:**
 Skip to Step 4 (Dependency Audit only).
 
 **If `--secrets` flag:**
 Skip to Step 5 (Secrets Scan only).
 
-**If no argument provided:**
+**If no file/folder argument provided** (including flag-only invocations like `--quick`):
 ```bash
 # Detect base branch dynamically
 if git rev-parse --verify --quiet origin/main >/dev/null 2>&1; then
@@ -42,7 +44,7 @@ git diff --name-only origin/$BASE...HEAD
 ```
 Audit all changed files.
 
-**If file/folder argument:**
+**If file/folder argument provided:**
 Read the specified target.
 
 ### Step 2: Auto-Read Files
@@ -97,12 +99,22 @@ Check for vulnerable dependencies:
 
 **Node.js projects:**
 ```bash
-npm audit --json 2>/dev/null || echo "npm audit not available"
+# npm audit exits non-zero when vulnerabilities are found — capture output regardless
+if command -v npm >/dev/null 2>&1; then
+  npm audit --json 2>/dev/null || true
+else
+  echo "npm audit not available"
+fi
 ```
 
 **Python projects:**
 ```bash
-pip-audit --format=json 2>/dev/null || echo "pip-audit not available"
+# pip-audit exits non-zero when findings exist — capture output regardless
+if command -v pip-audit >/dev/null 2>&1; then
+  pip-audit --format=json 2>/dev/null || true
+else
+  echo "pip-audit not available"
+fi
 ```
 
 **If audit tools are not available**, check for lock files and report:
@@ -118,10 +130,10 @@ Scan all files in scope for potential secrets using these patterns:
 |-------------|-------|-------|
 | AWS Access Key | `AKIA[0-9A-Z]{16}` | AWS IAM access key ID |
 | AWS Secret Key | `[A-Za-z0-9/+=]{40}` near `aws_secret` | AWS secret access key |
-| Generic API Key | `['"][A-Za-z0-9_-]{20,}['"]` near `api.key\|token\|secret` | API key in string literal |
+| Generic API Key | `['"][A-Za-z0-9_-]{20,}['"]` near `api.key`, `token`, or `secret` | API key in string literal |
 | Private Key | `-----BEGIN.*PRIVATE KEY-----` | Embedded private key |
 | JWT Token | `eyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+` | Hardcoded JWT |
-| Database URL | `(postgres\|mysql\|mongodb)://[^:]+:[^@]+@` | Connection string with credentials |
+| Database URL | `(postgres&#124;mysql&#124;mongodb)://[^:]+:[^@]+@` | Connection string with credentials |
 | Password Assignment | `password\s*=\s*['"][^'"]+['"]` | Hardcoded password (not in test files) |
 
 **Exclude from flagging:**

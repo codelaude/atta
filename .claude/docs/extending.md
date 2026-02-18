@@ -6,7 +6,12 @@ The entire bootstrap system is configuration-driven. **No code changes required*
 
 ### 1. Add Detection Rule
 
-Add to `.claude/bootstrap/detection/[category]-detectors.yaml`:
+Add to the appropriate file in `.claude/bootstrap/detection/`:
+- `frontend-detectors.yaml`
+- `backend-detectors.yaml`
+- `database-detectors.yaml`
+- `tool-detectors.yaml`
+- `security-tools.yaml` (for security scanners/middleware)
 
 **Example: Adding Remix support**
 ```yaml
@@ -170,13 +175,14 @@ custom_api_mcp:
 ## File Structure Reference
 
 ```
-{claudeDir}/
+.claude/
 ├── bootstrap/
 │   ├── detection/
 │   │   ├── frontend-detectors.yaml   # Add frontend framework detection here
 │   │   ├── backend-detectors.yaml    # Add backend framework detection here
 │   │   ├── database-detectors.yaml   # Add database detection here
-│   │   └── tool-detectors.yaml       # Add build tool/testing framework detection here
+│   │   ├── tool-detectors.yaml       # Add build tool/testing framework detection here
+│   │   └── security-tools.yaml       # Add security tool detection here
 │   ├── mappings/
 │   │   ├── agent-mappings.yaml       # Add agent mapping here
 │   │   ├── mcp-mappings.yaml         # Add MCP server mapping here
@@ -188,6 +194,7 @@ custom_api_mcp:
 │       │   ├── database-specialist.template.md
 │       │   ├── styling-specialist.template.md
 │       │   ├── testing-specialist.template.md
+│       │   ├── security-specialist.template.md
 │       │   ├── accessibility-specialist.template.md
 │       │   ├── fe-team-lead.template.md
 │       │   └── be-team-lead.template.md

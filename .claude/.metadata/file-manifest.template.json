@@ -82,6 +82,20 @@
       "description": "Team lead coordination skill",
       "framework_hash": null
     },
+    "skills/tutorial/SKILL.md": {
+      "source": "framework",
+      "customized": false,
+      "safe_to_replace": true,
+      "description": "Interactive onboarding tutorial skill",
+      "framework_hash": null
+    },
+    "skills/security-audit/SKILL.md": {
+      "source": "framework",
+      "customized": false,
+      "safe_to_replace": true,
+      "description": "Security audit skill (OWASP, dependencies, secrets)",
+      "framework_hash": null
+    },
     "knowledge/templates/": {
       "source": "framework",
       "customized": false,

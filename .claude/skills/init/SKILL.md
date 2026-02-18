@@ -260,6 +260,19 @@ Scan config files at the confirmed project root (and subdirectories if specified
 | `Gemfile` | Ruby |
 | `composer.json` | PHP |
 
+#### Security Tools (cross-cutting)
+| Indicator | Detects |
+|-----------|---------|
+| `.snyk`, `.github/dependabot.yml`, `renovate.json` | Dependency security tooling |
+| `.semgrep.yml`, `sonar-project.properties`, `.github/workflows/*codeql*` | SAST tooling |
+| `.gitleaks.toml`, `.secrets.baseline` | Secrets scanning tooling |
+| `helmet`, `django-csp`, `spring-boot-starter-security` | Security middleware |
+
+Security specialist generation rule:
+- If any detected security tool has `triggers_security_specialist: true`, generate `security-specialist`.
+- Attach to `be-team-lead` when backend exists; otherwise attach to `fe-team-lead`.
+- If no FE/BE coordinator exists, route through `project-owner` as safe fallback.
+
 ### Detect Conventions
 
 Sample up to 10 source files to detect:
@@ -294,10 +307,14 @@ Present the detected stack to the user for confirmation:
 - Technology: Java (Maven)
 - Path: /path/to/project/core
 
+### Security
+- Tooling: Snyk, Gitleaks
+- Security specialist trigger: ENABLED (`triggers_security_specialist: true`)
+
 ### Agents to activate
 - **FE team**: fe-team-lead, vue, scss, typescript, accessibility, testing-specialist, code-reviewer
 - **BE team**: be-team-lead (Java/Maven)
-- **Cross-cutting**: project-owner, librarian, rubber-duck, qa-validator, business-analyst, pr-manager
+- **Cross-cutting**: project-owner, librarian, rubber-duck, qa-validator, business-analyst, pr-manager, security-specialist (if triggered)
 
 Does this look correct? Any adjustments?
 ```

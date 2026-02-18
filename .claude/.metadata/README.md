@@ -6,13 +6,13 @@ This directory contains system metadata for the adaptive bootstrap system.
 
 ### `version`
 Contains the current user's version of the `.claude/` system.
-- **Current version**: 2.1
+- **Current version**: 2.3
 - **Used by**: `/init` and `/migrate` skills for version detection
 - **Note**: This is the user's version, which may have customizations
 
-### `framework-version` (NEW in v2.1)
+### `framework-version` (introduced in v2.1)
 Contains the framework version that was last applied.
-- **Current version**: 2.1
+- **Current version**: 2.3
 - **Used by**: `/update` skill to check for framework updates
 - **Note**: This is separate from user version to track framework updates independently
 
@@ -42,7 +42,7 @@ Complete manifest of all generated files from the bootstrap system.
   }
   ```
 
-### `file-manifest.json` (NEW in v2.1)
+### `file-manifest.json` (introduced in v2.1)
 Tracks all files in `.claude/` and their source (framework/generated/user).
 - **Purpose**: Enable safe framework updates that preserve customizations
 - **Used by**: `/update` skill to classify files and detect customizations
@@ -85,7 +85,7 @@ Tracks all files in `.claude/` and their source (framework/generated/user).
   }
   ```
 
-### `update-history.json` (NEW in v2.1)
+### `update-history.json` (introduced in v2.1)
 Records history of all framework updates applied.
 - **Purpose**: Track update history and provide rollback information
 - **Used by**: `/update` skill to log updates and `/update --history` to display
@@ -114,6 +114,7 @@ Template for the file-manifest.json structure.
 
 ## Version History
 
+- **2.3** (2026-02-17): Security sprint (`/security-audit`, security specialist template, security detection rules)
 - **2.1** (2026-02-16): Update system with file tracking and smart merge
 - **2.0** (2026-02-14): Adaptive bootstrap system with dynamic agent generation
 - **1.0**: Static agent system (Vue/AEM focused, legacy)

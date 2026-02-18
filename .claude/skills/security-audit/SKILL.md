@@ -140,9 +140,9 @@ Scan all files in scope for potential secrets using these patterns:
 | Private Key | `-----BEGIN.*PRIVATE KEY-----` | Embedded private key |
 | JWT Token | `eyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+` | Hardcoded JWT |
 | Database URL | See below | Connection string with credentials |
-| Password Assignment | `password\s*=\s*['"][^'"]+['"]` | Hardcoded password (not in test files) |
+| Password Assignment | See below | Hardcoded password (not in test files) |
 
-Regexes containing alternation (cannot go in table):
+Regexes containing alternation (moved below for consistency):
 ```
 # AWS Secret Key (requires AWS context nearby)
 (aws_secret_access_key|AWS_SECRET_ACCESS_KEY).{0,20}['":=]\s*[A-Za-z0-9/+=]{40}
@@ -152,6 +152,9 @@ Regexes containing alternation (cannot go in table):
 
 # Database URL
 (postgres|mysql|mongodb)://[^:]+:[^@]+@
+
+# Password assignment (not in test files)
+password\s*=\s*"[^"]+"|password\s*=\s*'[^']+'
 ```
 
 **Exclude from flagging:**

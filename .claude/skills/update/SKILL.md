@@ -129,6 +129,7 @@ safe_replace:
   - skills/lint/SKILL.md
   - skills/review/SKILL.md
   - skills/preflight/SKILL.md
+  - skills/security-audit/SKILL.md
   - skills/team-lead/SKILL.md
   - skills/update/SKILL.md
   - skills/tutorial/SKILL.md

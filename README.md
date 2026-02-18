@@ -166,6 +166,16 @@ This interactive setup will:
 - **[Extending the System](.claude/docs/extending.md)** - Add new technologies & custom agents
 - **[Design Philosophy](.claude/docs/philosophy.md)** - Core principles & architectural decisions
 
+## Framework Contributor Checks
+
+When changing framework source under `.claude/`, run:
+
+```bash
+bash .claude/scripts/validate-framework.sh
+```
+
+This validates bootstrap YAML syntax, security-critical documentation patterns, and `git diff --check` hygiene in one pass.
+
 ## Version History
 
 **v2.3** (2026-02-17) — Security Sprint

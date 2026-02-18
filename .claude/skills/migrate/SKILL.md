@@ -32,6 +32,7 @@ For all migration-related operations, route to `/update` and report the forwarde
 
 | Input | Forward to |
 |-------|------------|
+| `/migrate` (no flags) | Error: missing required `--from <path>` for migration/apply flows |
 | `/migrate --from <path>` | `/update pull --from <path> --mode migration` |
 | `/migrate --dry-run --from <path>` | `/update pull --dry-run --from <path> --mode migration` |
 | `/migrate --interactive --from <path>` | `/update pull --interactive --from <path> --mode migration` |
@@ -56,7 +57,7 @@ This command is forwarded to `/update`.
 
 - Requested: [original migrate command]
 - Forwarded: [equivalent update command]
-- Mode: Migration
+- Mode: [migration|migration-bootstrap]
 
 Continuing with `/update` execution...
 ```

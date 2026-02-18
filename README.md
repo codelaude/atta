@@ -105,7 +105,7 @@ This interactive setup will:
 | Command | What it does |
 |---------|-------------|
 | `/init` | Interactive project setup — detects 100+ technologies, generates agents, configures MCPs |
-| `/update` | Single update command — auto-selects upgrade vs migration mode from metadata, preserves customizations |
+| `/update` | Single update command — auto-selects `upgrade`/`migration-bootstrap` from metadata; use `--mode migration` for structural transitions |
 | `/migrate` | Compatibility alias to migration mode inside `/update` |
 | `/agent <id>` | Invoke any specialist (e.g., `/agent vue`, `/agent django`) |
 | `/team-lead` | Decompose a feature into specialist tasks |
@@ -137,8 +137,9 @@ This should produce `.claude_staging/.claude` in your project root.
 ```
 
 `/update` automatically chooses:
-- **Upgrade mode** for compatible in-family updates
-- **Migration mode** for structural transitions
+- **Upgrade mode** by default when update tracking metadata exists
+- **Migration-bootstrap mode** when `.claude/.metadata/file-manifest.json` is missing
+- **Migration mode** for structural transitions only when explicitly requested with `--mode migration`
 
 ### 3. Optional cleanup
 

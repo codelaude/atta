@@ -29,7 +29,9 @@ Never manually copy a new `.claude/` folder over your existing one.
 
 ### Mode Selection
 
-- Default: `/update` auto-selects mode from metadata.
+- Default: `/update` auto-selects mode from metadata:
+  - `upgrade` when `.claude/.metadata/file-manifest.json` exists
+  - `migration-bootstrap` when `.claude/.metadata/file-manifest.json` is missing
 - Optional override: `--mode` with one of:
   - `upgrade`
   - `migration`
@@ -40,7 +42,7 @@ Never manually copy a new `.claude/` folder over your existing one.
 ## What This Skill Does
 
 1. **Load source** framework from `--from <staging>/.claude`
-2. **Select mode automatically** from metadata (Upgrade vs Migration)
+2. **Select mode automatically** from metadata (Upgrade vs Migration Bootstrap)
 3. **Classify** files into framework/generated/user categories
 4. **Detect** customizations to framework files
 5. **Apply** safe updates (bootstrap, docs, core skills)
@@ -64,9 +66,9 @@ Before running `/update`, ensure:
 3. **Clean working directory**: No uncommitted changes to `.claude/`
    - The update creates backups, but start clean for safety
 
-4. **Framework version tracking**: `.claude/.metadata/framework-version` exists
+4. **Framework version tracking file**: `.claude/.metadata/framework-version` is used for reporting/comparison
    - Created automatically by `/init` in new projects
-   - If missing, `/update` can enter Migration mode to bootstrap tracking metadata
+   - Legacy installs may be missing this file; `/update` should recreate/update it during apply
 
 ---
 
@@ -121,9 +123,10 @@ Read version information:
 
 ### 1.3. Resolve Mode
 
-Use metadata comparison to select (unless `--mode` override is provided):
-- **Upgrade mode**: compatible in-family update
-- **Migration mode**: structural transition or missing tracking metadata
+Resolve mode as follows (unless `--mode` override is provided):
+- **Migration Bootstrap mode** (`migration-bootstrap`): auto-selected when `.claude/.metadata/file-manifest.json` is missing
+- **Upgrade mode** (`upgrade`): default when manifest exists
+- **Migration mode** (`migration`): explicit override only via `--mode migration`
 
 ### 1.4. Report Available Updates
 

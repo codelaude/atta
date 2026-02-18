@@ -8,25 +8,47 @@ You are running the **update** skill to manage framework updates for the `.claud
 ## How to Use
 
 ```bash
-/update check              # Check if new framework version available
-/update pull               # Pull and apply framework updates
-/update pull --dry-run     # Preview what would change without applying
-/update pull --interactive # Apply with interactive merge for conflicts
-/update rollback           # Restore from backup
-/update --history          # Show update history
+/update check --from ./.claude_staging/.claude
+/update pull --dry-run --from ./.claude_staging/.claude
+/update pull --from ./.claude_staging/.claude
+/update pull --interactive --from ./.claude_staging/.claude
+/update pull --from ./.claude_staging/.claude --mode upgrade
+/update pull --from ./.claude_staging/.claude --mode migration
+/update pull --from ./.claude_staging/.claude --mode migration-bootstrap
+/update rollback
+/update --history
 ```
+
+### Source Acquisition (Required for check/pull)
+
+```bash
+git clone --depth 1 <framework-repo-url> .claude_staging
+```
+
+Never manually copy a new `.claude/` folder over your existing one.
+
+### Mode Selection
+
+- Default: `/update` auto-selects mode from metadata:
+  - `upgrade` when `.claude/.metadata/file-manifest.json` exists
+  - `migration-bootstrap` when `.claude/.metadata/file-manifest.json` is missing
+- Optional override: `--mode` with one of:
+  - `upgrade`
+  - `migration`
+  - `migration-bootstrap`
 
 ---
 
 ## What This Skill Does
 
-1. **Check** for new framework versions available
-2. **Classify** files into framework/generated/user categories
-3. **Detect** customizations to framework files
-4. **Apply** safe updates (bootstrap, docs, core skills)
-5. **Merge** customized framework files (core agents)
-6. **Preserve** all user content (project knowledge, directives, settings)
-7. **Report** what changed and what was preserved
+1. **Load source** framework from `--from <staging>/.claude`
+2. **Select mode automatically** from metadata (Upgrade vs Migration Bootstrap)
+3. **Classify** files into framework/generated/user categories
+4. **Detect** customizations to framework files
+5. **Apply** safe updates (bootstrap, docs, core skills)
+6. **Merge** customized framework files (core agents)
+7. **Preserve** all user content (project knowledge, directives, settings)
+8. **Report** selected mode and what changed
 
 ---
 
@@ -34,16 +56,19 @@ You are running the **update** skill to manage framework updates for the `.claud
 
 Before running `/update`, ensure:
 
-1. **File manifest exists**: `.claude/.metadata/file-manifest.json`
-   - If missing, run `/migrate --add-update-system` first
-   - This creates the tracking system for existing v2.0 projects
+1. **Source path is provided** with `--from` for check/pull operations
+   - Example: `--from ./.claude_staging/.claude`
+   - Source path must contain `.metadata/version`
 
-2. **Clean working directory**: No uncommitted changes to `.claude/`
+2. **Optional mode override** is valid when provided
+   - `--mode upgrade|migration|migration-bootstrap`
+
+3. **Clean working directory**: No uncommitted changes to `.claude/`
    - The update creates backups, but start clean for safety
 
-3. **Framework version tracking**: `.claude/.metadata/framework-version` exists
+4. **Framework version tracking file**: `.claude/.metadata/framework-version` is used for reporting/comparison
    - Created automatically by `/init` in new projects
-   - Added by `/migrate --add-update-system` for existing projects
+   - Legacy installs may be missing this file; `/update` should recreate/update it during apply
 
 ---
 
@@ -54,26 +79,54 @@ When user runs `/update check`:
 ### 1.1. Verify Prerequisites
 
 ```bash
-# Check if file manifest exists
-if [ ! -f .claude/.metadata/file-manifest.json ]; then
-  echo "⚠️  Update system not initialized"
-  echo "Run: /migrate --add-update-system"
+# Check source path
+if [ -z "${SOURCE_CLAUDE_DIR:-}" ]; then
+  echo "⚠️  Missing source path"
+  echo "Use: /update check --from ./.claude_staging/.claude"
   exit 1
+fi
+
+if [ ! -f "$SOURCE_CLAUDE_DIR/.metadata/version" ]; then
+  echo "⚠️  Invalid source path: $SOURCE_CLAUDE_DIR"
+  echo "Expected: $SOURCE_CLAUDE_DIR/.metadata/version"
+  exit 1
+fi
+
+# Determine mode (upgrade vs migration bootstrap)
+if [ -n "${MODE_OVERRIDE:-}" ]; then
+  case "$MODE_OVERRIDE" in
+    upgrade|migration|migration-bootstrap)
+      mode="$MODE_OVERRIDE"
+      echo "ℹ️  Mode forced by --mode: $mode"
+      ;;
+    *)
+      echo "⚠️  Invalid mode: $MODE_OVERRIDE"
+      echo "Use one of: upgrade, migration, migration-bootstrap"
+      exit 1
+      ;;
+  esac
+elif [ ! -f .claude/.metadata/file-manifest.json ]; then
+  mode="migration-bootstrap"
+  echo "ℹ️  file-manifest missing: /update will run Migration Bootstrap mode"
+else
+  mode="upgrade"
 fi
 ```
 
 ### 1.2. Detect Current Versions
 
 Read version information:
-- `.claude/.metadata/version` → User's system version (e.g., "2.0")
-- `.claude/.metadata/framework-version` → Last framework update (e.g., "2.0")
-- `.claude/.metadata/file-manifest.json` → File tracking data
+- `.claude/.metadata/version` → Target user's current version (e.g., "2.0")
+- `.claude/.metadata/framework-version` → Target last applied framework version
+- `$SOURCE_CLAUDE_DIR/.metadata/version` → Incoming source framework version
+- `.claude/.metadata/file-manifest.json` → File tracking data (if present)
 
-### 1.3. Check Framework Repository
+### 1.3. Resolve Mode
 
-**For this repository (the `.claude/` framework itself):**
-- Current framework version is tracked in `.claude/.metadata/version` of the repo
-- Compare against user's `.claude/.metadata/framework-version`
+Resolve mode as follows (unless `--mode` override is provided):
+- **Migration Bootstrap mode** (`migration-bootstrap`): auto-selected when `.claude/.metadata/file-manifest.json` is missing
+- **Upgrade mode** (`upgrade`): default when manifest exists
+- **Migration mode** (`migration`): explicit override only via `--mode migration`
 
 ### 1.4. Report Available Updates
 
@@ -521,7 +574,7 @@ Show complete update history:
 - Migrated from v1.0 to v2.0 bootstrap system
 - Generated 7 specialists, 2 coordinators
 - Preserved 5 custom rules from legacy agents
-- Backup: `.claude/.backup-v1.0-20260110-091500/`
+- Backup: `.claude-backup-migrate-v1.0-to-v2.0-20260110-091500/`
 
 ---
 
@@ -644,16 +697,16 @@ Present to user:
 ### If File Manifest Missing
 
 ```markdown
-⚠️  Update system not initialized
+ℹ️  Update tracking metadata not initialized
 
-The file manifest is missing. This is required to track which files are
-framework vs user content.
+`.claude/.metadata/file-manifest.json` is missing.
 
-To initialize the update system:
-1. If this is a v2.0 project: `/migrate --add-update-system`
-2. If this is a fresh install: `/init` (creates manifest automatically)
+`/update` will continue in **Migration Bootstrap mode** to initialize tracking metadata,
+then proceed with normal update safety rules.
 
-After initialization, you can run `/update check` to check for updates.
+Recommended flow:
+1. `/update pull --dry-run --from ./.claude_staging/.claude`
+2. `/update pull --from ./.claude_staging/.claude`
 ```
 
 ### If Merge Conflicts
@@ -719,13 +772,13 @@ When releasing a new framework version:
 ### For Users
 
 Update workflow:
-1. `cd /path/to/framework/repo && git pull` - Get latest framework
-2. `cd /path/to/your/project`
-3. `/update check` - See if updates available
-4. `/update pull --dry-run` - Preview changes
-5. `/update pull` - Apply updates
+1. `cd /path/to/your/project`
+2. `git clone --depth 1 <framework-repo-url> .claude_staging`
+3. `/update check --from ./.claude_staging/.claude`
+4. `/update pull --dry-run --from ./.claude_staging/.claude`
+5. `/update pull --from ./.claude_staging/.claude`
 6. `/init --rescan` - Regenerate agents (optional)
 
 ---
 
-_Update Skill v2.1 — Safe framework updates that preserve your customizations_
+_Update Skill v2.3 — Safe framework updates that preserve your customizations_

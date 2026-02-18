@@ -105,8 +105,8 @@ This interactive setup will:
 | Command | What it does |
 |---------|-------------|
 | `/init` | Interactive project setup — detects 100+ technologies, generates agents, configures MCPs |
-| `/update` | Check for and apply framework updates — smart merge preserves customizations |
-| `/migrate` | Migrate from v1.0 to v2.0, or add update system to existing v2.0 projects |
+| `/update` | Single update command — auto-selects `upgrade`/`migration-bootstrap` from metadata; use `--mode migration` for structural transitions |
+| `/migrate` | Compatibility alias to migration mode inside `/update` |
 | `/agent <id>` | Invoke any specialist (e.g., `/agent vue`, `/agent django`) |
 | `/team-lead` | Decompose a feature into specialist tasks |
 | `/review` | Multi-domain code review with severity-rated findings (includes security) |
@@ -115,6 +115,35 @@ This interactive setup will:
 | `/preflight` | Full pre-PR pipeline: lint → security → test → review |
 | `/tutorial` | Interactive 5-minute onboarding walkthrough — meet your team, route a task, learn the quality pipeline |
 | `/librarian` | Capture a directive or extract learnings |
+
+## Safe Framework Updates (v2.x+)
+
+Do not manually copy a new `.claude/` folder on top of your existing one. Use staged source + `/update`.
+
+### 1. Acquire latest framework into staging (inside your project)
+
+```bash
+git clone --depth 1 <framework-repo-url> .claude_staging
+```
+
+This should produce `.claude_staging/.claude` in your project root.
+
+### 2. Preview and apply
+
+```bash
+/update check --from ./.claude_staging/.claude
+/update pull --dry-run --from ./.claude_staging/.claude
+/update pull --from ./.claude_staging/.claude
+```
+
+`/update` automatically chooses:
+- **Upgrade mode** by default when update tracking metadata exists
+- **Migration-bootstrap mode** when `.claude/.metadata/file-manifest.json` is missing
+- **Migration mode** for structural transitions only when explicitly requested with `--mode migration`
+
+### 3. Optional cleanup
+
+Delete `.claude_staging/` after a successful update.
 
 ## Key Features
 

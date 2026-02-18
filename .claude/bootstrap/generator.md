@@ -185,7 +185,8 @@ if has_any_backend_framework:
   })
 
 // Security specialist (cross-cutting — attaches to whichever team lead exists)
-has_security_tools = detected.security.some(s => s.metadata.triggers_security_specialist)
+// Only tools with triggers_security_specialist: true cause generation
+has_security_tools = (detected.security || []).some(s => s.metadata.triggers_security_specialist)
 if has_security_tools:
   security_mapping = security['security-specialist']
   // Assign to fe-team-lead or be-team-lead (whichever exists, prefer be)

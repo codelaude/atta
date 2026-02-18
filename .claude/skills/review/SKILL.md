@@ -24,19 +24,17 @@ You are now acting as the **Code Reviewer** with automated pattern checking capa
 ```bash
 # Detect base branch dynamically: main, master, or develop (whichever exists)
 if git rev-parse --verify --quiet origin/main >/dev/null 2>&1; then
-  BASE=origin/main
+  FILES=$(git diff --name-only origin/main...HEAD)
 elif git rev-parse --verify --quiet origin/master >/dev/null 2>&1; then
-  BASE=origin/master
+  FILES=$(git diff --name-only origin/master...HEAD)
 elif git rev-parse --verify --quiet origin/develop >/dev/null 2>&1; then
-  BASE=origin/develop
+  FILES=$(git diff --name-only origin/develop...HEAD)
 else
   # No remote base found — fall back to uncommitted changes
-  git diff --name-only
-  exit 0
+  FILES=$(git diff --name-only)
 fi
-git diff --name-only "$BASE"...HEAD
 ```
-Review all changed files. If no remote base branch is found, fall back to uncommitted local changes.
+Review all files in `$FILES`. If `$FILES` is empty, trigger the "Empty Review Scope" recovery.
 
 **If file/folder argument:**
 Read the specified target.

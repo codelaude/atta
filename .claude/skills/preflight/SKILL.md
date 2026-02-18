@@ -51,23 +51,22 @@ Preflight runs these checks in sequence:
 ```bash
 # Detect base branch dynamically: main, master, or develop (whichever exists)
 if git rev-parse --verify --quiet origin/main >/dev/null 2>&1; then
-  BASE=origin/main
+  FILES=$(git diff --name-only origin/main...HEAD)
 elif git rev-parse --verify --quiet origin/master >/dev/null 2>&1; then
-  BASE=origin/master
+  FILES=$(git diff --name-only origin/master...HEAD)
 elif git rev-parse --verify --quiet origin/develop >/dev/null 2>&1; then
-  BASE=origin/develop
+  FILES=$(git diff --name-only origin/develop...HEAD)
 else
   # No remote base found — fall back to uncommitted changes
-  git diff --name-only
-  exit 0
+  FILES=$(git diff --name-only)
 fi
-git diff --name-only "$BASE"...HEAD
 ```
 
-If no changes found, check unstaged changes:
+If `$FILES` is empty, also check unstaged changes:
 ```bash
-git diff --name-only
+FILES=$(git diff --name-only)
 ```
+If still empty, trigger the "Cannot Resolve Changed Files" recovery.
 
 ### Step 2: Lint Check
 

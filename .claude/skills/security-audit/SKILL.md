@@ -34,19 +34,17 @@ Skip to Step 5 (Secrets Scan only).
 ```bash
 # Detect base branch dynamically
 if git rev-parse --verify --quiet origin/main >/dev/null 2>&1; then
-  BASE=origin/main
+  FILES=$(git diff --name-only origin/main...HEAD)
 elif git rev-parse --verify --quiet origin/master >/dev/null 2>&1; then
-  BASE=origin/master
+  FILES=$(git diff --name-only origin/master...HEAD)
 elif git rev-parse --verify --quiet origin/develop >/dev/null 2>&1; then
-  BASE=origin/develop
+  FILES=$(git diff --name-only origin/develop...HEAD)
 else
   # No remote base found — fall back to uncommitted changes
-  git diff --name-only
-  exit 0
+  FILES=$(git diff --name-only)
 fi
-git diff --name-only "$BASE"...HEAD
 ```
-Audit all changed files. If no remote base branch is found, fall back to uncommitted local changes (and trigger the "Cannot Determine Audit Scope" recovery if that also yields nothing).
+Audit all files in `$FILES`. If `$FILES` is empty, trigger the "Cannot Determine Audit Scope" recovery.
 
 **If file/folder argument provided:**
 Read the specified target.

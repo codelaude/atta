@@ -6,9 +6,13 @@
 # Primary detection uses file-based checks. If a command fails, the generator
 # should fall back to file-based detection only.
 #
-# When ANY security tool is detected, the generator SHOULD create:
+# When a security tool with `triggers_security_specialist: true` is detected,
+# the generator SHOULD create:
 # 1. security-specialist agent (from security-specialist.template.md)
 # 2. security-patterns pattern file (from security-patterns.template.md)
+#
+# Tools WITHOUT this flag (e.g., npm-audit, pip-audit) are detected for
+# informational purposes but do not trigger specialist generation.
 
 # Dependency Scanning
 dependency_scanning:

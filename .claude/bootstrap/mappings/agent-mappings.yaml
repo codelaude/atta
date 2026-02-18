@@ -555,7 +555,7 @@ testing:
         fix: "Test both success and failure paths"
         severity: "HIGH"
 
-# Security Specialist (generated when any security tool is detected)
+# Security Specialist (generated when a tool with triggers_security_specialist is detected)
 security:
   security-specialist:
     condition: has_security_tools

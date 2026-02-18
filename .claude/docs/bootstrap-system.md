@@ -1,12 +1,12 @@
-# Bootstrap System v2.0
+# Bootstrap System v2.3
 
-The core innovation in v2.0 is **dynamic agent generation**. Instead of hardcoding agents for Vue/SCSS/TypeScript, the system detects your tech stack and generates specialized agents from universal templates.
+The core innovation in v2.x is **dynamic agent generation**. Instead of hardcoding agents for Vue/SCSS/TypeScript, the system detects your tech stack and generates specialized agents from universal templates.
 
 ## How It Works
 
 1. **Detection (100+ Rules)**
    - Scans `package.json`, `requirements.txt`, `pom.xml`, `go.mod`, etc.
-   - Identifies frameworks, languages, databases, testing tools, build systems
+   - Identifies frameworks, languages, databases, testing tools, build systems, and security tools
    - Extracts versions and metadata
    - Produces a structured detection manifest
 
@@ -16,7 +16,7 @@ The core innovation in v2.0 is **dynamic agent generation**. Instead of hardcodi
    - Selects pattern file templates
    - Recommends MCP servers
 
-3. **Generation (8 Templates)**
+3. **Generation (9 Templates)**
    - Loads universal templates (framework-specialist, language-specialist, etc.)
    - Substitutes variables ({{FRAMEWORK_NAME}}, {{RULES}}, {{ANTI_PATTERNS}})
    - Writes generated agents to `agents/specialists/`
@@ -77,6 +77,7 @@ agents/specialists/
   ├── typescript.md            (from language-specialist template)
   ├── scss.md                  (from styling-specialist template)
   ├── accessibility.md         (from accessibility template)
+  ├── security-specialist.md   (from security-specialist template, when security tooling is detected)
   ├── python.md                (from language-specialist template)
   ├── django.md                (from framework-specialist template)
   ├── postgresql.md            (from database-specialist template)
@@ -87,6 +88,7 @@ knowledge/patterns/
   ├── vue-patterns.md          (Composition API, reactivity, component structure)
   ├── python-patterns.md       (PEP 8, type hints, error handling)
   ├── django-patterns.md       (ORM, views, templates, DRF)
+  ├── security-patterns.md     (OWASP Top 10 (2025), secrets, injection defenses)
   └── postgresql-patterns.md   (Query optimization, indexing, transactions)
 
 knowledge/project/
@@ -106,6 +108,7 @@ agents/specialists/
   ├── typescript.md
   ├── tailwind.md
   ├── accessibility.md
+  ├── security-specialist.md
   ├── express.md
   ├── mongodb.md
   └── jest.md                  (handles Vitest/Jest, from testing-specialist template)
@@ -113,6 +116,7 @@ agents/specialists/
 knowledge/patterns/
   ├── react-patterns.md        (Hooks, Context, component composition)
   ├── express-patterns.md      (Middleware, routing, error handling)
+  ├── security-patterns.md     (OWASP checks, secrets management, API hardening)
   └── mongodb-patterns.md      (Schema design, aggregation, indexing)
 ```
 

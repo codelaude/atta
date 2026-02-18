@@ -60,10 +60,16 @@ fi
 to_delete=$((session_count - MAX_SESSIONS))
 
 # Delete oldest sessions (by filename, which includes timestamp)
-# Sort alphabetically (oldest first), take first $to_delete files, delete them
-# Compatible with both GNU and BSD (macOS) coreutils
-find "$SESSIONS_DIR" -name "session-*.json" -type f | sort | head -n "$to_delete" | while IFS= read -r file; do
-  rm -f "$file"
-done
+# Use null-delimited mode end-to-end to avoid filename parsing vulnerabilities.
+# Python is used for cross-platform sorting/selection (GNU/BSD compatible).
+find "$SESSIONS_DIR" -name "session-*.json" -type f -print0 \
+  | python3 -c "
+import sys
+n = int(sys.argv[1])
+paths = [p for p in sys.stdin.buffer.read().split(b'\0') if p]
+for p in sorted(paths)[:n]:
+    sys.stdout.buffer.write(p + b'\0')
+" "$to_delete" \
+  | xargs -0 rm -f
 
 echo "Deleted $to_delete old session(s). Kept $MAX_SESSIONS most recent."

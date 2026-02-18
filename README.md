@@ -4,6 +4,8 @@ A multi-agent system for AI-assisted development that guides, reviews, and valid
 
 Drop the `.claude/` folder into **any project** (Vue, React, Python/Django, Java/Spring Boot, Go, Rust, or anything else), run `/init`, and get a virtual development team dynamically generated for your specific tech stack.
 
+**New in v2.3:** Security Sprint — OWASP Top 10 (2025) security specialist agent, `/security-audit` skill, security-integrated `/review` and `/preflight`, security detection rules, and security pattern templates.
+
 **New in v2.2:** Interactive `/tutorial` onboarding, session tracking, recent work context for agents, and error handling for skills. Foundation for v2.5+ intelligence capabilities.
 
 **New in v2.1:** Update system with file tracking and smart merge. Pull framework updates safely while preserving all your customizations.
@@ -35,6 +37,7 @@ Coordinators (generated per project)
 │   ├── [Framework Specialist] (Vue, React, Angular, Svelte, etc.)
 │   ├── [Styling Specialist]   (SCSS, Tailwind, CSS-in-JS, etc.)
 │   ├── [Accessibility]        (WCAG/ARIA specialist)
+│   ├── [Security Specialist]  (OWASP Top 10, secrets, injections)
 │   ├── [Testing Specialist]   (Jest, Vitest, Cypress, Playwright, etc.)
 │   └── [Language Specialist]  (TypeScript, JavaScript)
 │
@@ -42,6 +45,7 @@ Coordinators (generated per project)
     ├── [Language Specialist]  (Python, Java, Go, Rust, Node, etc.)
     ├── [Framework Specialist] (Django, Spring Boot, Fiber, Express, etc.)
     ├── [Database Specialist]  (PostgreSQL, MongoDB, Redis, etc.)
+    ├── [Security Specialist]  (OWASP Top 10, auth, injections)
     └── [Testing Specialist]   (pytest, JUnit, go test, cargo test, etc.)
 ```
 
@@ -105,9 +109,10 @@ This interactive setup will:
 | `/migrate` | Migrate from v1.0 to v2.0, or add update system to existing v2.0 projects |
 | `/agent <id>` | Invoke any specialist (e.g., `/agent vue`, `/agent django`) |
 | `/team-lead` | Decompose a feature into specialist tasks |
-| `/review` | Multi-domain code review with severity-rated findings |
+| `/review` | Multi-domain code review with severity-rated findings (includes security) |
+| `/security-audit` | OWASP Top 10 security scan — vulnerabilities, secrets, dependencies |
 | `/lint` | Pattern-based checks against project rules |
-| `/preflight` | Full pre-PR pipeline: lint → test → review |
+| `/preflight` | Full pre-PR pipeline: lint → security → test → review |
 | `/tutorial` | Interactive 5-minute onboarding walkthrough — meet your team, route a task, learn the quality pipeline |
 | `/librarian` | Capture a directive or extract learnings |
 
@@ -142,13 +147,15 @@ This interactive setup will:
 
 📖 **[Design philosophy →](.claude/docs/philosophy.md)**
 
-## By the Numbers (v2.0)
+## By the Numbers (v2.3)
 
-- **100+ Technology Detectors** across frontend, backend, databases, and tools
-- **8 Universal Agent Templates** that generate project-specific specialists
-- **40+ Technology Mappings** connecting detected tech to agent templates
-- **15+ Pattern File Templates** for different tech stacks
+- **100+ Technology Detectors** across frontend, backend, databases, security tools
+- **9 Universal Agent Templates** that generate project-specific specialists (incl. security)
+- **5 Detection Rule Files** covering frontend, backend, databases, tools, and security
+- **20+ Pattern File Templates** for different tech stacks (incl. security patterns)
+- **12 Skills** (slash commands) including `/security-audit`
 - **3-Tier Agent Architecture** (7 core + 2 coordinators + N specialists)
+- **OWASP Top 10 (2025)** coverage built into review pipeline
 - **100% Configuration-Driven** — add new tech via YAML, no code changes
 
 ## Documentation
@@ -160,6 +167,15 @@ This interactive setup will:
 - **[Design Philosophy](.claude/docs/philosophy.md)** - Core principles & architectural decisions
 
 ## Version History
+
+**v2.3** (2026-02-17) — Security Sprint
+- Security specialist agent template with OWASP Top 10 (2025) knowledge base
+- `/security-audit` skill — full security scan (vulnerabilities, secrets, dependencies)
+- Security detection rules for 15+ security tools (Snyk, Dependabot, Semgrep, Gitleaks, etc.)
+- Security patterns template with framework-specific guidance (Vue, React, Django, Express, Spring, FastAPI)
+- `/review` now includes security checks (hardcoded secrets, injection, XSS, auth)
+- `/preflight` adds security scan step — critical security issues block PRs
+- Updated to OWASP Top 10 2025 (new: Software Supply Chain Failures, Mishandling Exceptional Conditions)
 
 **v2.2** (2026-02-17) — Tutorial, Session Tracking & Quality Pass
 - `/tutorial` skill — interactive 5-minute onboarding with 3 steps + quick reference card

@@ -34,15 +34,19 @@ Skip to Step 5 (Secrets Scan only).
 ```bash
 # Detect base branch dynamically
 if git rev-parse --verify --quiet origin/main >/dev/null 2>&1; then
-  BASE=main
+  BASE=origin/main
 elif git rev-parse --verify --quiet origin/master >/dev/null 2>&1; then
-  BASE=master
+  BASE=origin/master
+elif git rev-parse --verify --quiet origin/develop >/dev/null 2>&1; then
+  BASE=origin/develop
 else
-  BASE=develop
+  # No remote base found — fall back to uncommitted changes
+  git diff --name-only
+  exit 0
 fi
-git diff --name-only origin/$BASE...HEAD
+git diff --name-only "$BASE"...HEAD
 ```
-Audit all changed files.
+Audit all changed files. If no remote base branch is found, fall back to uncommitted local changes (and trigger the "Cannot Determine Audit Scope" recovery if that also yields nothing).
 
 **If file/folder argument provided:**
 Read the specified target.
@@ -133,8 +137,13 @@ Scan all files in scope for potential secrets using these patterns:
 | Generic API Key | `['"][A-Za-z0-9_-]{20,}['"]` near `api.key`, `token`, or `secret` | API key in string literal |
 | Private Key | `-----BEGIN.*PRIVATE KEY-----` | Embedded private key |
 | JWT Token | `eyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+` | Hardcoded JWT |
-| Database URL | `(postgres&#124;mysql&#124;mongodb)://[^:]+:[^@]+@` | Connection string with credentials |
+| Database URL | See below | Connection string with credentials |
 | Password Assignment | `password\s*=\s*['"][^'"]+['"]` | Hardcoded password (not in test files) |
+
+Database URL regex (contains alternation, cannot go in table):
+```
+(postgres|mysql|mongodb)://[^:]+:[^@]+@
+```
 
 **Exclude from flagging:**
 - Environment variable references (`process.env.`, `os.environ`)
@@ -206,7 +215,7 @@ Scan all files in scope for potential secrets using these patterns:
 After `/security-audit`:
 - Run `/review` for full code review (includes security findings)
 - Run `/preflight` for complete pre-PR validation
-- Use `/agent security` for interactive security guidance
+- Use `/agent security-specialist` for interactive security guidance
 - Use `/agent librarian` to capture security patterns as directives
 
 ---

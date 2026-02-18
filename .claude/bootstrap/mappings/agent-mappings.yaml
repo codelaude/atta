@@ -555,6 +555,39 @@ testing:
         fix: "Test both success and failure paths"
         severity: "HIGH"
 
+# Security Specialist (generated when any security tool is detected)
+security:
+  security-specialist:
+    condition: has_security_tools
+    template: security-specialist.template.md
+    output: agents/specialists/security-specialist.md
+    pattern_file: patterns/security-patterns.md
+    variables:
+      SPECIALIST_NAME: "Security Specialist"
+      SPECIALIST_ID: "security-specialist"
+      DOCUMENTATION_URLS: "https://owasp.org/Top10/2025/"
+      # TEAM_LEAD: Auto-populated by generator (fe-team-lead or be-team-lead, whichever exists)
+    rules:
+      - "OWASP Top 10 (2025) compliance checks"
+      - "No hardcoded secrets, API keys, or tokens in source"
+      - "Parameterized queries only — no SQL string concatenation"
+      - "Input validation at all system boundaries"
+      - "HTTPS enforced, no mixed content"
+      - "Proper error handling — no leaked stack traces"
+    anti_patterns:
+      - pattern: "Hardcoded API keys or secrets"
+        fix: "Use environment variables or secrets manager"
+        severity: "CRITICAL"
+      - pattern: "eval() or exec() with user input"
+        fix: "Use safe alternatives (JSON.parse, AST-based parsing)"
+        severity: "CRITICAL"
+      - pattern: "SQL string concatenation"
+        fix: "Use parameterized queries or ORM"
+        severity: "CRITICAL"
+      - pattern: "v-html or dangerouslySetInnerHTML with unsanitized data"
+        fix: "Sanitize with DOMPurify or equivalent"
+        severity: "CRITICAL"
+
 # Accessibility Specialist (always generated for frontend projects)
 accessibility:
   accessibility:

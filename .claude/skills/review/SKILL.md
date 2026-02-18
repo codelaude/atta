@@ -24,15 +24,19 @@ You are now acting as the **Code Reviewer** with automated pattern checking capa
 ```bash
 # Detect base branch dynamically: main, master, or develop (whichever exists)
 if git rev-parse --verify --quiet origin/main >/dev/null 2>&1; then
-  BASE=main
+  BASE=origin/main
 elif git rev-parse --verify --quiet origin/master >/dev/null 2>&1; then
-  BASE=master
+  BASE=origin/master
+elif git rev-parse --verify --quiet origin/develop >/dev/null 2>&1; then
+  BASE=origin/develop
 else
-  BASE=develop
+  # No remote base found — fall back to uncommitted changes
+  git diff --name-only
+  exit 0
 fi
-git diff --name-only origin/$BASE...HEAD
+git diff --name-only "$BASE"...HEAD
 ```
-Review all changed files.
+Review all changed files. If no remote base branch is found, fall back to uncommitted local changes.
 
 **If file/folder argument:**
 Read the specified target.
@@ -55,17 +59,27 @@ Apply these pattern checks automatically:
 | `.scss` | `@import` | Should be `@use` |
 | `.test.ts` | `config.global` | Should use local provide |
 | `.vue` | Styled `<ul>` without role | Missing `role="list"` |
-| All | Hardcoded secrets | API keys, tokens, passwords in string literals |
-| All | `eval()` / `exec()` with variables | Code execution with user-controlled input |
-| `.vue` | `v-html` with dynamic binding | XSS via unsanitized HTML rendering |
-| `.jsx/.tsx` | `dangerouslySetInnerHTML` | XSS via unsanitized HTML rendering |
-| All | SQL string concatenation | SQL injection via `+`, `f"..."`, or template literals |
+| `.vue` | `v-html` | `grep "v-html"` |
+| `.jsx/.tsx` | `dangerouslySetInnerHTML` | `grep "dangerouslySetInnerHTML"` |
+
+Security CRITICAL checks (patterns contain regex alternation, listed separately):
+
+```bash
+# Hardcoded secrets (all files)
+grep -E "(AKIA[0-9A-Z]{16}|-----BEGIN.*PRIVATE KEY)"
+
+# eval/exec with variables (all files)
+grep -E "eval\s*\(|exec\s*\("
+
+# SQL string concatenation (all files)
+grep -E "(\+\s*['\"].*SELECT|f['\"].*SELECT|\$\{.*SELECT)"
+```
 
 #### HIGH Checks
 
 | File Type | Pattern | Check |
 |-----------|---------|-------|
-| `.ts/.vue` | `\|\|` for nullish | Should be `??` |
+| `.ts/.vue` | Double-pipe for nullish | Should be `??` |
 | `.vue` | `inject` function default | Should be object literal |
 | `.vue` | `setTimeout` no cleanup | Missing `beforeUnmount` |
 | `.vue` | `<div @click>` | Should be `<button>` |
@@ -168,7 +182,7 @@ After `/review`:
 - Run `/security-audit` for deep security analysis (OWASP Top 10, deps, secrets)
 - Run `/lint` for pattern-only checks
 - Run `/preflight` for full pre-PR validation
-- Use `/agent security` for interactive security guidance
+- Use `/agent security-specialist` for interactive security guidance
 - Use `/agent vue` for Vue-specific deep dive
 - Use `/agent accessibility` for accessibility deep dive
 

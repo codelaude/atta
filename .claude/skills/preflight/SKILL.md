@@ -51,13 +51,17 @@ Preflight runs these checks in sequence:
 ```bash
 # Detect base branch dynamically: main, master, or develop (whichever exists)
 if git rev-parse --verify --quiet origin/main >/dev/null 2>&1; then
-  BASE=main
+  BASE=origin/main
 elif git rev-parse --verify --quiet origin/master >/dev/null 2>&1; then
-  BASE=master
+  BASE=origin/master
+elif git rev-parse --verify --quiet origin/develop >/dev/null 2>&1; then
+  BASE=origin/develop
 else
-  BASE=develop
+  # No remote base found — fall back to uncommitted changes
+  git diff --name-only
+  exit 0
 fi
-git diff --name-only origin/$BASE...HEAD
+git diff --name-only "$BASE"...HEAD
 ```
 
 If no changes found, check unstaged changes:

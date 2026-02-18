@@ -241,7 +241,7 @@ When multiple specialists needed, coordinate through {{TEAM_LEAD}}.
   - Specifically: `.claude/knowledge/patterns/{{PATTERN_FILE}}`
   {{/if}}
 - **Web Resources**:
-  - [OWASP Top 10 (2025)](https://owasp.org/Top10/)
+  - [OWASP Top 10 (2025)](https://owasp.org/Top10/2025/)
   - [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/)
   - [CWE Top 25](https://cwe.mitre.org/top25/)
 {{#each DOCUMENTATION_URLS}}

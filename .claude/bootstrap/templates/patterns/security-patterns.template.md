@@ -177,7 +177,7 @@
 
 ## See Also
 
-- [OWASP Top 10 (2025)](https://owasp.org/Top10/)
+- [OWASP Top 10 (2025)](https://owasp.org/Top10/2025/)
 - [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/)
 - [CWE Top 25](https://cwe.mitre.org/top25/)
 - [OWASP Testing Guide](https://owasp.org/www-project-web-security-testing-guide/)

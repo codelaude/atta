@@ -210,7 +210,7 @@ Generator note:
 - Private keys: `-----BEGIN ((RSA|EC|DSA|ENCRYPTED|OPENSSH) )?PRIVATE KEY-----`
 - JWT tokens: `eyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+`
 - Database URLs: `(postgres|mysql|mongodb)://[^:]+:[^@]+@`
-- Generic passwords: `password\s*=\s*\"[^\"]+\"|password\s*=\s*'[^']+'` (not in test files)
+- Generic passwords: `password\s*=\s*['"][^'"]+['"]` (not in test files)
 
 ### Safe Patterns (Don't Flag)
 - Environment variable references: `process.env.API_KEY`, `os.environ["SECRET"]`

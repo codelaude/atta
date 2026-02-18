@@ -135,15 +135,22 @@ Scan all files in scope for potential secrets using these patterns:
 | Pattern Type | Regex | Notes |
 |-------------|-------|-------|
 | AWS Access Key | `AKIA[0-9A-Z]{16}` | AWS IAM access key ID |
-| AWS Secret Key | `(aws_secret_access_key|AWS_SECRET_ACCESS_KEY)[^\\n]{0,20}['\":=][[:space:]]*[A-Za-z0-9/+=]{40}` | AWS secret access key with required AWS context |
-| Generic API Key | `(api[_-]?key|token|secret)[^\\n]{0,40}['\"][A-Za-z0-9_-]{24,}['\"]` | API key in string literal with required secret-related context |
+| AWS Secret Key | See below | AWS secret access key with required context |
+| Generic API Key | See below | API key in string literal with secret-related context |
 | Private Key | `-----BEGIN.*PRIVATE KEY-----` | Embedded private key |
 | JWT Token | `eyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+` | Hardcoded JWT |
 | Database URL | See below | Connection string with credentials |
-| Password Assignment | `password\s*=\s*\"[^\"]+\"|password\s*=\s*'[^']+'` | Hardcoded password (not in test files) |
+| Password Assignment | `password\s*=\s*['"][^'"]+['"]` | Hardcoded password (not in test files) |
 
-Database URL regex (contains alternation, cannot go in table):
+Regexes containing alternation (cannot go in table):
 ```
+# AWS Secret Key (requires AWS context nearby)
+(aws_secret_access_key|AWS_SECRET_ACCESS_KEY).{0,20}['":=]\s*[A-Za-z0-9/+=]{40}
+
+# Generic API Key (requires secret-related context nearby)
+(api[_-]?key|token|secret).{0,40}['"][A-Za-z0-9_-]{24,}['"]
+
+# Database URL
 (postgres|mysql|mongodb)://[^:]+:[^@]+@
 ```
 

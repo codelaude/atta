@@ -189,8 +189,13 @@ if has_any_backend_framework:
 has_security_tools = (detected.security || []).some(s => s.metadata.triggers_security_specialist)
 if has_security_tools:
   security_mapping = security['security-specialist']
-  // Assign to fe-team-lead or be-team-lead (whichever exists, prefer be)
-  security_mapping.variables.TEAM_LEAD = has_any_backend_framework ? 'be-team-lead' : 'fe-team-lead'
+  // Assign to coordinator if present (prefer backend), otherwise safe fallback
+  if has_any_backend_framework:
+    security_mapping.variables.TEAM_LEAD = 'be-team-lead'
+  elif has_any_frontend_framework:
+    security_mapping.variables.TEAM_LEAD = 'fe-team-lead'
+  else:
+    security_mapping.variables.TEAM_LEAD = 'project-owner'
 ```
 
 ### Agent Generation Queue

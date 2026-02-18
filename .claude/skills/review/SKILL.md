@@ -67,10 +67,10 @@ Security CRITICAL checks (patterns contain regex alternation, listed separately)
 grep -E "(AKIA[0-9A-Z]{16}|-----BEGIN.*PRIVATE KEY)"
 
 # eval/exec with variables (all files)
-grep -E "eval\s*\(|exec\s*\("
+grep -E "eval[[:space:]]*\(|exec[[:space:]]*\("
 
-# SQL string concatenation (all files)
-grep -E "(\+\s*['\"].*SELECT|f['\"].*SELECT|\$\{.*SELECT)"
+# SQL string concatenation / interpolation (all files)
+grep -Ei "((SELECT|INSERT|UPDATE|DELETE)[^\n]{0,80}\+|\+[^\n]{0,80}(SELECT|INSERT|UPDATE|DELETE)|f['\"][^\n]{0,200}(SELECT|INSERT|UPDATE|DELETE)|\$\{[^}]+\}[^\n]{0,80}(SELECT|INSERT|UPDATE|DELETE))"
 ```
 
 #### HIGH Checks

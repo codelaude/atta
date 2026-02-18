@@ -107,7 +107,7 @@ dependency_scanning:
         - Gemfile
       content_match:
         Gemfile: "bundler-audit"
-      command: "bundler-audit version"
+      command: "bundle-audit --version"
     metadata:
       type: dependency_scanner
       category: security

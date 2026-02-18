@@ -24,6 +24,10 @@ You are now acting as the **Security Specialist** performing a comprehensive sec
 
 First, separate flags (`--dependencies`, `--secrets`, `--quick`) from file/folder arguments. Flags modify behavior; only non-flag arguments are treated as targets.
 
+Flag precedence:
+- `--dependencies` and `--secrets` are scope flags and override `--quick`
+- `--quick` only affects Step 3 (OWASP pattern checks), not dependency/secrets-only modes
+
 **If `--dependencies` flag:**
 Skip to Step 4 (Dependency Audit only).
 
@@ -131,12 +135,12 @@ Scan all files in scope for potential secrets using these patterns:
 | Pattern Type | Regex | Notes |
 |-------------|-------|-------|
 | AWS Access Key | `AKIA[0-9A-Z]{16}` | AWS IAM access key ID |
-| AWS Secret Key | `[A-Za-z0-9/+=]{40}` near `aws_secret` | AWS secret access key |
-| Generic API Key | `['"][A-Za-z0-9_-]{20,}['"]` near `api.key`, `token`, or `secret` | API key in string literal |
+| AWS Secret Key | `(aws_secret_access_key|AWS_SECRET_ACCESS_KEY)[^\\n]{0,20}['\":=][[:space:]]*[A-Za-z0-9/+=]{40}` | AWS secret access key with required AWS context |
+| Generic API Key | `(api[_-]?key|token|secret)[^\\n]{0,40}['\"][A-Za-z0-9_-]{24,}['\"]` | API key in string literal with required secret-related context |
 | Private Key | `-----BEGIN.*PRIVATE KEY-----` | Embedded private key |
 | JWT Token | `eyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+` | Hardcoded JWT |
 | Database URL | See below | Connection string with credentials |
-| Password Assignment | `password\s*=\s*['"][^'"]+['"]` | Hardcoded password (not in test files) |
+| Password Assignment | `password\s*=\s*\"[^\"]+\"|password\s*=\s*'[^']+'` | Hardcoded password (not in test files) |
 
 Database URL regex (contains alternation, cannot go in table):
 ```
@@ -241,7 +245,7 @@ If `npm audit`, `pip-audit`, etc. are not available, show:
 ⚠️ No dependency audit tool detected.
 
 Recovery options:
-1. Install an audit tool (`npm install -g npm` / `pip install pip-audit`)
+1. Install or enable an audit tool (`pip install pip-audit`, `brew install bundler-audit`, or use your OS package manager)
 2. Set up Dependabot or Snyk for automated scanning
 3. Run `/security-audit --secrets` for secrets scan only (no deps needed)
 ```

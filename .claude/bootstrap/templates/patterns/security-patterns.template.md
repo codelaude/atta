@@ -84,6 +84,12 @@
 | Unhandled exceptions crashing the process | Add error boundaries, graceful shutdown | MEDIUM |
 | Unverified third-party dependency | Audit before adoption, check lock file integrity | MEDIUM |
 
+<!--
+Generator note:
+- IS_FRONTEND is true when one or more frontend frameworks/tools are detected.
+- IS_BACKEND is true when one or more backend frameworks/languages are detected.
+- In full-stack or monorepo projects, both flags can be true and both sections should render.
+-->
 {{#if IS_FRONTEND}}
 ## Frontend Security
 

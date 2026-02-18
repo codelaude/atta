@@ -133,6 +133,13 @@
 {{#if HAS_FRAMEWORK_SPECIFIC}}
 ## Framework-Specific Security
 
+<!--
+Generator note:
+- HAS_FRAMEWORK_SPECIFIC is true when at least one known framework detector matched.
+- IS_VUE / IS_REACT / IS_DJANGO / IS_EXPRESS / IS_SPRING / IS_FASTAPI are set per detected framework.
+- Multiple framework flags may be true in polyglot/monorepo projects; sections are intentionally composable.
+-->
+
 {{#if IS_VUE}}
 ### Vue.js Security
 - Never use `v-html` with user-controlled data
@@ -198,12 +205,12 @@
 ## Secrets Detection
 
 ### Patterns to Scan For
-- API keys: `[A-Za-z0-9_-]{20,}` in string literals
+- API keys: `(api[_-]?key|token|secret)[^\n]{0,40}['\"][A-Za-z0-9_-]{24,}['\"]` (require secret-related context)
 - AWS keys: `AKIA[0-9A-Z]{16}`
-- Private keys: `-----BEGIN (RSA |EC |DSA |ENCRYPTED |OPENSSH )?PRIVATE KEY-----`
+- Private keys: `-----BEGIN ((RSA|EC|DSA|ENCRYPTED|OPENSSH) )?PRIVATE KEY-----`
 - JWT tokens: `eyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+`
 - Database URLs: `(postgres|mysql|mongodb)://[^:]+:[^@]+@`
-- Generic passwords: `password\s*=\s*['"][^'"]+['"]` (not in test files)
+- Generic passwords: `password\s*=\s*\"[^\"]+\"|password\s*=\s*'[^']+'` (not in test files)
 
 ### Safe Patterns (Don't Flag)
 - Environment variable references: `process.env.API_KEY`, `os.environ["SECRET"]`

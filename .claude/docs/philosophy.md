@@ -1,5 +1,11 @@
 # Design Philosophy
 
+## The Problem This Solves
+
+Most AI coding tools operate as a single general-purpose assistant. You get fast output but lose understanding. The AI generates code you can't explain in review, tests that validate their own hallucinations, and patterns that drift from your project's conventions every new conversation.
+
+This system takes a different approach: **a team of specialized agents with clear roles, strict boundaries, and shared project knowledge.**
+
 ## The Core Principle
 
 **The conversation is disposable. The context is permanent.**
@@ -143,3 +149,4 @@ Prompts are ephemeral. Context files are permanent.
 - [Main README](../../README.md) - Quick start guide
 - [Bootstrap System](bootstrap-system.md) - How dynamic generation works
 - [Extending the System](extending.md) - Add your own technologies
+- [Changelog](changelog.md) - Full version history

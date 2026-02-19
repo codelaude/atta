@@ -1,6 +1,6 @@
 # Session Tracking
 
-**Version**: v2.2
+**Version**: v2.4
 **Status**: Foundation (Enables v2.5+ features)
 
 ## Overview
@@ -15,7 +15,7 @@ This infrastructure enables future intelligence features:
 
 Each time you run a skill, the system can create a session file with:
 
-> **Note**: Session tracking is currently integrated into the `/tutorial` skill. Integration into remaining skills (`/init`, `/review`, `/agent`, etc.) is planned for a future update.
+> **Note**: Session tracking is currently integrated into the `/tutorial` and `/collaborate` skills. Integration into remaining skills (`/init`, `/review`, `/agent`, etc.) is planned for a future update.
 
 ```json
 {
@@ -132,7 +132,7 @@ If you're building custom skills and want to integrate session tracking:
 
 ## Disabling Session Tracking
 
-Session tracking is currently integrated into `/tutorial` only. Full integration into all skills is planned for a future update. If you prefer not to use it, you can:
+Session tracking is currently integrated into `/tutorial` and `/collaborate`. Full integration into all skills is planned for a future update. If you prefer not to use it, you can:
 
 1. **Delete session files manually**:
    ```bash
@@ -199,11 +199,13 @@ A: No. Session tracking is infrastructure for future features. Current skills (v
 ## See Also
 
 - **[Bootstrap System](bootstrap-system.md)** - How agent generation works
+- **[Multi-Agent Collaboration](collaboration.md)** - How `/collaborate` uses session tracking
 - **[MCP Setup](mcp-setup.md)** - Configure Model Context Protocol
 - **[Extending the System](extending.md)** - Add custom agents
 - **[Design Philosophy](philosophy.md)** - Framework principles
+- **[Changelog](changelog.md)** - Version history
 
 ---
 
 **Added in**: v2.2 (2026-02-16)
-**Developed using**: Dogfooding (framework building itself)
+**Updated**: v2.4 (2026-02-19) — `/collaborate` session tracking, collaboration schema extension

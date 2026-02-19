@@ -205,4 +205,5 @@ custom_api_mcp:
 ## See Also
 
 - [Bootstrap System](bootstrap-system.md) - How detection & generation works
+- [Changelog](changelog.md) - Version history
 - [Main README](../../README.md) - Quick start guide

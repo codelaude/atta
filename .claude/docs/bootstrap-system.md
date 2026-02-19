@@ -1,4 +1,4 @@
-# Bootstrap System v2.3
+# Bootstrap System v2.4
 
 The core innovation in v2.x is **dynamic agent generation**. Instead of hardcoding agents for Vue/SCSS/TypeScript, the system detects your tech stack and generates specialized agents from universal templates.
 
@@ -169,4 +169,5 @@ vue:
 
 - [MCP Setup Guide](mcp-setup.md) - Configure Model Context Protocol servers
 - [Extending the System](extending.md) - Add new technologies
+- [Changelog](changelog.md) - Version history
 - [Main README](../../README.md) - Quick start guide

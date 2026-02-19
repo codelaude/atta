@@ -22,7 +22,9 @@ You are now orchestrating a **multi-agent collaboration** session. You will invo
 
 ## Step 1: Parse Command and Determine Mode
 
-First, separate flags from file/folder arguments.
+**Before parsing:** Initialize session tracking by running the commands in Step 7a now. The session file must exist before proceeding so that all subsequent steps can update it.
+
+Then, separate flags from file/folder arguments.
 
 **Flags:**
 
@@ -131,7 +133,8 @@ Read `.claude/agents/INDEX.md` to discover available agents. Read `.claude/knowl
 ### Graceful Degradation
 
 If the project has not run `/init` (no generated specialists):
-- Fall back to core agents: `code-reviewer` + `project-owner`
+- Fall back to core agents: `code-reviewer` (quality focus) + `qa-validator` (requirements focus)
+- Note: Do not fall back to `project-owner` — its definition prohibits reading code files, making it unsuitable as a reviewing collaborator.
 - Output a notice: "For better collaboration results, run `/init` to generate specialist agents for your tech stack."
 
 ---
@@ -409,12 +412,13 @@ These issues were identified by multiple agents — highest confidence.
 
 ## Step 7: Session Tracking
 
-### 7a. Create Session File (at start of Step 1)
+### 7a. Create Session File (run this FIRST — before Step 1 parsing)
 
 Generate timestamp and UUID:
 ```bash
 TIMESTAMP=$(date +%Y-%m-%d-%H%M%S)
-UUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
+UUID=$(uuidgen 2>/dev/null || python3 -c "import uuid; print(uuid.uuid4())" 2>/dev/null || echo "no-uuid-$(date +%s)")
+UUID=$(echo "$UUID" | tr '[:upper:]' '[:lower:]')
 ISO_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 START_TIME=$(date +%s)
 ```
@@ -433,6 +437,15 @@ Write session file `{claudeDir}/.sessions/session-$TIMESTAMP.json`:
     "status": "in_progress"
   },
   "agents": [],
+  "collaboration": {
+    "mode": "{review|feedback|decision}",
+    "agentsInvolved": [],
+    "routingMethod": "{auto|explicit}",
+    "findingsCount": null,
+    "conflictsCount": null,
+    "verdict": null,
+    "consensusReached": null
+  },
   "metadata": {
     "projectPath": "{current-working-directory}",
     "claudeDir": "{claudeDir-from-settings}",
@@ -459,6 +472,8 @@ After each agent completes, update its status to `"completed"` (or `"failed"`).
 
 ### 7c. Finalize Session (after Step 6)
 
+Compute duration using the `START_TIME` value from Step 7a. Since bash state does not persist across tool calls, the orchestrator must retain `START_TIME` from when it was first generated (or re-read the session file's `timestamp` field and compute the difference).
+
 ```bash
 END_TIME=$(date +%s)
 DURATION=$(( (END_TIME - START_TIME) * 1000 ))
@@ -467,15 +482,20 @@ DURATION=$(( (END_TIME - START_TIME) * 1000 ))
 Update session file:
 - `skill.status` → `"completed"` (or `"failed"` / `"interrupted"`)
 - `metadata.duration` → `$DURATION`
+- `collaboration.agentsInvolved` → list of agent IDs that were actually invoked
+- `collaboration.findingsCount` → `{"critical": N, "high": N, "medium": N, "low": N, "info": N}`
+- `collaboration.conflictsCount` → number of conflicts detected
+- `collaboration.verdict` → final verdict string
+- `collaboration.consensusReached` → `true` if all agents agree on verdict, `false` otherwise
 
 Run cleanup:
 ```bash
-.claude/scripts/session-cleanup.sh
+.claude/scripts/session-cleanup.sh {claudeDir}
 ```
 
 Run context generation:
 ```bash
-.claude/scripts/generate-context.sh
+.claude/scripts/generate-context.sh {claudeDir}
 ```
 
 ---

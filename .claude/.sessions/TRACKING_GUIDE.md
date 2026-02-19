@@ -66,7 +66,7 @@ When you invoke an agent (using `/agent` or `Task` tool), add to the agents arra
 
 ```json
 {
-  "name": "vue",
+  "name": "typescript",
   "role": "specialist",
   "invokedAt": "2026-02-16T14:35:00.000Z",
   "status": "completed"

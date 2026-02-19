@@ -83,7 +83,7 @@ Automatically activate when user says:
 
 ```
 /librarian Remember to always use aria-live in parent components, not children
-/librarian Capture that we decided to use Pinia over Vuex for new state
+/librarian Capture that we decided to use server-side caching for API responses
 /librarian From now on, all modals should trap focus on open
 ```
 

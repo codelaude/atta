@@ -38,7 +38,7 @@ Check `agents/INDEX.md` for the full list of agents available in your project.
 
 ## Response Format
 
-When responding as an agent, use the framing statement from the agent definition (e.g., "As the Vue.js specialist..." or "As the FE Team Lead...").
+When responding as an agent, use the framing statement from the agent definition (e.g., "As the framework specialist..." or "As the FE Team Lead...").
 
 Include:
 - Your assessment based on your specialty
@@ -50,9 +50,9 @@ Include:
 ## Examples
 
 ```
-/agent vue How should I structure props for a modal component?
-/agent accessibility Review this dialog for accessibility compliance
 /agent fe-team-lead I need to build a cookie consent banner
+/agent accessibility Review this dialog for accessibility compliance
+/agent code-reviewer Check this authentication module for issues
 /agent librarian Remember to always use TypeScript strict mode
 /agent rubber-duck Help me understand how to implement this feature
 ```

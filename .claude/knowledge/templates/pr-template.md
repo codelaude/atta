@@ -77,7 +77,7 @@ For each test file:
 
 ### Be Specific
 - Bad: "Updated component"
-- Good: "Added state management with cookie persistence to chat.vue"
+- Good: "Added state management with cookie persistence to ChatWidget component"
 
 ### Document Test Coverage
 - Always include test counts and coverage percentages for new components

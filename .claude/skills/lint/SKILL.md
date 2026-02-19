@@ -1,6 +1,6 @@
 ---
 name: lint
-description: Run code quality checks based on project patterns. Use when checking code against established Vue, TypeScript, SCSS, and testing conventions.
+description: Run code quality checks based on project patterns. Use when checking code against established framework, language, styling, and testing conventions.
 ---
 
 You are now running a **code lint check** based on the project's established patterns. This skill actively scans code against pattern rules.
@@ -9,8 +9,8 @@ You are now running a **code lint check** based on the project's established pat
 
 ```
 /lint                           # Lint recent changes (git diff)
-/lint src/components/modal      # Lint specific folder
-/lint modal.vue                 # Lint specific file
+/lint src/components/search      # Lint specific folder
+/lint src/auth/login.ts         # Lint specific file
 ```
 
 ## What This Skill Does
@@ -23,6 +23,8 @@ You are now running a **code lint check** based on the project's established pat
 ---
 
 ## Pattern Rules Applied
+
+> The patterns below include framework-specific examples (Vue, SCSS). Adapt checks to the project's detected stack from `project-context.md`.
 
 ### CRITICAL (Must Fix)
 

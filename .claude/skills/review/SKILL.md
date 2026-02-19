@@ -1,6 +1,6 @@
 ---
 name: review
-description: Comprehensive code review with automated pattern checks. Use when reviewing changed files against Vue, TypeScript, SCSS, accessibility, security, and testing conventions.
+description: Comprehensive code review with automated pattern checks. Use when reviewing changed files against framework, language, styling, accessibility, security, and testing conventions.
 ---
 
 You are now acting as the **Code Reviewer** with automated pattern checking capabilities.
@@ -9,9 +9,9 @@ You are now acting as the **Code Reviewer** with automated pattern checking capa
 
 ```
 /review                              # Review recent changes (git diff)
-/review modal.vue                    # Review specific file
-/review src/components/search        # Review folder
-/review --quick modal.vue            # Quick review (critical only)
+/review src/components/UserProfile.tsx  # Review specific file
+/review src/components/search          # Review folder
+/review --quick src/auth/login.ts      # Quick review (critical only)
 ```
 
 ---
@@ -45,7 +45,7 @@ For each file in scope, use the Read tool to load the content. Don't ask the use
 
 ### Step 3: Run Automated Checks
 
-Apply these pattern checks automatically:
+Apply these pattern checks automatically. The patterns below include framework-specific examples (Vue, SCSS). Adapt checks to the project's detected stack from `project-context.md` — for React projects check JSX patterns, for Tailwind check utility classes, etc.
 
 #### CRITICAL Checks (Auto-Fail)
 
@@ -87,12 +87,12 @@ grep -Ei "((SELECT|INSERT|UPDATE|DELETE)[^\n]{0,80}\+|\+[^\n]{0,80}(SELECT|INSER
 
 After automated checks, review for:
 
-#### Vue/Component Structure
-- [ ] `defineComponent` + `setup()` pattern used
-- [ ] Props typed with `PropType<T>`
-- [ ] Emits typed and validated
+#### Framework / Component Structure
+- [ ] Framework-idiomatic component pattern used (e.g., `defineComponent` for Vue, functional components for React)
+- [ ] Props/inputs properly typed
+- [ ] Events/outputs typed and validated
 - [ ] Component name matches filename
-- [ ] `expose()` used if parent needs access
+- [ ] Public API surface explicitly defined
 
 #### TypeScript
 - [ ] Interfaces prefixed with `I`
@@ -140,7 +140,7 @@ After automated checks, review for:
 | Category | Status |
 |----------|--------|
 | Automated Checks | X passed / X failed |
-| Vue Patterns | [status] |
+| Framework Patterns | [status] |
 | TypeScript | [status] |
 | SCSS | [status] |
 | Accessibility | [status] |
@@ -181,8 +181,33 @@ After `/review`:
 - Run `/lint` for pattern-only checks
 - Run `/preflight` for full pre-PR validation
 - Use `/agent security-specialist` for interactive security guidance
-- Use `/agent vue` for Vue-specific deep dive
+- Use `/agent {framework-specialist}` for framework-specific deep dive
 - Use `/agent accessibility` for accessibility deep dive
+
+### Multi-Agent Collaboration
+
+When the review scope spans **multiple domains** (e.g., component files + API routes + styles), suggest collaboration at the end of the review output:
+
+```markdown
+---
+**Multi-Agent Collaboration Available**
+
+This review touched files across multiple domains ([list domains]).
+For deeper cross-domain analysis with automated conflict detection, run:
+
+`/collaborate`                           # Auto-routes to relevant specialists
+`/collaborate --agents security,accessibility`  # Explicit agent selection
+```
+
+**When to suggest** (any of these conditions):
+- Review scope includes 2+ file type categories (e.g., `.vue` + `.ts` + `.scss`)
+- Security findings were flagged alongside framework findings
+- Accessibility concerns overlap with component structure issues
+
+**When NOT to suggest**:
+- Single-file review
+- All files are the same type (e.g., only `.test.ts` files)
+- `--quick` mode was used
 
 ---
 

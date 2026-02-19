@@ -14,7 +14,7 @@ description: Invoke a specialized agent by ID
 
 Usage:
 ```
-/agent vue "Review this component for accessibility issues"
+/agent code-reviewer "Review this component for accessibility issues"
 /agent testing-specialist "Suggest test cases for the login flow"
 ```
 
@@ -49,7 +49,7 @@ description: Invoke a specialized agent by ID
 
 Usage:
 ```
-/agent vue "Review this component for accessibility issues"
+/agent code-reviewer "Review this component for accessibility issues"
 /agent testing-specialist "Suggest test cases for the login flow"
 ```
 
@@ -77,7 +77,7 @@ Write session file `{claudeDir}/.sessions/session-$TIMESTAMP.json`:
   "startedBy": "user",
   "skill": {
     "name": "agent",
-    "args": "vue \"Review this component\"",
+    "args": "code-reviewer \"Review this component\"",
     "status": "in_progress"
   },
   "agents": [],
@@ -99,8 +99,8 @@ Write session file `{claudeDir}/.sessions/session-$TIMESTAMP.json`:
 
 Extract agent name and task from arguments.
 
-Example: `vue "Review this component"`
-- Agent: `vue`
+Example: `code-reviewer "Review this component"`
+- Agent: `code-reviewer`
 - Task: `Review this component`
 
 ---
@@ -109,7 +109,7 @@ Example: `vue "Review this component"`
 
 Find the agent in `.claude/agents/specialists/{agent-name}.md` (or `.claude/agents/{agent-name}.md` for core agents)
 
-Path: `.claude/agents/specialists/vue.md`
+Path: `.claude/agents/code-reviewer.md`
 
 ---
 
@@ -122,8 +122,8 @@ Edit `{claudeDir}/.sessions/$SESSION_FILE`:
 Add to "agents" array:
 ```json
 {
-  "name": "vue",
-  "role": "specialist",
+  "name": "code-reviewer",
+  "role": "universal",
   "invokedAt": "2026-02-16T22:35:02.000Z",
   "status": "in_progress"
 }
@@ -137,11 +137,11 @@ Use Task tool to invoke the agent with the user's task.
 
 Edit `{claudeDir}/.sessions/$SESSION_FILE`:
 
-Find the vue entry in "agents" array and update:
+Find the agent entry in "agents" array and update:
 ```json
 {
-  "name": "vue",
-  "role": "specialist",
+  "name": "code-reviewer",
+  "role": "universal",
   "invokedAt": "2026-02-16T22:35:02.000Z",
   "status": "completed"  // Changed from "in_progress"
 }
@@ -180,13 +180,13 @@ Final session file:
   "startedBy": "user",
   "skill": {
     "name": "agent",
-    "args": "vue \"Review this component\"",
+    "args": "code-reviewer \"Review this component\"",
     "status": "completed"
   },
   "agents": [
     {
-      "name": "vue",
-      "role": "specialist",
+      "name": "code-reviewer",
+      "role": "universal",
       "invokedAt": "2026-02-16T22:35:02.000Z",
       "status": "completed"
     }
@@ -233,7 +233,7 @@ Run the skill and verify:
 
 ```bash
 # Run the skill
-/agent vue "Review component"
+/agent code-reviewer "Review component"
 
 # Check session was created
 ls -lh {claudeDir}/.sessions/session-*.json

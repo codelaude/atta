@@ -1,4 +1,5 @@
 .DS_Store
+.mcp.json
 
 # Generated context files (keep README, ignore generated content)
 .claude/.context/recent.md

@@ -129,7 +129,7 @@ If a `fe-team-lead` or `be-team-lead` exists in the INDEX, show the extended hie
 ```markdown
 **Project Owner**
 ├── FE Team Lead — coordinates frontend specialists
-│   ├── [framework specialist] (e.g., vue, react, angular)
+│   ├── [framework specialist] (e.g., react, vue, angular, svelte)
 │   ├── [language specialist] (e.g., typescript)
 │   ├── [styling specialist] (e.g., scss, tailwind)
 │   ├── [accessibility specialist]
@@ -264,7 +264,7 @@ Show the user:
 
 | Skill | What it does | When to use |
 |-------|-------------|-------------|
-| `/lint` | Fast pattern checks (TypeScript, Vue, SCSS rules) | After writing code |
+| `/lint` | Fast pattern checks (framework, language, styling rules) | After writing code |
 | `/review` | Deep code review against project conventions | Before committing |
 | `/preflight` | Full pre-PR validation (lint + review + tests) | Before opening a PR |
 
@@ -273,7 +273,7 @@ Show the user:
 ```bash
 # 1. Write your code
 # 2. Quick check
-/lint src/components/MyComponent.vue
+/lint src/components/UserProfile.tsx
 
 # 3. Full review
 /review

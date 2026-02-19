@@ -77,7 +77,7 @@ Run pattern checks on all changed files:
 - No `as any` casts
 - No `@import` in SCSS (use `@use`)
 - No `config.global.provide` in tests
-- `defineComponent` wrapper for Vue components
+- Framework-idiomatic component patterns (e.g., `defineComponent` for Vue, proper exports for React)
 - `role="list"` on styled lists
 
 **If critical issues found, report and block.**

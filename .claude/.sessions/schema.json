@@ -56,7 +56,7 @@
         "properties": {
           "name": {
             "type": "string",
-            "description": "Agent name (e.g., 'vue', 'project-owner')"
+            "description": "Agent name (e.g., 'security-specialist', 'project-owner')"
           },
           "role": {
             "type": "string",
@@ -73,6 +73,53 @@
             "enum": ["in_progress", "completed", "failed"],
             "description": "Status of the agent invocation"
           }
+        }
+      }
+    },
+    "collaboration": {
+      "type": "object",
+      "description": "Collaboration session metadata (present when skill is /collaborate)",
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["review", "feedback", "decision"],
+          "description": "Collaboration mode used"
+        },
+        "agentsInvolved": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Agent IDs that participated in collaboration"
+        },
+        "routingMethod": {
+          "type": "string",
+          "enum": ["auto", "manual"],
+          "description": "Whether agents were auto-routed or manually specified"
+        },
+        "findingsCount": {
+          "type": "object",
+          "description": "Finding counts by severity",
+          "properties": {
+            "critical": { "type": "integer", "default": 0 },
+            "high": { "type": "integer", "default": 0 },
+            "medium": { "type": "integer", "default": 0 },
+            "low": { "type": "integer", "default": 0 },
+            "info": { "type": "integer", "default": 0 }
+          }
+        },
+        "conflictsCount": {
+          "type": "integer",
+          "description": "Number of conflicts detected between agents",
+          "default": 0
+        },
+        "verdict": {
+          "type": "string",
+          "enum": ["APPROVED", "CHANGES REQUESTED", "NEEDS DISCUSSION"],
+          "description": "Final collaboration verdict (review mode only)"
+        },
+        "consensusReached": {
+          "type": "boolean",
+          "description": "Whether all agents reached consensus",
+          "default": false
         }
       }
     },

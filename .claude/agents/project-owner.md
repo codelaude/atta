@@ -42,6 +42,7 @@ Before routing a task, check for recent session history:
 | FE task (framework, styling, TS, testing) | fe-team-lead (if generated) |
 | BE question (backend, API, server-side) | be-team-lead (if generated) |
 | FE + BE feature | fe-team-lead + be-team-lead (parallel, then synthesize) |
+| Multi-domain review / cross-cutting analysis | `/collaborate` skill (auto-routes to specialists) |
 | Code review / critique | code-reviewer |
 | QA / acceptance criteria validation | qa-validator |
 | PR preparation | pr-manager |

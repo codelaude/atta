@@ -4,6 +4,8 @@ A multi-agent system for AI-assisted development that guides, reviews, and valid
 
 Drop the `.claude/` folder into **any project** (Vue, React, Python/Django, Java/Spring Boot, Go, Rust, or anything else), run `/init`, and get a virtual development team dynamically generated for your specific tech stack.
 
+**New in v2.4:** Multi-Agent Collaboration — `/collaborate` skill invokes 2-4 specialist agents in parallel with automated conflict detection and synthesized reports. Three modes: code review, architecture feedback, and decision analysis. Auto-routes to the right specialists based on file types.
+
 **New in v2.3:** Security Sprint — OWASP Top 10 (2025) security specialist agent, `/security-audit` skill, security-integrated `/review` and `/preflight`, security detection rules, and security pattern templates.
 
 **New in v2.2:** Interactive `/tutorial` onboarding, session tracking, recent work context for agents, and error handling for skills. Foundation for v2.5+ intelligence capabilities.
@@ -109,6 +111,7 @@ This interactive setup will:
 | `/migrate` | Compatibility alias to migration mode inside `/update` |
 | `/agent <id>` | Invoke any specialist (e.g., `/agent vue`, `/agent django`) |
 | `/team-lead` | Decompose a feature into specialist tasks |
+| `/collaborate` | Multi-agent collaboration — 2-4 specialists in parallel with conflict detection and synthesis |
 | `/review` | Multi-domain code review with severity-rated findings (includes security) |
 | `/security-audit` | OWASP Top 10 security scan — vulnerabilities, secrets, dependencies |
 | `/lint` | Pattern-based checks against project rules |
@@ -176,20 +179,22 @@ Delete `.claude_staging/` after a successful update.
 
 📖 **[Design philosophy →](.claude/docs/philosophy.md)**
 
-## By the Numbers (v2.3)
+## By the Numbers (v2.4)
 
 - **100+ Technology Detectors** across frontend, backend, databases, security tools
 - **9 Universal Agent Templates** that generate project-specific specialists (incl. security)
 - **5 Detection Rule Files** covering frontend, backend, databases, tools, and security
 - **20+ Pattern File Templates** for different tech stacks (incl. security patterns)
-- **11 Skills** (slash commands) including `/security-audit`
+- **12 Skills** (slash commands) including `/collaborate` and `/security-audit`
 - **3-Tier Agent Architecture** (7 core + 2 coordinators + N specialists)
+- **Multi-Agent Collaboration** with 3-layer conflict detection and auto-routing
 - **OWASP Top 10 (2025)** coverage built into review pipeline
 - **100% Configuration-Driven** — add new tech via YAML, no code changes
 
 ## Documentation
 
 - **[Bootstrap System](.claude/docs/bootstrap-system.md)** - How detection & agent generation works
+- **[Multi-Agent Collaboration](.claude/docs/collaboration.md)** - How /collaborate works, modes, conflict detection
 - **[Session Tracking](.claude/docs/session-tracking.md)** - What's tracked, privacy, and future features
 - **[MCP Setup Guide](.claude/docs/mcp-setup.md)** - Configure Model Context Protocol servers
 - **[Extending the System](.claude/docs/extending.md)** - Add new technologies & custom agents
@@ -206,6 +211,16 @@ bash .claude/scripts/validate-framework.sh
 This validates bootstrap YAML syntax, security-critical documentation patterns, and `git diff --check` hygiene in one pass.
 
 ## Version History
+
+**v2.4** (2026-02-19) — Multi-Agent Collaboration
+- `/collaborate` skill — invoke 2-4 specialist agents in parallel with synthesized output
+- Three collaboration modes: `review` (code review), `feedback` (architecture), `decision` (option analysis)
+- Auto-routing engine: file extensions and content patterns determine which specialists to invoke
+- Three-layer conflict detection: agent self-reporting, location-based, severity disagreement
+- Normalized finding schema — standardized agent output format for automated synthesis
+- `/review` now suggests `/collaborate` when review scope spans multiple domains
+- Session schema extended with collaboration metadata (mode, agents, findings, conflicts, verdict)
+- Cross-platform portable: finding schema works across Claude Code, Codex, and Copilot
 
 **v2.3** (2026-02-17) — Security Sprint
 - Security specialist agent template with OWASP Top 10 (2025) knowledge base

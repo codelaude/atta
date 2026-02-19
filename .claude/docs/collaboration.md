@@ -160,6 +160,19 @@ Each collaboration session creates a session file with extended metadata:
 
 ```json
 {
+  "schemaVersion": "1.0.0",
+  "sessionId": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+  "timestamp": "2026-02-19T14:30:00.000Z",
+  "startedBy": "user",
+  "skill": {
+    "name": "collaborate",
+    "args": "",
+    "status": "completed"
+  },
+  "agents": [
+    { "name": "security-specialist", "role": "specialist", "invokedAt": "...", "status": "completed" },
+    { "name": "accessibility", "role": "specialist", "invokedAt": "...", "status": "completed" }
+  ],
   "collaboration": {
     "mode": "review",
     "agentsInvolved": ["security-specialist", "accessibility"],
@@ -168,11 +181,18 @@ Each collaboration session creates a session file with extended metadata:
     "conflictsCount": 1,
     "verdict": "CHANGES REQUESTED",
     "consensusReached": false
+  },
+  "metadata": {
+    "projectPath": "/path/to/your/project",
+    "claudeDir": ".claude",
+    "duration": 12500,
+    "tokensUsed": null,
+    "costUSD": null
   }
 }
 ```
 
-This is an additive extension to the session schema (v1.0.0) — existing sessions without collaboration metadata continue to work.
+The `collaboration` field is an additive extension to the session schema (v1.0.0) — existing sessions without it continue to work.
 
 ## Error Handling
 

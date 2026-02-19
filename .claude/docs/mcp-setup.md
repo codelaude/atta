@@ -155,5 +155,6 @@ The unpinned examples are for development convenience only.
 ## See Also
 
 - [Bootstrap System](bootstrap-system.md) - How automatic detection works
+- [Changelog](changelog.md) - Version history
 - [Main README](../../README.md) - Quick start guide
 - [Official MCP Documentation](https://modelcontextprotocol.io)

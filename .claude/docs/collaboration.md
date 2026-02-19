@@ -260,6 +260,7 @@ A: Yes. Any agent in the registry (`.claude/agents/`) can be specified with `--a
 - **[Session Tracking](session-tracking.md)** - Session metadata and retention
 - **[Extending the System](extending.md)** - Add custom agents and technologies
 - **[Design Philosophy](philosophy.md)** - Framework principles
+- **[Changelog](changelog.md)** - Version history
 
 ---
 

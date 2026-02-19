@@ -68,7 +68,7 @@ Wrap findings in this structure:
 | [rows] | | | | | | |
 
 ### Summary
-- **Critical**: N | **High**: N | **Medium**: N | **Low**: N
+- **Critical**: N | **High**: N | **Medium**: N | **Low**: N | **Info**: N
 - **Verdict**: APPROVED / CHANGES REQUESTED / NEEDS DISCUSSION
 ```
 
@@ -99,6 +99,6 @@ Reviewed 3 component files for OWASP Top 10 compliance, focusing on user input h
 | security-specialist | security | INFO | src/auth/login.ts:5 | CSRF token properly included in form submission | No action needed — good practice | - |
 
 ### Summary
-- **Critical**: 1 | **High**: 1 | **Medium**: 1 | **Low**: 0
+- **Critical**: 1 | **High**: 1 | **Medium**: 1 | **Low**: 0 | **Info**: 1
 - **Verdict**: CHANGES REQUESTED
 ```

@@ -16,7 +16,7 @@ This solves a real problem: running `/agent security-specialist` and then `/agen
 ```
 /collaborate                                          # Auto-routes based on git diff
 /collaborate src/components/UserProfile.tsx           # Specific file
-/collaborate --agents security,accessibility          # Explicit agents
+/collaborate --agents security-specialist,accessibility # Explicit agents
 ```
 
 ### 2. Auto-routing selects agents
@@ -131,7 +131,7 @@ The schema is intentionally simple — markdown tables are portable across Claud
 
 - **Minimum: 2** — collaboration requires at least 2 perspectives. If only 1 matches, `code-reviewer` is added automatically.
 - **Maximum: 4** — if more than 4 match, prioritized by: security > accessibility > framework > language > styling > testing > database > code-reviewer.
-- **No specialists?** — falls back to `code-reviewer` + `project-owner` with a suggestion to run `/init`.
+- **No specialists?** — falls back to `code-reviewer` + `qa-validator` with a suggestion to run `/init`.
 
 ## Integration with Other Skills
 
@@ -243,7 +243,7 @@ The normalized finding schema (markdown tables) is the portable contract:
 A: Roughly N times single-agent cost (where N is the number of agents), plus synthesis overhead. Use `--quick` to reduce token usage on large scopes.
 
 **Q: Can I use collaboration without running /init?**
-A: Yes, but it falls back to core agents (`code-reviewer` + `project-owner`). For specialist agents, run `/init` first.
+A: Yes. Without `/init`, it gracefully degrades to `code-reviewer` + `qa-validator`. For full specialist auto-routing, run `/init` first.
 
 **Q: What if two agents give contradictory advice?**
 A: That's the point. The conflict detection highlights the disagreement, shows both perspectives with reasoning, and presents resolution options. You decide.

@@ -11,7 +11,7 @@ You are now orchestrating a **multi-agent collaboration** session. You will invo
 /collaborate                                          # Review mode on git diff (auto-selects agents)
 /collaborate src/components/UserProfile.tsx           # Review specific file
 /collaborate src/components/                          # Review folder
-/collaborate --agents security,accessibility          # Explicit agent selection
+/collaborate --agents security-specialist,accessibility # Explicit agent selection
 /collaborate --quick                                  # Critical + High findings only
 /collaborate --mode feedback                          # Architecture feedback (no file-level findings)
 /collaborate --mode decision "REST vs GraphQL?"       # Decision analysis with agent perspectives
@@ -219,25 +219,33 @@ After all subagents complete, collect their outputs and run conflict detection.
 
 For each agent's response, extract:
 - The findings table rows
-- The summary counts (Critical/High/Medium/Low)
+- The summary counts (Critical/High/Medium/Low/Info)
 - The verdict (APPROVED/CHANGES REQUESTED/NEEDS DISCUSSION)
 
 If an agent's output cannot be parsed into the normalized format, include their raw output as-is in the Specialist Findings section and note the parsing issue.
 
+### Mode Awareness
+
+The layers below are written for review mode (`file:line` + `severity`). For other modes, substitute:
+- **Feedback mode**: `file:line` → `aspect`, `severity` → `priority` (HIGH/MEDIUM/LOW)
+- **Decision mode**: `file:line` → `aspect`, findings represent option assessments with preference + reasoning
+
+Apply the same conflict detection logic using the mode-appropriate keys.
+
 ### 5b. Three-Layer Conflict Detection
 
 **Layer 1 — Agent Self-Reporting:**
-Check the `conflicts_with` field in each finding row. For each non-empty value, find the matching agent's findings that touch the same file or aspect and create a conflict record.
+Check the `conflicts_with` field in each finding row. For each non-empty value, find the matching agent's findings that touch the same file/aspect and create a conflict record.
 
-**Layer 2 — Location-Based Detection:**
-Group all findings by `file:line`. For each location with findings from 2+ agents:
+**Layer 2 — Location/Aspect-Based Detection:**
+Group all findings by `file:line` (review mode) or `aspect` (feedback/decision mode). For each group with findings from 2+ agents:
 - If recommendations differ and agents are from different domains → flag as conflict
 - If recommendations are the same → merge as consensus (note agreement)
 
-**Layer 3 — Severity Disagreement:**
-For findings at the same `file:line` from different agents:
-- If severity differs by 2+ levels (e.g., CRITICAL vs MEDIUM) → flag as disagreement
-- If severity differs by 1 level → note but don't flag
+**Layer 3 — Severity/Priority Disagreement:**
+For findings in the same group from different agents:
+- If severity/priority differs by 2+ levels (e.g., CRITICAL vs MEDIUM) → flag as disagreement
+- If it differs by 1 level → note but don't flag
 
 ### 5c. Build Consensus List
 
@@ -440,11 +448,7 @@ Write session file `{claudeDir}/.sessions/session-$TIMESTAMP.json`:
   "collaboration": {
     "mode": "{review|feedback|decision}",
     "agentsInvolved": [],
-    "routingMethod": "{auto|explicit}",
-    "findingsCount": null,
-    "conflictsCount": null,
-    "verdict": null,
-    "consensusReached": null
+    "routingMethod": "{auto|manual}"
   },
   "metadata": {
     "projectPath": "{current-working-directory}",
@@ -458,11 +462,15 @@ Write session file `{claudeDir}/.sessions/session-$TIMESTAMP.json`:
 
 ### 7b. Track Agent Invocations (during Step 4)
 
-For each agent spawned, add to the "agents" array:
+For each agent spawned, add to the "agents" array. Derive the `role` from where the agent was resolved:
+- `.claude/agents/{id}.md` (core) → `"universal"`
+- `.claude/agents/coordinators/{id}.md` → `"coordinator"`
+- `.claude/agents/specialists/{id}.md` → `"specialist"`
+
 ```json
 {
   "name": "{agent-id}",
-  "role": "specialist",
+  "role": "{universal|coordinator|specialist}",
   "invokedAt": "{ISO-8601-UTC}",
   "status": "in_progress"
 }
@@ -534,7 +542,7 @@ No specialist agents are available for collaboration.
 Recovery options:
 1. Run `/init` to generate agents for your tech stack
 2. Use `/review` for single-agent code review (works without specialists)
-3. Specify core agents explicitly: `/collaborate --agents code-reviewer,project-owner`
+3. Specify core agents explicitly: `/collaborate --agents code-reviewer,qa-validator`
 ```
 
 ### Single Agent Only

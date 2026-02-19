@@ -196,7 +196,7 @@ This review touched files across multiple domains ([list domains]).
 For deeper cross-domain analysis with automated conflict detection, run:
 
 `/collaborate`                           # Auto-routes to relevant specialists
-`/collaborate --agents security,accessibility`  # Explicit agent selection
+`/collaborate --agents security-specialist,accessibility`  # Explicit agent selection
 ```
 
 **When to suggest** (any of these conditions):

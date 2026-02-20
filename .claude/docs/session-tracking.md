@@ -130,7 +130,7 @@ If you're building custom skills and want to integrate session tracking:
 
 ## Skill Coverage
 
-All skills include session tracking with standardized init, finalization, and cleanup blocks:
+9 of 12 skills include session tracking with standardized init, finalization, and cleanup blocks. Infrastructure skills (`/init`, `/update`, `/migrate`) do not have session tracking.
 
 | Skill | Agent Tracking | Notes |
 |-------|---------------|-------|

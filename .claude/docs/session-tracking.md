@@ -1,6 +1,6 @@
 # Session Tracking
 
-**Version**: v2.4
+**Version**: v2.4.1
 **Status**: Foundation (Enables v2.5+ features)
 
 ## Overview
@@ -13,7 +13,7 @@ This infrastructure enables future intelligence features:
 
 ## What Gets Tracked
 
-Each time you run a skill, the system creates a session file with:
+For skills with session tracking enabled (see [Skill Coverage](#skill-coverage) below), the system creates a session file with:
 
 ```json
 {

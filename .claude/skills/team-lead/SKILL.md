@@ -14,11 +14,13 @@ Before starting execution, initialize session tracking.
 Run these commands:
 ```bash
 TIMESTAMP=$(date +%Y-%m-%d-%H%M%S)
-UUID=$(uuidgen 2>/dev/null || python3 -c "import uuid; print(uuid.uuid4())" 2>/dev/null || echo "no-uuid-$(date +%s)")
+UUID=$(uuidgen 2>/dev/null || python3 -c "import uuid; print(uuid.uuid4())" 2>/dev/null)
 UUID=$(echo "$UUID" | tr '[:upper:]' '[:lower:]')
 ISO_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 START_TIME=$(date +%s)
 ```
+
+> If `$UUID` is empty (neither `uuidgen` nor `python3` available), skip session tracking entirely — proceed with skill execution normally and omit the Finalize Session step.
 
 **Step 2: Create session file**
 

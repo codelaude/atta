@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://codelaude.com/schemas/session.json",
-  "title": "AI Dev Team Session",
+  "title": "Atta Session",
   "description": "Tracks a single skill invocation session with agent usage",
   "type": "object",
   "required": ["schemaVersion", "sessionId", "timestamp", "startedBy"],

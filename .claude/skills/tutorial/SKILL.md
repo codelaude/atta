@@ -1,9 +1,9 @@
 ---
 name: tutorial
-description: Interactive 5-minute onboarding walkthrough for new users. Introduces the agent team, guides through a first task, and demonstrates quality checks. Run this when getting started with the AI Dev Team Framework.
+description: Interactive 5-minute onboarding walkthrough for new users. Introduces the agent team, guides through a first task, and demonstrates quality checks. Run this when getting started with Atta.
 ---
 
-You are now running the **AI Dev Team Framework Tutorial** — an interactive 5-minute onboarding experience.
+You are now running the **Atta Framework Tutorial** — an interactive 5-minute onboarding experience.
 
 ## How to Use
 
@@ -75,7 +75,7 @@ Record the session filename and the Unix start timestamp (4th command above) —
 Display this to the user:
 
 ```markdown
-# Welcome to the AI Dev Team Framework!
+# Welcome to Atta!
 
 You have an AI development team ready to help you build better code.
 
@@ -303,7 +303,7 @@ If user selects "I'm ready — let me try it!": proceed directly to **Finalize S
 Display this (whether reached from the end of the tutorial, from the `--quick` flag, or from the Welcome skip):
 
 ```markdown
-## AI Dev Team — Quick Reference
+## Atta — Quick Reference
 
 ### Getting Started
 | Command | What it does |
@@ -355,7 +355,7 @@ Display this (whether reached from the end of the tutorial, from the `--quick` f
 
 ---
 
-*AI Dev Team Framework v2.2 — run `/update` to keep agents current*
+*Atta v2.4 — run `/update` to keep agents current*
 ```
 
 ---
@@ -391,7 +391,7 @@ Edit `{claudeDir}/.sessions/session-{TIMESTAMP}.json`:
 End with:
 
 ```markdown
-You're all set! Your AI dev team is ready.
+You're all set! Your Atta colony is ready.
 
 **Next steps:**
 1. If you haven't already: `/init` — configure agents for your project

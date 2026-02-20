@@ -1,6 +1,6 @@
 # Changelog
 
-Full version history for the AI Dev Team Agent framework.
+Full version history for the Atta framework.
 
 ---
 

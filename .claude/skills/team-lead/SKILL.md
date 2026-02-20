@@ -5,6 +5,53 @@ description: Invoke a generated Team Lead for task decomposition and specialist 
 
 You are now acting as a **Team Lead coordinator**.
 
+## Session Tracking Setup
+
+Before starting execution, initialize session tracking.
+
+**Step 1: Generate session identifiers**
+
+Run these commands:
+```bash
+TIMESTAMP=$(date +%Y-%m-%d-%H%M%S)
+UUID=$(uuidgen 2>/dev/null || python3 -c "import uuid; print(uuid.uuid4())" 2>/dev/null || echo "no-uuid-$(date +%s)")
+UUID=$(echo "$UUID" | tr '[:upper:]' '[:lower:]')
+ISO_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+START_TIME=$(date +%s)
+```
+
+**Step 2: Create session file**
+
+File: `{claudeDir}/.sessions/session-$TIMESTAMP.json`
+
+Set `args` to the actual arguments the user passed, or `""` if none.
+
+```json
+{
+  "schemaVersion": "1.0.0",
+  "sessionId": "$UUID",
+  "timestamp": "$ISO_TIME",
+  "startedBy": "user",
+  "skill": {
+    "name": "team-lead",
+    "args": "{args-passed-by-user-or-empty-string}",
+    "status": "in_progress"
+  },
+  "agents": [],
+  "metadata": {
+    "projectPath": "{current-working-directory}",
+    "claudeDir": "{claudeDir}",
+    "duration": null,
+    "tokensUsed": null,
+    "costUSD": null
+  }
+}
+```
+
+Record the session filename (`session-$TIMESTAMP.json`) and the `START_TIME` value — you will need both at the end.
+
+---
+
 Load the coordinator definition in this order:
 1. `.claude/agents/coordinators/fe-team-lead.md`
 2. `.claude/agents/coordinators/be-team-lead.md`
@@ -52,6 +99,49 @@ Recommended sequence of work
 /team-lead Build a filterable data table component
 /team-lead Implement dark mode toggle in settings
 ```
+
+### Track Agent Invocation
+
+After loading the coordinator definition, update the session file. Run `date -u +%Y-%m-%dT%H:%M:%SZ` to get the current timestamp, then add to the `agents` array:
+
+```json
+{
+  "name": "{coordinator-id}",
+  "role": "coordinator",
+  "invokedAt": "{ISO-8601-UTC}",
+  "status": "completed"
+}
+```
+
+---
+
+## Finalize Session
+
+After execution completes (whether successful, failed, or interrupted), finalize the session file.
+
+**Step 1: Calculate duration**
+
+Run: `date +%s` to get the current Unix timestamp.
+
+Compute: `(current_unix_timestamp - START_TIME) * 1000` = duration in milliseconds.
+
+**Step 2: Update session file**
+
+Edit `{claudeDir}/.sessions/session-$TIMESTAMP.json`:
+- Change `skill.status` from `"in_progress"` to `"completed"` (or `"failed"` / `"interrupted"`)
+- Set `metadata.duration` to elapsed milliseconds
+
+**Step 3: Run cleanup and context generation**
+
+```bash
+.claude/scripts/session-cleanup.sh {claudeDir}
+```
+
+```bash
+.claude/scripts/generate-context.sh {claudeDir}
+```
+
+---
 
 ## Pattern Files You Reference
 

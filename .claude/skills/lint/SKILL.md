@@ -5,6 +5,53 @@ description: Run code quality checks based on project patterns. Use when checkin
 
 You are now running a **code lint check** based on the project's established patterns. This skill actively scans code against pattern rules.
 
+## Session Tracking Setup
+
+Before starting execution, initialize session tracking.
+
+**Step 1: Generate session identifiers**
+
+Run these commands:
+```bash
+TIMESTAMP=$(date +%Y-%m-%d-%H%M%S)
+UUID=$(uuidgen 2>/dev/null || python3 -c "import uuid; print(uuid.uuid4())" 2>/dev/null || echo "no-uuid-$(date +%s)")
+UUID=$(echo "$UUID" | tr '[:upper:]' '[:lower:]')
+ISO_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+START_TIME=$(date +%s)
+```
+
+**Step 2: Create session file**
+
+File: `{claudeDir}/.sessions/session-$TIMESTAMP.json`
+
+Set `args` to the actual arguments the user passed, or `""` if none.
+
+```json
+{
+  "schemaVersion": "1.0.0",
+  "sessionId": "$UUID",
+  "timestamp": "$ISO_TIME",
+  "startedBy": "user",
+  "skill": {
+    "name": "lint",
+    "args": "{args-passed-by-user-or-empty-string}",
+    "status": "in_progress"
+  },
+  "agents": [],
+  "metadata": {
+    "projectPath": "{current-working-directory}",
+    "claudeDir": "{claudeDir}",
+    "duration": null,
+    "tokensUsed": null,
+    "costUSD": null
+  }
+}
+```
+
+Record the session filename (`session-$TIMESTAMP.json`) and the `START_TIME` value — you will need both at the end.
+
+---
+
 ## How to Use
 
 ```
@@ -82,7 +129,37 @@ For each file, check against the rules above based on file type.
 
 ---
 
+## Finalize Session
+
+After execution completes (whether successful, failed, or interrupted), finalize the session file.
+
+**Step 1: Calculate duration**
+
+Run: `date +%s` to get the current Unix timestamp.
+
+Compute: `(current_unix_timestamp - START_TIME) * 1000` = duration in milliseconds.
+
+**Step 2: Update session file**
+
+Edit `{claudeDir}/.sessions/session-$TIMESTAMP.json`:
+- Change `skill.status` from `"in_progress"` to `"completed"` (or `"failed"` / `"interrupted"`)
+- Set `metadata.duration` to elapsed milliseconds
+
+**Step 3: Run cleanup and context generation**
+
+```bash
+.claude/scripts/session-cleanup.sh {claudeDir}
+```
+
+```bash
+.claude/scripts/generate-context.sh {claudeDir}
+```
+
+---
+
 ## Error Handling & Recovery
+
+> **Session note:** If a session file was created, always finalize it (Finalize Session above) before displaying recovery messages — set status to `"failed"` or `"interrupted"`.
 
 ### No Target Files Found
 

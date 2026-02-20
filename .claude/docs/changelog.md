@@ -4,6 +4,14 @@ Full version history for the Atta framework.
 
 ---
 
+## v2.4.1 (2026-02-20) — Session Tracking Expansion
+
+- Session tracking expanded from 2 skills (tutorial, collaborate) to all 9 skills
+- Standardized three-block pattern: init → agent tracking → finalization
+- Agent tracking for skills that invoke agents (agent, team-lead, review, security-audit, preflight)
+- DIR-022 compliance: error handling sections explicitly mention session finalization
+- Updated session-tracking.md with full skill coverage table
+
 ## v2.4 (2026-02-19) — Multi-Agent Collaboration
 
 - `/collaborate` skill — invoke 2-4 specialist agents in parallel with synthesized output

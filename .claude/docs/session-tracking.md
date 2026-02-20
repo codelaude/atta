@@ -13,9 +13,7 @@ This infrastructure enables future intelligence features:
 
 ## What Gets Tracked
 
-Each time you run a skill, the system can create a session file with:
-
-> **Note**: Session tracking is currently integrated into the `/tutorial` and `/collaborate` skills. Integration into remaining skills (`/init`, `/review`, `/agent`, etc.) is planned for a future update.
+Each time you run a skill, the system creates a session file with:
 
 ```json
 {
@@ -130,9 +128,27 @@ If you're building custom skills and want to integrate session tracking:
 📖 **[Example Integration](../.sessions/INTEGRATION_EXAMPLE.md)** - Before/after comparison
 📖 **[Schema Reference](../.sessions/schema.json)** - Full JSON Schema
 
+## Skill Coverage
+
+All skills include session tracking with standardized init, finalization, and cleanup blocks:
+
+| Skill | Agent Tracking | Notes |
+|-------|---------------|-------|
+| `/tutorial` | No | Guided walkthrough, no agents |
+| `/collaborate` | Yes (2-4) | Multi-agent collaboration sessions |
+| `/lint` | No | No agents invoked |
+| `/librarian` | No | No agents invoked |
+| `/agent` | Yes (always 1) | Every invocation loads exactly 1 agent |
+| `/team-lead` | Yes (always 1) | Always loads 1 coordinator |
+| `/review` | Yes (conditional) | Tracks if specialist invoked inline |
+| `/security-audit` | Yes (conditional) | Tracks if specialist invoked inline |
+| `/preflight` | Yes (conditional) | Tracks if agent invoked inline |
+
+Skills without agent tracking (`/lint`, `/librarian`, `/tutorial`) still create session files with an empty `agents` array.
+
 ## Disabling Session Tracking
 
-Session tracking is currently integrated into `/tutorial` and `/collaborate`. Full integration into all skills is planned for a future update. If you prefer not to use it, you can:
+If you prefer not to use session tracking, you can:
 
 1. **Delete session files manually**:
    ```bash
@@ -194,7 +210,7 @@ A: No problem! Session tracking is non-critical. Skills will continue working. N
 A: Yes. Edit `MAX_SESSIONS=10` in `.claude/scripts/session-cleanup.sh` to keep more or fewer sessions.
 
 **Q: Is this required for the framework to work?**
-A: No. Session tracking is infrastructure for future features. Current skills (v2.2) work without it. Future versions (v2.5+) will use it for pattern detection and learning.
+A: No. Session tracking is infrastructure for future features. All skills work without it. Future versions (v2.5+) will use it for pattern detection and learning.
 
 ## See Also
 
@@ -209,3 +225,4 @@ A: No. Session tracking is infrastructure for future features. Current skills (v
 
 **Added in**: v2.2 (2026-02-16)
 **Updated**: v2.4 (2026-02-19) — `/collaborate` session tracking, collaboration schema extension
+**Updated**: v2.4.1 (2026-02-20) — Session tracking expanded to all 9 skills

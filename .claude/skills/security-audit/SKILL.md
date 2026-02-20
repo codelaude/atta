@@ -5,6 +5,55 @@ description: Security audit scanning for vulnerabilities, secrets, and insecure 
 
 You are now acting as the **Security Specialist** performing a comprehensive security audit.
 
+## Session Tracking Setup
+
+Before starting execution, initialize session tracking. Always create the session file first, regardless of which flags are passed.
+
+**Step 1: Generate session identifiers**
+
+Run these commands:
+```bash
+TIMESTAMP=$(date +%Y-%m-%d-%H%M%S)
+UUID=$(uuidgen 2>/dev/null || python3 -c "import uuid; print(uuid.uuid4())" 2>/dev/null)
+UUID=$(echo "$UUID" | tr '[:upper:]' '[:lower:]')
+ISO_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+START_TIME=$(date +%s)
+```
+
+> If `$UUID` is empty (neither `uuidgen` nor `python3` available), skip session tracking entirely — proceed with skill execution normally and omit the Finalize Session step.
+
+**Step 2: Create session file**
+
+File: `{claudeDir}/.sessions/session-$TIMESTAMP.json`
+
+Set `args` to the actual arguments the user passed, or `""` if none.
+
+```json
+{
+  "schemaVersion": "1.0.0",
+  "sessionId": "$UUID",
+  "timestamp": "$ISO_TIME",
+  "startedBy": "user",
+  "skill": {
+    "name": "security-audit",
+    "args": "{args-passed-by-user-or-empty-string}",
+    "status": "in_progress"
+  },
+  "agents": [],
+  "metadata": {
+    "projectPath": "{current-working-directory}",
+    "claudeDir": "{claudeDir}",
+    "duration": null,
+    "tokensUsed": null,
+    "costUSD": null
+  }
+}
+```
+
+Record the session filename (`session-$TIMESTAMP.json`) and the `START_TIME` value — you will need both at the end.
+
+---
+
 ## How to Use
 
 ```
@@ -232,7 +281,57 @@ After `/security-audit`:
 
 ---
 
+### Track Agent Invocation
+
+If you invoke a specialist agent during the audit (e.g., security-specialist, librarian), update the session file. Run `date -u +%Y-%m-%dT%H:%M:%SZ` to get the current timestamp, then add to the `agents` array:
+
+```json
+{
+  "name": "{agent-id}",
+  "role": "{universal|coordinator|specialist}",
+  "invokedAt": "{ISO-8601-UTC}",
+  "status": "completed"
+}
+```
+
+Derive the `role` from where the agent was resolved:
+- `.claude/agents/{id}.md` (core) → `"universal"`
+- `.claude/agents/coordinators/{id}.md` → `"coordinator"`
+- `.claude/agents/specialists/{id}.md` → `"specialist"`
+
+---
+
+## Finalize Session
+
+After execution completes (whether successful, failed, or interrupted), finalize the session file.
+
+**Step 1: Calculate duration**
+
+Run: `date +%s` to get the current Unix timestamp.
+
+Compute: `(current_unix_timestamp - START_TIME) * 1000` = duration in milliseconds.
+
+**Step 2: Update session file**
+
+Edit `{claudeDir}/.sessions/session-$TIMESTAMP.json`:
+- Change `skill.status` from `"in_progress"` to `"completed"` (or `"failed"` / `"interrupted"`)
+- Set `metadata.duration` to elapsed milliseconds
+
+**Step 3: Run cleanup and context generation**
+
+```bash
+.claude/scripts/session-cleanup.sh {claudeDir}
+```
+
+```bash
+.claude/scripts/generate-context.sh {claudeDir}
+```
+
+---
+
 ## Error Handling & Recovery
+
+> **Session note:** If a session file was created, always finalize it (Finalize Session above) before displaying recovery messages — set status to `"failed"` or `"interrupted"`.
 
 ### Cannot Determine Audit Scope
 

@@ -1,4 +1,8 @@
-# AI Dev Team Agent v2
+<p align="center">
+  <img src="atta.svg" alt="Atta" width="400">
+  <br>
+  <em>Named after the leafcutter ant genus, where colonies of specialists build together.</em>
+</p>
 
 A multi-agent system for AI-assisted development that guides, reviews, and validates your work — instead of writing code for you. Supports any tech stack: Vue, React, Angular, Python/Django, Java/Spring Boot, Go, Rust, and [100+ more](.claude/docs/bootstrap-system.md).
 
@@ -165,4 +169,4 @@ This validates bootstrap YAML syntax, security-critical documentation patterns, 
 
 ---
 
-*Built by [Codelaude](https://github.com/codelaude) with [Claude Code](https://docs.anthropic.com/en/docs/claude-code). Keeping the human in the driver's seat.*
+*Built by [Codelaude](https://github.com/codelaude) with [Claude Code](https://docs.anthropic.com/en/docs/claude-code). A colony of specialists, keeping the human in the driver's seat.*

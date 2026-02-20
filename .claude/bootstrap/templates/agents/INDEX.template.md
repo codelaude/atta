@@ -1,6 +1,6 @@
 # Agent Index
 
-> Auto-generated routing table for your AI Dev Team. Updated by `/init`.
+> Auto-generated routing table for your Atta agent team. Updated by `/init`.
 
 ## Team Hierarchy
 

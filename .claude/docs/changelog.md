@@ -8,7 +8,7 @@ Full version history for the Atta framework.
 
 - Renamed `/init` skill to `/atta` to avoid collision with Claude Code built-in `/init`
 - Removed cosmetic version numbers from skill footers and doc headers
-- Version now lives only in `.metadata/version` and changelog (single source of truth)
+- Version now lives only in `.metadata/version`, `.metadata/framework-version`, and changelog
 
 ## v2.4.1 (2026-02-20) — Session Tracking Expansion
 

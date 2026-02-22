@@ -10,9 +10,8 @@ export async function runSetupPrompts(options = {}) {
 
   // If adapter wasn't specified via CLI flag, ask
   const adapter =
-    options.adapter !== 'claude-code'
-      ? options.adapter
-      : await p.select({
+    options.adapter ||
+    (await p.select({
           message: 'Which AI tool are you using?',
           options: [
             {
@@ -24,7 +23,7 @@ export async function runSetupPrompts(options = {}) {
             { value: 'codex', label: 'Codex CLI' },
             { value: 'gemini', label: 'Gemini CLI' },
           ],
-        });
+        }));
 
   if (p.isCancel(adapter)) {
     p.cancel('Setup cancelled.');

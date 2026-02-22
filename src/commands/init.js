@@ -148,9 +148,9 @@ async function runInstall(targetDir, adapterName, dryRun, answers) {
         join(targetDir, '.agents', 'skills', 'tutorial'),     // Codex
         join(targetDir, 'commands', 'tutorial.toml'),          // Gemini
       ];
-      for (const p of tutorialPaths) {
-        if (existsSync(p)) {
-          rmSync(p, { recursive: true });
+      for (const tutorialPath of tutorialPaths) {
+        if (existsSync(tutorialPath)) {
+          rmSync(tutorialPath, { recursive: true });
           results.files--;
         }
       }

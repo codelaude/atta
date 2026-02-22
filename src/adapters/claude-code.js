@@ -146,9 +146,14 @@ export function parseFrontmatter(filePath) {
 function countFiles(dir) {
   let count = 0;
   try {
-    const entries = readdirSync(dir, { withFileTypes: true, recursive: true });
+    const entries = readdirSync(dir, { withFileTypes: true });
     for (const entry of entries) {
-      if (entry.isFile()) count++;
+      const fullPath = join(dir, entry.name);
+      if (entry.isFile()) {
+        count++;
+      } else if (entry.isDirectory()) {
+        count += countFiles(fullPath);
+      }
     }
   } catch {
     // Ignore

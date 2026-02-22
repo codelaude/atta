@@ -114,6 +114,7 @@ Template for the file-manifest.json structure.
 
 ## Version History
 
+- **2.4.3** (2026-02-22): npm distribution (`npx atta-dev init`), cross-tool adapters (Claude Code, Copilot, Codex, Gemini), capability matrix, automated check suite
 - **2.4.2** (2026-02-22): Renamed `/init` → `/atta`, removed cosmetic version numbers from footers/headers
 - **2.4.1** (2026-02-20): Session tracking expanded to all skills, hardening fixes
 - **2.4** (2026-02-19): Multi-agent `/collaborate` skill (parallel 2-4 agent collaboration)

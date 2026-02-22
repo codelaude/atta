@@ -1,0 +1,51 @@
+{
+  "name": "atta-dev",
+  "version": "2.4.3",
+  "description": "Atta — AI Dev Team Agent. Dynamic agent generation, multi-tool support, and intelligent code review for AI-assisted development.",
+  "keywords": [
+    "ai",
+    "agents",
+    "claude",
+    "copilot",
+    "codex",
+    "code-review",
+    "dev-tools",
+    "atta"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/codelaude/atta.git"
+  },
+  "license": "MIT",
+  "author": "CodeLaude",
+  "type": "module",
+  "bin": {
+    "atta": "bin/atta.js",
+    "atta-dev": "bin/atta.js"
+  },
+  "main": "src/cli.js",
+  "files": [
+    "bin/",
+    "src/",
+    ".claude/agents/",
+    ".claude/bootstrap/",
+    ".claude/docs/",
+    ".claude/knowledge/",
+    ".claude/scripts/",
+    ".claude/skills/",
+    ".claude/.context/",
+    ".claude/.metadata/",
+    ".claude/.sessions/schema.json",
+    ".claude/.sessions/README.md",
+    "README.md",
+    "atta.svg"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@clack/prompts": "^1.0.1",
+    "commander": "^12.1.0",
+    "picocolors": "^1.1.1"
+  }
+}

@@ -1,5 +1,7 @@
 .DS_Store
 .mcp.json
+node_modules/
+package-lock.json
 
 # Generated context files (keep README, ignore generated content)
 .claude/.context/recent.md

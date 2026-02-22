@@ -10,6 +10,16 @@ A multi-agent system for AI-assisted development that guides, reviews, and valid
 
 ### 1. Set up
 
+**Option A — npm (recommended):**
+
+```bash
+npx atta-dev init
+```
+
+Installs the framework, asks a few questions, and configures everything for your AI tool (Claude Code, Copilot CLI, Codex CLI, or Gemini CLI).
+
+**Option B — manual:**
+
 Copy the `.claude/` directory into your project root, then run `/atta`:
 
 ```

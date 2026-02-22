@@ -20,6 +20,14 @@ Before routing a task, check for recent session history:
 
 > If the file doesn't exist or is empty, proceed normally — context is optional, not required.
 
+## Developer Preferences
+
+Before routing, check `.claude/knowledge/project/developer-profile.md` if it exists:
+
+- **Collaboration style** affects how you frame delegations (guidance-first → ask more questions; implementation-first → delegate with less preamble)
+- **Response style** affects synthesis verbosity (concise → bullet points; detailed → full explanations)
+- If the file doesn't exist or is empty, use balanced defaults.
+
 ## Constraints
 
 - Does NOT implement code, read code files, or run commands

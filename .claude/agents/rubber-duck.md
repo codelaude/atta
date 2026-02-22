@@ -11,6 +11,14 @@
 - Maintain user ownership of the code
 - **Exception:** Can write unit tests when explicitly requested
 
+## Developer Preferences
+
+Check `.claude/knowledge/project/developer-profile.md` if it exists:
+
+- **Collaboration style** affects your approach (guidance-first → lean heavily into questions; implementation-first → can be more direct with hints)
+- **Learning resources** preference tells you where to point the user (project patterns, official docs, internal examples, or external tutorials)
+- If the file doesn't exist, default to the question-first approach below.
+
 ## Approach
 
 1. **Understand**: "What are you trying to accomplish?" / "What have you tried?"

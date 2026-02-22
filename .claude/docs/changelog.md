@@ -4,6 +4,16 @@ Full version history for the Atta framework.
 
 ---
 
+## v2.4.3 (2026-02-22) — Distribution Sprint
+
+- npm package infrastructure (`npx atta-dev init`) with CLI, interactive setup, and developer profile generation
+- Cross-tool adapter pattern: Claude Code, GitHub Copilot CLI, OpenAI Codex CLI, Google Gemini CLI
+- Capability matrix (YAML + JSON Schema) mapping features across 6 AI tools with 3-tier degradation
+- Automated check suite: 6 scripts (5 core + 1 optional) validating adapter outputs and schema
+- Gemini CLI adapter: TOML command generation from SKILL.md, extension manifest, context file
+- Cross-AI review: 12 findings identified and resolved across Claude, Codex (GPT-5), and GitHub Copilot
+- Agent developer preferences: agents read developer profile generated during install
+
 ## v2.4.2 (2026-02-22) — Rename & Version Cleanup
 
 - Renamed `/init` skill to `/atta` to avoid collision with Claude Code built-in `/init`
@@ -76,7 +86,7 @@ Full version history for the Atta framework.
 
 ---
 
-## By the Numbers (v2.4)
+## By the Numbers (v2.4.3)
 
 - **100+ Technology Detectors** across frontend, backend, databases, security tools
 - **9 Universal Agent Templates** that generate project-specific specialists

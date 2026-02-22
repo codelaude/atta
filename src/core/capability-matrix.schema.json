@@ -1,0 +1,110 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Atta Capability Matrix",
+  "description": "Cross-tool capability and degradation mapping for Atta framework distribution",
+  "type": "object",
+  "required": ["schemaVersion", "tools"],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "tools": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/toolEntry" }
+    }
+  },
+  "$defs": {
+    "toolEntry": {
+      "type": "object",
+      "required": ["id", "tier", "skill_format", "instruction_file", "paths", "capabilities"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique tool identifier",
+          "enum": ["claude-code", "copilot-cli", "codex-cli", "gemini-cli", "cursor", "aider"]
+        },
+        "tier": {
+          "type": "integer",
+          "enum": [1, 2, 3],
+          "description": "1=full support, 2=good with degradations, 3=baseline only"
+        },
+        "skill_format": {
+          "type": "string",
+          "enum": ["skill.md", "toml", "agents.md-only"],
+          "description": "Primary skill definition format the tool consumes"
+        },
+        "instruction_file": {
+          "type": "string",
+          "description": "Tool's primary project-level instruction filename",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "paths": { "$ref": "#/$defs/toolPaths" },
+        "capabilities": { "$ref": "#/$defs/toolCapabilities" },
+        "plugin_manifest": {
+          "type": ["string", "null"],
+          "description": "Plugin manifest filename, null if tool has no plugin system"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Adapter-specific notes or caveats"
+        }
+      }
+    },
+    "toolPaths": {
+      "type": "object",
+      "required": ["skill_root"],
+      "properties": {
+        "skill_root": {
+          "type": ["string", "null"],
+          "description": "Base directory where skills are placed. Null if tool has no skill directory."
+        },
+        "skill_file_pattern": {
+          "type": "string",
+          "description": "File pattern within skill_root. Combined as skill_root + skill_file_pattern.",
+          "default": "{name}/SKILL.md"
+        },
+        "agent_dir": {
+          "type": ["string", "null"],
+          "description": "Directory for agent definitions. Null if not supported."
+        },
+        "command_dir": {
+          "type": ["string", "null"],
+          "description": "Directory for custom commands (Gemini TOML). Null if not applicable."
+        },
+        "instruction_file_path": {
+          "type": "string",
+          "description": "Path to the instruction file relative to project root"
+        }
+      }
+    },
+    "toolCapabilities": {
+      "type": "object",
+      "required": [
+        "interactive_prompts",
+        "parallel_agents",
+        "session_tracking",
+        "mcp_servers",
+        "bash_execution",
+        "file_operations",
+        "skill_activation"
+      ],
+      "properties": {
+        "interactive_prompts": { "$ref": "#/$defs/capabilityLevel" },
+        "parallel_agents": { "$ref": "#/$defs/capabilityLevel" },
+        "session_tracking": { "$ref": "#/$defs/capabilityLevel" },
+        "mcp_servers": { "$ref": "#/$defs/capabilityLevel" },
+        "bash_execution": { "$ref": "#/$defs/capabilityLevel" },
+        "file_operations": { "$ref": "#/$defs/capabilityLevel" },
+        "skill_activation": { "$ref": "#/$defs/capabilityLevel" }
+      },
+      "additionalProperties": { "$ref": "#/$defs/capabilityLevel" }
+    },
+    "capabilityLevel": {
+      "type": "string",
+      "enum": ["native", "degrade_sequential", "degrade_inline", "skip", "not_supported", "experimental"],
+      "description": "native=full support, degrade_*=works with reduced fidelity, skip=silently omitted, not_supported=skill cannot use this feature, experimental=unstable"
+    }
+  }
+}

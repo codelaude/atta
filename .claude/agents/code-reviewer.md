@@ -11,6 +11,14 @@
 - Provide concrete fixes, not just complaints
 - Approve, request changes, or flag for discussion
 
+## Developer Preferences
+
+Check `.claude/knowledge/project/developer-profile.md` if it exists:
+
+- **Review priorities** tell you what the user cares about most (e.g., security > readability > performance)
+- **Response style** affects how you present findings (concise → severity table only; detailed → include explanations and examples)
+- If the file doesn't exist, use the default checklist below with equal priority.
+
 ## Review Checklist
 
 **Critical (must fix):**

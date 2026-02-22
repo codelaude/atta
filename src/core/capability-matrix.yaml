@@ -1,0 +1,145 @@
+schemaVersion: "1.0.0"
+
+tools:
+  claude-code:
+    id: claude-code
+    tier: 1
+    skill_format: skill.md
+    instruction_file: CLAUDE.md
+    plugin_manifest: .claude-plugin/plugin.json
+    paths:
+      skill_root: .claude/skills/
+      skill_file_pattern: "{name}/SKILL.md"
+      agent_dir: .claude/agents/
+      command_dir: null
+      instruction_file_path: CLAUDE.md
+    capabilities:
+      interactive_prompts: native
+      parallel_agents: native
+      session_tracking: native
+      mcp_servers: native
+      bash_execution: native
+      file_operations: native
+      skill_activation: native
+    notes: "Primary platform. All features supported."
+
+  copilot-cli:
+    id: copilot-cli
+    tier: 1
+    skill_format: skill.md
+    instruction_file: AGENTS.md
+    plugin_manifest: null
+    paths:
+      skill_root: .github/skills/
+      skill_file_pattern: "{name}/SKILL.md"
+      agent_dir: null
+      command_dir: null
+      instruction_file_path: AGENTS.md
+    capabilities:
+      interactive_prompts: native
+      parallel_agents: degrade_sequential
+      session_tracking: skip
+      mcp_servers: native
+      bash_execution: native
+      file_operations: native
+      skill_activation: native
+    notes: >
+      Reads .claude/skills/ natively (cross-compat).
+      HYPOTHESIS: verify skill discovery precedence .claude/ vs .github/.
+      Parallel agents degrade to sequential execution.
+
+  codex-cli:
+    id: codex-cli
+    tier: 2
+    skill_format: skill.md
+    instruction_file: AGENTS.md
+    plugin_manifest: null
+    paths:
+      skill_root: .agents/skills/
+      skill_file_pattern: "{name}/SKILL.md"
+      agent_dir: null
+      command_dir: null
+      instruction_file_path: AGENTS.md
+    capabilities:
+      interactive_prompts: native
+      parallel_agents: degrade_sequential
+      session_tracking: skip
+      mcp_servers: native
+      bash_execution: native
+      file_operations: native
+      skill_activation: native
+    notes: >
+      HYPOTHESIS: verify .agents/skills/ path convention.
+      AGENTS.md is the primary instruction channel.
+      Skills invoked via /skills menu or $skill-name mention.
+
+  gemini-cli:
+    id: gemini-cli
+    tier: 2
+    skill_format: toml
+    instruction_file: GEMINI.md
+    plugin_manifest: gemini-extension.json
+    paths:
+      skill_root: null
+      agent_dir: null
+      command_dir: commands/
+      instruction_file_path: GEMINI.md
+    capabilities:
+      interactive_prompts: native
+      parallel_agents: degrade_sequential
+      session_tracking: skip
+      mcp_servers: native
+      bash_execution: native
+      file_operations: native
+      skill_activation: native
+    notes: >
+      Requires SKILL.md to TOML conversion.
+      HYPOTHESIS: verify extension + TOML loading rules in practice.
+
+  cursor:
+    id: cursor
+    tier: 3
+    skill_format: agents.md-only
+    instruction_file: .cursorrules
+    plugin_manifest: null
+    paths:
+      skill_root: .agents/skills/
+      skill_file_pattern: "{name}/SKILL.md"
+      agent_dir: null
+      command_dir: null
+      instruction_file_path: .cursorrules
+    capabilities:
+      interactive_prompts: skip
+      parallel_agents: skip
+      session_tracking: skip
+      mcp_servers: native
+      bash_execution: native
+      file_operations: native
+      skill_activation: skip
+    notes: >
+      AGENTS.md + .cursorrules provide baseline context.
+      No skill activation — agent knowledge is passive.
+
+  aider:
+    id: aider
+    tier: 3
+    skill_format: agents.md-only
+    instruction_file: AGENTS.md
+    plugin_manifest: null
+    paths:
+      skill_root: null
+      agent_dir: null
+      command_dir: null
+      instruction_file_path: AGENTS.md
+    capabilities:
+      interactive_prompts: degrade_inline
+      parallel_agents: skip
+      session_tracking: skip
+      mcp_servers: experimental
+      bash_execution: native
+      file_operations: native
+      skill_activation: skip
+    notes: >
+      AGENTS.md is the only integration point.
+      Also reads CONVENTIONS.md via .aider.conf.yml --read flag.
+      No skill system — agent knowledge is passive context.

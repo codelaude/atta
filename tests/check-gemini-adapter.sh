@@ -61,14 +61,14 @@ if [ -d "$TMPDIR/commands" ]; then
   while IFS= read -r -d '' toml; do
     TOML_COUNT=$((TOML_COUNT + 1))
     # Parse TOML and validate required fields
-    python3 -c "
+    python3 - "$toml" <<'PYEOF'
 import sys
 try:
     import tomllib
 except ImportError:
     import tomli as tomllib
 
-path = '$toml'
+path = sys.argv[1]
 try:
     with open(path, 'rb') as f:
         data = tomllib.load(f)
@@ -88,7 +88,8 @@ if not isinstance(data['description'], str) or not data['description'].strip():
 if not isinstance(data['prompt'], str) or not data['prompt'].strip():
     print(f'FAIL: {path} prompt is missing or blank')
     sys.exit(1)
-" || {
+PYEOF
+    [ $? -eq 0 ] || {
       echo "FAIL: TOML parse/validation failed for $toml"
       ERRORS=$((ERRORS + 1))
     }

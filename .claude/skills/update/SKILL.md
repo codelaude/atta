@@ -67,7 +67,7 @@ Before running `/update`, ensure:
    - The update creates backups, but start clean for safety
 
 4. **Framework version tracking file**: `.claude/.metadata/framework-version` is used for reporting/comparison
-   - Created automatically by `/init` in new projects
+   - Created automatically by `/atta` in new projects
    - Legacy installs may be missing this file; `/update` should recreate/update it during apply
 
 ---
@@ -133,16 +133,14 @@ Resolve mode as follows (unless `--mode` override is provided):
 ```markdown
 ## Framework Update Available
 
-**Current version**: 2.0
-**Latest version**: 2.1
-**Released**: 2026-02-16
+**Current version**: {{CURRENT_VERSION}}
+**Latest version**: {{NEW_VERSION}}
+**Released**: {{RELEASE_DATE}}
 
-### What's New in v2.1
-- `/update` skill for safe framework updates
-- File tracking system with smart merge
-- Preserves all customizations during updates
-- Update history and rollback support
-- Opt-in for existing v2.0 projects
+### What's New in v{{NEW_VERSION}}
+- [Feature highlights from changelog]
+- [New skills or improvements]
+- [Bug fixes and enhancements]
 
 ### Impact Analysis
 Run `/update pull --dry-run` to see what would change.
@@ -150,7 +148,7 @@ Run `/update pull --dry-run` to see what would change.
 
 If already up to date:
 ```
-✅ You're on the latest framework version (2.1)
+✅ You're on the latest framework version ({{CURRENT_VERSION}})
 ```
 
 ---
@@ -175,7 +173,7 @@ Group files into three tiers:
 safe_replace:
   - bootstrap/**/*
   - docs/**/*
-  - skills/init/SKILL.md
+  - skills/atta/SKILL.md
   - skills/migrate/SKILL.md
   - skills/agent/SKILL.md
   - skills/librarian/SKILL.md
@@ -224,7 +222,7 @@ regenerate_optional:
   - agents/specialists/**/*
   - knowledge/patterns/**/*
   - agents/INDEX.md
-  note: "Run /init --rescan to regenerate from updated templates"
+  note: "Run /atta --rescan to regenerate from updated templates"
 ```
 
 ### 2.3. Compare File Contents
@@ -249,7 +247,7 @@ For Tier 2 files:
 ✓ bootstrap/templates/agents/*.template.md (clearer boundaries)
 ✓ docs/bootstrap-system.md (improved examples)
 ✓ docs/extending.md (new section on custom MCPs)
-✓ skills/init/SKILL.md (better error handling)
+✓ skills/atta/SKILL.md (better error handling)
 
 **Total**: 23 files will be updated
 
@@ -279,7 +277,7 @@ For Tier 2 files:
 ? agents/specialists/* (5 files)
 ? knowledge/patterns/* (8 files)
 
-Note: Run /init --rescan after update to regenerate from new templates
+Note: Run /atta --rescan after update to regenerate from new templates
 
 ---
 
@@ -300,7 +298,7 @@ When user runs `/update pull`:
 
 ```bash
 timestamp=$(date +%Y%m%d-%H%M%S)
-backup_dir=".claude-backup-update-v2.0-to-v2.1-$timestamp"
+backup_dir=".claude-backup-update-v{{CURRENT_VERSION}}-to-v{{NEW_VERSION}}-$timestamp"
 
 # Backup entire .claude directory (as sibling, not subdirectory)
 cp -r .claude/ "$backup_dir/"
@@ -418,14 +416,14 @@ Write updated tracking files:
 {
   "updates": [
     {
-      "from": "2.0",
-      "to": "2.1",
-      "timestamp": "2026-02-16T14:30:00Z",
+      "from": "{{CURRENT_VERSION}}",
+      "to": "{{NEW_VERSION}}",
+      "timestamp": "{{TIMESTAMP}}",
       "files_updated": 23,
       "files_merged": 2,
       "files_preserved": 14,
-      "backup_location": ".claude-backup-update-v2.0-to-v2.1-20260216-143000",
-      "notes": "Update system with file tracking and smart merge"
+      "backup_location": ".claude-backup-update-v{{CURRENT_VERSION}}-to-v{{NEW_VERSION}}-{{BACKUP_TIMESTAMP}}",
+      "notes": "Description of what changed in this update"
     }
   ]
 }
@@ -436,17 +434,17 @@ Write updated tracking files:
 ## Phase 4: Report Results
 
 ```markdown
-## ✅ Update Complete: v2.0 → v2.1
+## ✅ Update Complete: v{{CURRENT_VERSION}} → v{{NEW_VERSION}}
 
 ### What Changed
 
-**Framework Files Updated** (23 files)
-- bootstrap/ - Improved tech detection (15 new detectors)
-- docs/ - New MCP setup guides
-- skills/init/ - Better error handling and detection logic
-- knowledge/templates/ - Enhanced PR template
+**Framework Files Updated** (N files)
+- bootstrap/ - [Detection improvements]
+- docs/ - [New or updated guides]
+- skills/ - [Skill changes]
+- knowledge/templates/ - [Template updates]
 
-**Merged With Your Customizations** (2 files)
+**Merged With Your Customizations** (N files)
 - agents/project-owner.md ✓
 - agents/librarian.md ✓
 
@@ -458,13 +456,13 @@ Write updated tracking files:
 - settings.local.json
 
 ### Backup Location
-`.claude-backup-update-v2.0-to-v2.1-20260216-143000/`
+`.claude-backup-update-v{{CURRENT_VERSION}}-to-v{{NEW_VERSION}}-{{BACKUP_TIMESTAMP}}/`
 
 ### Next Steps
 
 1. **Regenerate agents** (optional):
    ```
-   /init --rescan
+   /atta --rescan
    ```
    This regenerates coordinators/specialists/patterns from updated templates.
 
@@ -478,19 +476,16 @@ Write updated tracking files:
    /update rollback
    ```
 
-### What's New in v2.1
+### What's New in v{{NEW_VERSION}}
 
-- `/update` skill for safe framework updates
-- File tracking system (file-manifest.json)
-- Smart merge preserves customizations
-- Update history and rollback support
-- Three-tier file classification (framework/generated/user)
-- Automatic backups before every update
+- [Feature highlights from changelog]
+- [New skills or improvements]
+- [Bug fixes and enhancements]
 
 ---
 
-**Framework version**: 2.1
-**Last updated**: 2026-02-16 14:30:00
+**Framework version**: {{NEW_VERSION}}
+**Last updated**: {{TIMESTAMP}}
 ```
 
 ---
@@ -509,10 +504,10 @@ Look for `.claude-backup-update-*` directories (sibling to .claude/), sorted by 
 ## Rollback Update
 
 Found recent update backup:
-- **From**: v2.0
-- **To**: v2.1
-- **Date**: 2026-02-16 14:30:00
-- **Backup**: .claude-backup-update-v2.0-to-v2.1-20260216-143000/
+- **From**: v{{CURRENT_VERSION}}
+- **To**: v{{NEW_VERSION}}
+- **Date**: {{TIMESTAMP}}
+- **Backup**: .claude-backup-update-v{{CURRENT_VERSION}}-to-v{{NEW_VERSION}}-{{BACKUP_TIMESTAMP}}/
 
 This will restore your `.claude/` directory to the state before the update.
 
@@ -530,7 +525,7 @@ cp -r .claude/ ".claude-pre-rollback-backup-$timestamp/"
 
 # Restore from update backup
 rm -rf .claude/
-cp -r .claude-backup-update-v2.0-to-v2.1-20260216-143000/ .claude/
+cp -r .claude-backup-update-v{{CURRENT_VERSION}}-to-v{{NEW_VERSION}}-{{BACKUP_TIMESTAMP}}/ .claude/
 
 echo "✓ Rollback complete"
 echo "✓ Current state backed up to: .claude-pre-rollback-backup-$timestamp/"
@@ -542,16 +537,16 @@ echo "✓ Current state backed up to: .claude-pre-rollback-backup-$timestamp/"
 ## ✅ Rollback Complete
 
 Restored from backup:
-- `.claude-backup-update-v2.0-to-v2.1-20260216-143000/`
+- `.claude-backup-update-v{{CURRENT_VERSION}}-to-v{{NEW_VERSION}}-{{BACKUP_TIMESTAMP}}/`
 
 Framework version:
-- **Was**: 2.1
-- **Now**: 2.0
+- **Was**: {{NEW_VERSION}}
+- **Now**: {{CURRENT_VERSION}}
 
 Your current state before rollback was saved to:
-- `.claude-pre-rollback-backup-20260216-143500/`
+- `.claude-pre-rollback-backup-{{ROLLBACK_TIMESTAMP}}/`
 
-You can now continue working on framework v2.0.
+You can now continue working on framework v{{CURRENT_VERSION}}.
 ```
 
 ---
@@ -563,24 +558,24 @@ Show complete update history:
 ```markdown
 ## Update History
 
-### v2.0 → v2.1 (2026-02-16 14:30:00)
-- Files updated: 23
-- Files merged: 2
-- Files preserved: 14
-- Backup: `.claude-backup-update-v2.0-to-v2.1-20260216-143000/`
-- Notes: Update system with file tracking and smart merge
+### v{{PREV_VERSION}} → v{{CURRENT_VERSION}} ({{TIMESTAMP}})
+- Files updated: N
+- Files merged: N
+- Files preserved: N
+- Backup: `.claude-backup-update-v{{PREV_VERSION}}-to-v{{CURRENT_VERSION}}-{{BACKUP_TIMESTAMP}}/`
+- Notes: Description of changes
 
-### v1.0 → v2.0 (2026-01-10 09:15:00) [Migration]
-- Migrated from v1.0 to v2.0 bootstrap system
-- Generated 7 specialists, 2 coordinators
-- Preserved 5 custom rules from legacy agents
-- Backup: `.claude-backup-migrate-v1.0-to-v2.0-20260110-091500/`
+### v{{OLDER_VERSION}} → v{{PREV_VERSION}} ({{TIMESTAMP}}) [Migration]
+- Migrated from v{{OLDER_VERSION}} to v{{PREV_VERSION}}
+- Generated N specialists, N coordinators
+- Preserved N custom rules from legacy agents
+- Backup: `.claude-backup-migrate-v{{OLDER_VERSION}}-to-v{{PREV_VERSION}}-{{BACKUP_TIMESTAMP}}/`
 
 ---
 
-**Current version**: 2.1
-**Framework version**: 2.1
-**Last update**: 2026-02-16 14:30:00
+**Current version**: {{CURRENT_VERSION}}
+**Framework version**: {{CURRENT_VERSION}}
+**Last update**: {{TIMESTAMP}}
 ```
 
 ---
@@ -748,25 +743,25 @@ When releasing a new framework version:
 
 1. **Update version file**:
    ```bash
-   echo "2.1" > .claude/.metadata/version
+   echo "{{NEW_VERSION}}" > .claude/.metadata/version
    ```
 
 2. **Document changes**:
-   Create `.claude/.metadata/changelog-2.1.md` with:
+   Create `.claude/.metadata/changelog-{{NEW_VERSION}}.md` with:
    - What changed
    - Breaking changes (if any)
    - Migration notes
    - New features
 
 3. **Test update path**:
-   - Test on clean v2.0 → v2.1
-   - Test on customized v2.0 → v2.1
+   - Test on clean v{{CURRENT_VERSION}} → v{{NEW_VERSION}}
+   - Test on customized v{{CURRENT_VERSION}} → v{{NEW_VERSION}}
    - Test rollback
 
 4. **Tag release**:
    ```bash
-   git tag -a v2.1 -m "Framework v2.1: Improved detection & MCP support"
-   git push origin v2.1
+   git tag -a v{{NEW_VERSION}} -m "Framework v{{NEW_VERSION}}: [Release description]"
+   git push origin v{{NEW_VERSION}}
    ```
 
 ### For Users
@@ -777,8 +772,8 @@ Update workflow:
 3. `/update check --from ./.claude_staging/.claude`
 4. `/update pull --dry-run --from ./.claude_staging/.claude`
 5. `/update pull --from ./.claude_staging/.claude`
-6. `/init --rescan` - Regenerate agents (optional)
+6. `/atta --rescan` - Regenerate agents (optional)
 
 ---
 
-_Update Skill v2.3 — Safe framework updates that preserve your customizations_
+_Safe framework updates that preserve your customizations_

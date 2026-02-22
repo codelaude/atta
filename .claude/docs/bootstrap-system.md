@@ -1,4 +1,4 @@
-# Bootstrap System v2.4
+# Bootstrap System
 
 The core innovation in v2.x is **dynamic agent generation**. Instead of hardcoding agents for Vue/SCSS/TypeScript, the system detects your tech stack and generates specialized agents from universal templates.
 

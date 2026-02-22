@@ -132,10 +132,10 @@ Read `.claude/agents/INDEX.md` to discover available agents. Read `.claude/knowl
 
 ### Graceful Degradation
 
-If the project has not run `/init` (no generated specialists):
+If the project has not run `/atta` (no generated specialists):
 - Fall back to core agents: `code-reviewer` (quality focus) + `qa-validator` (requirements focus)
 - Note: Do not fall back to `project-owner` — its definition prohibits reading code files, making it unsuitable as a reviewing collaborator.
-- Output a notice: "For better collaboration results, run `/init` to generate specialist agents for your tech stack."
+- Output a notice: "For better collaboration results, run `/atta` to generate specialist agents for your tech stack."
 
 ---
 
@@ -534,7 +534,7 @@ Available agents: {list from INDEX.md}
 
 Recovery options:
 1. Check spelling and use an available agent ID
-2. Run `/init` to generate specialists for your tech stack
+2. Run `/atta` to generate specialists for your tech stack
 3. Use `/collaborate` without `--agents` for auto-routing
 ```
 
@@ -544,7 +544,7 @@ Recovery options:
 No specialist agents are available for collaboration.
 
 Recovery options:
-1. Run `/init` to generate agents for your tech stack
+1. Run `/atta` to generate agents for your tech stack
 2. Use `/review` for single-agent code review (works without specialists)
 3. Specify core agents explicitly: `/collaborate --agents code-reviewer,qa-validator`
 ```
@@ -621,8 +621,8 @@ Recovery options:
 - `/preflight` — Full pre-PR validation (lint + security + tests + review)
 - `/agent {id}` — Invoke a single specialist for focused analysis
 - `/team-lead` — Task decomposition with specialist coordination
-- `/init` — Generate specialist agents for your tech stack
+- `/atta` — Generate specialist agents for your tech stack
 
 ---
 
-_Collaborate Skill v2.4_
+_Multi-agent collaboration with conflict detection_

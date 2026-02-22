@@ -367,7 +367,7 @@ If security patterns or specialist agent are not generated, show:
 ⚠️ Security specialist or patterns not available.
 
 Recovery options:
-1. Run `/init` to generate security specialist (detected from project tools)
+1. Run `/atta` to generate security specialist (detected from project tools)
 2. Continue with built-in OWASP checks (default patterns in this skill)
 3. Create security patterns manually at `.claude/knowledge/patterns/security-patterns.md`
 ```

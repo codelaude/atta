@@ -91,4 +91,4 @@ Ensure `.claude_staging/.claude` exists and try again.
 - Prefer documenting `/update` in primary docs.
 - This alias can be deprecated after users transition.
 
-_Compatibility Alias v2.3 — `/migrate` forwards to `/update` Migration mode_
+_Compatibility alias — `/migrate` forwards to `/update` Migration mode_

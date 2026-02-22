@@ -3,7 +3,7 @@
 # Generated skills wrap project-specific commands with Claude context
 #
 # CONDITION REFERENCE:
-# Conditions are evaluated by the generator during /init Phase 2 (Auto-Detection).
+# Conditions are evaluated by the generator during /atta Phase 2 (Auto-Detection).
 # Each condition maps to a detection check performed on the project files:
 #
 #   has_npm           — package.json exists with npm lockfile (or no lockfile)

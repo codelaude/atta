@@ -1,6 +1,6 @@
 # MCP Mappings
 # Recommends MCP servers based on detected tech stack
-# Used by /init to suggest relevant MCPs to users
+# Used by /atta to suggest relevant MCPs to users
 
 # Context7 MCP (Recommended for ALL projects)
 # Provides up-to-date, version-specific documentation directly in the prompt
@@ -461,7 +461,7 @@ node_requirements:
 
     windows_note: "On Windows, check %NVM_HOME% environment variable for nvm-windows installation path"
 
-  # Generation instructions for /init
+  # Generation instructions for /atta
   generation_logic:
     - "Detect OS platform (process.platform or equivalent)"
     - "Unix/Linux/macOS: Check if nvm installed (~/.nvm/ exists or $NVM_DIR set)"

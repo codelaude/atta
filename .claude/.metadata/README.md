@@ -7,7 +7,7 @@ This directory contains system metadata for the adaptive bootstrap system.
 ### `version`
 Contains the current user's version of the `.claude/` system.
 - **Current version**: 2.3
-- **Used by**: `/init` and `/migrate` skills for version detection
+- **Used by**: `/atta` and `/migrate` skills for version detection
 - **Note**: This is the user's version, which may have customizations
 
 ### `framework-version` (introduced in v2.1)
@@ -17,15 +17,15 @@ Contains the framework version that was last applied.
 - **Note**: This is separate from user version to track framework updates independently
 
 ### `last-init` (generated)
-Timestamp of the last `/init` execution.
+Timestamp of the last `/atta` execution.
 - **Format**: ISO 8601 timestamp
 - **Example**: `2026-02-14T10:30:00Z`
-- **Used by**: `/init --rescan` to determine if re-scan is needed
+- **Used by**: `/atta --rescan` to determine if re-scan is needed
 
 ### `generated-manifest.json` (generated)
 Complete manifest of all generated files from the bootstrap system.
 - **Purpose**: Track which files were auto-generated
-- **Used by**: `/init --rescan` and `/migrate` for cleanup and updates
+- **Used by**: `/atta --rescan` and `/migrate` for cleanup and updates
 - **Structure**:
   ```json
   {
@@ -46,7 +46,7 @@ Complete manifest of all generated files from the bootstrap system.
 Tracks all files in `.claude/` and their source (framework/generated/user).
 - **Purpose**: Enable safe framework updates that preserve customizations
 - **Used by**: `/update` skill to classify files and detect customizations
-- **Created by**: `/init` on new projects, `/migrate --add-update-system` on existing v2.0 projects
+- **Created by**: `/atta` on new projects, `/migrate --add-update-system` on existing v2.0 projects
 - **Structure**:
   ```json
   {
@@ -114,7 +114,11 @@ Template for the file-manifest.json structure.
 
 ## Version History
 
+- **2.4.2** (2026-02-22): Renamed `/init` → `/atta`, removed cosmetic version numbers from footers/headers
+- **2.4.1** (2026-02-20): Session tracking expanded to all skills, hardening fixes
+- **2.4** (2026-02-19): Multi-agent `/collaborate` skill (parallel 2-4 agent collaboration)
 - **2.3** (2026-02-17): Security sprint (`/security-audit`, security specialist template, security detection rules)
+- **2.2** (2026-02-17): Tutorial skill, session tracking infrastructure, error handling, recent work context
 - **2.1** (2026-02-16): Update system with file tracking and smart merge
 - **2.0** (2026-02-14): Adaptive bootstrap system with dynamic agent generation
 - **1.0**: Static agent system (Vue/AEM focused, legacy)

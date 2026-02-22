@@ -4,9 +4,9 @@ MCP servers provide external context to AI assistants, enabling them to access l
 
 ## How the Bootstrap System Handles MCPs
 
-The bootstrap system automates MCP configuration during `/init`:
+The bootstrap system automates MCP configuration during `/atta`:
 
-1. **Detects your needs** during `/init` interview
+1. **Detects your needs** during `/atta` interview
 2. **Checks Node.js version** (MCP servers require Node.js 18+)
 3. **Recommends servers** based on detected stack
 4. **Generates config**: `.claude/knowledge/project/mcp-config.json` with proper paths for nvm users

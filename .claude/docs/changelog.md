@@ -4,9 +4,15 @@ Full version history for the Atta framework.
 
 ---
 
+## v2.4.2 (2026-02-22) — Rename & Version Cleanup
+
+- Renamed `/init` skill to `/atta` to avoid collision with Claude Code built-in `/init`
+- Removed cosmetic version numbers from skill footers and doc headers
+- Version now lives only in `.metadata/version` and changelog (single source of truth)
+
 ## v2.4.1 (2026-02-20) — Session Tracking Expansion
 
-- Session tracking expanded from 2 skills to 9 of 12 skills (excludes /init, /update, /migrate)
+- Session tracking expanded from 2 skills to 9 of 12 skills (excludes /atta, /update, /migrate)
 - Standardized three-block pattern: init → agent tracking → finalization
 - Agent tracking for skills that invoke agents (agent, team-lead, review, security-audit, preflight)
 - DIR-022 compliance: error handling sections explicitly mention session finalization
@@ -38,7 +44,7 @@ Full version history for the Atta framework.
 - `/tutorial` skill — interactive 5-minute onboarding with 3 steps + quick reference card
 - Session tracking infrastructure for skill executions (JSON schema v1.0.0, auto-cleanup)
 - Recent work context — agents (Project Owner) read last 5 session summaries for continuity
-- Error handling & recovery sections for `/review`, `/preflight`, `/init`, `/lint`, `/agent`
+- Error handling & recovery sections for `/review`, `/preflight`, `/atta`, `/lint`, `/agent`
 - 20 new bootstrap templates (15 pattern templates, 4 skill templates, 1 agent template)
 - Comprehensive bug fixes across bootstrap pipeline, mappings, scripts, and documentation
 - macOS compatibility fix for session cleanup script

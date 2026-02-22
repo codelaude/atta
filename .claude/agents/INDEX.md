@@ -7,8 +7,8 @@ generated: true
 
 # Agent System Registry
 
-> **Note:** This file is **auto-generated** by `/init` based on your detected tech stack.
-> It will be regenerated each time you run `/init` to reflect your current project structure.
+> **Note:** This file is **auto-generated** by `/atta` based on your detected tech stack.
+> It will be regenerated each time you run `/atta` to reflect your current project structure.
 
 ## About This System
 
@@ -21,13 +21,13 @@ The agent structure adapts to your project:
 - **Coordinators**: Generated if frontend/backend detected (fe-team-lead, be-team-lead)
 - **Specialists**: Generated based on detected technologies (Vue, React, Django, Java, PostgreSQL, etc.)
 
-**Your current agent structure will appear here after running `/init`.**
+**Your current agent structure will appear here after running `/atta`.**
 
 ---
 
 ## Template Structure (Before Init)
 
-Until you run `/init`, here's the expected structure:
+Until you run `/atta`, here's the expected structure:
 
 ```
 Core Agents (universal)
@@ -61,7 +61,7 @@ Coordinators (generated per project)
 Run the initialization command to detect your tech stack and generate the appropriate agents:
 
 ```bash
-/init
+/atta
 ```
 
 This will:
@@ -93,7 +93,7 @@ How agents work, their constraints, and collaboration patterns.
 
 ## Manual Agent Structure (If Not Using Init)
 
-If you're not using the `/init` system and want to manually configure agents:
+If you're not using the `/atta` system and want to manually configure agents:
 
 1. **Core agents** are at `.claude/agents/` root
 2. **Create coordinators** in `.claude/agents/coordinators/` if needed
@@ -125,4 +125,4 @@ If you're not using the `/init` system and want to manually configure agents:
 
 ---
 
-**To get started, run `/init` to generate your custom agent team!**
+**To get started, run `/atta` to generate your custom agent team!**

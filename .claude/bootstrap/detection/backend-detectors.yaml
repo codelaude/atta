@@ -1,5 +1,5 @@
 # Backend Framework Detection Rules
-# Used by /init to identify backend frameworks, languages, and API patterns
+# Used by /atta to identify backend frameworks, languages, and API patterns
 #
 # DETECTION PRIORITY:
 # 1. File-based detection (files, config_files, file_patterns) — primary method
@@ -8,7 +8,7 @@
 #
 # VERSION_DETECTION:
 # The `version_detection.command` field is optional metadata for the generator.
-# During /init, the generator MAY run these commands to detect installed versions
+# During /atta, the generator MAY run these commands to detect installed versions
 # and populate template variables (e.g., {{FRAMEWORK_VERSION}}).
 # If the command fails or is unavailable, the generator should skip version info.
 # The `fallback_file` provides an alternative source for version detection.

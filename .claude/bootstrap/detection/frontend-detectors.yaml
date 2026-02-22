@@ -1,5 +1,5 @@
 # Frontend Framework Detection Rules
-# Used by /init to identify frontend frameworks and their characteristics
+# Used by /atta to identify frontend frameworks and their characteristics
 
 frameworks:
   # Vue.js

@@ -7,7 +7,7 @@ format: decision_tree
 # Quick Reference - Decision Trees & Anti-Patterns
 
 > **Purpose:** Fast lookups for common decisions and anti-patterns.
-> **Setup:** This file will be populated by `/init` based on your detected tech stack,  or you can add project-specific rules manually.
+> **Setup:** This file will be populated by `/atta` based on your detected tech stack,  or you can add project-specific rules manually.
 > **Note:** Tech-specific patterns (Vue, React, Django, etc.) belong in `.claude/knowledge/patterns/[tech]-patterns.md`
 
 ---
@@ -26,7 +26,7 @@ format: decision_tree
 | Magic numbers | Extract to named constants | MEDIUM |
 | Copy-pasted code | Extract to reusable function | MEDIUM |
 
-_Add your project-specific anti-patterns here after `/init` generates pattern files._
+_Add your project-specific anti-patterns here after `/atta` generates pattern files._
 
 ---
 
@@ -52,11 +52,11 @@ _Add your project-specific anti-patterns here after `/init` generates pattern fi
 ## File Type → Required Reading
 
 > **Purpose:** Know which pattern files to reference when editing specific file types.
-> **Setup:** This table is auto-populated by `/init` based on detected technologies.
+> **Setup:** This table is auto-populated by `/atta` based on detected technologies.
 
 | Editing | Read First |
 |---------|------------|
-| _Will be populated by /init based on your tech stack_ | _Pattern files_ |
+| _Will be populated by /atta based on your tech stack_ | _Pattern files_ |
 
 **Example (after init on a Vue + Django project):**
 | Editing | Read First |
@@ -83,7 +83,7 @@ _Add your project-specific anti-patterns here after `/init` generates pattern fi
 - [ ] Linter passes
 
 ### Tech-Specific Checks
-_This section will be populated by `/init` based on your stack._
+_This section will be populated by `/atta` based on your stack._
 
 ---
 
@@ -179,7 +179,7 @@ _This section will be populated by `/init` based on your stack._
 
 ## Customization
 
-After running `/init`, this file will be enhanced with:
+After running `/atta`, this file will be enhanced with:
 1. Tech-specific anti-patterns from your detected stack
 2. File type → pattern file mappings
 3. Pre-commit checklist items based on your tooling

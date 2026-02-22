@@ -19,7 +19,7 @@
       "description": "System documentation",
       "framework_hash": null
     },
-    "skills/init/SKILL.md": {
+    "skills/atta/SKILL.md": {
       "source": "framework",
       "customized": false,
       "safe_to_replace": true,
@@ -292,5 +292,5 @@
       "skills/generated/**/*"
     ]
   },
-  "notes": "This manifest tracks which files are framework vs user content. Updated by /init, /migrate, and /update skills."
+  "notes": "This manifest tracks which files are framework vs user content. Updated by /atta, /migrate, and /update skills."
 }

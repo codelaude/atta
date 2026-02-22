@@ -2,7 +2,7 @@
 
 > **Purpose**: This file contains the core logic for dynamically generating agents, skills, and configurations based on detected project technology stacks.
 >
-> **Used by**: The `/init` skill reads this file to understand how to:
+> **Used by**: The `/atta` skill reads this file to understand how to:
 > 1. Load detection rules from YAML files
 > 2. Map detected technologies to templates
 > 3. Perform variable substitution
@@ -278,7 +278,7 @@ Result:
 - `{{#each ARRAY}}{{this}}{{/each}}` - Array iteration
 - `{{#each ARRAY}}{{property}}{{/each}}` - Object array iteration
 
-> **Note:** There is no external template engine (like Handlebars or Mustache). The `{{syntax}}` is pseudo-code that instructs Claude Code on what to replace when generating files. During `/init`, Claude reads the template, performs the substitutions itself using the variables from mappings and detection, and writes the final output. The syntax is documentation for the AI, not executable code.
+> **Note:** There is no external template engine (like Handlebars or Mustache). The `{{syntax}}` is pseudo-code that instructs Claude Code on what to replace when generating files. During `/atta`, Claude reads the template, performs the substitutions itself using the variables from mappings and detection, and writes the final output. The syntax is documentation for the AI, not executable code.
 
 ---
 
@@ -409,7 +409,7 @@ For each detected technology:
    }
    ```
 
-### User Prompting (during /init)
+### User Prompting (during /atta)
 
 Present recommendations to user:
 ```
@@ -587,9 +587,9 @@ If a required variable is missing:
 
 ---
 
-## Usage in /init Skill
+## Usage in /atta Skill
 
-The `/init` skill should:
+The `/atta` skill should:
 
 1. **Phase 1 - Detection**:
    ```javascript
@@ -648,7 +648,7 @@ The `/init` skill should:
 2. Create or reuse template in `bootstrap/templates/agents/`
 3. Add mapping in `bootstrap/mappings/agent-mappings.yaml`
 4. Add MCP recommendations in `bootstrap/mappings/mcp-mappings.yaml`
-5. Run `/init` - new tech stack is now supported!
+5. Run `/atta` - new tech stack is now supported!
 
 ### Custom Templates
 

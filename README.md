@@ -10,10 +10,10 @@ A multi-agent system for AI-assisted development that guides, reviews, and valid
 
 ### 1. Set up
 
-Copy the `.claude/` directory into your project root, then run `/init`:
+Copy the `.claude/` directory into your project root, then run `/atta`:
 
 ```
-/init
+/atta
 ```
 
 The interactive setup interviews you about your project, auto-detects your tech stack, generates specialist agents and pattern files, and optionally configures MCP servers.
@@ -60,7 +60,7 @@ All your customizations (pattern files, agent tweaks, project context) are prese
 
 | Command | What it does |
 |---------|-------------|
-| `/init` | Interactive project setup — detects 100+ technologies, generates agents, configures MCPs |
+| `/atta` | Interactive project setup — detects 100+ technologies, generates agents, configures MCPs |
 | `/update` | Safe framework updates — auto-selects upgrade/migration mode from metadata |
 | `/migrate` | Compatibility alias for `/update --mode migration` |
 | `/agent <id>` | Invoke any specialist (e.g., `/agent vue`, `/agent django`) |
@@ -131,7 +131,7 @@ Skills load their instructions into the conversation context. Heavier skills cos
 
 | Skill | Frequency | Est. Input | Est. Output | Sonnet Cost | Opus Cost |
 |-------|-----------|-----------|------------|-------------|-----------|
-| `/init` | Once per project | ~50-70K | ~15-25K | ~$0.40-0.60 | ~$2-3 |
+| `/atta` | Once per project | ~50-70K | ~15-25K | ~$0.40-0.60 | ~$2-3 |
 | `/tutorial` | Once per user | ~15-20K | ~3-5K | ~$0.10-0.15 | ~$0.50-0.70 |
 | `/collaborate` | Occasional | ~30-50K | ~10-15K | ~$0.30-0.50 | ~$1.50-2.50 |
 | `/review` | Frequent | ~10-15K | ~3-5K | ~$0.08-0.12 | ~$0.35-0.50 |
@@ -141,7 +141,7 @@ Skills load their instructions into the conversation context. Heavier skills cos
 
 > Estimates based on typical usage. Actual costs depend on codebase size, number of files reviewed, and conversation length. Subscription plans (Claude Pro/Max) count against usage budgets rather than per-token billing.
 
-**Key takeaway:** Setup (`/init`) is the most expensive invocation but only runs once. Daily skills (`/review`, `/lint`, `/agent`) are 5-10x cheaper.
+**Key takeaway:** Setup (`/atta`) is the most expensive invocation but only runs once. Daily skills (`/review`, `/lint`, `/agent`) are 5-10x cheaper.
 
 ## Documentation
 

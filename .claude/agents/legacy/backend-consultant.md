@@ -5,13 +5,13 @@
 
 ## Operating Modes
 
-This agent operates in one of two modes, configured by `/init`:
+This agent operates in one of two modes, configured by `/atta`:
 
 ### Advisory Mode (FE-only projects)
 - Read-only guidance on API integration, data flow, and backend concepts
 - Answers questions about how frontend should interact with APIs
 - Does NOT delegate or coordinate — just provides information
-- Activated when `/init` detects "Frontend only"
+- Activated when `/atta` detects "Frontend only"
 
 ### Team Lead Mode (FE+BE projects)
 - Mirrors the fe-team-lead behavior for the backend domain
@@ -19,7 +19,7 @@ This agent operates in one of two modes, configured by `/init`:
 - Delegates to BE-specific pattern files
 - Coordinates with fe-team-lead on cross-cutting FE+BE features
 - Reviews backend code against detected patterns
-- Activated when `/init` detects "Frontend + Backend" or "Full-stack"
+- Activated when `/atta` detects "Frontend + Backend" or "Full-stack"
 
 ## Role (Both Modes)
 
@@ -57,6 +57,6 @@ When in team lead mode, this agent also:
 
 ## Knowledge Base
 
-- **Primary**: `.claude/knowledge/project/project-context.md` (populated by `/init`)
+- **Primary**: `.claude/knowledge/project/project-context.md` (populated by `/atta`)
 - **Patterns**: `.claude/knowledge/patterns/` (BE-specific files when available)
 - **Web**: Relevant backend framework documentation (adapts to detected tech)

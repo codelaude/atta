@@ -53,7 +53,7 @@ if [ ! -d "$SESSIONS_DIR" ]; then
 
 *Auto-generated — do not edit manually.*
 
-No recent sessions found. Run a skill (e.g., `/init`, `/tutorial`) to start tracking.
+No recent sessions found. Run a skill (e.g., `/atta`, `/tutorial`) to start tracking.
 EOF
   exit 0
 fi
@@ -143,7 +143,7 @@ header = '''# Recent Work Context
 if lines:
     print(header + '\n'.join(lines))
 else:
-    print(header + 'No recent sessions found. Run a skill (e.g., \`/init\`, \`/tutorial\`) to start tracking.')
+    print(header + 'No recent sessions found. Run a skill (e.g., \`/atta\`, \`/tutorial\`) to start tracking.')
 " "$SESSIONS_DIR" "$MAX_RECENT" > "$OUTPUT_FILE"
 
 # Count files for status message

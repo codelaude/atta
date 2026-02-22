@@ -1,5 +1,5 @@
 ---
-name: init
+name: atta
 description: Interactive project setup that detects tech stack, asks clarifying questions, and generates tailored knowledge files and agent configuration. Run this when starting with a new project.
 ---
 
@@ -8,8 +8,8 @@ You are now running **project initialization** — an interactive setup that con
 ## How to Use
 
 ```
-/init                    # Full interactive setup
-/init --rescan           # Re-detect tech stack and update files (skip questions already answered)
+/atta                    # Full interactive setup
+/atta --rescan           # Re-detect tech stack and update files (skip questions already answered)
 ```
 
 ---
@@ -72,7 +72,7 @@ Before scanning anything, ask these questions using AskUserQuestion. Group relat
 > "How do you run commands?"
 - Options: "npm", "yarn", "pnpm", "bun"
 
-### Round 4: MCP Configuration (NEW in v2.0)
+### Round 4: MCP Configuration
 
 **First, explain what MCPs are and ask if user wants them:**
 
@@ -83,7 +83,7 @@ Question: "Would you like to configure MCP (Model Context Protocol) servers?"
 
 Options:
 - "Yes, configure MCPs (Recommended)" — Adds live documentation, database access, and other AI capabilities
-- "No, skip for now" — You can configure later by rerunning `/init`
+- "No, skip for now" — You can configure later by rerunning `/atta`
 
 Description for "Yes" option:
 "MCP servers extend AI capabilities with:
@@ -128,7 +128,7 @@ MCP servers are **separate processes** independent of the project's Node version
   - I'll install Node 18+ first
   - Skip MCP configuration
   ```
-- **If "I'll install Node 18+ first"**: Skip MCP configuration and inform user to rerun `/init` after installing Node 18+. Continue to Phase 2 (Auto-Detection).
+- **If "I'll install Node 18+ first"**: Skip MCP configuration and inform user to rerun `/atta` after installing Node 18+. Continue to Phase 2 (Auto-Detection).
 - **If "Skip MCP configuration"**: Skip MCP configuration. Continue to Phase 2 (Auto-Detection).
 - **If no**: Offer to install Node 18+ or skip MCPs
 
@@ -516,7 +516,7 @@ Use the Node version selected in Round 4 (not necessarily the project's current 
 > The generated config uses `npx -y` with unpinned package versions for quick setup. This means:
 > - ⚠️ **Every MCP start fetches the latest npm package version**
 > - ⚠️ **Compromised packages can execute arbitrary code with access to API keys and database credentials**
-> - ⚠️ **This affects ALL projects initialized with `/init` if packages are compromised**
+> - ⚠️ **This affects ALL projects initialized with `/atta` if packages are compromised**
 >
 > **For production or sensitive environments:**
 > 1. Pin to specific, audited versions: `"args": ["-y", "@upstash/context7-mcp@1.2.3"]`
@@ -648,7 +648,7 @@ Update `.metadata/last-init` with current timestamp.
 
 ---
 
-## Phase 8: Create File Manifest (NEW v2.1)
+## Phase 8: Create File Manifest
 
 Create file tracking manifest for the update system.
 
@@ -674,7 +674,7 @@ This manifest enables the `/update` skill to track which files are framework vs 
       "customized": false,
       "safe_to_replace": true
     },
-    "skills/init/SKILL.md": {
+    "skills/atta/SKILL.md": {
       "source": "framework",
       "customized": false,
       "safe_to_replace": true
@@ -774,7 +774,7 @@ And `.claude/.metadata/update-history.json`:
     {
       "type": "initial-setup",
       "timestamp": "{{TIMESTAMP}}",
-      "notes": "Project initialized with bootstrap system v2.1"
+      "notes": "Project initialized with bootstrap system {{FRAMEWORK_VERSION}}"
     }
   ]
 }
@@ -792,7 +792,7 @@ These files enable the update system:
 ```markdown
 ## ✅ Initialization Complete
 
-### 🎉 Bootstrap System v2.0
+### 🎉 Atta Bootstrap System
 
 Your project now has a **dynamically generated agent team** tailored to your tech stack!
 
@@ -816,7 +816,7 @@ Your project now has a **dynamically generated agent team** tailored to your tec
 - `/preflight` — Full pre-PR validation
 
 ### Next Steps
-- Run `/init --rescan` anytime the tech stack changes
+- Run `/atta --rescan` anytime the tech stack changes
 - Use `/agent librarian` to capture project-specific rules
 ```
 
@@ -850,9 +850,9 @@ What I checked:
 - backend indicators (pom.xml, pyproject.toml, go.mod, etc.)
 
 Recovery options:
-1. Confirm the correct project root or source subdirectory and rerun `/init`
+1. Confirm the correct project root or source subdirectory and rerun `/atta`
 2. Tell me your stack explicitly (framework, language, test runner, styling, backend)
-3. Continue with a minimal core-agent setup now, then run `/init --rescan` later
+3. Continue with a minimal core-agent setup now, then run `/atta --rescan` later
 ```
 
 ### Path Errors (Wrong command/source directory)
@@ -864,7 +864,7 @@ Show:
 
 Recovery options:
 1. Provide a valid relative path from project root
-2. Use current directory as root and rerun `/init`
+2. Use current directory as root and rerun `/atta`
 3. Skip path-specific detection and continue with confirmed defaults
 ```
 
@@ -877,10 +877,10 @@ Show:
 
 Recovery options:
 1. Select an installed Node 18+ runtime for MCPs
-2. Install Node 18+ and rerun `/init`
+2. Install Node 18+ and rerun `/atta`
 3. Skip MCP setup now and continue initialization
 
-You can add MCPs later by rerunning `/init`.
+You can add MCPs later by rerunning `/atta`.
 ```
 
 ### Write Failure (Permission or filesystem issue)
@@ -891,9 +891,9 @@ Show:
 ⚠️ I couldn't write one or more generated files.
 
 Recovery options:
-1. Verify write permissions for `.claude/` and retry `/init`
+1. Verify write permissions for `.claude/` and retry `/atta`
 2. Share the failing path and I'll suggest a safe manual fix
-3. Continue without that file and regenerate later with `/init --rescan`
+3. Continue without that file and regenerate later with `/atta --rescan`
 ```
 
 ---

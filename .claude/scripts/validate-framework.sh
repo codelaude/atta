@@ -90,8 +90,8 @@ echo "==> Running targeted security/coherence checks"
 assert_contains ".claude/scripts/session-cleanup.sh" "-print0" "session-cleanup uses null-delimited find output"
 assert_contains ".claude/scripts/session-cleanup.sh" "xargs -0 rm -f" "session-cleanup uses xargs -0 deletion"
 
-assert_contains ".claude/skills/init/SKILL.md" "#### Security Tools (cross-cutting)" "init skill documents security tool detection"
-assert_contains ".claude/skills/init/SKILL.md" "security-specialist (if triggered)" "init skill documents security specialist activation"
+assert_contains ".claude/skills/atta/SKILL.md" "#### Security Tools (cross-cutting)" "atta skill documents security tool detection"
+assert_contains ".claude/skills/atta/SKILL.md" "security-specialist (if triggered)" "atta skill documents security specialist activation"
 
 strict_password_pattern="password\\s*=\\s*\"[^\"]+\"|password\\s*=\\s*'[^']+'"
 weak_password_pattern="password\\s*=\\s*['\"][^'\"]+['\"]"

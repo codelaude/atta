@@ -1,7 +1,6 @@
 # Session Tracking
 
-**Version**: v2.4.1
-**Status**: Foundation (Enables v2.5+ features)
+**Status**: Foundation (Enables future learning features)
 
 ## Overview
 
@@ -130,7 +129,7 @@ If you're building custom skills and want to integrate session tracking:
 
 ## Skill Coverage
 
-9 of 12 skills include session tracking with standardized init, finalization, and cleanup blocks. Infrastructure skills (`/init`, `/update`, `/migrate`) do not have session tracking.
+9 of 12 skills include session tracking with standardized init, finalization, and cleanup blocks. Infrastructure skills (`/atta`, `/update`, `/migrate`) do not have session tracking.
 
 | Skill | Agent Tracking | Notes |
 |-------|---------------|-------|

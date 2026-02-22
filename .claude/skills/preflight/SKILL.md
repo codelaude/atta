@@ -346,7 +346,7 @@ If review tooling/context is missing, show:
 ⚠️ Review step could not run with full context.
 
 Recovery options:
-1. Rerun `/init` to regenerate missing context
+1. Rerun `/atta` to regenerate missing context
 2. Execute `/review <target>` manually
 3. Continue with lint+test result only and flag review as pending
 ```

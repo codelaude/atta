@@ -1,5 +1,5 @@
 # Database Detection Rules
-# Used by /init to identify databases, ORMs, and data access patterns
+# Used by /atta to identify databases, ORMs, and data access patterns
 #
 # CONTENT_MATCH FORMAT:
 # Values can be a string (single match) or array (any match):

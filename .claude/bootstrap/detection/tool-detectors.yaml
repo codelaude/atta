@@ -3,7 +3,7 @@
 #
 # DETECTION NOTE:
 # Some entries include a `command` field (e.g., `command: "cargo clippy --version"`).
-# This is optional metadata — the generator MAY run these commands during /init
+# This is optional metadata — the generator MAY run these commands during /atta
 # to verify tool availability. Primary detection uses file-based checks.
 # If a command fails, the generator should fall back to file-based detection only.
 

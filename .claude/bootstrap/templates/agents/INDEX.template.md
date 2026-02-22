@@ -1,6 +1,6 @@
 # Agent Index
 
-> Auto-generated routing table for your Atta agent team. Updated by `/init`.
+> Auto-generated routing table for your Atta agent team. Updated by `/atta`.
 
 ## Team Hierarchy
 
@@ -64,5 +64,5 @@ Use this to determine which agent handles what:
 
 To update this index after adding new technologies:
 ```
-/init --rescan
+/atta --rescan
 ```

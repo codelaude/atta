@@ -346,7 +346,7 @@ If required reviewer context/patterns are unavailable, show:
 ⚠️ Review context is incomplete (missing generated agents or patterns).
 
 Recovery options:
-1. Run `/init` to generate missing agents/pattern files
+1. Run `/atta` to generate missing agents/pattern files
 2. Continue with baseline critical checks only
 3. Route to `/agent code-reviewer` for a manual focused review
 ```

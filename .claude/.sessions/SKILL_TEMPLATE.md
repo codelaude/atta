@@ -166,13 +166,13 @@ After integrating session tracking:
 4. Run the skill 11+ times
 5. Verify cleanup keeps only 10 most recent sessions
 
-## Real Example: /init Integration
+## Real Example: /collaborate Integration
 
-See `.claude/skills/init/SKILL.md` for a complete working example of session tracking integration.
+See `.claude/skills/collaborate/SKILL.md` for a complete working example of session tracking integration.
 
-Key points from `/init`:
+Key points from `/collaborate`:
 - Session created at start with "in_progress"
-- Agents tracked as they're invoked (project-owner, specialists)
+- Agents tracked as they're invoked (specialists from parallel collaboration)
 - Duration calculated at end
 - Status updated to "completed"
 - Cleanup runs automatically

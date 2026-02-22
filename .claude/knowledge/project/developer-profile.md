@@ -1,7 +1,7 @@
 # Developer Profile & Working Preferences
 
 > **Purpose:** This file helps AI assistants understand your working style and preferences.
-> **Setup:** Customize this template during `/init` or edit it anytime to reflect your preferences.
+> **Setup:** Customize this template during `/atta` or edit it anytime to reflect your preferences.
 
 ---
 

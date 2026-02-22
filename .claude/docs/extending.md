@@ -122,7 +122,7 @@ export default function NewPost() {
 - [Remix Examples](https://github.com/remix-run/examples)
 ```
 
-### 4. Run `/init`
+### 4. Run `/atta`
 
 That's it! The new technology will be:
 - ✅ Detected during project scan

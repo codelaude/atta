@@ -169,7 +169,7 @@ If user wants to know more about agents:
 Each agent has:
 - A **defined role** (what it does)
 - **Explicit constraints** (what it will NOT do — keeps it focused)
-- **Knowledge** of your project's patterns (from `/init`)
+- **Knowledge** of your project's patterns (from `/atta`)
 
 Agents **guide** your decisions — they don't write code autonomously.
 This keeps you in control while getting expert advice at every step.
@@ -282,7 +282,7 @@ Show the user:
 /preflight
 ```
 
-The quality agents reference your project's pattern files (set up by `/init`) so they understand your specific conventions — not just generic best practices.
+The quality agents reference your project's pattern files (set up by `/atta`) so they understand your specific conventions — not just generic best practices.
 
 ### 3c. Continue Prompt
 
@@ -308,7 +308,7 @@ Display this (whether reached from the end of the tutorial, from the `--quick` f
 ### Getting Started
 | Command | What it does |
 |---------|-------------|
-| `/init` | Set up agents for your project (run once) |
+| `/atta` | Set up agents for your project (run once) |
 | `/tutorial` | This tutorial |
 | `/tutorial --quick` | Show this card |
 
@@ -345,7 +345,7 @@ Display this (whether reached from the end of the tutorial, from the `--quick` f
 | Command | What it does |
 |---------|-------------|
 | `/update` | Check for framework updates |
-| `/init --rescan` | Re-detect tech stack changes |
+| `/atta --rescan` | Re-detect tech stack changes |
 
 ---
 
@@ -355,7 +355,7 @@ Display this (whether reached from the end of the tutorial, from the `--quick` f
 
 ---
 
-*Atta v2.4 — run `/update` to keep agents current*
+*Atta — run `/update` to keep agents current*
 ```
 
 ---
@@ -394,7 +394,7 @@ End with:
 You're all set! Your Atta colony is ready.
 
 **Next steps:**
-1. If you haven't already: `/init` — configure agents for your project
+1. If you haven't already: `/atta` — configure agents for your project
 2. Start a task: `/agent project-owner` — describe what you want to build
 3. Before your next PR: `/preflight` — run the full quality pipeline
 
@@ -405,7 +405,7 @@ Happy coding!
 
 ## Related Skills
 
-- `/init` — Set up agents for your specific tech stack (run before `/tutorial` for best results)
+- `/atta` — Set up agents for your specific tech stack (run before `/tutorial` for best results)
 - `/agent project-owner` — Your main entry point for any task
 - `/preflight` — Full pre-PR quality pipeline
 - `/update` — Keep the framework up to date

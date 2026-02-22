@@ -57,7 +57,7 @@ Record the session filename (`session-$TIMESTAMP.json`) and the `START_TIME` val
 Load the coordinator definition in this order:
 1. `.claude/agents/coordinators/fe-team-lead.md`
 2. `.claude/agents/coordinators/be-team-lead.md`
-3. If neither exists, advise running `/init` and provide a manual decomposition anyway.
+3. If neither exists, advise running `/atta` and provide a manual decomposition anyway.
 
 ## Your Role
 

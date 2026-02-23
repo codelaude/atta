@@ -29,7 +29,8 @@ Before starting the interactive tutorial, initialize session tracking.
 Run these commands:
 ```bash
 date +%Y-%m-%d-%H%M%S
-uuidgen 2>/dev/null | tr '[:upper:]' '[:lower:]' || python3 -c "import uuid; print(uuid.uuid4())"
+UUID=$(uuidgen 2>/dev/null || python3 -c "import uuid; print(uuid.uuid4())" 2>/dev/null)
+UUID=$(echo "$UUID" | tr '[:upper:]' '[:lower:]')
 date -u +%Y-%m-%dT%H:%M:%SZ
 date +%s
 ```

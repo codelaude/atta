@@ -121,6 +121,50 @@ export function install(frameworkRoot, targetDir, options = {}) {
     if (!options.quiet) {
       console.log(`  ${pc.green('✓')} .claude/settings.local.json (default permissions)`);
     }
+  } else {
+    // Existing settings — ensure hook config is present (safe merge, additive only)
+    try {
+      const existing = JSON.parse(readFileSync(settingsPath, 'utf-8'));
+      const hookCmd = '"$CLAUDE_PROJECT_DIR"/.claude/hooks/session-track.sh';
+      let modified = false;
+
+      if (!existing.hooks) {
+        existing.hooks = {};
+      }
+
+      // Add PostToolUse hook if missing
+      if (!existing.hooks.PostToolUse) {
+        existing.hooks.PostToolUse = [
+          {
+            matcher: 'Skill',
+            hooks: [{ type: 'command', command: hookCmd, async: true }],
+          },
+        ];
+        modified = true;
+      }
+
+      // Add Stop hook if missing
+      if (!existing.hooks.Stop) {
+        existing.hooks.Stop = [
+          {
+            hooks: [{ type: 'command', command: hookCmd, async: true }],
+          },
+        ];
+        modified = true;
+      }
+
+      if (modified) {
+        const tmpSettings = settingsPath + '.tmp';
+        writeFileSync(tmpSettings, JSON.stringify(existing, null, 2) + '\n');
+        renameSync(tmpSettings, settingsPath);
+
+        if (!options.quiet) {
+          console.log(`  ${pc.green('✓')} .claude/settings.local.json (added session tracking hooks)`);
+        }
+      }
+    } catch {
+      // Ignore — don't break install if settings can't be parsed
+    }
   }
 
   // Generate CLAUDE.md (only if none exist)

@@ -41,8 +41,8 @@ fi
 [ -z "$CLAUDE_DIR" ] && CLAUDE_DIR="$CWD/.claude"
 
 # Canonicalize both paths to prevent ../ traversal bypass
-# Use python3 to resolve without creating directories (no side effects before validation)
-REAL_CWD=$(cd "$CWD" && pwd -P)
+# Use python3 os.path.realpath() for both — consistent, no side effects before validation
+REAL_CWD=$(python3 -c "import os,sys; print(os.path.realpath(sys.argv[1]))" "$CWD" 2>/dev/null) || exit 0
 REAL_CLAUDE_DIR=$(python3 -c "import os,sys; print(os.path.realpath(sys.argv[1]))" "$CLAUDE_DIR" 2>/dev/null) || exit 0
 
 # Path containment: claude dir must be physically under cwd
@@ -100,24 +100,14 @@ PYEOF
     ;;
 
   Stop|SessionEnd)
-    # Find most recent in-progress session (nullglob-safe)
-    LATEST=""
-    for f in "$REAL_CLAUDE_DIR/.sessions"/session-*.json; do
-      [ -f "$f" ] || continue
-      LATEST="$f"
-    done
-    [ -z "$LATEST" ] && exit 0
-
-    # If multiple files, pick most recent by mtime
-    if [ "$(echo "$REAL_CLAUDE_DIR/.sessions"/session-*.json | wc -w)" -gt 1 ] 2>/dev/null; then
-      LATEST=$(python3 -c "
+    # Find most recent session file by mtime (nullglob-safe via Python)
+    LATEST=$(python3 -c "
 import glob, os, sys
 files = glob.glob(sys.argv[1])
 if files:
     print(max(files, key=os.path.getmtime))
 " "$REAL_CLAUDE_DIR/.sessions/session-*.json" 2>/dev/null) || true
-      [ -z "$LATEST" ] && exit 0
-    fi
+    [ -z "$LATEST" ] && exit 0
 
     python3 - "$LATEST" << 'PYEOF'
 import json, sys, time

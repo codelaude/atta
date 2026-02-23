@@ -107,6 +107,36 @@ Present the proposal and ask:
 - **Approve this directive capture?** [Yes/No/Modify]
 - **Approve this pattern update?** [Yes/No/Modify]
 
+## Correction Capture Protocol
+
+When the user corrects AI output (as opposed to setting a directive), log it for pattern detection.
+
+### 5. Classify: Directive vs Correction
+
+| Signal | Classification | Action |
+|--------|---------------|--------|
+| "Always do X" | **Directive** | Steps 1-4 above (capture to directives.md) |
+| "No, do X instead" | **Correction** | Step 6 below (log to corrections.jsonl) |
+| "From now on, do X" | **Both** | Steps 1-4 AND Step 6 |
+| "That's wrong" / "Fix that" | **Correction** | Step 6 below |
+
+### 6. Log Correction
+
+When a correction is detected:
+
+1. Extract: what was wrong, what it should be, file/domain context
+2. Generate a normalized pattern key (lowercase, hyphens, e.g., `use-nullish-coalescing`)
+3. Run:
+```bash
+bash .claude/scripts/pattern-log.sh {claudeDir} '{"category":"correction","pattern":"<key>","description":"<what was corrected>","context":{"domain":"<domain>","agent":"<agent-if-known>"},"source":"librarian","skill":"librarian","sessionId":"<session-uuid>"}'
+```
+4. After logging, run analysis to check if threshold is reached:
+```bash
+bash .claude/scripts/pattern-analyze.sh {claudeDir}
+```
+5. If the pattern count reaches its threshold, inform the user:
+   > "Pattern '{key}' has been corrected {N} times and is ready for promotion. Run `/patterns suggest` to see details."
+
 ## Learning Extraction
 
 After task completion, extract:
@@ -117,16 +147,16 @@ After task completion, extract:
 
 ## Trigger Phrases
 
-Automatically activate when user says:
-- "remember to"
-- "always"
-- "never"
-- "from now on"
-- "going forward"
-- "make sure to"
-- "don't forget"
-- "I prefer"
-- "we should"
+### Directive Triggers
+Automatically activate directive capture when user says:
+- "remember to", "always", "never", "from now on", "going forward"
+- "make sure to", "don't forget", "I prefer", "we should"
+
+### Correction Triggers
+Automatically activate correction capture when user says:
+- "no, use...", "not that...", "wrong", "that's not right"
+- "I told you...", "I already said...", "fix that", "change that to..."
+- "stop doing...", "quit..."
 
 ## Example Usage
 
@@ -139,6 +169,8 @@ Automatically activate when user says:
 ## Files You Manage
 
 - **Memory**: `.claude/agents/memory/directives.md`
+- **Corrections**: `{claudeDir}/.context/corrections.jsonl` (append-only)
+- **Pattern cache**: `{claudeDir}/.context/patterns-learned.json` (rebuilt by analysis)
 - **Knowledge Files** (in `.claude/knowledge/`):
   - Pattern files in `patterns/`
   - `project/project-context.md`

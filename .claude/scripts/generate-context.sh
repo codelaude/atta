@@ -146,6 +146,39 @@ else:
     print(header + 'No recent sessions found. Run a skill (e.g., \`/atta\`, \`/tutorial\`) to start tracking.')
 " "$SESSIONS_DIR" "$MAX_RECENT" > "$OUTPUT_FILE"
 
+# Append pattern detection summary (if corrections exist)
+PATTERNS_FILE="$CONTEXT_DIR/patterns-learned.json"
+if [ -f "$PATTERNS_FILE" ] && command -v python3 >/dev/null 2>&1; then
+  python3 -c "
+import json, sys
+
+patterns_file = sys.argv[1]
+output_file = sys.argv[2]
+
+try:
+    with open(patterns_file) as f:
+        data = json.load(f)
+except (FileNotFoundError, json.JSONDecodeError):
+    sys.exit(0)
+
+stats = data.get('stats', {})
+total = stats.get('totalCorrections', 0)
+unique = stats.get('uniquePatterns', 0)
+ready = stats.get('readyToPromote', 0)
+
+if total == 0:
+    sys.exit(0)
+
+section = '\n## Patterns Detected\n\n'
+section += f'- {total} correction(s) across {unique} pattern(s)\n'
+if ready > 0:
+    section += f'- **{ready} pattern(s) ready for promotion** (run \`/patterns suggest\`)\n'
+
+with open(output_file, 'a') as f:
+    f.write(section)
+" "$PATTERNS_FILE" "$OUTPUT_FILE"
+fi
+
 # Count files for status message
 file_count=$(find "$SESSIONS_DIR" -name "session-*.json" -type f | head -n "$MAX_RECENT" | wc -l | tr -d ' ')
 echo "Updated $OUTPUT_FILE ($file_count session(s))"

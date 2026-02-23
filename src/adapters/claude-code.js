@@ -63,6 +63,34 @@ export function install(frameworkRoot, targetDir, options = {}) {
     }
   }
 
+  // Generate default settings (only if none exist)
+  const settingsPath = join(claudeDir, 'settings.local.json');
+  if (!existsSync(settingsPath)) {
+    const defaultSettings = {
+      permissions: {
+        allow: [
+          // Framework scripts (session cleanup, context generation)
+          'Bash(bash .claude/scripts/session-cleanup.sh:*)',
+          'Bash(bash .claude/scripts/generate-context.sh:*)',
+          // Session tracking (created/updated by every skill)
+          'Edit(./.claude/.sessions/**)',
+          // Context files (recent work summary)
+          'Edit(./.claude/.context/**)',
+          // Agent memory (directives, learnings)
+          'Edit(./.claude/agents/memory/**)',
+          // Knowledge capture (patterns, project context)
+          'Edit(./.claude/knowledge/**)',
+        ],
+      },
+    };
+    writeFileSync(settingsPath, JSON.stringify(defaultSettings, null, 2) + '\n');
+    results.files++;
+
+    if (!options.quiet) {
+      console.log(`  ${pc.green('✓')} .claude/settings.local.json (default permissions)`);
+    }
+  }
+
   // Generate plugin manifest
   const pluginDir = join(targetDir, '.claude-plugin');
   mkdirSync(pluginDir, { recursive: true });

@@ -13,14 +13,47 @@
 
 ## Trigger Phrases
 
+### Directive Triggers
 Auto-activates on: "remember to", "always", "never", "from now on", "going forward", "make sure to", "don't forget", "I prefer", "we should"
+
+### Correction Triggers
+Auto-activates on: "no, use...", "not that...", "wrong", "that's not right", "I told you...", "I already said...", "fix that", "change that to...", "stop doing...", "quit..."
 
 ## Capture Protocol
 
 1. Extract the rule from user's words
-2. Identify which agents/files it applies to
-3. Check if it should update a pattern file
-4. Present proposal to user for approval
+2. **Classify**: Is this a directive, correction, or both? (see table below)
+3. Identify which agents/files it applies to
+4. Check if it should update a pattern file
+5. Present proposal to user for approval
+
+## Correction vs Directive
+
+| Signal | Classification | Action |
+|--------|---------------|--------|
+| "Always do X" | **Directive** | Capture to directives.md |
+| "No, do X instead" | **Correction** | Log to `{claudeDir}/.context/corrections.jsonl` |
+| "From now on, do X" | **Both** | Directive + correction |
+| "That's wrong" | **Correction** | Log to corrections.jsonl |
+| "Stop doing X" | **Correction** | Log to corrections.jsonl |
+
+## Correction Capture Protocol
+
+When a correction is detected:
+
+1. Extract: what was wrong, what should it be, relevant file/domain
+2. Generate a normalized pattern key (lowercase, hyphens, verb-first for preferences)
+3. Log via: `bash .claude/scripts/pattern-log.sh {claudeDir} '<json>'`
+   - Set `category` to `correction`
+   - Set `source` to `librarian`
+   - Include `context.domain` and `context.agent` if known
+4. If the pattern count reaches its threshold, notify:
+   > "Pattern '{key}' has been corrected {N} times. Consider running `/patterns suggest`."
+
+### Post-Session Summary
+
+After any skill completes, if corrections were logged during the session, append:
+> **Pattern note:** {N} correction(s) logged this session. {M} pattern(s) ready for promotion.
 
 ## Directive Format
 
@@ -29,12 +62,14 @@ DIR-YYYYMMDD-NNN:
   date: YYYY-MM-DD
   rule: "[Normalized rule]"
   applies_to: [agent_ids]
-  source: user_directive | lesson_learned | conflict_resolution
+  source: user_directive | lesson_learned | conflict_resolution | pattern_detection
 ```
 
 ## Files Managed
 
 - **Memory**: [directives.md](memory/directives.md)
+- **Corrections**: `{claudeDir}/.context/corrections.jsonl` (append-only log)
+- **Pattern cache**: `{claudeDir}/.context/patterns-learned.json` (rebuilt by analysis)
 - **Pattern files**: All files in `.claude/knowledge/patterns/`
 - **Quick reference**: `.claude/knowledge/quick-reference.md`
 - **Project context**: `.claude/knowledge/project/project-context.md`

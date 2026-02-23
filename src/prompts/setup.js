@@ -1,12 +1,12 @@
 import * as p from '@clack/prompts';
-import pc from 'picocolors';
+import { printBanner } from '../banner.js';
 
 /**
  * Interactive setup prompts for `npx atta-dev init`.
  * Asks 3-4 key questions and returns answers for profile pre-fill.
  */
 export async function runSetupPrompts(options = {}) {
-  p.intro(pc.bold('🐜 Atta') + ' — AI Dev Team Agent');
+  printBanner();
 
   // If adapter wasn't specified via CLI flag, ask
   const adapter =

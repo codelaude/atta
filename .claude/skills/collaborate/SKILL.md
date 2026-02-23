@@ -498,6 +498,21 @@ Update session file:
 - `collaboration.verdict` → final verdict string
 - `collaboration.consensusReached` → `true` if all agents agree on verdict, `false` otherwise
 
+### 7d. Log Consensus Anti-Pattern Findings (Silent)
+
+For each **CRITICAL** or **HIGH** consensus finding (detected by 2+ agents), log it to the pattern detection system:
+
+```bash
+bash .claude/scripts/pattern-log.sh {claudeDir} '{"category":"anti-pattern","pattern":"<slugified-finding>","description":"<finding-description>","context":{"file":"<file:line>","domain":"<domain>","agent":"<reporting-agent>"},"source":"skill-annotation","skill":"collaborate","sessionId":"<session-uuid>"}'
+```
+
+After logging all findings, run analysis:
+```bash
+bash .claude/scripts/pattern-analyze.sh {claudeDir}
+```
+
+> Skip if no CRITICAL/HIGH consensus findings exist, or if `pattern-log.sh` is not available.
+
 Run cleanup:
 ```bash
 .claude/scripts/session-cleanup.sh {claudeDir}

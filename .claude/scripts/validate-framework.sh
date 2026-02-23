@@ -100,6 +100,20 @@ assert_not_contains ".claude/skills/security-audit/SKILL.md" "$weak_password_pat
 assert_contains ".claude/bootstrap/templates/agents/security-specialist.template.md" "$strict_password_pattern" "security specialist template uses strict password regex"
 assert_not_contains ".claude/bootstrap/templates/agents/security-specialist.template.md" "$weak_password_pattern" "security specialist template does not use weak password regex"
 
+echo "==> Validating pattern detection system"
+assert_contains ".claude/scripts/pattern-log.sh" "corrections.jsonl" "pattern-log.sh targets corrections.jsonl"
+assert_contains ".claude/scripts/pattern-log.sh" "json.dumps" "pattern-log.sh uses safe JSON serialization"
+assert_contains ".claude/scripts/pattern-analyze.sh" "patterns-learned.json" "pattern-analyze.sh targets patterns-learned.json"
+assert_contains ".claude/skills/patterns/SKILL.md" "log" "patterns skill has log subcommand"
+assert_contains ".claude/skills/patterns/SKILL.md" "learn" "patterns skill has learn subcommand"
+assert_contains ".claude/skills/patterns/SKILL.md" "suggest" "patterns skill has suggest subcommand"
+assert_contains ".claude/skills/patterns/SKILL.md" "promote" "patterns skill has promote subcommand"
+assert_contains ".claude/skills/patterns/SKILL.md" "status" "patterns skill has status subcommand"
+assert_contains ".claude/knowledge/templates/correction-event.md" "corrections.jsonl" "correction-event schema references corrections.jsonl"
+assert_contains ".claude/agents/librarian.md" "Correction Capture Protocol" "librarian has Correction Capture Protocol"
+assert_contains ".claude/skills/review/SKILL.md" "pattern-log.sh" "review skill integrates pattern logging"
+assert_contains ".claude/skills/collaborate/SKILL.md" "pattern-log.sh" "collaborate skill integrates pattern logging"
+
 echo "==> Checking git diff integrity"
 if [ "$SKIP_DIFF_CHECK" = false ]; then
   git diff --check

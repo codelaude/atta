@@ -9,6 +9,7 @@ import { install as installCodex } from '../adapters/codex.js';
 import { install as installGemini } from '../adapters/gemini.js';
 import { runSetupPrompts, generateProfile } from '../prompts/setup.js';
 import { generateGettingStarted } from '../guides/getting-started.js';
+import { printBanner } from '../banner.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -77,6 +78,7 @@ export async function init(options) {
 
   // Non-interactive mode (--yes flag)
   if (options.yes) {
+    printBanner();
     return runInstall(targetDir, options.adapter, dryRun, null);
   }
 

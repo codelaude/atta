@@ -205,7 +205,7 @@ For each **CRITICAL** or **HIGH** finding from the automated checks and domain r
 
 For each finding, run:
 ```bash
-bash .claude/scripts/pattern-log.sh {claudeDir} '{"category":"anti-pattern","pattern":"<slugified-check-name>","description":"<finding-description>","context":{"file":"<file:line>","domain":"<domain>","agent":"code-reviewer"},"source":"skill-annotation","skill":"review","sessionId":"<session-uuid>"}'
+bash .claude/scripts/pattern-log.sh {claudeDir} '{"category":"anti-pattern","pattern":"<slugified-check-name>","description":"<finding-description>","context":{"file":"<file:line>","domain":"<domain>","agent":"code-reviewer"},"source":"skill-annotation","skill":"review","sessionId":"<session-uuid>","agentId":"code-reviewer"}'
 ```
 
 **Pattern key derivation**: Slugify the check name (e.g., `v-html-unsanitized`, `ts-any-type`, `missing-aria-label`, `hardcoded-secret`).

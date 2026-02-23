@@ -64,6 +64,8 @@ Parse the user's arguments to determine which subcommand to execute:
 | `/patterns learn` | → Learn Subcommand |
 | `/patterns suggest` | → Suggest Subcommand |
 | `/patterns promote <key>` | → Promote Subcommand |
+| `/patterns agent [agent-id]` | → Agent Subcommand |
+| `/patterns dashboard` | → Dashboard Subcommand |
 | `/patterns status` | → Status Subcommand |
 | `/patterns` (no args) | → Status Subcommand |
 
@@ -278,6 +280,177 @@ No corrections logged yet. Corrections are captured automatically by:
 - The review skill (CRITICAL/HIGH findings)
 - The collaborate skill (consensus findings)
 - Or manually with `/patterns log "description"`
+```
+
+4. Also read `{claudeDir}/.context/agent-learning.json` (if it exists). If it has data, append:
+
+```markdown
+### Agent Learning
+| Agents tracked | N |
+| Overall acceptance rate | N% |
+
+Run `/patterns agent` for per-agent details.
+```
+
+5. If `patterns-learned.json` has a `trends` key (non-null), append:
+
+```markdown
+### Quick Trends
+| This week | Prior week | Direction |
+|-----------|------------|-----------|
+| {trends.velocity.last7Days} corrections | {trends.velocity.prior7Days} corrections | {trends.velocity.direction} |
+
+[If recommendations array is non-empty:]
+**{len(recommendations)} recommendation(s) available.** Run `/patterns dashboard` for details.
+```
+
+[If no `trends` key or it is null: omit this section entirely]
+
+---
+
+## Agent Subcommand
+
+Display per-agent learning status and adaptation profile.
+
+### Usage
+```
+/patterns agent                    # Overview of all agents
+/patterns agent code-reviewer      # Detail for specific agent
+```
+
+### Steps
+
+1. Read `{claudeDir}/.context/agent-learning.json`
+   - If it does not exist, run `bash .claude/scripts/pattern-analyze.sh {claudeDir}` first
+   - If still no data, report "No agent learning data yet"
+
+2. **If no agent-id provided** (overview mode):
+
+```markdown
+## Agent Learning Overview
+
+| Agent | Events | Accepted | Rejected | Rate | Top Preference |
+|-------|--------|----------|----------|------|----------------|
+| {agent-id} | {totalEvents} | {accepted} | {rejected} | {acceptanceRate}% | {first preference pattern or "—"} |
+
+### Project-Wide Preferences
+| Preference | Confidence | Agents | Occurrences |
+|------------|-----------|--------|-------------|
+| {pattern} | {confidence} | {agents list} | {occurrences} |
+
+[If no project preferences: "No project-wide preferences detected yet."]
+
+**Total agents tracked:** N
+**Overall acceptance rate:** N%
+```
+
+3. **If agent-id provided** (detail mode):
+
+   - If the agent-id is not found in agent-learning.json, report: "No learning data for `{agent-id}`. Available agents: {list of tracked agent IDs}."
+
+```markdown
+## Agent Learning: {agent-id}
+
+### Performance
+| Metric | Value |
+|--------|-------|
+| Total events | {totalEvents} |
+| Accepted | {accepted} |
+| Rejected | {rejected} |
+| Neutral | {neutral} |
+| Acceptance rate | {acceptanceRate}% |
+| Last active | {recentActivity.lastSeen} |
+| Last 7 days | {recentActivity.last7Days} events |
+| Last 30 days | {recentActivity.last30Days} events |
+
+### Learned Preferences
+| Pattern | Occurrences | Confidence | Accepted | Rejected |
+|---------|-------------|------------|----------|----------|
+| {pattern} | {occurrences} | {confidence} | {accepted} | {rejected} |
+
+[If no preferences: "No learned preferences yet (need 3+ accepted or rejected outcomes for the same pattern)."]
+
+### Top Patterns
+| Pattern | Count | Last Outcome |
+|---------|-------|-------------|
+| {pattern} | {count} | {lastOutcome} |
+
+Run `/patterns suggest` to see patterns ready for promotion.
+```
+
+---
+
+## Dashboard Subcommand
+
+Comprehensive learning dashboard with trends, recommendations, and progress indicators.
+
+### Steps
+
+1. Read `{claudeDir}/.context/patterns-learned.json`
+   - If it does not exist, run `bash .claude/scripts/pattern-analyze.sh {claudeDir}` first
+2. Read `{claudeDir}/.context/agent-learning.json`
+3. Display the dashboard using the template below
+
+### Output Template
+
+```markdown
+## Learning Dashboard
+
+### Overview
+| Metric | Value |
+|--------|-------|
+| Total corrections logged | {stats.totalCorrections} |
+| Unique patterns | {stats.uniquePatterns} |
+| Ready to promote | {stats.readyToPromote} |
+| Already promoted | {stats.alreadyPromoted} |
+| Avg days to reach threshold | {trends.avgTimeToReady or "N/A"} |
+
+### Correction Velocity
+| Period | Events | Direction |
+|--------|--------|-----------|
+| This week (7d) | {trends.velocity.last7Days} | {arrow for trends.velocity.direction} |
+| Prior week | {trends.velocity.prior7Days} | — |
+| Delta | {trends.velocity.delta} | |
+
+[If direction == "up":] Correction rate is increasing — the system is actively learning.
+[If direction == "down":] Correction rate is slowing — patterns may be stabilizing.
+[If direction == "stable":] Correction rate is steady.
+
+### Agent Trends
+| Agent | Rate (7d) | Rate (30d) | Trend | Delta |
+|-------|-----------|------------|-------|-------|
+| {agent-id} | {trends.acceptanceRateLast7}% | {trends.acceptanceRateLast30}% | {arrow} | {trends.delta}% |
+
+[If agent has no trends data (null): show "—" for trend columns]
+
+### Aging Patterns (ready but not promoted)
+| Pattern | Ready Since | Days Waiting |
+|---------|-------------|-------------|
+| {pattern} | {readySince} | {daysSinceReady} |
+
+[If no aging patterns: "All ready patterns have been promoted promptly."]
+
+### Recommendations
+[For each recommendation, sorted by priority:]
+- **{priority}**: {message}
+
+[If no recommendations: "No recommendations at this time. The system is healthy."]
+```
+
+### Direction Arrows
+
+Use these for the direction field:
+- `up` → ↑ improving
+- `down` → ↓ declining
+- `stable` → → stable
+
+### Graceful Fallback
+
+If `trends` key is absent or null in the JSON files:
+
+```markdown
+Not enough data for trend analysis yet. Continue using the pattern
+detection system and trends will appear after 7+ days of activity.
 ```
 
 ---

@@ -63,8 +63,16 @@ Follow these steps:
    - `.claude/agents/specialists/{agent-id}.md` (generated specialists)
    Use the first match found.
 3. **Load knowledge base**: Read any pattern files referenced by the agent from `.claude/knowledge/`
+3b. **Load learning profile**: Read `{claudeDir}/.context/agent-learning.json` (if it exists). If the file contains an entry for the requested agent ID, inject it into the agent context as follows:
+   ```
+   ## Your Learning Profile
+   Based on {totalEvents} tracked interactions (acceptance rate: {acceptanceRate}%):
+   - User prefers: {list accepted patterns from topPatterns where lastOutcome is "accepted"}
+   - User corrected: {list rejected patterns from topPatterns where lastOutcome is "rejected"} — avoid these
+   ```
+   If the file does not exist or has no data for this agent, skip silently.
 4. **Check memory**: If the agent is `librarian` or needs context, read `.claude/agents/memory/directives.md`
-5. **Respond as the agent**: Follow the agent's capabilities, limitations, and response patterns exactly as defined
+5. **Respond as the agent**: Follow the agent's capabilities, limitations, and response patterns exactly as defined. Pay special attention to patterns the user has previously rejected — do not repeat those suggestions without strong justification.
 
 ## Available Agents
 

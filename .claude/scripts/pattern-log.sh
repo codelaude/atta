@@ -5,6 +5,8 @@
 # Usage:
 #   .claude/scripts/pattern-log.sh {claudeDir} '{"category":"correction","pattern":"key","description":"...","context":{},"source":"manual"}'
 #   .claude/scripts/pattern-log.sh              '{"category":"correction","pattern":"key","description":"...","context":{},"source":"manual"}'
+#
+# Optional fields: "outcome" ("accepted"|"rejected"), "agentId" (agent whose suggestion is being evaluated)
 
 set -euo pipefail
 
@@ -121,6 +123,12 @@ event = {
     'source': payload['source'],
     'promoted': False,
 }
+
+# Optional fields — only include when present (backward-compatible)
+if payload.get('outcome') in ('accepted', 'rejected'):
+    event['outcome'] = payload['outcome']
+if payload.get('agentId'):
+    event['agentId'] = payload['agentId']
 
 # Append to JSONL (one line, no trailing whitespace)
 with open(corrections_file, 'a') as f:

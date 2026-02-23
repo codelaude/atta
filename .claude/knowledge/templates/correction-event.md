@@ -25,7 +25,9 @@ Correction events are logged to `{claudeDir}/.context/corrections.jsonl` by the 
     "domain": "language"
   },
   "source": "librarian",
-  "promoted": false
+  "promoted": false,
+  "outcome": "accepted",
+  "agentId": "code-reviewer"
 }
 ```
 
@@ -43,6 +45,8 @@ Correction events are logged to `{claudeDir}/.context/corrections.jsonl` by the 
 | `context` | object | No | Optional context: `file`, `line`, `agent`, `domain` |
 | `source` | enum | Yes | How it was captured: `librarian`, `manual`, `skill-annotation` |
 | `promoted` | boolean | Yes | Whether this correction has been promoted to a directive/pattern |
+| `outcome` | enum | No | `accepted`, `rejected`, or absent (neutral/legacy). See Outcome Values below |
+| `agentId` | string | No | Agent whose suggestion was accepted/rejected. Falls back to `context.agent` if absent |
 
 ## Categories and Thresholds
 
@@ -74,6 +78,59 @@ The `pattern` field is a slugified key used for grouping. Convention:
 
 Multiple corrections with the same `pattern` value count toward the same threshold.
 
+## Outcome Values
+
+The `outcome` field tracks whether the user accepted or rejected a suggestion. It was added in v2.5 (Track 6) and is backward-compatible — events without it are treated as neutral.
+
+| Value | Meaning | Logged By |
+|-------|---------|-----------|
+| `accepted` | User accepted the suggestion or finding | Review/collaborate skills (implicit for logged findings) |
+| `rejected` | User corrected or disagreed with the suggestion | Librarian (when correction triggers fire) |
+| *(absent)* | Legacy event or no explicit verdict | Pre-v2.5 events, manual logs |
+
+**`agentId` vs `context.agent`**: The `agentId` field identifies the agent whose suggestion is being evaluated. This may differ from `context.agent` (the agent active when the event was logged). Example: the librarian logs a rejection of code-reviewer's suggestion — `context.agent` is `librarian`, `agentId` is `code-reviewer`. When `agentId` is absent, analysis falls back to `context.agent`.
+
 ## Aggregation
 
-Correction events are aggregated by `.claude/scripts/pattern-analyze.sh` into `{claudeDir}/.context/patterns-learned.json`. The aggregation file is a cache that can always be regenerated from `corrections.jsonl`.
+Correction events are aggregated by `.claude/scripts/pattern-analyze.sh` into:
+- `{claudeDir}/.context/patterns-learned.json` — pattern aggregation (grouped by pattern key)
+- `{claudeDir}/.context/agent-learning.json` — per-agent learning profiles (grouped by agentId)
+
+Both are caches that can always be regenerated from `corrections.jsonl`.
+
+## Aggregation Output Schema (v1.1.0)
+
+As of v2.5 Track 7, the aggregation files include trend analysis and recommendations.
+
+### patterns-learned.json additions
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `trends.velocity.last7Days` | number | Corrections logged in last 7 days |
+| `trends.velocity.prior7Days` | number | Corrections logged in the 7 days before that |
+| `trends.velocity.direction` | enum | `up`, `down`, or `stable` |
+| `trends.velocity.delta` | number | Difference (last7 - prior7) |
+| `trends.avgTimeToReady` | number or null | Average days from firstSeen to threshold |
+| `trends.agingPatterns[]` | array | Patterns ready 7+ days but not promoted |
+| `recommendations[]` | array | Actionable recommendations (see types below) |
+
+### agent-learning.json additions
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `agents.{id}.trends.acceptanceRateLast7` | number or null | Acceptance rate for last 7 days |
+| `agents.{id}.trends.acceptanceRateLast30` | number or null | Acceptance rate for last 30 days |
+| `agents.{id}.trends.direction` | enum | `up`, `down`, or `stable` |
+| `agents.{id}.trends.delta` | number | Rate difference |
+| `trends` | object or null | Project-wide acceptance rate trends |
+| `recommendations[]` | array | Agent-specific recommendations |
+
+### Recommendation Types
+
+| Type | Priority | When Generated |
+|------|----------|---------------|
+| `promote-stale` | high | Pattern ready for 7+ days without promotion |
+| `agent-improving` | info | Agent acceptance rate improved 10%+ this week |
+| `agent-declining` | medium | Agent acceptance rate dropped 10%+ this week |
+| `domain-cluster` | medium | 3+ unpromoted patterns in same domain |
+| `velocity-spike` | info | This week's corrections >= 2x prior week |

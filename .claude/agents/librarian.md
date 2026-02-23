@@ -43,11 +43,18 @@ When a correction is detected:
 
 1. Extract: what was wrong, what should it be, relevant file/domain
 2. Generate a normalized pattern key (lowercase, hyphens, verb-first for preferences)
-3. Log via: `bash .claude/scripts/pattern-log.sh {claudeDir} '<json>'`
+3. **Determine the target agent** (who made the suggestion being corrected):
+   - If the user references a specific agent's output ("the reviewer said..."), use that agent ID
+   - If correcting output from a recent `/agent` or `/collaborate` invocation, use the active agent ID
+   - If correcting output from `/review`, use `code-reviewer`
+   - If unknown, omit `agentId` (analysis falls back to `context.agent`)
+4. Log via: `bash .claude/scripts/pattern-log.sh {claudeDir} '<json>'`
    - Set `category` to `correction`
    - Set `source` to `librarian`
+   - Set `outcome` to `rejected` (user is correcting the suggestion)
+   - Set `agentId` to the target agent determined in step 3
    - Include `context.domain` and `context.agent` if known
-4. If the pattern count reaches its threshold, notify:
+5. If the pattern count reaches its threshold, notify:
    > "Pattern '{key}' has been corrected {N} times. Consider running `/patterns suggest`."
 
 ### Post-Session Summary
@@ -70,6 +77,7 @@ DIR-YYYYMMDD-NNN:
 - **Memory**: [directives.md](memory/directives.md)
 - **Corrections**: `{claudeDir}/.context/corrections.jsonl` (append-only log)
 - **Pattern cache**: `{claudeDir}/.context/patterns-learned.json` (rebuilt by analysis)
+- **Agent learning**: `{claudeDir}/.context/agent-learning.json` (rebuilt by analysis)
 - **Pattern files**: All files in `.claude/knowledge/patterns/`
 - **Quick reference**: `.claude/knowledge/quick-reference.md`
 - **Project context**: `.claude/knowledge/project/project-context.md`

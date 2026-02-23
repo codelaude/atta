@@ -126,15 +126,20 @@ When a correction is detected:
 
 1. Extract: what was wrong, what it should be, file/domain context
 2. Generate a normalized pattern key (lowercase, hyphens, e.g., `use-nullish-coalescing`)
-3. Run:
+3. **Determine the target agent** (who made the suggestion being corrected):
+   - If the user references a specific agent's output, use that agent ID
+   - If correcting output from a recent `/agent` or `/collaborate` invocation, use the active agent ID
+   - If correcting output from `/review`, use `code-reviewer`
+   - If unknown, omit `agentId` (analysis falls back to `context.agent`)
+4. Run:
 ```bash
-bash .claude/scripts/pattern-log.sh {claudeDir} '{"category":"correction","pattern":"<key>","description":"<what was corrected>","context":{"domain":"<domain>","agent":"<agent-if-known>"},"source":"librarian","skill":"librarian","sessionId":"<session-uuid>"}'
+bash .claude/scripts/pattern-log.sh {claudeDir} '{"category":"correction","pattern":"<key>","description":"<what was corrected>","context":{"domain":"<domain>","agent":"<agent-if-known>"},"source":"librarian","skill":"librarian","sessionId":"<session-uuid>","outcome":"rejected","agentId":"<target-agent-from-step-3>"}'
 ```
-4. After logging, run analysis to check if threshold is reached:
+5. After logging, run analysis to check if threshold is reached:
 ```bash
 bash .claude/scripts/pattern-analyze.sh {claudeDir}
 ```
-5. If the pattern count reaches its threshold, inform the user:
+6. If the pattern count reaches its threshold, inform the user:
    > "Pattern '{key}' has been corrected {N} times and is ready for promotion. Run `/patterns suggest` to see details."
 
 ## Learning Extraction
@@ -171,6 +176,7 @@ Automatically activate correction capture when user says:
 - **Memory**: `.claude/agents/memory/directives.md`
 - **Corrections**: `{claudeDir}/.context/corrections.jsonl` (append-only)
 - **Pattern cache**: `{claudeDir}/.context/patterns-learned.json` (rebuilt by analysis)
+- **Agent learning**: `{claudeDir}/.context/agent-learning.json` (rebuilt by analysis)
 - **Knowledge Files** (in `.claude/knowledge/`):
   - Pattern files in `patterns/`
   - `project/project-context.md`

@@ -608,7 +608,7 @@ File: `.claude/.metadata/generated-manifest.json`
 
 ```json
 {
-  "version": "2.4",
+  "version": "{{FRAMEWORK_VERSION}}",
   "generated_at": "{{TIMESTAMP}}",
   "project_root": "{{PROJECT_ROOT}}",
   "detected_stack": ["vue", "typescript", "scss", "python", "django", "postgresql"],
@@ -658,8 +658,8 @@ This manifest enables the `/update` skill to track which files are framework vs 
 
 ```json
 {
-  "framework_version": "2.4",
-  "user_version": "2.4",
+  "framework_version": "{{FRAMEWORK_VERSION}}",
+  "user_version": "{{FRAMEWORK_VERSION}}",
   "manifest_created": "{{TIMESTAMP}}",
   "last_update": "{{TIMESTAMP}}",
   "files": {

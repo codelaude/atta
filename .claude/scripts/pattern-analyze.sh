@@ -116,20 +116,36 @@ groups = defaultdict(list)
 for ev in events:
     groups[ev.get('pattern', 'unknown')].append(ev)
 
+# Load promoted patterns from append-only tracking file (if exists)
+promoted_file = os.path.join(os.path.dirname(corrections_file), 'promoted-patterns.json')
+promoted_set = set()
+if os.path.exists(promoted_file):
+    try:
+        with open(promoted_file, 'r') as pf:
+            promoted_data = json.load(pf)
+            promoted_set = set(p.get('pattern', '') for p in promoted_data.get('promotions', []))
+    except (json.JSONDecodeError, IOError):
+        pass
+
+# Category priority for deterministic tie-breaking (lower = higher priority)
+CATEGORY_PRIORITY = {'anti-pattern': 0, 'correction': 1, 'command-sequence': 2}
+
 # Build pattern summaries
 patterns = []
 total_promoted = 0
 total_ready = 0
 
 for pattern_key, entries in sorted(groups.items()):
-    # Use the most common category for this pattern
+    # Use the most common category for this pattern (deterministic tie-break by priority)
     categories = [e.get('category', 'correction') for e in entries]
-    primary_category = max(set(categories), key=categories.count)
+    primary_category = max(set(categories), key=lambda c: (categories.count(c), -CATEGORY_PRIORITY.get(c, 99)))
     threshold = THRESHOLDS.get(primary_category, 3)
 
     count = len(entries)
     ready = count >= threshold
-    promoted = all(e.get('promoted', False) for e in entries)
+    # A pattern is considered promoted if any of its events has been promoted,
+    # OR if it appears in the promoted-patterns.json file (append-only promotion tracking)
+    promoted = any(e.get('promoted', False) for e in entries) or pattern_key in promoted_set
 
     if ready:
         total_ready += 1

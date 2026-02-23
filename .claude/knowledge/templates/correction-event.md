@@ -44,7 +44,7 @@ Correction events are logged to `{claudeDir}/.context/corrections.jsonl` by the 
 | `description` | string | Yes | Human-readable description of what was corrected |
 | `context` | object | No | Optional context: `file`, `line`, `agent`, `domain` |
 | `source` | enum | Yes | How it was captured: `librarian`, `manual`, `skill-annotation` |
-| `promoted` | boolean | Yes | Whether this correction has been promoted to a directive/pattern |
+| `promoted` | boolean | Yes | Legacy per-event flag (always `false` in new events). Promotion is now tracked in `promoted-patterns.json` |
 | `outcome` | enum | No | `accepted`, `rejected`, or absent (neutral/legacy). See Outcome Values below |
 | `agentId` | string | No | Agent whose suggestion was accepted/rejected. Falls back to `context.agent` if absent |
 
@@ -90,13 +90,26 @@ The `outcome` field tracks whether the user accepted or rejected a suggestion. I
 
 **`agentId` vs `context.agent`**: The `agentId` field identifies the agent whose suggestion is being evaluated. This may differ from `context.agent` (the agent active when the event was logged). Example: the librarian logs a rejection of code-reviewer's suggestion — `context.agent` is `librarian`, `agentId` is `code-reviewer`. When `agentId` is absent, analysis falls back to `context.agent`.
 
+## Promotion Tracking
+
+Promotion status is tracked in `{claudeDir}/.context/promoted-patterns.json` (append-only, separate from JSONL):
+```json
+{
+  "promotions": [
+    { "pattern": "use-nullish-coalescing", "promotedAt": "2026-02-23T10:00:00Z", "target": "directive" }
+  ]
+}
+```
+
+This design keeps `corrections.jsonl` strictly append-only — no read-modify-write cycle. The `promoted` field in individual JSONL events is legacy (always `false` for new events). The analyze script reads `promoted-patterns.json` to determine promotion status.
+
 ## Aggregation
 
 Correction events are aggregated by `.claude/scripts/pattern-analyze.sh` into:
 - `{claudeDir}/.context/patterns-learned.json` — pattern aggregation (grouped by pattern key)
 - `{claudeDir}/.context/agent-learning.json` — per-agent learning profiles (grouped by agentId)
 
-Both are caches that can always be regenerated from `corrections.jsonl`.
+All three are caches that can be regenerated from `corrections.jsonl` + `promoted-patterns.json`.
 
 ## Aggregation Output Schema (v1.1.0)
 

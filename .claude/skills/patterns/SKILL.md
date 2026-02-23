@@ -235,10 +235,32 @@ Interactive promotion of a pattern to a directive or pattern file.
 **If dismiss (D):**
 - Skip promotion for this pattern
 
-5. After approval, mark as promoted:
+5. After approval, record promotion (append-only — does NOT rewrite corrections.jsonl):
 ```bash
-# Update all matching entries in corrections.jsonl
-# (Read file, set promoted=true for matching pattern, rewrite)
+# Append to promoted-patterns.json (keeps JSONL append-only)
+python3 -c "
+import json, sys, os
+from datetime import datetime, timezone
+promoted_file = sys.argv[1]
+pattern_key = sys.argv[2]
+target = sys.argv[3]
+data = {'promotions': []}
+if os.path.exists(promoted_file):
+    try:
+        with open(promoted_file, 'r') as f:
+            data = json.load(f)
+    except (json.JSONDecodeError, IOError):
+        pass
+data['promotions'].append({
+    'pattern': pattern_key,
+    'promotedAt': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
+    'target': target,
+})
+with open(promoted_file, 'w') as f:
+    json.dump(data, f, indent=2, ensure_ascii=False)
+    f.write('\n')
+print('Marked %s as promoted.' % pattern_key)
+" "{claudeDir}/.context/promoted-patterns.json" "<pattern-key>" "<directive|pattern-file|both>"
 ```
 6. Rebuild aggregation:
 ```bash

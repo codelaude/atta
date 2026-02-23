@@ -12,6 +12,7 @@ Security hardening, community files, and npm packaging improvements from 3-way c
 - **Security hardening**: `sys.argv[]` for data passing in all shell scripts (no interpolation), path containment with `pwd -P` resolution (fixes absolute-path and symlink bypasses), UUID-based correction IDs
 - **npm packaging**: `.npmignore` defense-in-depth, `exports` field for ESM, specific script files in `files` (excludes `validate-framework.sh`), `recent.md` excluded from package
 - **Robustness**: Atomic file writes in JS adapters, `unhandledRejection` handler in CLI entry point, python3/Ruby fallbacks in validation
+- **Claude Code adapter**: Generate `CLAUDE.md` instruction file (parity with Copilot/Codex `AGENTS.md` and Gemini `GEMINI.md`)
 - **Bug fix**: Escaped backticks in `generate-context.sh` inline Python (shell command substitution)
 
 ---

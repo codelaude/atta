@@ -6,6 +6,14 @@ package-lock.json
 # Generated context files (keep README, ignore generated content)
 .claude/.context/recent.md
 
+# User-specific settings (generated per-project by atta init)
+.claude/settings.local.json
+
+# Environment files
+.env
+.env.*
+!.env.example
+
 # Development workspace (includes PLAN.md and ROADMAP files)
 .claude_dev/
 dev/

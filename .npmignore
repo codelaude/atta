@@ -1,0 +1,24 @@
+# Defense-in-depth: package.json "files" is the primary whitelist.
+# This file catches anything that slips through.
+
+# Development workspace
+.claude_dev/
+dev/
+
+# Environment and local settings
+.env*
+.claude/settings.local.json
+
+# Dev-only scripts
+.claude/scripts/validate-framework.sh
+
+# Generated runtime files (should not ship in npm package)
+.claude/.context/recent.md
+
+# GitHub community files (not needed in npm package)
+.github/
+
+# IDE and OS
+.DS_Store
+.vscode/
+.idea/

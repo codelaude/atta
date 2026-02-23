@@ -199,6 +199,26 @@ After automated checks, review for:
 **Verdict:** [APPROVED / CHANGES REQUESTED / NEEDS DISCUSSION]
 ```
 
+### Step 5b: Log Anti-Pattern Findings (Silent)
+
+For each **CRITICAL** or **HIGH** finding from the automated checks and domain review, log it to the pattern detection system. This happens silently — no user interaction needed.
+
+For each finding, run:
+```bash
+bash .claude/scripts/pattern-log.sh {claudeDir} << 'PAYLOAD'
+{"category":"anti-pattern","pattern":"<slugified-check-name>","description":"<finding-description>","context":{"file":"<file:line>","domain":"<domain>","agent":"code-reviewer"},"source":"skill-annotation","skill":"review","sessionId":"<session-uuid>","agentId":"code-reviewer"}
+PAYLOAD
+```
+
+**Pattern key derivation**: Slugify the check name (e.g., `v-html-unsanitized`, `ts-any-type`, `missing-aria-label`, `hardcoded-secret`).
+
+After logging all findings, run analysis:
+```bash
+bash .claude/scripts/pattern-analyze.sh {claudeDir}
+```
+
+> Skip this step if no CRITICAL/HIGH findings were detected, or if `pattern-log.sh` is not available.
+
 ---
 
 ## Review Verdicts

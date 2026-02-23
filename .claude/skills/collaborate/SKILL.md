@@ -150,8 +150,9 @@ For each agent:
 1. **Read the agent definition file** from the appropriate directory (specialists, coordinators, or core agents)
 2. **Read relevant pattern files** referenced by the agent (from `.claude/knowledge/patterns/`)
 3. **Read the finding schema** from `.claude/knowledge/templates/collaboration-finding.md`
-4. **Construct the subagent prompt** (see template below)
-5. **Spawn via Task tool** — use `run_in_background: true` for parallel execution when invoking multiple agents
+4. **Load learning profile**: Read `{claudeDir}/.context/agent-learning.json` (if it exists). Extract the entry for this agent ID if available.
+5. **Construct the subagent prompt** (see template below)
+6. **Spawn via Task tool** — use `run_in_background: true` for parallel execution when invoking multiple agents
 
 ### Subagent Prompt Template
 
@@ -165,6 +166,13 @@ You are acting as the {AGENT_NAME} in a multi-agent collaboration session.
 
 ## Pattern Knowledge
 {CONTENTS OF RELEVANT PATTERN FILES}
+
+## Your Learning Profile
+{IF agent-learning.json has an entry for this agent, include:
+"Based on {totalEvents} tracked interactions (acceptance rate: {acceptanceRate}%):
+- User prefers: {accepted patterns}
+- User corrected: {rejected patterns} — avoid these without strong justification"
+OTHERWISE: "No learning data yet."}
 
 ## Collaboration Protocol
 
@@ -497,6 +505,23 @@ Update session file:
 - `collaboration.conflictsCount` → number of conflicts detected
 - `collaboration.verdict` → final verdict string
 - `collaboration.consensusReached` → `true` if all agents agree on verdict, `false` otherwise
+
+### 7d. Log Consensus Anti-Pattern Findings (Silent)
+
+For each **CRITICAL** or **HIGH** consensus finding (detected by 2+ agents), log it to the pattern detection system. Use the agent with the highest-severity finding as `agentId`:
+
+```bash
+bash .claude/scripts/pattern-log.sh {claudeDir} << 'PAYLOAD'
+{"category":"anti-pattern","pattern":"<slugified-finding>","description":"<finding-description>","context":{"file":"<file:line>","domain":"<domain>","agent":"<primary-reporting-agent>"},"source":"skill-annotation","skill":"collaborate","sessionId":"<session-uuid>","agentId":"<primary-reporting-agent>"}
+PAYLOAD
+```
+
+After logging all findings, run analysis:
+```bash
+bash .claude/scripts/pattern-analyze.sh {claudeDir}
+```
+
+> Skip if no CRITICAL/HIGH consensus findings exist, or if `pattern-log.sh` is not available.
 
 Run cleanup:
 ```bash

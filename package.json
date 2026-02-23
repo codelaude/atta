@@ -1,6 +1,6 @@
 {
   "name": "atta-dev",
-  "version": "2.4.3",
+  "version": "2.5.1",
   "description": "Atta — AI Dev Team Agent. Dynamic agent generation, multi-tool support, and intelligent code review for AI-assisted development.",
   "keywords": [
     "ai",
@@ -24,6 +24,10 @@
     "atta-dev": "bin/atta.js"
   },
   "main": "src/cli.js",
+  "exports": {
+    ".": "./src/cli.js",
+    "./adapters/*": "./src/adapters/*.js"
+  },
   "files": [
     "bin/",
     "src/",
@@ -31,9 +35,12 @@
     ".claude/bootstrap/",
     ".claude/docs/",
     ".claude/knowledge/",
-    ".claude/scripts/",
+    ".claude/scripts/session-cleanup.sh",
+    ".claude/scripts/generate-context.sh",
+    ".claude/scripts/pattern-log.sh",
+    ".claude/scripts/pattern-analyze.sh",
     ".claude/skills/",
-    ".claude/.context/",
+    ".claude/.context/README.md",
     ".claude/.metadata/",
     ".claude/.sessions/schema.json",
     ".claude/.sessions/README.md",

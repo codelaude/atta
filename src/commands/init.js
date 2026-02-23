@@ -1,4 +1,4 @@
-import { existsSync, writeFileSync, mkdirSync, readdirSync, rmSync } from 'node:fs';
+import { existsSync, writeFileSync, renameSync, mkdirSync, readdirSync, rmSync } from 'node:fs';
 import { resolve, join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as p from '@clack/prompts';
@@ -9,6 +9,7 @@ import { install as installCodex } from '../adapters/codex.js';
 import { install as installGemini } from '../adapters/gemini.js';
 import { runSetupPrompts, generateProfile } from '../prompts/setup.js';
 import { generateGettingStarted } from '../guides/getting-started.js';
+import { printBanner } from '../banner.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -77,6 +78,7 @@ export async function init(options) {
 
   // Non-interactive mode (--yes flag)
   if (options.yes) {
+    printBanner();
     return runInstall(targetDir, options.adapter, dryRun, null);
   }
 
@@ -131,13 +133,17 @@ async function runInstall(targetDir, adapterName, dryRun, answers) {
       const profileContent = generateProfile(answers);
       const profileDir = join(claudeDir, 'knowledge', 'project');
       mkdirSync(profileDir, { recursive: true });
-      writeFileSync(join(profileDir, 'developer-profile.md'), profileContent);
+      const profilePath = join(profileDir, 'developer-profile.md');
+      writeFileSync(profilePath + '.tmp', profileContent);
+      renameSync(profilePath + '.tmp', profilePath);
       results.files++;
     }
 
     // Generate GETTING-STARTED.md
     const gettingStarted = generateGettingStarted(adapterName, answers);
-    writeFileSync(join(targetDir, 'GETTING-STARTED.md'), gettingStarted);
+    const gsPath = join(targetDir, 'GETTING-STARTED.md');
+    writeFileSync(gsPath + '.tmp', gettingStarted);
+    renameSync(gsPath + '.tmp', gsPath);
     results.files++;
 
     // Remove tutorial skill if user opted out

@@ -6,6 +6,13 @@
 
 A multi-agent system for AI-assisted development that guides, reviews, and validates your work — instead of writing code for you. Supports any tech stack: Vue, React, Angular, Python/Django, Java/Spring Boot, Go, Rust, and [100+ more](.claude/docs/bootstrap-system.md).
 
+## Requirements
+
+- **Node.js** >= 18.0.0
+- **Unix/macOS** (or WSL on Windows) — shell scripts require bash
+- **python3** — used by framework scripts for JSON processing
+- One of: Claude Code, GitHub Copilot CLI, OpenAI Codex CLI, or Google Gemini CLI
+
 ## Quick Start
 
 ### 1. Set up
@@ -81,6 +88,7 @@ All your customizations (pattern files, agent tweaks, project context) are prese
 | `/lint` | Pattern-based checks against project rules |
 | `/preflight` | Full pre-PR pipeline: lint + security + test + review |
 | `/tutorial` | Interactive 5-minute onboarding walkthrough |
+| `/patterns` | Pattern detection and learning — analyze corrections, suggest promotions, track agent adaptation |
 | `/librarian` | Capture a directive or extract learnings |
 
 ## How It Works
@@ -129,6 +137,9 @@ Smart recommendations based on detected stack — documentation MCP for version-
 
 ### Guided Learning
 Rubber Duck agent teaches by asking questions. Librarian captures project-specific rules that persist across sessions. Pattern files encode best practices that evolve with your project.
+
+### Pattern Detection & Learning
+The system learns from your corrections. Repeated corrections accumulate, reach thresholds, and become promotable to directives or pattern files. Per-agent acceptance tracking shows which agents are improving. `/patterns dashboard` shows velocity, trends, and recommendations.
 
 ### Safe Updates
 File tracking with smart merge preserves all your customizations during framework updates. Three-tier classification: safe to replace, merge required, never touch.

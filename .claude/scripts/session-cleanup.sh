@@ -20,11 +20,11 @@ if [ -z "$CLAUDE_DIR" ]; then
       python3 -c "
 import json,sys
 try:
-    d=json.load(open('$file'))
+    d=json.load(open(sys.argv[1]))
     print(d.get('claudeDir','.claude'))
 except (FileNotFoundError, json.JSONDecodeError):
     print('.claude')
-" 2>/dev/null
+" "$file" 2>/dev/null
     else
       grep -o '"claudeDir" *: *"[^"]*"' "$file" 2>/dev/null | sed 's/.*: *"//;s/"//' || echo ".claude"
     fi
@@ -38,6 +38,18 @@ except (FileNotFoundError, json.JSONDecodeError):
     CLAUDE_DIR=".claude"
   fi
 fi
+
+# Path containment: ensure CLAUDE_DIR physically resolves inside the project root
+# Uses pwd -P to resolve symlinks — prevents symlink-to-outside-root bypass
+PROJECT_ROOT="$(pwd -P)"
+if [ -d "$CLAUDE_DIR" ]; then
+  CLAUDE_DIR_REAL=$(cd "$CLAUDE_DIR" && pwd -P)
+else
+  # Directory doesn't exist yet — resolve parent + basename (reject if parent is outside root)
+  CLAUDE_DIR_PARENT=$(cd "$(dirname "$CLAUDE_DIR")" 2>/dev/null && pwd -P) || { echo "Error: claudeDir parent does not exist" >&2; exit 1; }
+  CLAUDE_DIR_REAL="$CLAUDE_DIR_PARENT/$(basename "$CLAUDE_DIR")"
+fi
+case "$CLAUDE_DIR_REAL" in "$PROJECT_ROOT"/*) ;; *) echo "Error: claudeDir escapes project root" >&2; exit 1 ;; esac
 
 SESSIONS_DIR="$CLAUDE_DIR/.sessions"
 MAX_SESSIONS=10
@@ -61,15 +73,20 @@ to_delete=$((session_count - MAX_SESSIONS))
 
 # Delete oldest sessions (by filename, which includes timestamp)
 # Use null-delimited mode end-to-end to avoid filename parsing vulnerabilities.
-# Python is used for cross-platform sorting/selection (GNU/BSD compatible).
-find "$SESSIONS_DIR" -name "session-*.json" -type f -print0 \
-  | python3 -c "
+if command -v python3 >/dev/null 2>&1; then
+  # Python for cross-platform sorting/selection (GNU/BSD compatible)
+  find "$SESSIONS_DIR" -name "session-*.json" -type f -print0 \
+    | python3 -c "
 import sys
 n = int(sys.argv[1])
 paths = [p for p in sys.stdin.buffer.read().split(b'\0') if p]
 for p in sorted(paths)[:n]:
     sys.stdout.buffer.write(p + b'\0')
 " "$to_delete" \
-  | xargs -0 rm -f
+    | xargs -0 rm -f
+else
+  echo "Warning: python3 is required for safe session cleanup. Skipping deletion." >&2
+  exit 1
+fi
 
 echo "Deleted $to_delete old session(s). Kept $MAX_SESSIONS most recent."

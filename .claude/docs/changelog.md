@@ -4,6 +4,30 @@ Full version history for the Atta framework.
 
 ---
 
+## v2.5.1 (2026-02-23) — OSS Readiness
+
+Security hardening, community files, and npm packaging improvements from 3-way cross-review audit (Claude + Codex + Copilot).
+
+- **Community files**: LICENSE (MIT), CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, issue/PR templates
+- **Security hardening**: `sys.argv[]` for data passing in all shell scripts (no interpolation), path containment with `pwd -P` resolution (fixes absolute-path and symlink bypasses), UUID-based correction IDs
+- **npm packaging**: `.npmignore` defense-in-depth, `exports` field for ESM, specific script files in `files` (excludes `validate-framework.sh`), `recent.md` excluded from package
+- **Robustness**: Atomic file writes in JS adapters, `unhandledRejection` handler in CLI entry point, python3/Ruby fallbacks in validation
+- **Claude Code adapter**: Generate `CLAUDE.md` instruction file (parity with Copilot/Codex `AGENTS.md` and Gemini `GEMINI.md`)
+- **Bug fix**: Escaped backticks in `generate-context.sh` inline Python (shell command substitution)
+
+---
+
+## v2.5.0 (2026-02-23) — Pattern Detection & Agent Learning
+
+- **Pattern detection foundation**: Append-only correction log (`corrections.jsonl`), aggregation engine (`pattern-analyze.sh`), and `/patterns` skill with 7 subcommands (log, learn, suggest, promote, status, agent, dashboard)
+- **Correction capture pipeline**: Librarian agent captures user corrections, review and collaborate skills auto-log CRITICAL/HIGH findings, manual logging via `/patterns log`
+- **Pattern lifecycle**: Corrections accumulate → thresholds trigger readiness → `/patterns suggest` proposes promotion → `/patterns promote` writes to pattern files or directives
+- **Agent adaptation (Track 6)**: Per-agent outcome tracking (`accepted`/`rejected`), acceptance rates, learned preferences with confidence levels (low/medium/high), learning profiles injected into agent context
+- **Learning dashboard (Track 7)**: `/patterns dashboard` with correction velocity (7d vs prior 7d), per-agent acceptance rate trends (7d vs 30d), aging patterns (ready but not promoted 7+ days), and 5 recommendation types (promote-stale, domain-cluster, velocity-spike, agent-improving, agent-declining)
+- **Schema v1.1.0**: Aggregation output files now include `trends` and `recommendations` fields
+- **Validation**: 51 framework assertions (up from 26 in v2.4.3), covering pattern detection, agent adaptation, and learning dashboard
+- Backward-compatible: old corrections without `outcome`/`agentId` treated as neutral, no migration needed
+
 ## v2.4.3 (2026-02-22) — Distribution Sprint
 
 - npm package infrastructure (`npx atta-dev init`) with CLI, interactive setup, and developer profile generation
@@ -86,14 +110,15 @@ Full version history for the Atta framework.
 
 ---
 
-## By the Numbers (v2.4.3)
+## By the Numbers (v2.5.0)
 
 - **100+ Technology Detectors** across frontend, backend, databases, security tools
 - **9 Universal Agent Templates** that generate project-specific specialists
 - **5 Detection Rule Files** covering frontend, backend, databases, tools, and security
 - **20+ Pattern File Templates** for different tech stacks
-- **12 Skills** (slash commands)
+- **13 Skills** (slash commands), `/patterns` with 7 subcommands
 - **3-Tier Agent Architecture** (7 core + 2 coordinators + N specialists)
+- **51 Framework Validation Assertions** (pattern detection, agent adaptation, learning dashboard)
 - **100% Configuration-Driven** — add new tech via YAML, no code changes
 
 ---

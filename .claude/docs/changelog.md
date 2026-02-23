@@ -4,7 +4,21 @@ Full version history for the Atta framework.
 
 ---
 
-## v2.5.2 (2026-02-23) — Context Diet
+## v2.5.3 — Context Diet Pass 2 + Session Tracking Hooks
+
+Moves session tracking from in-skill boilerplate to Claude Code hooks, and compresses the remaining large SKILL.md files.
+
+- **Session tracking hooks**: New `session-track.sh` hook handles all session lifecycle via Claude Code's `PostToolUse` (on Skill) and `Stop` events — replaced ~50 lines of Block A/B/C boilerplate in each of 11 skills
+- **Hook-based architecture**: `src/adapters/claude-code.js` generates hook configuration in `settings.local.json`, copies `.claude/hooks/` directory during init
+- **Context diet (remaining skills)**: `/update` 777→249 lines (-68%), `/patterns` 462→164 (-64%), `/preflight` 352→197 (-44%), `/review` 373→256 (-31%), `/security-audit` 373→267 (-28%), `collaboration-finding.md` 105→48 (-54%)
+- **Additional skill compression**: `/agent` 201→97 (-52%), `/team-lead` 150→60 (-60%), `/lint` 226→141 (-38%), `/tutorial` 412→331 (-20%)
+- **Session tracking docs**: `TRACKING_GUIDE.md` 197→79 lines, `SKILL_TEMPLATE.md` 193→40 lines — rewritten for hooks-first approach
+- **v2.5.1 triage**: Session tracking gaps closed (hooks auto-track all skills), schema/docs items verified as already done, performance/dedup/misc deferred to v2.6
+- **Net reduction**: ~1,881 lines removed
+
+---
+
+## v2.5.2 — Context Diet
 
 Reduces context window footprint of SKILL.md files and agent definitions.
 
@@ -18,7 +32,7 @@ Reduces context window footprint of SKILL.md files and agent definitions.
 
 ---
 
-## v2.5.1 (2026-02-23) — OSS Readiness
+## v2.5.1 — OSS Readiness
 
 Security hardening, community files, and npm packaging improvements from 3-way cross-review audit (Claude + Codex + Copilot).
 
@@ -42,7 +56,7 @@ Security hardening, community files, and npm packaging improvements from 3-way c
 - **Validation**: 51 framework assertions (up from 26 in v2.4.3), covering pattern detection, agent adaptation, and learning dashboard
 - Backward-compatible: old corrections without `outcome`/`agentId` treated as neutral, no migration needed
 
-## v2.4.3 (2026-02-22) — Distribution Sprint
+## v2.4.3 — Distribution Sprint
 
 - npm package infrastructure (`npx atta-dev init`) with CLI, interactive setup, and developer profile generation
 - Cross-tool adapter pattern: Claude Code, GitHub Copilot CLI, OpenAI Codex CLI, Google Gemini CLI
@@ -52,13 +66,13 @@ Security hardening, community files, and npm packaging improvements from 3-way c
 - Cross-AI review: 12 findings identified and resolved across Claude, Codex (GPT-5), and GitHub Copilot
 - Agent developer preferences: agents read developer profile generated during install
 
-## v2.4.2 (2026-02-22) — Rename & Version Cleanup
+## v2.4.2 — Rename & Version Cleanup
 
 - Renamed `/init` skill to `/atta` to avoid collision with Claude Code built-in `/init`
 - Removed cosmetic version numbers from skill footers and doc headers
 - Version now lives only in `.metadata/version`, `.metadata/framework-version`, and changelog
 
-## v2.4.1 (2026-02-20) — Session Tracking Expansion
+## v2.4.1 — Session Tracking Expansion
 
 - Session tracking expanded from 2 skills to 9 of 12 skills (excludes /atta, /update, /migrate)
 - Standardized three-block pattern: init → agent tracking → finalization

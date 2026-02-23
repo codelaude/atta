@@ -16,6 +16,7 @@ const FRAMEWORK_DIRS = [
   'agents',
   'bootstrap',
   'docs',
+  'hooks',
   'knowledge',
   'scripts',
   'skills',
@@ -76,14 +77,39 @@ export function install(frameworkRoot, targetDir, options = {}) {
           'Bash(bash .claude/scripts/generate-context.sh:*)',
           'Bash(bash .claude/scripts/pattern-log.sh:*)',
           'Bash(bash .claude/scripts/pattern-analyze.sh:*)',
-          // Session tracking (created/updated by every skill)
-          'Edit(./.claude/.sessions/**)',
           // Context files (recent work summary)
           'Edit(./.claude/.context/**)',
           // Agent memory (directives, learnings)
           'Edit(./.claude/agents/memory/**)',
           // Knowledge capture (patterns, project context)
           'Edit(./.claude/knowledge/**)',
+        ],
+      },
+      hooks: {
+        PostToolUse: [
+          {
+            matcher: 'Skill',
+            hooks: [
+              {
+                type: 'command',
+                command:
+                  '"$CLAUDE_PROJECT_DIR"/.claude/hooks/session-track.sh',
+                async: true,
+              },
+            ],
+          },
+        ],
+        Stop: [
+          {
+            hooks: [
+              {
+                type: 'command',
+                command:
+                  '"$CLAUDE_PROJECT_DIR"/.claude/hooks/session-track.sh',
+                async: true,
+              },
+            ],
+          },
         ],
       },
     };

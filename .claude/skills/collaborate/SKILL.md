@@ -22,8 +22,6 @@ You are orchestrating a **multi-agent collaboration** session.
 
 ## Step 1: Parse Command and Determine Mode
 
-**Before parsing:** Initialize session tracking (Step 7a). The session file must exist before proceeding.
-
 **Flags:**
 
 | Flag | Effect |
@@ -191,31 +189,7 @@ If `--quick`: filter out MEDIUM/LOW/INFO findings from all sections.
 
 ---
 
-## Step 7: Session Tracking
-
-### 7a. Create Session File (run FIRST — before Step 1)
-
-```bash
-TIMESTAMP=$(date +%Y-%m-%d-%H%M%S)
-UUID=$(uuidgen 2>/dev/null || python3 -c "import uuid; print(uuid.uuid4())" 2>/dev/null)
-UUID=$(echo "$UUID" | tr '[:upper:]' '[:lower:]')
-ISO_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-START_TIME=$(date +%s)
-```
-
-> If `$UUID` is empty, skip session tracking entirely — proceed normally, omit Finalize Session.
-
-Write `{claudeDir}/.sessions/session-$TIMESTAMP.json` with: `schemaVersion`, `sessionId`, `timestamp`, `startedBy: "user"`, `skill: { name: "collaborate", args, status: "in_progress" }`, `agents: []`, `collaboration: { mode, agentsInvolved: [], routingMethod }`, `metadata: { projectPath, claudeDir, duration: null }`.
-
-### 7b. Track Agent Invocations (during Step 4)
-
-Add to `agents` array: `{ name, role (universal|coordinator|specialist from path), invokedAt, status }`. Update status on completion.
-
-### 7c. Finalize Session (after Step 6)
-
-Update: `skill.status` → completed/failed, `metadata.duration`, `collaboration.agentsInvolved`, `collaboration.findingsCount`, `collaboration.conflictsCount`, `collaboration.verdict`, `collaboration.consensusReached`.
-
-### 7d. Log Consensus Anti-Patterns (Silent)
+## Step 7: Log Consensus Anti-Patterns (Silent)
 
 For each CRITICAL/HIGH consensus finding, log via `pattern-log.sh`:
 ```bash
@@ -224,13 +198,11 @@ bash .claude/scripts/pattern-log.sh {claudeDir} << 'PAYLOAD'
 PAYLOAD
 ```
 
-Then run: `bash .claude/scripts/pattern-analyze.sh {claudeDir}`, `.claude/scripts/session-cleanup.sh {claudeDir}`, `.claude/scripts/generate-context.sh {claudeDir}`.
+Then run: `bash .claude/scripts/pattern-analyze.sh {claudeDir}`
 
 ---
 
 ## Error Handling
-
-> **Session note:** Always finalize session (status `"failed"` or `"interrupted"`) before showing recovery messages.
 
 For each error, show a brief message and 2-3 recovery options:
 

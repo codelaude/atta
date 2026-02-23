@@ -29,46 +29,54 @@ Never manually copy a new `.claude/` folder over your existing one.
 
 ### Mode Selection
 
-- Default: `/update` auto-selects mode from metadata:
+- Default: auto-selects from metadata:
   - `upgrade` when `.claude/.metadata/file-manifest.json` exists
-  - `migration-bootstrap` when `.claude/.metadata/file-manifest.json` is missing
-- Optional override: `--mode` with one of:
-  - `upgrade`
-  - `migration`
-  - `migration-bootstrap`
+  - `migration-bootstrap` when it is missing
+- Override: `--mode upgrade|migration|migration-bootstrap`
 
 ---
 
 ## What This Skill Does
 
-1. **Load source** framework from `--from <staging>/.claude`
-2. **Select mode automatically** from metadata (Upgrade vs Migration Bootstrap)
-3. **Classify** files into framework/generated/user categories
-4. **Detect** customizations to framework files
-5. **Apply** safe updates (bootstrap, docs, core skills)
-6. **Merge** customized framework files (core agents)
-7. **Preserve** all user content (project knowledge, directives, settings)
-8. **Report** selected mode and what changed
+1. Load source from `--from <staging>/.claude`
+2. Auto-select mode from metadata
+3. Classify files into tiers (see File Classification)
+4. Detect customizations, apply safe updates, merge customized files
+5. Preserve all user content
+6. Report what changed
 
 ---
 
 ## Prerequisites
 
-Before running `/update`, ensure:
+1. `--from` path provided for check/pull, must contain `.metadata/version`
+2. Optional `--mode` override is valid
+3. Clean working directory (no uncommitted `.claude/` changes)
+4. `.claude/.metadata/framework-version` used for comparison (created by `/atta`)
 
-1. **Source path is provided** with `--from` for check/pull operations
-   - Example: `--from ./.claude_staging/.claude`
-   - Source path must contain `.metadata/version`
+---
 
-2. **Optional mode override** is valid when provided
-   - `--mode upgrade|migration|migration-bootstrap`
+## File Classification
 
-3. **Clean working directory**: No uncommitted changes to `.claude/`
-   - The update creates backups, but start clean for safety
+### Tier 1: Safe to Replace (no user customizations)
 
-4. **Framework version tracking file**: `.claude/.metadata/framework-version` is used for reporting/comparison
-   - Created automatically by `/atta` in new projects
-   - Legacy installs may be missing this file; `/update` should recreate/update it during apply
+Patterns: `bootstrap/**/*`, `docs/**/*`, `skills/*/SKILL.md` (except `skills/generated/`), `knowledge/templates/**/*`, `.metadata/README.md`
+
+### Tier 2: Requires Merge (framework files with user customizations)
+
+Files: `agents/project-owner.md`, `agents/librarian.md`, `agents/rubber-duck.md`, `agents/code-reviewer.md`, `agents/business-analyst.md`, `agents/qa-validator.md`, `agents/pr-manager.md`
+
+### Tier 3: Never Touch (pure user content)
+
+Patterns: `agents/memory/**/*`, `knowledge/project/**/*`, `knowledge/accs/**/*`, `agents-config.json`, `settings.local.json`, `.metadata/file-manifest.json`, `.metadata/framework-version`, `.metadata/update-history.json`
+
+Backup directories (`.claude-backup-*`) are created as siblings outside `.claude/`.
+
+### Generated (Optional Update)
+
+Patterns: `agents/coordinators/**/*`, `agents/specialists/**/*`, `knowledge/patterns/**/*`, `agents/INDEX.md`, `.metadata/generated-manifest.json`, `.metadata/last-init`, `skills/generated/**/*`
+
+Run `/atta --rescan` after update to regenerate from new templates.
 
 ---
 
@@ -79,570 +87,129 @@ When user runs `/update check`:
 ### 1.1. Verify Prerequisites
 
 ```bash
-# Check source path
-if [ -z "${SOURCE_CLAUDE_DIR:-}" ]; then
-  echo "⚠️  Missing source path"
-  echo "Use: /update check --from ./.claude_staging/.claude"
-  exit 1
-fi
-
-if [ ! -f "$SOURCE_CLAUDE_DIR/.metadata/version" ]; then
-  echo "⚠️  Invalid source path: $SOURCE_CLAUDE_DIR"
-  echo "Expected: $SOURCE_CLAUDE_DIR/.metadata/version"
-  exit 1
-fi
-
-# Determine mode (upgrade vs migration bootstrap)
-if [ -n "${MODE_OVERRIDE:-}" ]; then
-  case "$MODE_OVERRIDE" in
-    upgrade|migration|migration-bootstrap)
-      mode="$MODE_OVERRIDE"
-      echo "ℹ️  Mode forced by --mode: $mode"
-      ;;
-    *)
-      echo "⚠️  Invalid mode: $MODE_OVERRIDE"
-      echo "Use one of: upgrade, migration, migration-bootstrap"
-      exit 1
-      ;;
-  esac
-elif [ ! -f .claude/.metadata/file-manifest.json ]; then
-  mode="migration-bootstrap"
-  echo "ℹ️  file-manifest missing: /update will run Migration Bootstrap mode"
-else
-  mode="upgrade"
-fi
+# Check source path exists and has .metadata/version
+# Determine mode: --mode override > manifest check > migration-bootstrap fallback
 ```
 
-### 1.2. Detect Current Versions
+Read versions from:
+- `.claude/.metadata/version` — current version
+- `.claude/.metadata/framework-version` — last applied framework version
+- `$SOURCE_CLAUDE_DIR/.metadata/version` — incoming version
 
-Read version information:
-- `.claude/.metadata/version` → Target user's current version (e.g., "2.0")
-- `.claude/.metadata/framework-version` → Target last applied framework version
-- `$SOURCE_CLAUDE_DIR/.metadata/version` → Incoming source framework version
-- `.claude/.metadata/file-manifest.json` → File tracking data (if present)
-
-### 1.3. Resolve Mode
-
-Resolve mode as follows (unless `--mode` override is provided):
-- **Migration Bootstrap mode** (`migration-bootstrap`): auto-selected when `.claude/.metadata/file-manifest.json` is missing
-- **Upgrade mode** (`upgrade`): default when manifest exists
-- **Migration mode** (`migration`): explicit override only via `--mode migration`
-
-### 1.4. Report Available Updates
+### 1.2. Report
 
 ```markdown
 ## Framework Update Available
-
-**Current version**: {{CURRENT_VERSION}}
-**Latest version**: {{NEW_VERSION}}
-**Released**: {{RELEASE_DATE}}
-
+**Current version**: {{CURRENT_VERSION}} | **Latest version**: {{NEW_VERSION}}
 ### What's New in v{{NEW_VERSION}}
 - [Feature highlights from changelog]
-- [New skills or improvements]
-- [Bug fixes and enhancements]
-
 ### Impact Analysis
 Run `/update pull --dry-run` to see what would change.
 ```
 
-If already up to date:
-```
-✅ You're on the latest framework version ({{CURRENT_VERSION}})
-```
+If already up to date: `You're on the latest framework version ({{CURRENT_VERSION}})`
 
 ---
 
-## Phase 2: Dry Run Mode (`--dry-run`)
+## Phase 2: Dry Run (`--dry-run`)
 
-When user runs `/update pull --dry-run`:
+### 2.1. Classify and Compare
 
-### 2.1. Load File Manifest
+- Read `.claude/.metadata/file-manifest.json` for file hashes and categories
+- For Tier 1: compare hashes, list changed files
+- For Tier 2: detect customizations, show diff, recommend merge strategy
+- Tier 3: list as preserved
 
-Read `.claude/.metadata/file-manifest.json` to understand:
-- Which files are framework vs user vs generated
-- Which framework files have been customized
-- File hashes for comparison
-
-### 2.2. Classify All Files
-
-Group files into three tiers:
-
-**Tier 1: Safe to Replace** (no user customizations)
-```yaml
-safe_replace:
-  - bootstrap/**/*
-  - docs/**/*
-  - skills/atta/SKILL.md
-  - skills/migrate/SKILL.md
-  - skills/agent/SKILL.md
-  - skills/librarian/SKILL.md
-  - skills/lint/SKILL.md
-  - skills/review/SKILL.md
-  - skills/preflight/SKILL.md
-  - skills/security-audit/SKILL.md
-  - skills/team-lead/SKILL.md
-  - skills/update/SKILL.md
-  - skills/tutorial/SKILL.md
-  - knowledge/templates/**/*
-```
-
-**Tier 2: Requires Merge** (framework files with user customizations)
-```yaml
-merge_required:
-  - agents/project-owner.md (customized: true)
-  - agents/librarian.md (customized: true)
-  - agents/rubber-duck.md (customized: true)
-  - agents/code-reviewer.md (customized: true)
-  - agents/business-analyst.md (customized: true)
-  - agents/qa-validator.md (customized: true)
-  - agents/pr-manager.md (customized: true)
-```
-
-**Tier 3: Never Touch** (pure user content)
-```yaml
-never_touch:
-  - agents/memory/**/*
-  - knowledge/project/**/*
-  - knowledge/accs/**/*
-  - agents-config.json    # Optional user file (may not exist in all projects)
-  - settings.local.json
-  - .metadata/file-manifest.json
-  - .metadata/framework-version
-  - .metadata/update-history.json
-
-note: "Backup directories (.claude-backup-*) are created as siblings outside .claude/"
-```
-
-**Generated (Optional Update)**
-```yaml
-regenerate_optional:
-  - agents/coordinators/**/*
-  - agents/specialists/**/*
-  - knowledge/patterns/**/*
-  - agents/INDEX.md
-  note: "Run /atta --rescan to regenerate from updated templates"
-```
-
-### 2.3. Compare File Contents
-
-For Tier 1 files:
-- Compare hash with framework version
-- List which files changed and brief description
-
-For Tier 2 files:
-- Detect customizations (personality names, added rules, modified sections)
-- Show diff highlighting user changes vs framework changes
-- Recommend merge strategy
-
-### 2.4. Generate Report
+### 2.2. Generate Report
 
 ```markdown
 ## Update Preview (Dry Run)
-
 ### Tier 1: Safe Updates (will replace)
-✓ bootstrap/detection/frontend-detectors.yaml (15 new detectors added)
-✓ bootstrap/mappings/mcp-mappings.yaml (Context7, Serena support)
-✓ bootstrap/templates/agents/*.template.md (clearer boundaries)
-✓ docs/bootstrap-system.md (improved examples)
-✓ docs/extending.md (new section on custom MCPs)
-✓ skills/atta/SKILL.md (better error handling)
-
-**Total**: 23 files will be updated
+[list of changed files with brief descriptions]
+**Total**: N files will be updated
 
 ### Tier 2: Requires Merge (you customized these)
-⚠ agents/project-owner.md
-  Framework changes: Improved routing logic, better error messages
-  Your customizations: Custom personality, modified role description
-  Strategy: 3-way merge (will preserve your changes)
-
-⚠ agents/librarian.md
-  Framework changes: Enhanced directive capture format
-  Your customizations: None detected (can safely update)
-
-**Total**: 2 files need review
+[for each: framework changes, your customizations, merge strategy]
+**Total**: N files need review
 
 ### Tier 3: Will Preserve (your content)
-✓ agents/memory/directives.md
-✓ knowledge/project/* (8 files)
-✓ knowledge/accs/* (3 files)
-✓ agents-config.json
-✓ settings.local.json
-
-**Total**: 14 files protected
+[list of protected files]
+**Total**: N files protected
 
 ### Generated Files (optional)
-? agents/coordinators/* (2 files)
-? agents/specialists/* (5 files)
-? knowledge/patterns/* (8 files)
-
-Note: Run /atta --rescan after update to regenerate from new templates
-
----
+[list — run /atta --rescan after update]
 
 ## Next Steps
-
-To apply this update:
-- `/update pull` - Apply automatically (safe updates + smart merge)
-- `/update pull --interactive` - Review each merge manually
+- `/update pull` — Apply automatically
+- `/update pull --interactive` — Review each merge manually
 ```
 
 ---
 
 ## Phase 3: Apply Updates (`/update pull`)
 
-When user runs `/update pull`:
-
 ### 3.1. Create Backup
 
 ```bash
 timestamp=$(date +%Y%m%d-%H%M%S)
 backup_dir=".claude-backup-update-v{{CURRENT_VERSION}}-to-v{{NEW_VERSION}}-$timestamp"
-
-# Backup entire .claude directory (as sibling, not subdirectory)
 cp -r .claude/ "$backup_dir/"
-echo "✓ Backup created: $backup_dir"
 ```
 
-### 3.2. Apply Tier 1 Updates (Safe Replace)
+### 3.2. Apply Tier 1 (Safe Replace)
 
-For each file in the safe replace list:
-1. Copy new version from framework
-2. Update file hash in manifest
-3. Log the update
+Copy new versions from framework, update hashes in manifest, log updates.
 
-```bash
-# Example for bootstrap files
-cp -r /path/to/framework/.claude/bootstrap/* .claude/bootstrap/
-echo "✓ Updated bootstrap/ (23 files)"
-```
+### 3.3. Apply Tier 2 (Smart Merge)
 
-### 3.3. Apply Tier 2 Updates (Smart Merge)
+**Strategy A — No Customizations:** Simply replace with new version.
 
-For each customized framework file:
+**Strategy B — Customizations Detected:**
+1. Extract user customizations (personality names, added rules, modified sections)
+2. Apply framework update (get new template)
+3. Reapply customizations (merge back in)
+4. Show diff and ask for approval
 
-**Strategy A: No Customizations Detected**
-- Simply replace with new version
-- Update hash in manifest
+**Strategy C — Interactive Mode (`--interactive`):**
+Show side-by-side diff for each file. User chooses: (a) accept + reapply, (b) keep yours, (c) manual edit.
 
-**Strategy B: Customizations Detected**
+### 3.4. Update Metadata
 
-1. **Extract user customizations**:
-   - Personality names or aliases
-   - User-added rules sections
-   - Modified role descriptions
-
-2. **Apply framework update**:
-   - Get new template version
-   - Apply framework changes
-
-3. **Reapply customizations**:
-   - Merge user customizations back in
-   - Use YAML front matter or special sections for user content
-
-4. **Show diff and ask for approval**:
-   ```markdown
-   ## Merging agents/project-owner.md
-
-   Framework changes applied:
-   + Improved routing logic (lines 45-67)
-   + Better error messages (lines 89-92)
-
-   Your customizations preserved:
-   ✓ Custom role description (lines 15-18)
-   ✓ Project-specific routing rules (lines 70-75)
-
-   [Show full diff? y/n]
-   ```
-
-**Strategy C: Interactive Mode**
-
-If `--interactive` flag:
-- Show side-by-side diff for each file
-- Let user choose:
-  - (a) Accept framework version + reapply customizations
-  - (b) Keep your version (skip framework update)
-  - (c) Manual edit (open in editor)
-
-### 3.4. Skip Tier 3 Files
-
-Do not touch:
-- `agents/memory/**/*`
-- `knowledge/project/**/*`
-- `knowledge/accs/**/*`
-- `agents-config.json`
-- `settings.local.json`
-
-Log that these were preserved.
-
-### 3.5. Update Metadata
-
-Write updated tracking files:
-
-**`.metadata/framework-version`**:
-```
-2.1
-```
-
-**`.metadata/file-manifest.json`**:
-```json
-{
-  "framework_version": "2.1",
-  "user_version": "2.1",
-  "last_update": "2026-02-16T14:30:00Z",
-  "files": {
-    "bootstrap/": {
-      "source": "framework",
-      "customized": false,
-      "framework_hash": "new_hash_xyz"
-    },
-    "agents/project-owner.md": {
-      "source": "framework",
-      "customized": true,
-      "framework_hash": "new_hash_abc",
-      "user_hash": "user_hash_def",
-      "customizations": {
-        "sections_modified": ["role_description"],
-        "user_rules_added": false
-      }
-    }
-  }
-}
-```
-
-**`.metadata/update-history.json`**:
-```json
-{
-  "updates": [
-    {
-      "from": "{{CURRENT_VERSION}}",
-      "to": "{{NEW_VERSION}}",
-      "timestamp": "{{TIMESTAMP}}",
-      "files_updated": 23,
-      "files_merged": 2,
-      "files_preserved": 14,
-      "backup_location": ".claude-backup-update-v{{CURRENT_VERSION}}-to-v{{NEW_VERSION}}-{{BACKUP_TIMESTAMP}}",
-      "notes": "Description of what changed in this update"
-    }
-  ]
-}
-```
+Write updated `.metadata/framework-version`, `.metadata/file-manifest.json` (with new hashes), and `.metadata/update-history.json` (append entry with from/to/timestamp/counts/backup location).
 
 ---
 
 ## Phase 4: Report Results
 
 ```markdown
-## ✅ Update Complete: v{{CURRENT_VERSION}} → v{{NEW_VERSION}}
-
+## Update Complete: v{{CURRENT_VERSION}} → v{{NEW_VERSION}}
 ### What Changed
-
-**Framework Files Updated** (N files)
-- bootstrap/ - [Detection improvements]
-- docs/ - [New or updated guides]
-- skills/ - [Skill changes]
-- knowledge/templates/ - [Template updates]
-
-**Merged With Your Customizations** (N files)
-- agents/project-owner.md ✓
-- agents/librarian.md ✓
-
-**Preserved** (14 files)
-- agents/memory/directives.md
-- knowledge/project/* (8 files)
-- knowledge/accs/* (3 files)
-- agents-config.json
-- settings.local.json
-
+- **Updated**: N framework files
+- **Merged**: N customized files
+- **Preserved**: N user files
 ### Backup Location
 `.claude-backup-update-v{{CURRENT_VERSION}}-to-v{{NEW_VERSION}}-{{BACKUP_TIMESTAMP}}/`
-
 ### Next Steps
-
-1. **Regenerate agents** (optional):
-   ```
-   /atta --rescan
-   ```
-   This regenerates coordinators/specialists/patterns from updated templates.
-
-2. **Review changes**:
-   ```
-   git diff .claude/
-   ```
-
-3. **Rollback** (if needed):
-   ```
-   /update rollback
-   ```
-
-### What's New in v{{NEW_VERSION}}
-
-- [Feature highlights from changelog]
-- [New skills or improvements]
-- [Bug fixes and enhancements]
-
----
-
-**Framework version**: {{NEW_VERSION}}
-**Last updated**: {{TIMESTAMP}}
+1. `/atta --rescan` — Regenerate agents (optional)
+2. `git diff .claude/` — Review changes
+3. `/update rollback` — Undo if needed
 ```
 
 ---
 
 ## Phase 5: Rollback (`/update rollback`)
 
-When user runs `/update rollback`:
-
-### 5.1. Find Latest Update Backup
-
-Look for `.claude-backup-update-*` directories (sibling to .claude/), sorted by timestamp.
-
-### 5.2. Confirm with User
-
-```markdown
-## Rollback Update
-
-Found recent update backup:
-- **From**: v{{CURRENT_VERSION}}
-- **To**: v{{NEW_VERSION}}
-- **Date**: {{TIMESTAMP}}
-- **Backup**: .claude-backup-update-v{{CURRENT_VERSION}}-to-v{{NEW_VERSION}}-{{BACKUP_TIMESTAMP}}/
-
-This will restore your `.claude/` directory to the state before the update.
-
-**⚠️  Any changes made AFTER the update will be lost.**
-
-Proceed with rollback? [y/N]
-```
-
-### 5.3. Restore Backup
-
-```bash
-# Create safety backup of current state (as sibling directory)
-timestamp=$(date +%Y%m%d-%H%M%S)
-cp -r .claude/ ".claude-pre-rollback-backup-$timestamp/"
-
-# Restore from update backup
-rm -rf .claude/
-cp -r .claude-backup-update-v{{CURRENT_VERSION}}-to-v{{NEW_VERSION}}-{{BACKUP_TIMESTAMP}}/ .claude/
-
-echo "✓ Rollback complete"
-echo "✓ Current state backed up to: .claude-pre-rollback-backup-$timestamp/"
-```
-
-### 5.4. Report
-
-```markdown
-## ✅ Rollback Complete
-
-Restored from backup:
-- `.claude-backup-update-v{{CURRENT_VERSION}}-to-v{{NEW_VERSION}}-{{BACKUP_TIMESTAMP}}/`
-
-Framework version:
-- **Was**: {{NEW_VERSION}}
-- **Now**: {{CURRENT_VERSION}}
-
-Your current state before rollback was saved to:
-- `.claude-pre-rollback-backup-{{ROLLBACK_TIMESTAMP}}/`
-
-You can now continue working on framework v{{CURRENT_VERSION}}.
-```
+1. Find latest `.claude-backup-update-*` directory (sibling to `.claude/`)
+2. Confirm with user (show from/to versions, warn that post-update changes will be lost)
+3. Create safety backup of current state: `cp -r .claude/ ".claude-pre-rollback-backup-$timestamp/"`
+4. Restore from update backup: `rm -rf .claude/ && cp -r <backup>/ .claude/`
+5. Report: restored version, safety backup location
 
 ---
 
 ## Phase 6: Update History (`/update --history`)
 
-Show complete update history:
-
-```markdown
-## Update History
-
-### v{{PREV_VERSION}} → v{{CURRENT_VERSION}} ({{TIMESTAMP}})
-- Files updated: N
-- Files merged: N
-- Files preserved: N
-- Backup: `.claude-backup-update-v{{PREV_VERSION}}-to-v{{CURRENT_VERSION}}-{{BACKUP_TIMESTAMP}}/`
-- Notes: Description of changes
-
-### v{{OLDER_VERSION}} → v{{PREV_VERSION}} ({{TIMESTAMP}}) [Migration]
-- Migrated from v{{OLDER_VERSION}} to v{{PREV_VERSION}}
-- Generated N specialists, N coordinators
-- Preserved N custom rules from legacy agents
-- Backup: `.claude-backup-migrate-v{{OLDER_VERSION}}-to-v{{PREV_VERSION}}-{{BACKUP_TIMESTAMP}}/`
-
----
-
-**Current version**: {{CURRENT_VERSION}}
-**Framework version**: {{CURRENT_VERSION}}
-**Last update**: {{TIMESTAMP}}
-```
-
----
-
-## File Classification Rules
-
-Use these rules to determine file tier:
-
-### Tier 1: Safe to Replace
-
-```python
-SAFE_REPLACE_PATTERNS = [
-    "bootstrap/**/*",
-    "docs/**/*",
-    "skills/*/SKILL.md",  # Except generated/
-    "knowledge/templates/**/*",
-    ".metadata/README.md",
-]
-
-SAFE_REPLACE_EXCLUDE = [
-    "skills/generated/**/*",
-]
-```
-
-### Tier 2: Requires Merge
-
-```python
-MERGE_REQUIRED = [
-    "agents/project-owner.md",
-    "agents/librarian.md",
-    "agents/rubber-duck.md",
-    "agents/code-reviewer.md",
-    "agents/business-analyst.md",
-    "agents/qa-validator.md",
-    "agents/pr-manager.md",
-]
-```
-
-### Tier 3: Never Touch
-
-```python
-NEVER_TOUCH_PATTERNS = [
-    "agents/memory/**/*",
-    "knowledge/project/**/*",
-    "knowledge/accs/**/*",
-    "agents-config.json",
-    "settings.local.json",
-    ".metadata/file-manifest.json",
-    ".metadata/framework-version",
-    ".metadata/update-history.json",
-]
-
-# Note: Backup directories are outside .claude/ so not included here
-```
-
-### Generated (Optional)
-
-```python
-GENERATED_PATTERNS = [
-    "agents/coordinators/**/*",
-    "agents/specialists/**/*",
-    "knowledge/patterns/**/*",
-    "agents/INDEX.md",
-    ".metadata/generated-manifest.json",
-    ".metadata/last-init",
-    "skills/generated/**/*",
-]
-```
+Read `.metadata/update-history.json` and display each entry: from → to version, timestamp, file counts, backup location, notes. Include migration entries if present.
 
 ---
 
@@ -650,128 +217,33 @@ GENERATED_PATTERNS = [
 
 For Tier 2 files with customizations:
 
-### Step 1: Detect Customizations
-
-Compare current file against original framework template:
-- Calculate diff
-- Identify user-added sections
-- Extract customizations (personality names, rules, etc.)
-
-### Step 2: Apply Framework Update
-
-Get new framework template version.
-
-### Step 3: Reapply Customizations
-
-Strategies:
-1. **YAML front matter**: Store user data in front matter
-2. **Special sections**: `## User Customizations` section
-3. **Line-by-line merge**: Git-style 3-way merge
-
-### Step 4: Validate Result
-
-Ensure:
-- All user customizations preserved
-- Framework improvements applied
-- No conflicts introduced
-- File still valid markdown
-
-### Step 5: Show Diff
-
-Present to user:
-- What framework changed
-- What user customizations were preserved
-- Final merged result
+1. **Detect**: Compare current file against original framework template, identify user-added sections
+2. **Update**: Get new framework template version
+3. **Reapply**: Merge customizations back (via YAML front matter, special sections, or line-by-line 3-way merge)
+4. **Validate**: Ensure all customizations preserved, framework improvements applied, no conflicts, valid markdown
+5. **Show diff**: Present what framework changed and what user customizations were preserved
 
 ---
 
-## Error Handling
+## Error Handling & Recovery
 
-### If File Manifest Missing
-
-```markdown
-ℹ️  Update tracking metadata not initialized
-
-`.claude/.metadata/file-manifest.json` is missing.
-
-`/update` will continue in **Migration Bootstrap mode** to initialize tracking metadata,
-then proceed with normal update safety rules.
-
-Recommended flow:
-1. `/update pull --dry-run --from ./.claude_staging/.claude`
-2. `/update pull --from ./.claude_staging/.claude`
-```
-
-### If Merge Conflicts
+### File Manifest Missing
 
 ```markdown
-⚠️  Merge conflict detected
-
-File: agents/project-owner.md
-
-The framework update conflicts with your customizations.
-
-Options:
-1. Keep framework version + reapply your customizations [recommended]
-2. Keep your version (skip framework update)
-3. Manual merge (show diff and let me edit)
-
-Choose option [1/2/3]:
+file-manifest.json is missing. /update will run Migration Bootstrap mode to initialize
+tracking metadata, then proceed with normal update safety rules.
+Recommended: /update pull --dry-run --from ./.claude_staging/.claude
 ```
 
-### If No Backup Space
+### Merge Conflicts
 
 ```markdown
-⚠️  Cannot create backup
-
-Insufficient disk space to create backup before update.
-Required: 50 MB
-Available: 10 MB
-
-Please free up space and try again.
+Merge conflict in agents/project-owner.md.
+Options: 1) Keep framework + reapply customizations [recommended]  2) Keep yours  3) Manual merge
 ```
 
----
+### No Backup Space
 
-## Implementation Notes
-
-### For the Framework Maintainer
-
-When releasing a new framework version:
-
-1. **Update version file**:
-   ```bash
-   echo "{{NEW_VERSION}}" > .claude/.metadata/version
-   ```
-
-2. **Document changes**:
-   Create `.claude/.metadata/changelog-{{NEW_VERSION}}.md` with:
-   - What changed
-   - Breaking changes (if any)
-   - Migration notes
-   - New features
-
-3. **Test update path**:
-   - Test on clean v{{CURRENT_VERSION}} → v{{NEW_VERSION}}
-   - Test on customized v{{CURRENT_VERSION}} → v{{NEW_VERSION}}
-   - Test rollback
-
-4. **Tag release**:
-   ```bash
-   git tag -a v{{NEW_VERSION}} -m "Framework v{{NEW_VERSION}}: [Release description]"
-   git push origin v{{NEW_VERSION}}
-   ```
-
-### For Users
-
-Update workflow:
-1. `cd /path/to/your/project`
-2. `git clone --depth 1 <framework-repo-url> .claude_staging`
-3. `/update check --from ./.claude_staging/.claude`
-4. `/update pull --dry-run --from ./.claude_staging/.claude`
-5. `/update pull --from ./.claude_staging/.claude`
-6. `/atta --rescan` - Regenerate agents (optional)
-
----
-
-_Safe framework updates that preserve your customizations_
+```markdown
+Cannot create backup — insufficient disk space. Free up space and retry.
+```

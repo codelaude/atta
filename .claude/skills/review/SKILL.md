@@ -5,55 +5,6 @@ description: Comprehensive code review with automated pattern checks. Use when r
 
 You are now acting as the **Code Reviewer** with automated pattern checking capabilities.
 
-## Session Tracking Setup
-
-Before starting execution, initialize session tracking.
-
-**Step 1: Generate session identifiers**
-
-Run these commands:
-```bash
-TIMESTAMP=$(date +%Y-%m-%d-%H%M%S)
-UUID=$(uuidgen 2>/dev/null || python3 -c "import uuid; print(uuid.uuid4())" 2>/dev/null)
-UUID=$(echo "$UUID" | tr '[:upper:]' '[:lower:]')
-ISO_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-START_TIME=$(date +%s)
-```
-
-> If `$UUID` is empty (neither `uuidgen` nor `python3` available), skip session tracking entirely — proceed with skill execution normally and omit the Finalize Session step.
-
-**Step 2: Create session file**
-
-File: `{claudeDir}/.sessions/session-$TIMESTAMP.json`
-
-Set `args` to the actual arguments the user passed, or `""` if none.
-
-```json
-{
-  "schemaVersion": "1.0.0",
-  "sessionId": "$UUID",
-  "timestamp": "$ISO_TIME",
-  "startedBy": "user",
-  "skill": {
-    "name": "review",
-    "args": "{args-passed-by-user-or-empty-string}",
-    "status": "in_progress"
-  },
-  "agents": [],
-  "metadata": {
-    "projectPath": "{current-working-directory}",
-    "claudeDir": "{claudeDir}",
-    "duration": null,
-    "tokensUsed": null,
-    "costUSD": null
-  }
-}
-```
-
-Record the session filename (`session-$TIMESTAMP.json`) and the `START_TIME` value — you will need both at the end.
-
----
-
 ## How to Use
 
 ```
@@ -94,7 +45,7 @@ For each file in scope, use the Read tool to load the content. Don't ask the use
 
 ### Step 3: Run Automated Checks
 
-Apply these pattern checks automatically. The patterns below include framework-specific examples (Vue, SCSS). Adapt checks to the project's detected stack from `project-context.md` — for React projects check JSX patterns, for Tailwind check utility classes, etc.
+Apply these pattern checks automatically. Adapt checks to the project's detected stack from `project-context.md`.
 
 #### CRITICAL Checks (Auto-Fail)
 
@@ -137,7 +88,7 @@ grep -Ei "((SELECT|INSERT|UPDATE|DELETE)[^\n]{0,80}\+|\+[^\n]{0,80}(SELECT|INSER
 After automated checks, review for:
 
 #### Framework / Component Structure
-- [ ] Framework-idiomatic component pattern used (e.g., `defineComponent` for Vue, functional components for React)
+- [ ] Framework-idiomatic component pattern used
 - [ ] Props/inputs properly typed
 - [ ] Events/outputs typed and validated
 - [ ] Component name matches filename
@@ -201,23 +152,17 @@ After automated checks, review for:
 
 ### Step 5b: Log Anti-Pattern Findings (Silent)
 
-For each **CRITICAL** or **HIGH** finding from the automated checks and domain review, log it to the pattern detection system. This happens silently — no user interaction needed.
+For each **CRITICAL** or **HIGH** finding, log to the pattern detection system:
 
-For each finding, run:
 ```bash
 bash .claude/scripts/pattern-log.sh {claudeDir} << 'PAYLOAD'
 {"category":"anti-pattern","pattern":"<slugified-check-name>","description":"<finding-description>","context":{"file":"<file:line>","domain":"<domain>","agent":"code-reviewer"},"source":"skill-annotation","skill":"review","sessionId":"<session-uuid>","agentId":"code-reviewer"}
 PAYLOAD
 ```
 
-**Pattern key derivation**: Slugify the check name (e.g., `v-html-unsanitized`, `ts-any-type`, `missing-aria-label`, `hardcoded-secret`).
+After logging all findings, run: `bash .claude/scripts/pattern-analyze.sh {claudeDir}`
 
-After logging all findings, run analysis:
-```bash
-bash .claude/scripts/pattern-analyze.sh {claudeDir}
-```
-
-> Skip this step if no CRITICAL/HIGH findings were detected, or if `pattern-log.sh` is not available.
+> Skip if no CRITICAL/HIGH findings or if `pattern-log.sh` is not available.
 
 ---
 
@@ -249,13 +194,11 @@ After `/review`:
 - Run `/security-audit` for deep security analysis (OWASP Top 10, deps, secrets)
 - Run `/lint` for pattern-only checks
 - Run `/preflight` for full pre-PR validation
-- Use `/agent security-specialist` for interactive security guidance
-- Use `/agent {framework-specialist}` for framework-specific deep dive
-- Use `/agent accessibility` for accessibility deep dive
+- Use `/collaborate` for multi-agent cross-domain review
 
 ### Multi-Agent Collaboration
 
-When the review scope spans **multiple domains** (e.g., component files + API routes + styles), suggest collaboration at the end of the review output:
+When the review scope spans **multiple domains** (e.g., component files + API routes + styles), suggest:
 
 ```markdown
 ---
@@ -269,75 +212,20 @@ For deeper cross-domain analysis with automated conflict detection, run:
 ```
 
 **When to suggest** (any of these conditions):
-- Review scope includes 2+ file type categories (e.g., `.vue` + `.ts` + `.scss`)
+- Review scope includes 2+ file type categories
 - Security findings were flagged alongside framework findings
 - Accessibility concerns overlap with component structure issues
 
-**When NOT to suggest**:
-- Single-file review
-- All files are the same type (e.g., only `.test.ts` files)
-- `--quick` mode was used
-
----
-
-### Track Agent Invocation
-
-If you invoke a specialist agent during the review process (e.g., security-specialist, framework-specialist, accessibility), update the session file. Run `date -u +%Y-%m-%dT%H:%M:%SZ` to get the current timestamp, then add to the `agents` array:
-
-```json
-{
-  "name": "{agent-id}",
-  "role": "{universal|coordinator|specialist}",
-  "invokedAt": "{ISO-8601-UTC}",
-  "status": "completed"
-}
-```
-
-Derive the `role` from where the agent was resolved:
-- `.claude/agents/{id}.md` (core) → `"universal"`
-- `.claude/agents/coordinators/{id}.md` → `"coordinator"`
-- `.claude/agents/specialists/{id}.md` → `"specialist"`
-
----
-
-## Finalize Session
-
-After execution completes (whether successful, failed, or interrupted), finalize the session file.
-
-**Step 1: Calculate duration**
-
-Run: `date +%s` to get the current Unix timestamp.
-
-Compute: `(current_unix_timestamp - START_TIME) * 1000` = duration in milliseconds.
-
-**Step 2: Update session file**
-
-Edit `{claudeDir}/.sessions/session-$TIMESTAMP.json`:
-- Change `skill.status` from `"in_progress"` to `"completed"` (or `"failed"` / `"interrupted"`)
-- Set `metadata.duration` to elapsed milliseconds
-
-**Step 3: Run cleanup and context generation**
-
-```bash
-.claude/scripts/session-cleanup.sh {claudeDir}
-```
-
-```bash
-.claude/scripts/generate-context.sh {claudeDir}
-```
+**When NOT to suggest**: Single-file review, all same type, or `--quick` mode.
 
 ---
 
 ## Error Handling & Recovery
 
-> **Session note:** If a session file was created, always finalize it (Finalize Session above) before displaying recovery messages — set status to `"failed"` or `"interrupted"`.
-
 ### Cannot Determine Diff Scope
 
-If git base detection fails or no remote base exists, show:
-
 ```markdown
-⚠️ I couldn't resolve a review diff against the base branch.
+Could not resolve a review diff against the base branch.
 
 Recovery options:
 1. Review local changes only (`git diff --name-only`)
@@ -347,10 +235,8 @@ Recovery options:
 
 ### Empty Review Scope
 
-Show:
-
 ```markdown
-⚠️ No files found to review.
+No files found to review.
 
 Recovery options:
 1. Pass a target explicitly (`/review src/components/search`)
@@ -360,10 +246,8 @@ Recovery options:
 
 ### Agent Context Missing
 
-If required reviewer context/patterns are unavailable, show:
-
 ```markdown
-⚠️ Review context is incomplete (missing generated agents or patterns).
+Review context is incomplete (missing generated agents or patterns).
 
 Recovery options:
 1. Run `/atta` to generate missing agents/pattern files

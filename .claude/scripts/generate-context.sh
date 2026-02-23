@@ -184,7 +184,7 @@ if total == 0:
 section = '\n## Patterns Detected\n\n'
 section += '- %d correction(s) across %d pattern(s)\n' % (total, unique)
 if ready > 0:
-    section += '- **%d pattern(s) ready for promotion** (run `/patterns suggest`)\n' % ready
+    section += '- **%d pattern(s) ready for promotion** (run \`/patterns suggest\`)\n' % ready
 
 with open(output_file, 'a') as f:
     f.write(section)

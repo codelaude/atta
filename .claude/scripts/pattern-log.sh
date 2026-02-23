@@ -30,11 +30,11 @@ if [ -z "$CLAUDE_DIR" ]; then
       python3 -c "
 import json,sys
 try:
-    d=json.load(open('$file'))
+    d=json.load(open(sys.argv[1]))
     print(d.get('claudeDir','.claude'))
 except (FileNotFoundError, json.JSONDecodeError):
     print('.claude')
-" 2>/dev/null
+" "$file" 2>/dev/null
     else
       grep -o '"claudeDir" *: *"[^"]*"' "$file" 2>/dev/null | sed 's/.*: *"//;s/"//' || echo ".claude"
     fi
@@ -48,6 +48,18 @@ except (FileNotFoundError, json.JSONDecodeError):
     CLAUDE_DIR=".claude"
   fi
 fi
+
+# Path containment: ensure CLAUDE_DIR physically resolves inside the project root
+# Uses pwd -P to resolve symlinks — prevents symlink-to-outside-root bypass
+PROJECT_ROOT="$(pwd -P)"
+if [ -d "$CLAUDE_DIR" ]; then
+  CLAUDE_DIR_REAL=$(cd "$CLAUDE_DIR" && pwd -P)
+else
+  # Directory doesn't exist yet — resolve parent + basename (reject if parent is outside root)
+  CLAUDE_DIR_PARENT=$(cd "$(dirname "$CLAUDE_DIR")" 2>/dev/null && pwd -P) || { echo "Error: claudeDir parent does not exist" >&2; exit 1; }
+  CLAUDE_DIR_REAL="$CLAUDE_DIR_PARENT/$(basename "$CLAUDE_DIR")"
+fi
+case "$CLAUDE_DIR_REAL" in "$PROJECT_ROOT"/*) ;; *) echo "Error: claudeDir escapes project root" >&2; exit 1 ;; esac
 
 CONTEXT_DIR="$CLAUDE_DIR/.context"
 CORRECTIONS_FILE="$CONTEXT_DIR/corrections.jsonl"
@@ -63,7 +75,7 @@ mkdir -p "$CONTEXT_DIR"
 
 # Append correction event — Python handles ID generation, timestamp, and safe serialization
 python3 -c "
-import json, sys, os
+import json, sys, os, uuid
 from datetime import datetime, timezone
 
 payload_str = sys.argv[1]
@@ -72,43 +84,31 @@ corrections_file = sys.argv[2]
 try:
     payload = json.loads(payload_str)
 except json.JSONDecodeError as e:
-    print(f'Error: Invalid JSON payload: {e}', file=sys.stderr)
+    print('Error: Invalid JSON payload: %s' % e, file=sys.stderr)
     sys.exit(1)
 
 # Validate required fields
 required = ['category', 'pattern', 'description', 'source']
-missing = [f for f in required if f not in payload]
+missing = [field for field in required if field not in payload]
 if missing:
-    print(f'Error: Missing required fields: {missing}', file=sys.stderr)
+    print('Error: Missing required fields: %s' % missing, file=sys.stderr)
     sys.exit(1)
 
 # Validate category
 valid_categories = ['correction', 'anti-pattern', 'command-sequence']
 if payload['category'] not in valid_categories:
-    print(f'Error: Invalid category \"{payload[\"category\"]}\". Must be one of: {valid_categories}', file=sys.stderr)
+    print('Error: Invalid category \"%s\". Must be one of: %s' % (payload['category'], valid_categories), file=sys.stderr)
     sys.exit(1)
 
-# Generate correction ID: COR-YYYYMMDD-NNN
+# Validate source field
+valid_sources = ['librarian', 'manual', 'skill-annotation']
+if payload['source'] not in valid_sources:
+    print('Error: Invalid source \"%s\". Must be one of: %s' % (payload['source'], valid_sources), file=sys.stderr)
+    sys.exit(1)
+
+# Generate correction ID: COR-UUID (race-condition-free)
 now = datetime.now(timezone.utc)
-date_str = now.strftime('%Y%m%d')
-prefix = f'COR-{date_str}-'
-
-# Count existing entries for today to determine sequence number
-seq = 1
-if os.path.isfile(corrections_file):
-    with open(corrections_file, 'r') as f:
-        for line in f:
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                entry = json.loads(line)
-                if entry.get('id', '').startswith(prefix):
-                    seq += 1
-            except json.JSONDecodeError:
-                continue
-
-correction_id = f'{prefix}{seq:03d}'
+correction_id = 'COR-%s' % uuid.uuid4().hex[:12]
 
 # Build the full event
 event = {
@@ -134,5 +134,5 @@ if payload.get('agentId'):
 with open(corrections_file, 'a') as f:
     f.write(json.dumps(event, ensure_ascii=False) + '\n')
 
-print(f'Logged {correction_id}: {payload[\"pattern\"]} ({payload[\"category\"]})')
+print('Logged %s: %s (%s)' % (correction_id, payload['pattern'], payload['category']))
 " "$JSON_PAYLOAD" "$CORRECTIONS_FILE"

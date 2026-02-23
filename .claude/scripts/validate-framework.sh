@@ -65,12 +65,16 @@ assert_not_contains() {
 }
 
 echo "==> Validating prerequisites"
-assert_cmd ruby
 assert_cmd git
 if [ "$HAS_RG" = true ]; then
   echo "INFO: Using rg for fixed-string checks"
 else
   echo "WARN: rg not found, using grep -F fallback for fixed-string checks"
+fi
+
+HAS_RUBY=false
+if command -v ruby >/dev/null 2>&1; then
+  HAS_RUBY=true
 fi
 
 echo "==> Validating YAML syntax"
@@ -84,7 +88,19 @@ yaml_files=(
   ".claude/bootstrap/mappings/mcp-mappings.yaml"
   ".claude/bootstrap/mappings/skill-mappings.yaml"
 )
-ruby -ryaml -e 'ARGV.each { |f| YAML.load_file(f); puts "PASS: YAML " + f }' "${yaml_files[@]}"
+if [ "$HAS_RUBY" = true ]; then
+  ruby -ryaml -e 'ARGV.each { |f| YAML.load_file(f); puts "PASS: YAML " + f }' "${yaml_files[@]}"
+elif command -v python3 >/dev/null 2>&1 && python3 -c "import yaml" 2>/dev/null; then
+  python3 -c "
+import yaml, sys
+for f in sys.argv[1:]:
+    with open(f) as fh:
+        yaml.safe_load(fh)
+    print('PASS: YAML ' + f)
+" "${yaml_files[@]}"
+else
+  echo "WARN: Neither ruby nor python3+PyYAML available — skipping YAML validation"
+fi
 
 echo "==> Running targeted security/coherence checks"
 assert_contains ".claude/scripts/session-cleanup.sh" "-print0" "session-cleanup uses null-delimited find output"

@@ -3,6 +3,7 @@ import {
   mkdirSync,
   cpSync,
   writeFileSync,
+  renameSync,
   readFileSync,
   readdirSync,
 } from 'node:fs';
@@ -69,9 +70,11 @@ export function install(frameworkRoot, targetDir, options = {}) {
     const defaultSettings = {
       permissions: {
         allow: [
-          // Framework scripts (session cleanup, context generation)
+          // Framework scripts (session cleanup, context generation, pattern detection)
           'Bash(bash .claude/scripts/session-cleanup.sh:*)',
           'Bash(bash .claude/scripts/generate-context.sh:*)',
+          'Bash(bash .claude/scripts/pattern-log.sh:*)',
+          'Bash(bash .claude/scripts/pattern-analyze.sh:*)',
           // Session tracking (created/updated by every skill)
           'Edit(./.claude/.sessions/**)',
           // Context files (recent work summary)
@@ -83,7 +86,9 @@ export function install(frameworkRoot, targetDir, options = {}) {
         ],
       },
     };
-    writeFileSync(settingsPath, JSON.stringify(defaultSettings, null, 2) + '\n');
+    const tmpSettings = settingsPath + '.tmp';
+    writeFileSync(tmpSettings, JSON.stringify(defaultSettings, null, 2) + '\n');
+    renameSync(tmpSettings, settingsPath);
     results.files++;
 
     if (!options.quiet) {
@@ -105,10 +110,10 @@ export function install(frameworkRoot, targetDir, options = {}) {
     agents_index: '.claude/agents/INDEX.md',
   };
 
-  writeFileSync(
-    join(pluginDir, 'plugin.json'),
-    JSON.stringify(manifest, null, 2) + '\n'
-  );
+  const pluginPath = join(pluginDir, 'plugin.json');
+  const tmpPlugin = pluginPath + '.tmp';
+  writeFileSync(tmpPlugin, JSON.stringify(manifest, null, 2) + '\n');
+  renameSync(tmpPlugin, pluginPath);
   results.files++;
 
   if (!options.quiet) {

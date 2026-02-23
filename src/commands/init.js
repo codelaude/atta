@@ -1,4 +1,4 @@
-import { existsSync, writeFileSync, mkdirSync, readdirSync, rmSync } from 'node:fs';
+import { existsSync, writeFileSync, renameSync, mkdirSync, readdirSync, rmSync } from 'node:fs';
 import { resolve, join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as p from '@clack/prompts';
@@ -133,13 +133,17 @@ async function runInstall(targetDir, adapterName, dryRun, answers) {
       const profileContent = generateProfile(answers);
       const profileDir = join(claudeDir, 'knowledge', 'project');
       mkdirSync(profileDir, { recursive: true });
-      writeFileSync(join(profileDir, 'developer-profile.md'), profileContent);
+      const profilePath = join(profileDir, 'developer-profile.md');
+      writeFileSync(profilePath + '.tmp', profileContent);
+      renameSync(profilePath + '.tmp', profilePath);
       results.files++;
     }
 
     // Generate GETTING-STARTED.md
     const gettingStarted = generateGettingStarted(adapterName, answers);
-    writeFileSync(join(targetDir, 'GETTING-STARTED.md'), gettingStarted);
+    const gsPath = join(targetDir, 'GETTING-STARTED.md');
+    writeFileSync(gsPath + '.tmp', gettingStarted);
+    renameSync(gsPath + '.tmp', gsPath);
     results.files++;
 
     // Remove tutorial skill if user opted out

@@ -19,11 +19,11 @@ if [ -z "$CLAUDE_DIR" ]; then
       python3 -c "
 import json,sys
 try:
-    d=json.load(open('$file'))
+    d=json.load(open(sys.argv[1]))
     print(d.get('claudeDir','.claude'))
 except (FileNotFoundError, json.JSONDecodeError):
     print('.claude')
-" 2>/dev/null
+" "$file" 2>/dev/null
     else
       grep -o '"claudeDir" *: *"[^"]*"' "$file" 2>/dev/null | sed 's/.*: *"//;s/"//' || echo ".claude"
     fi
@@ -37,6 +37,18 @@ except (FileNotFoundError, json.JSONDecodeError):
     CLAUDE_DIR=".claude"
   fi
 fi
+
+# Path containment: ensure CLAUDE_DIR physically resolves inside the project root
+# Uses pwd -P to resolve symlinks — prevents symlink-to-outside-root bypass
+PROJECT_ROOT="$(pwd -P)"
+if [ -d "$CLAUDE_DIR" ]; then
+  CLAUDE_DIR_REAL=$(cd "$CLAUDE_DIR" && pwd -P)
+else
+  # Directory doesn't exist yet — resolve parent + basename (reject if parent is outside root)
+  CLAUDE_DIR_PARENT=$(cd "$(dirname "$CLAUDE_DIR")" 2>/dev/null && pwd -P) || { echo "Error: claudeDir parent does not exist" >&2; exit 1; }
+  CLAUDE_DIR_REAL="$CLAUDE_DIR_PARENT/$(basename "$CLAUDE_DIR")"
+fi
+case "$CLAUDE_DIR_REAL" in "$PROJECT_ROOT"/*) ;; *) echo "Error: claudeDir escapes project root" >&2; exit 1 ;; esac
 
 SESSIONS_DIR="$CLAUDE_DIR/.sessions"
 CONTEXT_DIR="$CLAUDE_DIR/.context"
@@ -94,7 +106,7 @@ for f in files:
         if 'T' in ts:
             date_part = ts.split('T')[0]
             time_part = ts.split('T')[1][:5]  # HH:MM
-            display_ts = f'{date_part} {time_part}'
+            display_ts = '%s %s' % (date_part, time_part)
         else:
             display_ts = ts or 'unknown'
 
@@ -110,9 +122,9 @@ for f in files:
             mins = total_secs // 60
             secs = total_secs % 60
             if mins > 0:
-                duration_str = f'{mins}m {secs}s'
+                duration_str = '%dm %ds' % (mins, secs)
             else:
-                duration_str = f'{secs}s'
+                duration_str = '%ds' % secs
         else:
             duration_str = None
 
@@ -121,9 +133,9 @@ for f in files:
         agent_names = [a.get('name', '?') for a in agents if a.get('name')]
 
         # Build line
-        parts = [f'**{display_ts}**', f'\`/{skill_name}\` ({skill_status}']
+        parts = ['**%s**' % display_ts, '\`/%s\` (%s' % (skill_name, skill_status)]
         if duration_str:
-            parts[-1] += f', {duration_str}'
+            parts[-1] += ', %s' % duration_str
         parts[-1] += ')'
         if agent_names:
             parts.append('Agents: ' + ', '.join(agent_names))
@@ -170,9 +182,9 @@ if total == 0:
     sys.exit(0)
 
 section = '\n## Patterns Detected\n\n'
-section += f'- {total} correction(s) across {unique} pattern(s)\n'
+section += '- %d correction(s) across %d pattern(s)\n' % (total, unique)
 if ready > 0:
-    section += f'- **{ready} pattern(s) ready for promotion** (run \`/patterns suggest\`)\n'
+    section += '- **%d pattern(s) ready for promotion** (run `/patterns suggest`)\n' % ready
 
 with open(output_file, 'a') as f:
     f.write(section)

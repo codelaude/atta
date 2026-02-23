@@ -19,11 +19,11 @@ if [ -z "$CLAUDE_DIR" ]; then
       python3 -c "
 import json,sys
 try:
-    d=json.load(open('$file'))
+    d=json.load(open(sys.argv[1]))
     print(d.get('claudeDir','.claude'))
 except (FileNotFoundError, json.JSONDecodeError):
     print('.claude')
-" 2>/dev/null
+" "$file" 2>/dev/null
     else
       grep -o '"claudeDir" *: *"[^"]*"' "$file" 2>/dev/null | sed 's/.*: *"//;s/"//' || echo ".claude"
     fi
@@ -37,6 +37,18 @@ except (FileNotFoundError, json.JSONDecodeError):
     CLAUDE_DIR=".claude"
   fi
 fi
+
+# Path containment: ensure CLAUDE_DIR physically resolves inside the project root
+# Uses pwd -P to resolve symlinks — prevents symlink-to-outside-root bypass
+PROJECT_ROOT="$(pwd -P)"
+if [ -d "$CLAUDE_DIR" ]; then
+  CLAUDE_DIR_REAL=$(cd "$CLAUDE_DIR" && pwd -P)
+else
+  # Directory doesn't exist yet — resolve parent + basename (reject if parent is outside root)
+  CLAUDE_DIR_PARENT=$(cd "$(dirname "$CLAUDE_DIR")" 2>/dev/null && pwd -P) || { echo "Error: claudeDir parent does not exist" >&2; exit 1; }
+  CLAUDE_DIR_REAL="$CLAUDE_DIR_PARENT/$(basename "$CLAUDE_DIR")"
+fi
+case "$CLAUDE_DIR_REAL" in "$PROJECT_ROOT"/*) ;; *) echo "Error: claudeDir escapes project root" >&2; exit 1 ;; esac
 
 CONTEXT_DIR="$CLAUDE_DIR/.context"
 CORRECTIONS_FILE="$CONTEXT_DIR/corrections.jsonl"
@@ -85,7 +97,7 @@ with open(corrections_file, 'r') as f:
         try:
             events.append(json.loads(line))
         except json.JSONDecodeError:
-            print(f'Warning: Skipping malformed line {line_num} in corrections.jsonl', file=sys.stderr)
+            print('Warning: Skipping malformed line %d in corrections.jsonl' % line_num, file=sys.stderr)
 
 if not events:
     # Write empty-but-valid files to clear any stale data
@@ -137,14 +149,14 @@ for pattern_key, entries in sorted(groups.items()):
 
     # Map domain to likely pattern file
     domain_to_file = {
-        'language': f'.claude/knowledge/patterns/{primary_domain}-patterns.md',
+        'language': '.claude/knowledge/patterns/%s-patterns.md' % primary_domain,
         'framework': '.claude/knowledge/patterns/framework-patterns.md',
         'styling': '.claude/knowledge/patterns/styling-patterns.md',
         'security': '.claude/knowledge/patterns/security-patterns.md',
         'testing': '.claude/knowledge/patterns/testing-patterns.md',
         'accessibility': '.claude/knowledge/patterns/accessibility-patterns.md',
     }
-    target_file = domain_to_file.get(primary_domain, f'.claude/knowledge/patterns/{primary_domain}-patterns.md')
+    target_file = domain_to_file.get(primary_domain, '.claude/knowledge/patterns/%s-patterns.md' % primary_domain)
 
     pattern_summary = {
         'pattern': pattern_key,
@@ -453,10 +465,10 @@ with open(agent_file, 'w') as f:
     f.write('\n')
 
 # Print summary
-print(f'Analyzed {len(events)} correction(s) across {len(patterns)} pattern(s).')
+print('Analyzed %d correction(s) across %d pattern(s).' % (len(events), len(patterns)))
 if agents_data:
-    print(f'Agent learning: {len(agents_data)} agent(s) tracked.')
+    print('Agent learning: %d agent(s) tracked.' % len(agents_data))
 ready_unpromoted = total_ready - total_promoted
 if ready_unpromoted > 0:
-    print(f'{ready_unpromoted} pattern(s) ready for promotion. Run \`/patterns suggest\` to see details.')
+    print('%d pattern(s) ready for promotion. Run `/patterns suggest` to see details.' % ready_unpromoted)
 " "$CORRECTIONS_FILE" "$OUTPUT_FILE" "$AGENT_FILE"

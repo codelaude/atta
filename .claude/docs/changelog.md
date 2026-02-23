@@ -4,6 +4,18 @@ Full version history for the Atta framework.
 
 ---
 
+## v2.5.1 (2026-02-23) — OSS Readiness
+
+Security hardening, community files, and npm packaging improvements from 3-way cross-review audit (Claude + Codex + Copilot).
+
+- **Community files**: LICENSE (MIT), CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, issue/PR templates
+- **Security hardening**: `sys.argv[]` for data passing in all shell scripts (no interpolation), path containment with `pwd -P` resolution (fixes absolute-path and symlink bypasses), UUID-based correction IDs
+- **npm packaging**: `.npmignore` defense-in-depth, `exports` field for ESM, specific script files in `files` (excludes `validate-framework.sh`), `recent.md` excluded from package
+- **Robustness**: Atomic file writes in JS adapters, `unhandledRejection` handler in CLI entry point, python3/Ruby fallbacks in validation
+- **Bug fix**: Escaped backticks in `generate-context.sh` inline Python (shell command substitution)
+
+---
+
 ## v2.5.0 (2026-02-23) — Pattern Detection & Agent Learning
 
 - **Pattern detection foundation**: Append-only correction log (`corrections.jsonl`), aggregation engine (`pattern-analyze.sh`), and `/patterns` skill with 7 subcommands (log, learn, suggest, promote, status, agent, dashboard)

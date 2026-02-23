@@ -5,20 +5,40 @@
 # Usage:
 #   .claude/scripts/pattern-log.sh {claudeDir} '{"category":"correction","pattern":"key","description":"...","context":{},"source":"manual"}'
 #   .claude/scripts/pattern-log.sh              '{"category":"correction","pattern":"key","description":"...","context":{},"source":"manual"}'
+#   .claude/scripts/pattern-log.sh {claudeDir} << 'PAYLOAD'
+#   {"category":"correction","pattern":"key","description":"...","context":{},"source":"manual"}
+#   PAYLOAD
+#
+# The heredoc/stdin form is preferred when description or other fields may contain
+# shell metacharacters (quotes, backticks, $, etc.) — avoids shell injection risks.
 #
 # Optional fields: "outcome" ("accepted"|"rejected"), "agentId" (agent whose suggestion is being evaluated)
 
 set -euo pipefail
 
 # Determine Claude directory and JSON payload
+# Supports three calling conventions:
+#   pattern-log.sh <claudeDir> '<json>'       # both as arguments
+#   pattern-log.sh '<json>'                   # payload only, auto-detect claudeDir
+#   pattern-log.sh <claudeDir> <<< '<json>'   # payload via stdin (safe for untrusted text)
 if [ $# -ge 2 ]; then
   CLAUDE_DIR="$1"
   JSON_PAYLOAD="$2"
 elif [ $# -eq 1 ]; then
-  JSON_PAYLOAD="$1"
+  # Check if stdin has data (heredoc/pipe) — if so, $1 is claudeDir
+  if [ ! -t 0 ]; then
+    CLAUDE_DIR="$1"
+    JSON_PAYLOAD="$(cat)"
+  else
+    JSON_PAYLOAD="$1"
+    CLAUDE_DIR=""
+  fi
+elif [ $# -eq 0 ] && [ ! -t 0 ]; then
   CLAUDE_DIR=""
+  JSON_PAYLOAD="$(cat)"
 else
   echo "Usage: pattern-log.sh [claudeDir] '{json-payload}'" >&2
+  echo "       pattern-log.sh <claudeDir> <<< '{json-payload}'" >&2
   exit 1
 fi
 

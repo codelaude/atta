@@ -764,7 +764,7 @@ This manifest enables the `/update` skill to track which files are framework vs 
 
 Also create `.claude/.metadata/framework-version`:
 ```
-2.4
+{{FRAMEWORK_VERSION}}
 ```
 
 And `.claude/.metadata/update-history.json`:

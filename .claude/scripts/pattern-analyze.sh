@@ -288,7 +288,7 @@ output = {
     'stats': {
         'totalCorrections': len(events),
         'uniquePatterns': len(patterns),
-        'readyToPromote': total_ready - total_promoted,
+        'readyToPromote': sum(1 for p in patterns if p.get('ready') and not p.get('promoted')),
         'alreadyPromoted': total_promoted,
     },
     'trends': trends_data,
@@ -468,7 +468,7 @@ with open(agent_file, 'w') as f:
 print('Analyzed %d correction(s) across %d pattern(s).' % (len(events), len(patterns)))
 if agents_data:
     print('Agent learning: %d agent(s) tracked.' % len(agents_data))
-ready_unpromoted = total_ready - total_promoted
+ready_unpromoted = sum(1 for p in patterns if p.get('ready') and not p.get('promoted'))
 if ready_unpromoted > 0:
     print('%d pattern(s) ready for promotion. Run `/patterns suggest` to see details.' % ready_unpromoted)
 " "$CORRECTIONS_FILE" "$OUTPUT_FILE" "$AGENT_FILE"

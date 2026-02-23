@@ -11,7 +11,7 @@ Correction events are logged to `{claudeDir}/.context/corrections.jsonl` by the 
 
 ```json
 {
-  "id": "COR-20260222-001",
+  "id": "COR-a1b2c3d4e5f6",
   "timestamp": "2026-02-22T14:30:00Z",
   "sessionId": "uuid-from-session-file",
   "skill": "review",
@@ -35,10 +35,10 @@ Correction events are logged to `{claudeDir}/.context/corrections.jsonl` by the 
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `id` | string | Yes | Auto-generated: `COR-YYYYMMDD-NNN` (NNN is daily counter) |
+| `id` | string | Yes | Auto-generated: `COR-<12-hex-chars>` (UUID-derived, race-condition-free) |
 | `timestamp` | string | Yes | ISO 8601 UTC timestamp |
 | `sessionId` | string | No | UUID of the session that captured this correction |
-| `skill` | string | Yes | Which skill was active when correction occurred |
+| `skill` | string | No | Which skill was active when correction occurred (defaults to empty string if omitted) |
 | `category` | enum | Yes | `correction`, `anti-pattern`, or `command-sequence` |
 | `pattern` | string | Yes | Normalized slug key for deduplication (e.g., `use-nullish-coalescing`) |
 | `description` | string | Yes | Human-readable description of what was corrected |
@@ -84,9 +84,9 @@ The `outcome` field tracks whether the user accepted or rejected a suggestion. I
 
 | Value | Meaning | Logged By |
 |-------|---------|-----------|
-| `accepted` | User accepted the suggestion or finding | Review/collaborate skills (implicit for logged findings) |
-| `rejected` | User corrected or disagreed with the suggestion | Librarian (when correction triggers fire) |
-| *(absent)* | Legacy event or no explicit verdict | Pre-v2.5 events, manual logs |
+| `accepted` | User accepted the suggestion or finding | Any skill or script that explicitly sets `outcome: "accepted"` (no implicit default) |
+| `rejected` | User corrected or disagreed with the suggestion | Librarian (when correction triggers fire) or any logger that explicitly sets `outcome: "rejected"` |
+| *(absent)* | Legacy event or no explicit verdict (treated as neutral) | Pre-v2.5 events, manual logs, `pattern-log.sh` when `outcome` is omitted, current `/review` and `/collaborate` when they don't pass `outcome` |
 
 **`agentId` vs `context.agent`**: The `agentId` field identifies the agent whose suggestion is being evaluated. This may differ from `context.agent` (the agent active when the event was logged). Example: the librarian logs a rejection of code-reviewer's suggestion — `context.agent` is `librarian`, `agentId` is `code-reviewer`. When `agentId` is absent, analysis falls back to `context.agent`.
 

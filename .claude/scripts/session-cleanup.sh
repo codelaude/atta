@@ -85,8 +85,8 @@ for p in sorted(paths)[:n]:
 " "$to_delete" \
     | xargs -0 rm -f
 else
-  # Fallback: sort filenames lexically (works because filenames contain timestamps)
-  find "$SESSIONS_DIR" -name "session-*.json" -type f | sort | head -n "$to_delete" | while IFS= read -r f; do rm -f "$f"; done
+  echo "Warning: python3 is required for safe session cleanup. Skipping deletion." >&2
+  exit 1
 fi
 
 echo "Deleted $to_delete old session(s). Kept $MAX_SESSIONS most recent."

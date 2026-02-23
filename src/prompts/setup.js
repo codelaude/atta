@@ -3,7 +3,7 @@ import { printBanner } from '../banner.js';
 
 /**
  * Interactive setup prompts for `npx atta-dev init`.
- * Asks 3-4 key questions and returns answers for profile pre-fill.
+ * Asks 5 questions (adapter, collaboration, response style, review priorities, tutorial) and returns answers for profile pre-fill.
  */
 export async function runSetupPrompts(options = {}) {
   printBanner();

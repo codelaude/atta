@@ -133,7 +133,9 @@ When a correction is detected:
    - If unknown, omit `agentId` (analysis falls back to `context.agent`)
 4. Run:
 ```bash
-bash .claude/scripts/pattern-log.sh {claudeDir} '{"category":"correction","pattern":"<key>","description":"<what was corrected>","context":{"domain":"<domain>","agent":"<agent-if-known>"},"source":"librarian","skill":"librarian","sessionId":"<session-uuid>","outcome":"rejected","agentId":"<target-agent-from-step-3>"}'
+bash .claude/scripts/pattern-log.sh {claudeDir} << 'PAYLOAD'
+{"category":"correction","pattern":"<key>","description":"<what was corrected>","context":{"domain":"<domain>","agent":"<agent-if-known>"},"source":"librarian","skill":"librarian","sessionId":"<session-uuid>","outcome":"rejected","agentId":"<target-agent-from-step-3>"}
+PAYLOAD
 ```
 5. After logging, run analysis to check if threshold is reached:
 ```bash

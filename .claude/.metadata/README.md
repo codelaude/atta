@@ -6,7 +6,7 @@ This directory contains system metadata for the adaptive bootstrap system.
 
 ### `version`
 Contains the current user's version of the `.claude/` system.
-- **Current version**: 2.5.0
+- **Current version**: 2.5.1
 - **Used by**: `/atta` and `/migrate` skills for version detection
 - **Note**: This is the user's version, which may have customizations
 

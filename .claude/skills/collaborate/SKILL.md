@@ -511,7 +511,9 @@ Update session file:
 For each **CRITICAL** or **HIGH** consensus finding (detected by 2+ agents), log it to the pattern detection system. Use the agent with the highest-severity finding as `agentId`:
 
 ```bash
-bash .claude/scripts/pattern-log.sh {claudeDir} '{"category":"anti-pattern","pattern":"<slugified-finding>","description":"<finding-description>","context":{"file":"<file:line>","domain":"<domain>","agent":"<primary-reporting-agent>"},"source":"skill-annotation","skill":"collaborate","sessionId":"<session-uuid>","agentId":"<primary-reporting-agent>"}'
+bash .claude/scripts/pattern-log.sh {claudeDir} << 'PAYLOAD'
+{"category":"anti-pattern","pattern":"<slugified-finding>","description":"<finding-description>","context":{"file":"<file:line>","domain":"<domain>","agent":"<primary-reporting-agent>"},"source":"skill-annotation","skill":"collaborate","sessionId":"<session-uuid>","agentId":"<primary-reporting-agent>"}
+PAYLOAD
 ```
 
 After logging all findings, run analysis:

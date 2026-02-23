@@ -91,7 +91,9 @@ Manually capture a correction or anti-pattern.
    - Noun-first for anti-patterns: `settimeout-without-cleanup`
 3. Run:
 ```bash
-bash .claude/scripts/pattern-log.sh {claudeDir} '{"category":"<category>","pattern":"<key>","description":"<description>","context":{},"source":"manual","skill":"patterns","sessionId":"<session-uuid>"}'
+bash .claude/scripts/pattern-log.sh {claudeDir} << 'PAYLOAD'
+{"category":"<category>","pattern":"<key>","description":"<description>","context":{},"source":"manual","skill":"patterns","sessionId":"<session-uuid>"}
+PAYLOAD
 ```
 4. Run analysis to update aggregation:
 ```bash

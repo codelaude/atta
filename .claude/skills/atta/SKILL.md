@@ -228,7 +228,7 @@ If user selected MCPs, write `.claude/knowledge/project/mcp-config.json`:
     "context7": {
       "type": "stdio",
       "command": "{{NPX_PATH}}",
-      "args": ["-y", "@upstash/context7-mcp"],
+      "args": ["-y", "@upstash/context7-mcp@<pinned-version>"],
       "env": {
         "PATH": "{{NODE_BIN_PATH}}:...",
         "CONTEXT7_API_KEY": "${CONTEXT7_API_KEY}"
@@ -259,7 +259,7 @@ Write `.claude/.metadata/file-manifest.json` for the update system. Minimal skel
 ```json
 {
   "framework_version": "{{FRAMEWORK_VERSION}}",
-  "user_version": "{{FRAMEWORK_VERSION}}",
+  "user_version": "{{USER_VERSION}}",
   "manifest_created": "{{TIMESTAMP}}",
   "last_update": "{{TIMESTAMP}}",
   "files": {

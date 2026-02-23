@@ -79,11 +79,11 @@ export async function init(options) {
   // Non-interactive mode (--yes flag)
   if (options.yes) {
     printBanner();
-    return runInstall(targetDir, options.adapter, dryRun, null);
+    return runInstall(targetDir, options.adapter || 'claude-code', dryRun, null);
   }
 
-  // Interactive setup
-  const answers = await runSetupPrompts({ adapter: options.adapter });
+  // Interactive setup — only pass adapter if explicitly provided via --adapter flag
+  const answers = await runSetupPrompts({ adapter: options.adapter || null });
 
   // Run installation with chosen adapter
   await runInstall(targetDir, answers.adapter, dryRun, answers);

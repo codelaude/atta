@@ -203,7 +203,6 @@ merge_required:
 ```yaml
 never_touch:
   - agents/memory/**/*
-  - agents/legacy/**/*
   - knowledge/project/**/*
   - knowledge/accs/**/*
   - agents-config.json    # Optional user file (may not exist in all projects)
@@ -619,7 +618,6 @@ MERGE_REQUIRED = [
 ```python
 NEVER_TOUCH_PATTERNS = [
     "agents/memory/**/*",
-    "agents/legacy/**/*",
     "knowledge/project/**/*",
     "knowledge/accs/**/*",
     "agents-config.json",

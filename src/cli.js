@@ -30,8 +30,7 @@ export function run(argv) {
     .option('-d, --directory <path>', 'Target project directory', '.')
     .option(
       '--adapter <name>',
-      'Target tool adapter (claude-code, copilot, codex, gemini)',
-      'claude-code'
+      'Target tool adapter (claude-code, copilot, codex, gemini)'
     )
     .option('--dry-run', 'Show what would be installed without writing files')
     .option('-y, --yes', 'Skip prompts, use defaults')

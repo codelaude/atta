@@ -117,7 +117,6 @@ If you're not using the `/atta` system and want to manually configure agents:
 - **Core agents**: `.claude/agents/<agent-id>.md`
 - **Coordinators**: `.claude/agents/coordinators/<team-lead>.md`
 - **Specialists**: `.claude/agents/specialists/<specialist>.md`
-- **Legacy agents** (reference only): `.claude/agents/legacy/`
 - **Skills** (slash commands): `.claude/skills/`
 - **Knowledge base**: `.claude/knowledge/`
 - **Pattern files**: `.claude/knowledge/patterns/`

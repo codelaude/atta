@@ -4,6 +4,20 @@ Full version history for the Atta framework.
 
 ---
 
+## v2.5.2 (2026-02-23) — Context Diet
+
+Reduces context window footprint of SKILL.md files and agent definitions.
+
+- **`/collaborate` SKILL.md**: 653 → 261 lines (60% reduction) — removed verbose output templates, compressed error handling, trimmed redundant mode descriptions
+- **`/atta` SKILL.md**: 907 → 325 lines (64% reduction) — consolidated MCP warnings, compressed file manifest examples, removed interview rationale, compacted report templates and error handling
+- **Core agent definitions**: 367 → 279 lines (24% reduction across 7 agents) — removed "Framing:" personality lines, verbose Developer Preferences, redundant Knowledge Base sections
+- **`recent.md` opt-in**: No longer auto-injected into agent context; read only when user requests session continuity
+- **Legacy agents removed**: Deleted `.claude/agents/legacy/` directory (8 files, v1.0 reference agents never loaded by system) and all references
+- **Cross-AI review**: Claude → Codex cross-review caught 4 issues (rescan data gap, agent path ambiguity, skip-synthesis contract, manifest compression) — all fixed
+- **Net reduction**: ~1,060 lines removed across 10+ files
+
+---
+
 ## v2.5.1 (2026-02-23) — OSS Readiness
 
 Security hardening, community files, and npm packaging improvements from 3-way cross-review audit (Claude + Codex + Copilot).

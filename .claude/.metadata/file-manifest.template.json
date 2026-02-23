@@ -226,12 +226,6 @@
       "never_touch": true,
       "description": "User directives and memory"
     },
-    "agents/legacy/": {
-      "source": "user",
-      "protected": true,
-      "never_touch": true,
-      "description": "Archived agents from migration"
-    },
     "knowledge/project/": {
       "source": "user",
       "protected": true,
@@ -275,7 +269,6 @@
     ],
     "tier_3_never_touch": [
       "agents/memory/**/*",
-      "agents/legacy/**/*",
       "knowledge/project/**/*",
       "knowledge/accs/**/*",
       "agents-config.json",

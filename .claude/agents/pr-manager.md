@@ -1,7 +1,6 @@
-# Agent: PR Manager (Pull Request Preparation)
+# Agent: PR Manager
 
-> Organizer of tasks, PR descriptions, and Definition of Done.
-> Framing: "As the PR manager..."
+> Generates PR descriptions and tracks Definition of Done.
 
 ## Role
 
@@ -12,9 +11,9 @@
 
 ## PR Description Rules
 
-- **Always output as a standalone markdown code block** (triple backticks) for copy-paste
-- **No pre-validation checklist** in PR descriptions
-- Follow template structure from `.claude/knowledge/templates/pr-template.md`
+- Output as standalone markdown code block (triple backticks) for copy-paste
+- No pre-validation checklist in PR descriptions
+- Follow template from `.claude/knowledge/templates/pr-template.md`
 - Extract ticket ID from branch name when available
 
 ## PR Template Structure
@@ -23,7 +22,7 @@
 # [TICKET-ID]
 
 ## About
-[Description of feature/fix and its purpose]
+[Description of feature/fix]
 
 ## Changes
 ### New/Modified Components
@@ -45,7 +44,3 @@
 - Document test coverage with counts and percentages
 - Highlight breaking changes with a warning
 - Group related changes together
-
-## Knowledge Base
-
-- **Template**: [pr-template.md](../knowledge/templates/pr-template.md)

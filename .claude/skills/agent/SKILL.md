@@ -5,55 +5,6 @@ description: Invoke a specialized agent by ID. Use to activate domain experts li
 
 You are now acting as the requested specialist agent.
 
-## Session Tracking Setup
-
-Before starting execution, initialize session tracking.
-
-**Step 1: Generate session identifiers**
-
-Run these commands:
-```bash
-TIMESTAMP=$(date +%Y-%m-%d-%H%M%S)
-UUID=$(uuidgen 2>/dev/null || python3 -c "import uuid; print(uuid.uuid4())" 2>/dev/null)
-UUID=$(echo "$UUID" | tr '[:upper:]' '[:lower:]')
-ISO_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-START_TIME=$(date +%s)
-```
-
-> If `$UUID` is empty (neither `uuidgen` nor `python3` available), skip session tracking entirely — proceed with skill execution normally and omit the Finalize Session step.
-
-**Step 2: Create session file**
-
-File: `{claudeDir}/.sessions/session-$TIMESTAMP.json`
-
-Set `args` to the actual arguments the user passed (e.g., `"vue How should I structure props?"`), or `""` if none.
-
-```json
-{
-  "schemaVersion": "1.0.0",
-  "sessionId": "$UUID",
-  "timestamp": "$ISO_TIME",
-  "startedBy": "user",
-  "skill": {
-    "name": "agent",
-    "args": "{args-passed-by-user-or-empty-string}",
-    "status": "in_progress"
-  },
-  "agents": [],
-  "metadata": {
-    "projectPath": "{current-working-directory}",
-    "claudeDir": "{claudeDir}",
-    "duration": null,
-    "tokensUsed": null,
-    "costUSD": null
-  }
-}
-```
-
-Record the session filename (`session-$TIMESTAMP.json`) and the `START_TIME` value — you will need both at the end.
-
----
-
 Follow these steps:
 
 1. **Identify the agent**: Extract the agent ID from the command
@@ -97,7 +48,7 @@ Check `agents/INDEX.md` for the full list of agents available in your project.
 
 ## Response Format
 
-When responding as an agent, use the framing statement from the agent definition (e.g., "As the framework specialist..." or "As the FE Team Lead...").
+When responding as an agent, use the framing statement from the agent definition.
 
 Include:
 - Your assessment based on your specialty
@@ -116,64 +67,14 @@ Include:
 /agent rubber-duck Help me understand how to implement this feature
 ```
 
-### Track Agent Invocation
-
-After resolving the agent definition (step 2), update the session file. Run `date -u +%Y-%m-%dT%H:%M:%SZ` to get the current timestamp, then add to the `agents` array:
-
-```json
-{
-  "name": "{agent-id}",
-  "role": "{universal|coordinator|specialist}",
-  "invokedAt": "{ISO-8601-UTC}",
-  "status": "completed"
-}
-```
-
-Derive the `role` from where the agent was resolved:
-- `.claude/agents/{id}.md` (core) → `"universal"`
-- `.claude/agents/coordinators/{id}.md` → `"coordinator"`
-- `.claude/agents/specialists/{id}.md` → `"specialist"`
-
----
-
-## Finalize Session
-
-After execution completes (whether successful, failed, or interrupted), finalize the session file.
-
-**Step 1: Calculate duration**
-
-Run: `date +%s` to get the current Unix timestamp.
-
-Compute: `(current_unix_timestamp - START_TIME) * 1000` = duration in milliseconds.
-
-**Step 2: Update session file**
-
-Edit `{claudeDir}/.sessions/session-$TIMESTAMP.json`:
-- Change `skill.status` from `"in_progress"` to `"completed"` (or `"failed"` / `"interrupted"`)
-- Set `metadata.duration` to elapsed milliseconds
-
-**Step 3: Run cleanup and context generation**
-
-```bash
-.claude/scripts/session-cleanup.sh {claudeDir}
-```
-
-```bash
-.claude/scripts/generate-context.sh {claudeDir}
-```
-
 ---
 
 ## Error Handling & Recovery
 
-> **Session note:** If a session file was created, always finalize it (Finalize Session above) before displaying recovery messages — set status to `"failed"` or `"interrupted"`.
-
 ### Agent Not Found
 
-If no file exists for the requested ID, show:
-
 ```markdown
-⚠️ Agent `{agent-id}` was not found in this project.
+Agent `{agent-id}` was not found in this project.
 
 Recovery options:
 1. Run `/atta` to generate coordinators/specialists for your stack
@@ -186,13 +87,8 @@ Recovery options:
 
 ### Agent Stuck (Cannot progress or missing required context)
 
-If the selected agent cannot complete the request, show:
-
 ```markdown
-⚠️ `{agent-id}` is blocked and cannot complete this task as-is.
-
-Why it is blocked:
-- Missing scope, files, or constraints needed for a safe recommendation
+`{agent-id}` is blocked and cannot complete this task as-is.
 
 Recovery options:
 1. Route this to `/agent project-owner` for decomposition and delegation

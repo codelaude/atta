@@ -16,6 +16,7 @@ const FRAMEWORK_DIRS = [
   'agents',
   'bootstrap',
   'docs',
+  'hooks',
   'knowledge',
   'scripts',
   'skills',
@@ -76,14 +77,39 @@ export function install(frameworkRoot, targetDir, options = {}) {
           'Bash(bash .claude/scripts/generate-context.sh:*)',
           'Bash(bash .claude/scripts/pattern-log.sh:*)',
           'Bash(bash .claude/scripts/pattern-analyze.sh:*)',
-          // Session tracking (created/updated by every skill)
-          'Edit(./.claude/.sessions/**)',
           // Context files (recent work summary)
           'Edit(./.claude/.context/**)',
           // Agent memory (directives, learnings)
           'Edit(./.claude/agents/memory/**)',
           // Knowledge capture (patterns, project context)
           'Edit(./.claude/knowledge/**)',
+        ],
+      },
+      hooks: {
+        PostToolUse: [
+          {
+            matcher: 'Skill',
+            hooks: [
+              {
+                type: 'command',
+                command:
+                  '"$CLAUDE_PROJECT_DIR"/.claude/hooks/session-track.sh',
+                async: true,
+              },
+            ],
+          },
+        ],
+        Stop: [
+          {
+            hooks: [
+              {
+                type: 'command',
+                command:
+                  '"$CLAUDE_PROJECT_DIR"/.claude/hooks/session-track.sh',
+                async: true,
+              },
+            ],
+          },
         ],
       },
     };
@@ -94,6 +120,69 @@ export function install(frameworkRoot, targetDir, options = {}) {
 
     if (!options.quiet) {
       console.log(`  ${pc.green('✓')} .claude/settings.local.json (default permissions)`);
+    }
+  } else {
+    // Existing settings — ensure hook config is present (safe merge, additive only)
+    try {
+      const existing = JSON.parse(readFileSync(settingsPath, 'utf-8'));
+      const hookCmd =
+        '"$CLAUDE_PROJECT_DIR"/.claude/hooks/session-track.sh';
+      let modified = false;
+
+      if (!existing.hooks) {
+        existing.hooks = {};
+      }
+
+      // Check if a hook command already exists anywhere in a hook array
+      const hasHookCmd = (entries) =>
+        Array.isArray(entries) &&
+        entries.some(
+          (entry) =>
+            entry &&
+            typeof entry === 'object' &&
+            Array.isArray(entry.hooks) &&
+            entry.hooks.some((h) => h.command === hookCmd)
+        );
+
+      // Add PostToolUse hook if session-track not present
+      if (!hasHookCmd(existing.hooks.PostToolUse)) {
+        if (!Array.isArray(existing.hooks.PostToolUse)) {
+          existing.hooks.PostToolUse = [];
+        }
+        existing.hooks.PostToolUse.push({
+          matcher: 'Skill',
+          hooks: [{ type: 'command', command: hookCmd, async: true }],
+        });
+        modified = true;
+      }
+
+      // Add Stop hook if session-track not present
+      if (!hasHookCmd(existing.hooks.Stop)) {
+        if (!Array.isArray(existing.hooks.Stop)) {
+          existing.hooks.Stop = [];
+        }
+        existing.hooks.Stop.push({
+          hooks: [{ type: 'command', command: hookCmd, async: true }],
+        });
+        modified = true;
+      }
+
+      if (modified) {
+        const tmpSettings = settingsPath + '.tmp';
+        writeFileSync(
+          tmpSettings,
+          JSON.stringify(existing, null, 2) + '\n'
+        );
+        renameSync(tmpSettings, settingsPath);
+
+        if (!options.quiet) {
+          console.log(
+            `  ${pc.green('✓')} .claude/settings.local.json (added session tracking hooks)`
+          );
+        }
+      }
+    } catch {
+      // Ignore — don't break install if settings can't be parsed
     }
   }
 

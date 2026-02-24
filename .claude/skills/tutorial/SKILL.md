@@ -16,58 +16,7 @@ You are now running the **Atta Framework Tutorial** — an interactive 5-minute 
 
 ## Check for `--quick` Flag
 
-If the user passed `--quick`, skip directly to the **Quick Reference Card** section and stop. Do not create a session file.
-
----
-
-## Session Tracking Setup
-
-Before starting the interactive tutorial, initialize session tracking.
-
-**Step 1: Get session timestamps, UUID, and Unix start time**
-
-Run these commands:
-```bash
-date +%Y-%m-%d-%H%M%S
-UUID=$(uuidgen 2>/dev/null || python3 -c "import uuid; print(uuid.uuid4())" 2>/dev/null)
-UUID=$(echo "$UUID" | tr '[:upper:]' '[:lower:]')
-date -u +%Y-%m-%dT%H:%M:%SZ
-date +%s
-```
-
-This gives you (in order): filename timestamp, session UUID, ISO-8601 timestamp for the JSON field, and Unix start time for duration calculation.
-
-**Step 2: Create session file**
-
-File: `{claudeDir}/.sessions/session-{TIMESTAMP}.json`
-
-Set `args` to the actual arguments the user passed (e.g. `"--quick"`), or `""` if none.
-
-```json
-{
-  "schemaVersion": "1.0.0",
-  "sessionId": "{UUID}",
-  "timestamp": "{ISO-8601-UTC-from-step-1}",
-  "startedBy": "user",
-  "skill": {
-    "name": "tutorial",
-    "args": "{args-passed-by-user-or-empty-string}",
-    "status": "in_progress"
-  },
-  "agents": [],
-  "metadata": {
-    "projectPath": "{current-working-directory}",
-    "claudeDir": "{claudeDir}",
-    "duration": null,
-    "tokensUsed": null,
-    "costUSD": null
-  }
-}
-```
-
-> `duration` starts as `null` — it is set to elapsed milliseconds at finalization.
-
-Record the session filename and the Unix start timestamp (4th command above) — you will need both at the end.
+If the user passed `--quick`, skip directly to the **Quick Reference Card** section and stop.
 
 ---
 
@@ -94,7 +43,7 @@ Then use AskUserQuestion:
   - "Let's go! →" (start the tutorial)
   - "Show me the quick reference instead" (jump to Quick Reference Card)
 
-If the user selects the quick reference, skip to the **Quick Reference Card** section, then proceed to **Finalize Session** before closing.
+If the user selects the quick reference, skip to the **Quick Reference Card** section, then show the Closing Message.
 
 ---
 
@@ -231,10 +180,6 @@ I'm routing this as follows:
 `/team-lead [their task description]`
 ```
 
-Update session file to record the project-owner agent invocation:
-- Run `date -u +%Y-%m-%dT%H:%M:%SZ` to get the current ISO-8601 UTC timestamp
-- Add to `agents` array: `{ "name": "project-owner", "role": "universal", "invokedAt": "{output of above command}", "status": "completed" }`
-
 ### 2d. Continue Prompt
 
 Use AskUserQuestion:
@@ -293,9 +238,9 @@ Use AskUserQuestion:
   - "Yes, show the reference card →"
   - "I'm ready — let me try it!"
 
-If user selects "Yes, show the reference card →": proceed to the **Quick Reference Card** section below, then proceed to **Finalize Session**, then show the Closing Message.
+If user selects "Yes, show the reference card →": proceed to the **Quick Reference Card** section below, then show the Closing Message.
 
-If user selects "I'm ready — let me try it!": proceed directly to **Finalize Session**, then show the Closing Message.
+If user selects "I'm ready — let me try it!": show the Closing Message directly.
 
 ---
 
@@ -358,32 +303,6 @@ Display this (whether reached from the end of the tutorial, from the `--quick` f
 
 *Atta — run `/update` to keep agents current*
 ```
-
----
-
-## Finalize Session
-
-At the end of the tutorial (whether fully completed, skipped to reference card, or exited early) — always finalize if a session file was created.
-
-**Step 1: Calculate duration**
-
-Run: `date +%s` → current Unix timestamp in seconds.
-
-Compute: `(current_unix_timestamp - start_unix_timestamp) * 1000` = duration in milliseconds.
-
-**Step 2: Update session file**
-
-Edit `{claudeDir}/.sessions/session-{TIMESTAMP}.json`:
-- Change **`skill.status`** from `"in_progress"` → `"completed"`
-- Set **`metadata.duration`** to elapsed milliseconds
-
-**Step 3: Run cleanup**
-
-```bash
-.claude/scripts/session-cleanup.sh
-```
-
-> Note: The cleanup script always lives in `.claude/scripts/` (framework source), regardless of `{claudeDir}`. Pass `{claudeDir}` as an argument if sessions are in a non-default location: `.claude/scripts/session-cleanup.sh {claudeDir}`
 
 ---
 

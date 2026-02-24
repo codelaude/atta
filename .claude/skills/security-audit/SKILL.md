@@ -5,55 +5,6 @@ description: Security audit scanning for vulnerabilities, secrets, and insecure 
 
 You are now acting as the **Security Specialist** performing a comprehensive security audit.
 
-## Session Tracking Setup
-
-Before starting execution, initialize session tracking. Always create the session file first, regardless of which flags are passed.
-
-**Step 1: Generate session identifiers**
-
-Run these commands:
-```bash
-TIMESTAMP=$(date +%Y-%m-%d-%H%M%S)
-UUID=$(uuidgen 2>/dev/null || python3 -c "import uuid; print(uuid.uuid4())" 2>/dev/null)
-UUID=$(echo "$UUID" | tr '[:upper:]' '[:lower:]')
-ISO_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-START_TIME=$(date +%s)
-```
-
-> If `$UUID` is empty (neither `uuidgen` nor `python3` available), skip session tracking entirely — proceed with skill execution normally and omit the Finalize Session step.
-
-**Step 2: Create session file**
-
-File: `{claudeDir}/.sessions/session-$TIMESTAMP.json`
-
-Set `args` to the actual arguments the user passed, or `""` if none.
-
-```json
-{
-  "schemaVersion": "1.0.0",
-  "sessionId": "$UUID",
-  "timestamp": "$ISO_TIME",
-  "startedBy": "user",
-  "skill": {
-    "name": "security-audit",
-    "args": "{args-passed-by-user-or-empty-string}",
-    "status": "in_progress"
-  },
-  "agents": [],
-  "metadata": {
-    "projectPath": "{current-working-directory}",
-    "claudeDir": "{claudeDir}",
-    "duration": null,
-    "tokensUsed": null,
-    "costUSD": null
-  }
-}
-```
-
-Record the session filename (`session-$TIMESTAMP.json`) and the `START_TIME` value — you will need both at the end.
-
----
-
 ## How to Use
 
 ```
@@ -277,68 +228,15 @@ After `/security-audit`:
 - Run `/review` for full code review (includes security findings)
 - Run `/preflight` for complete pre-PR validation
 - Use `/agent security-specialist` for interactive security guidance
-- Use `/agent librarian` to capture security patterns as directives
-
----
-
-### Track Agent Invocation
-
-If you invoke a specialist agent during the audit (e.g., security-specialist, librarian), update the session file. Run `date -u +%Y-%m-%dT%H:%M:%SZ` to get the current timestamp, then add to the `agents` array:
-
-```json
-{
-  "name": "{agent-id}",
-  "role": "{universal|coordinator|specialist}",
-  "invokedAt": "{ISO-8601-UTC}",
-  "status": "completed"
-}
-```
-
-Derive the `role` from where the agent was resolved:
-- `.claude/agents/{id}.md` (core) → `"universal"`
-- `.claude/agents/coordinators/{id}.md` → `"coordinator"`
-- `.claude/agents/specialists/{id}.md` → `"specialist"`
-
----
-
-## Finalize Session
-
-After execution completes (whether successful, failed, or interrupted), finalize the session file.
-
-**Step 1: Calculate duration**
-
-Run: `date +%s` to get the current Unix timestamp.
-
-Compute: `(current_unix_timestamp - START_TIME) * 1000` = duration in milliseconds.
-
-**Step 2: Update session file**
-
-Edit `{claudeDir}/.sessions/session-$TIMESTAMP.json`:
-- Change `skill.status` from `"in_progress"` to `"completed"` (or `"failed"` / `"interrupted"`)
-- Set `metadata.duration` to elapsed milliseconds
-
-**Step 3: Run cleanup and context generation**
-
-```bash
-.claude/scripts/session-cleanup.sh {claudeDir}
-```
-
-```bash
-.claude/scripts/generate-context.sh {claudeDir}
-```
 
 ---
 
 ## Error Handling & Recovery
 
-> **Session note:** If a session file was created, always finalize it (Finalize Session above) before displaying recovery messages — set status to `"failed"` or `"interrupted"`.
-
 ### Cannot Determine Audit Scope
 
-If git base detection fails or no remote base exists, show:
-
 ```markdown
-⚠️ I couldn't resolve a diff against the base branch for scoping.
+Could not resolve a diff against the base branch for scoping.
 
 Recovery options:
 1. Audit local changes only (`git diff --name-only`)
@@ -348,26 +246,22 @@ Recovery options:
 
 ### Dependency Audit Tools Unavailable
 
-If `npm audit`, `pip-audit`, etc. are not available, show:
-
 ```markdown
-⚠️ No dependency audit tool detected.
+No dependency audit tool detected.
 
 Recovery options:
-1. Install or enable an audit tool (`pip install pip-audit`, `brew install bundler-audit`, or use your OS package manager)
+1. Install an audit tool (`pip install pip-audit`, or use your OS package manager)
 2. Set up Dependabot or Snyk for automated scanning
 3. Run `/security-audit --secrets` for secrets scan only (no deps needed)
 ```
 
 ### No Security Patterns Available
 
-If security patterns or specialist agent are not generated, show:
-
 ```markdown
-⚠️ Security specialist or patterns not available.
+Security specialist or patterns not available.
 
 Recovery options:
-1. Run `/atta` to generate security specialist (detected from project tools)
+1. Run `/atta` to generate security specialist
 2. Continue with built-in OWASP checks (default patterns in this skill)
 3. Create security patterns manually at `.claude/knowledge/patterns/security-patterns.md`
 ```

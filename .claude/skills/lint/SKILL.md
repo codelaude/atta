@@ -3,56 +3,7 @@ name: lint
 description: Run code quality checks based on project patterns. Use when checking code against established framework, language, styling, and testing conventions.
 ---
 
-You are now running a **code lint check** based on the project's established patterns. This skill actively scans code against pattern rules.
-
-## Session Tracking Setup
-
-Before starting execution, initialize session tracking.
-
-**Step 1: Generate session identifiers**
-
-Run these commands:
-```bash
-TIMESTAMP=$(date +%Y-%m-%d-%H%M%S)
-UUID=$(uuidgen 2>/dev/null || python3 -c "import uuid; print(uuid.uuid4())" 2>/dev/null)
-UUID=$(echo "$UUID" | tr '[:upper:]' '[:lower:]')
-ISO_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-START_TIME=$(date +%s)
-```
-
-> If `$UUID` is empty (neither `uuidgen` nor `python3` available), skip session tracking entirely — proceed with skill execution normally and omit the Finalize Session step.
-
-**Step 2: Create session file**
-
-File: `{claudeDir}/.sessions/session-$TIMESTAMP.json`
-
-Set `args` to the actual arguments the user passed, or `""` if none.
-
-```json
-{
-  "schemaVersion": "1.0.0",
-  "sessionId": "$UUID",
-  "timestamp": "$ISO_TIME",
-  "startedBy": "user",
-  "skill": {
-    "name": "lint",
-    "args": "{args-passed-by-user-or-empty-string}",
-    "status": "in_progress"
-  },
-  "agents": [],
-  "metadata": {
-    "projectPath": "{current-working-directory}",
-    "claudeDir": "{claudeDir}",
-    "duration": null,
-    "tokensUsed": null,
-    "costUSD": null
-  }
-}
-```
-
-Record the session filename (`session-$TIMESTAMP.json`) and the `START_TIME` value — you will need both at the end.
-
----
+You are now running a **code lint check** based on the project's established patterns.
 
 ## How to Use
 
@@ -73,7 +24,7 @@ Record the session filename (`session-$TIMESTAMP.json`) and the `START_TIME` val
 
 ## Pattern Rules Applied
 
-> The patterns below include framework-specific examples (Vue, SCSS). Adapt checks to the project's detected stack from `project-context.md`.
+> Adapt checks to the project's detected stack from `project-context.md`.
 
 ### CRITICAL (Must Fix)
 
@@ -113,8 +64,6 @@ Record the session filename (`session-$TIMESTAMP.json`) and the `START_TIME` val
 
 ## Execution Steps
 
-When invoked, follow these steps:
-
 ### Step 1: Determine Target
 - If no argument: Run `git diff --name-only` to get changed files
 - If folder argument: Get all relevant source files in folder
@@ -128,66 +77,6 @@ When invoked, follow these steps:
 For each file, check against the rules above based on file type.
 
 ### Step 4: Report Results
-
----
-
-## Finalize Session
-
-After execution completes (whether successful, failed, or interrupted), finalize the session file.
-
-**Step 1: Calculate duration**
-
-Run: `date +%s` to get the current Unix timestamp.
-
-Compute: `(current_unix_timestamp - START_TIME) * 1000` = duration in milliseconds.
-
-**Step 2: Update session file**
-
-Edit `{claudeDir}/.sessions/session-$TIMESTAMP.json`:
-- Change `skill.status` from `"in_progress"` to `"completed"` (or `"failed"` / `"interrupted"`)
-- Set `metadata.duration` to elapsed milliseconds
-
-**Step 3: Run cleanup and context generation**
-
-```bash
-.claude/scripts/session-cleanup.sh {claudeDir}
-```
-
-```bash
-.claude/scripts/generate-context.sh {claudeDir}
-```
-
----
-
-## Error Handling & Recovery
-
-> **Session note:** If a session file was created, always finalize it (Finalize Session above) before displaying recovery messages — set status to `"failed"` or `"interrupted"`.
-
-### No Target Files Found
-
-Show:
-
-```markdown
-⚠️ No files matched the lint target.
-
-Recovery options:
-1. Specify a file or folder explicitly (for example: `/lint src/components`)
-2. Ensure there are changed files in git (`git diff --name-only`)
-3. Run `/atta --rescan` if project paths recently changed
-```
-
-### Pattern Files Missing
-
-Show:
-
-```markdown
-⚠️ Pattern knowledge files are missing or incomplete.
-
-Recovery options:
-1. Run `/atta` (or `/atta --rescan`) to regenerate pattern files
-2. Continue with core lint checks only (critical rules)
-3. Add missing project context in `.claude/knowledge/project/project-context.md`
-```
 
 Format output as:
 
@@ -214,6 +103,32 @@ Format output as:
 
 ### Passed Checks
 [List of checks that passed]
+```
+
+---
+
+## Error Handling & Recovery
+
+### No Target Files Found
+
+```markdown
+No files matched the lint target.
+
+Recovery options:
+1. Specify a file or folder explicitly (for example: `/lint src/components`)
+2. Ensure there are changed files in git (`git diff --name-only`)
+3. Run `/atta --rescan` if project paths recently changed
+```
+
+### Pattern Files Missing
+
+```markdown
+Pattern knowledge files are missing or incomplete.
+
+Recovery options:
+1. Run `/atta` (or `/atta --rescan`) to regenerate pattern files
+2. Continue with core lint checks only (critical rules)
+3. Add missing project context in `.claude/knowledge/project/project-context.md`
 ```
 
 ---

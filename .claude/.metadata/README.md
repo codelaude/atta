@@ -6,13 +6,13 @@ This directory contains system metadata for the adaptive bootstrap system.
 
 ### `version`
 Contains the current user's version of the `.claude/` system.
-- **Current version**: 2.5.2
+- **Current version**: 2.5.3
 - **Used by**: `/atta` and `/migrate` skills for version detection
 - **Note**: This is the user's version, which may have customizations
 
 ### `framework-version` (introduced in v2.1)
 Contains the framework version that was last applied.
-- **Current version**: 2.5.2
+- **Current version**: 2.5.3
 - **Used by**: `/update` skill to check for framework updates
 - **Note**: This is separate from user version to track framework updates independently
 
@@ -114,12 +114,13 @@ Template for the file-manifest.json structure.
 
 ## Version History
 
-- **2.5.2** (2026-02-23): Context Diet — reduced SKILL.md and agent definition context footprint by ~55%, removed legacy agents, cross-AI reviewed
-- **2.5.1** (2026-02-23): OSS readiness audit — security hardening, community files, npm packaging
+- **2.5.3**: Context Diet Pass 2 + Session Tracking Hooks — hook-based session tracking (replaced ~1,000 lines of in-skill boilerplate), compressed remaining skills (~880 lines), triaged v2.5.1 open items
+- **2.5.2**: Context Diet — reduced SKILL.md and agent definition context footprint by ~55%, removed legacy agents, cross-AI reviewed
+- **2.5.1**: OSS readiness audit — security hardening, community files, npm packaging
 - **2.5.0** (2026-02-23): Pattern detection system (8 tracks) — correction logging, aggregation, `/patterns` skill (7 subcommands), agent adaptation with acceptance rates, learning dashboard with trends and recommendations, schema v1.1.0
-- **2.4.3** (2026-02-22): npm distribution (`npx atta-dev init`), cross-tool adapters (Claude Code, Copilot, Codex, Gemini), capability matrix, automated check suite
-- **2.4.2** (2026-02-22): Renamed `/init` → `/atta`, removed cosmetic version numbers from footers/headers
-- **2.4.1** (2026-02-20): Session tracking expanded to all skills, hardening fixes
+- **2.4.3**: npm distribution (`npx atta-dev init`), cross-tool adapters (Claude Code, Copilot, Codex, Gemini), capability matrix, automated check suite
+- **2.4.2**: Renamed `/init` → `/atta`, removed cosmetic version numbers from footers/headers
+- **2.4.1**: Session tracking expanded to all skills, hardening fixes
 - **2.4** (2026-02-19): Multi-agent `/collaborate` skill (parallel 2-4 agent collaboration)
 - **2.3** (2026-02-17): Security sprint (`/security-audit`, security specialist template, security detection rules)
 - **2.2** (2026-02-17): Tutorial skill, session tracking infrastructure, error handling, recent work context

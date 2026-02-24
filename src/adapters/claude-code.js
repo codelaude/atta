@@ -138,6 +138,8 @@ export function install(frameworkRoot, targetDir, options = {}) {
         Array.isArray(entries) &&
         entries.some(
           (entry) =>
+            entry &&
+            typeof entry === 'object' &&
             Array.isArray(entry.hooks) &&
             entry.hooks.some((h) => h.command === hookCmd)
         );

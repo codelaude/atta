@@ -49,30 +49,6 @@ The interactive setup interviews you about your project, auto-detects your tech 
 /preflight             Run full pre-PR validation
 ```
 
-## Keeping Up to Date
-
-Do **not** manually copy a new `.claude/` folder on top of your existing one — that will overwrite your customizations. Use the update system instead:
-
-```bash
-# 1. Clone latest framework into staging
-git clone --depth 1 <framework-repo-url> .claude_staging
-
-# 2. Preview, dry-run, then apply
-/update check   --from ./.claude_staging/.claude
-/update pull --dry-run --from ./.claude_staging/.claude
-/update pull     --from ./.claude_staging/.claude
-
-# 3. Clean up
-rm -rf .claude_staging
-```
-
-`/update` automatically chooses the right mode:
-- **Upgrade mode** (default) when update tracking metadata exists
-- **Migration-bootstrap mode** when `.claude/.metadata/file-manifest.json` is missing
-- **Migration mode** for structural transitions only when explicitly requested with `--mode migration`
-
-All your customizations (pattern files, agent tweaks, project context) are preserved.
-
 ## Skills (Slash Commands)
 
 | Command | What it does |
@@ -90,6 +66,16 @@ All your customizations (pattern files, agent tweaks, project context) are prese
 | `/tutorial` | Interactive 5-minute onboarding walkthrough |
 | `/patterns` | Pattern detection and learning — analyze corrections, suggest promotions, track agent adaptation |
 | `/librarian` | Capture a directive or extract learnings |
+
+## What Atta Is Not
+
+- **Not a code generator.** Agents guide, review, and validate — they don't write your application. You remain the engineer.
+- **Not a project scaffolder.** It doesn't turn a prompt into a working app. It works alongside your codebase, learning its conventions.
+- **Not a context dump.** More instructions don't mean better results — [research shows the opposite](https://arxiv.org/abs/2504.01281). Atta keeps its footprint minimal so your AI tool spends tokens on *your code*, not reading walls of rules.
+- **Not unpredictable.** Every agent has hard constraints on what it does *and refuses to do*. A developer profile sets your collaboration style and priorities. The system learns from corrections, but nothing changes without your approval.
+- **Not a one-shot tool.** Day one, you get the bare minimum — tech detection, agents, pattern files. Over time, corrections accumulate, directives grow, agents adapt to your feedback. Session 50 is dramatically better than session 1 — because the context is *yours*.
+
+See [Design Philosophy](.claude/docs/philosophy.md) for the full story on how the system grows with you.
 
 ## How It Works
 
@@ -119,50 +105,17 @@ Specialists (generated from your tech stack)
 └── Testing             Jest, pytest, JUnit, Playwright, ...
 ```
 
-Every agent has constraints — what it does **and what it doesn't do**. The project owner routes but never reads code. The team lead coordinates but never implements. Constraints are what make specialization real instead of just a label.
+Every agent has constraints — what it does **and what it doesn't do**. Constraints are what make specialization real instead of just a label.
 
 ## Key Features
 
-### Universal Bootstrap System
-Supports 100+ technologies across frontend, backend, databases, and tools. Detects your stack, generates project-specific agents, and configures pattern files — all driven by YAML configuration, no code changes required.
-
-### Multi-Agent Collaboration
-`/collaborate` invokes 2-4 specialist agents in parallel on the same code. Three-layer conflict detection catches when agents disagree. Three modes: code review, architecture feedback, and decision analysis.
-
-### Security Built In
-OWASP Top 10 (2025) security specialist, `/security-audit` for deep scans, and security checks integrated into `/review` and `/preflight`. Critical security issues block PRs automatically.
-
-### MCP Integration
-Smart recommendations based on detected stack — documentation MCP for version-specific framework docs, database MCP for schema inspection, browser MCP for accessibility testing.
-
-### Guided Learning
-Rubber Duck agent teaches by asking questions. Librarian captures project-specific rules that persist across sessions. Pattern files encode best practices that evolve with your project.
-
-### Pattern Detection & Learning
-The system learns from your corrections. Repeated corrections accumulate, reach thresholds, and become promotable to directives or pattern files. Per-agent acceptance tracking shows which agents are improving. `/patterns dashboard` shows velocity, trends, and recommendations.
-
-### Safe Updates
-File tracking with smart merge preserves all your customizations during framework updates. Three-tier classification: safe to replace, merge required, never touch.
-
-## Token Usage & Cost
-
-Skills load their instructions into the conversation context. Heavier skills cost more tokens, but the expensive ones are one-time setup — daily skills are lightweight.
-
-**Estimated tokens per invocation** (input + output, all turns):
-
-| Skill | Frequency | Est. Input | Est. Output | Sonnet Cost | Opus Cost |
-|-------|-----------|-----------|------------|-------------|-----------|
-| `/atta` | Once per project | ~50-70K | ~15-25K | ~$0.40-0.60 | ~$2-3 |
-| `/tutorial` | Once per user | ~15-20K | ~3-5K | ~$0.10-0.15 | ~$0.50-0.70 |
-| `/collaborate` | Occasional | ~30-50K | ~10-15K | ~$0.30-0.50 | ~$1.50-2.50 |
-| `/review` | Frequent | ~10-15K | ~3-5K | ~$0.08-0.12 | ~$0.35-0.50 |
-| `/preflight` | Frequent | ~12-18K | ~5-8K | ~$0.10-0.18 | ~$0.50-0.80 |
-| `/agent` | Frequent | ~5-10K | ~2-4K | ~$0.04-0.08 | ~$0.15-0.35 |
-| `/lint` | Frequent | ~5-8K | ~2-3K | ~$0.03-0.06 | ~$0.12-0.25 |
-
-> Estimates based on typical usage. Actual costs depend on codebase size, number of files reviewed, and conversation length. Subscription plans (Claude Pro/Max) count against usage budgets rather than per-token billing.
-
-**Key takeaway:** Setup (`/atta`) is the most expensive invocation but only runs once. Daily skills (`/review`, `/lint`, `/agent`) are 5-10x cheaper.
+- **Universal Bootstrap** — 100+ technologies detected. Generates project-specific agents and pattern files from YAML configuration.
+- **Multi-Agent Collaboration** — `/collaborate` invokes 2-4 specialists in parallel with three-layer conflict detection.
+- **Security Built In** — OWASP Top 10 (2025), `/security-audit`, and security checks in `/review` and `/preflight`.
+- **MCP Integration** — Smart recommendations based on detected stack (docs, database, browser MCPs).
+- **Guided Learning** — Rubber Duck teaches by asking questions. Librarian captures rules that persist across sessions.
+- **Pattern Detection** — Learns from corrections, tracks per-agent acceptance rates, promotes patterns with your approval.
+- **Safe Updates** — Smart merge preserves all customizations during framework updates.
 
 ## Documentation
 
@@ -175,7 +128,9 @@ Start here, then dive deeper:
 | **[MCP Setup Guide](/.claude/docs/mcp-setup.md)** | Configure Model Context Protocol servers |
 | **[Session Tracking](/.claude/docs/session-tracking.md)** | What's tracked, privacy, retention policy |
 | **[Extending the System](/.claude/docs/extending.md)** | Add new technologies and custom agents via YAML |
-| **[Design Philosophy](/.claude/docs/philosophy.md)** | Why this exists, core principles, architecture decisions |
+| **[Updating](/.claude/docs/updating.md)** | How to update without losing customizations |
+| **[Token Usage & Cost](/.claude/docs/token-usage.md)** | Estimated tokens and cost per skill |
+| **[Design Philosophy](/.claude/docs/philosophy.md)** | Why this exists, core principles, how the system grows |
 | **[Changelog](/.claude/docs/changelog.md)** | Full version history |
 
 ## Framework Contributor Checks

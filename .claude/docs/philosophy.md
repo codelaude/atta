@@ -55,6 +55,34 @@ Coordinators (team leads) are generated based on what's detected:
 
 No manual configuration needed — the system shapes itself to match your project.
 
+## How It Grows
+
+Atta starts minimal and compounds through use. The developer is the gatekeeper at every step.
+
+### Day 1: Detection
+
+`/atta` scans your tech stack, generates agents and pattern files. You get just enough context to steer — not a wall of instructions competing with your code for tokens.
+
+### Week 1: Corrections
+
+You correct things as you work. "No, we use Composition API here." "Always use `defineEmits` with typed events." The librarian captures these as directives — structured rules that persist across sessions. Next conversation, the same mistake doesn't happen.
+
+### Month 1: Patterns
+
+Corrections accumulate. When the same issue appears three times, it reaches threshold and becomes a promotable pattern. `/patterns suggest` shows what the system has learned. You decide whether to promote it to a pattern file or a directive — nothing changes without your explicit approval.
+
+Agent acceptance rates start showing which specialists are aligned with your style. The developer profile is dialed in — review priorities, collaboration approach, guidance level all reflect how *you* work.
+
+### Ongoing: Compounding Context
+
+The knowledge base grows, but only through your decisions:
+- Every promoted pattern was approved by you
+- Every directive was captured from your corrections
+- Every developer preference was set by you
+- Every agent constraint was defined at generation time
+
+The system gets better because the context gets better — and the context is yours.
+
 ## Design Decisions
 
 ### Why Static Files Over Dynamic Generation?

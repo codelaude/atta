@@ -100,12 +100,19 @@ PYEOF
     ;;
 
   Stop|SessionEnd)
-    # Find most recent session file by mtime (nullglob-safe via Python)
+    # Find most recent in_progress session (scan newest→oldest by mtime)
     LATEST=$(python3 -c "
-import glob, os, sys
+import glob, json, os, sys
 files = glob.glob(sys.argv[1])
-if files:
-    print(max(files, key=os.path.getmtime))
+for f in sorted(files, key=os.path.getmtime, reverse=True):
+    try:
+        with open(f) as fh:
+            s = json.load(fh)
+        if s.get('skill', {}).get('status') == 'in_progress':
+            print(f)
+            break
+    except (json.JSONDecodeError, IOError):
+        continue
 " "$REAL_CLAUDE_DIR/.sessions/session-*.json" 2>/dev/null) || true
     [ -z "$LATEST" ] && exit 0
 
@@ -114,8 +121,6 @@ import json, sys, time
 path = sys.argv[1]
 with open(path) as f:
     session = json.load(f)
-if session.get("skill", {}).get("status") != "in_progress":
-    sys.exit(0)
 start = session.get("metadata", {}).get("_startTime")
 if start:
     session["metadata"]["duration"] = int((time.time() - float(start)) * 1000)

@@ -125,41 +125,58 @@ export function install(frameworkRoot, targetDir, options = {}) {
     // Existing settings — ensure hook config is present (safe merge, additive only)
     try {
       const existing = JSON.parse(readFileSync(settingsPath, 'utf-8'));
-      const hookCmd = '"$CLAUDE_PROJECT_DIR"/.claude/hooks/session-track.sh';
+      const hookCmd =
+        '"$CLAUDE_PROJECT_DIR"/.claude/hooks/session-track.sh';
       let modified = false;
 
       if (!existing.hooks) {
         existing.hooks = {};
       }
 
-      // Add PostToolUse hook if missing
-      if (!existing.hooks.PostToolUse) {
-        existing.hooks.PostToolUse = [
-          {
-            matcher: 'Skill',
-            hooks: [{ type: 'command', command: hookCmd, async: true }],
-          },
-        ];
+      // Check if a hook command already exists anywhere in a hook array
+      const hasHookCmd = (entries) =>
+        Array.isArray(entries) &&
+        entries.some(
+          (entry) =>
+            Array.isArray(entry.hooks) &&
+            entry.hooks.some((h) => h.command === hookCmd)
+        );
+
+      // Add PostToolUse hook if session-track not present
+      if (!hasHookCmd(existing.hooks.PostToolUse)) {
+        if (!Array.isArray(existing.hooks.PostToolUse)) {
+          existing.hooks.PostToolUse = [];
+        }
+        existing.hooks.PostToolUse.push({
+          matcher: 'Skill',
+          hooks: [{ type: 'command', command: hookCmd, async: true }],
+        });
         modified = true;
       }
 
-      // Add Stop hook if missing
-      if (!existing.hooks.Stop) {
-        existing.hooks.Stop = [
-          {
-            hooks: [{ type: 'command', command: hookCmd, async: true }],
-          },
-        ];
+      // Add Stop hook if session-track not present
+      if (!hasHookCmd(existing.hooks.Stop)) {
+        if (!Array.isArray(existing.hooks.Stop)) {
+          existing.hooks.Stop = [];
+        }
+        existing.hooks.Stop.push({
+          hooks: [{ type: 'command', command: hookCmd, async: true }],
+        });
         modified = true;
       }
 
       if (modified) {
         const tmpSettings = settingsPath + '.tmp';
-        writeFileSync(tmpSettings, JSON.stringify(existing, null, 2) + '\n');
+        writeFileSync(
+          tmpSettings,
+          JSON.stringify(existing, null, 2) + '\n'
+        );
         renameSync(tmpSettings, settingsPath);
 
         if (!options.quiet) {
-          console.log(`  ${pc.green('✓')} .claude/settings.local.json (added session tracking hooks)`);
+          console.log(
+            `  ${pc.green('✓')} .claude/settings.local.json (added session tracking hooks)`
+          );
         }
       }
     } catch {

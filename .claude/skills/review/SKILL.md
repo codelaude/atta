@@ -156,7 +156,7 @@ For each **CRITICAL** or **HIGH** finding, log to the pattern detection system:
 
 ```bash
 bash .claude/scripts/pattern-log.sh {claudeDir} << 'PAYLOAD'
-{"category":"anti-pattern","pattern":"<slugified-check-name>","description":"<finding-description>","context":{"file":"<file:line>","domain":"<domain>","agent":"code-reviewer"},"source":"skill-annotation","skill":"review","sessionId":"<session-uuid>","agentId":"code-reviewer"}
+{"category":"anti-pattern","pattern":"<slugified-check-name>","description":"<finding-description>","context":{"file":"<file:line>","domain":"<domain>","agent":"code-reviewer"},"source":"skill-annotation","skill":"review","agentId":"code-reviewer"}
 PAYLOAD
 ```
 

@@ -194,7 +194,7 @@ If `--quick`: filter out MEDIUM/LOW/INFO findings from all sections.
 For each CRITICAL/HIGH consensus finding, log via `pattern-log.sh`:
 ```bash
 bash .claude/scripts/pattern-log.sh {claudeDir} << 'PAYLOAD'
-{"category":"anti-pattern","pattern":"<slug>","description":"<desc>","context":{"file":"<file:line>","domain":"<domain>","agent":"<agent>"},"source":"skill-annotation","skill":"collaborate","sessionId":"<uuid>","agentId":"<agent>"}
+{"category":"anti-pattern","pattern":"<slug>","description":"<desc>","context":{"file":"<file:line>","domain":"<domain>","agent":"<agent>"},"source":"skill-annotation","skill":"collaborate","agentId":"<agent>"}
 PAYLOAD
 ```
 

@@ -35,7 +35,7 @@ Manually capture a correction or anti-pattern.
 3. Log and analyze:
 ```bash
 bash .claude/scripts/pattern-log.sh {claudeDir} << 'PAYLOAD'
-{"category":"<category>","pattern":"<key>","description":"<description>","context":{},"source":"manual","skill":"patterns","sessionId":"<session-uuid>"}
+{"category":"<category>","pattern":"<key>","description":"<description>","context":{},"source":"manual","skill":"patterns"}
 PAYLOAD
 bash .claude/scripts/pattern-analyze.sh {claudeDir}
 ```

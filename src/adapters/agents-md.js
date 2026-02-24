@@ -1,6 +1,7 @@
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { parseFrontmatter, listSkills } from './claude-code.js';
+import { readVersion } from '../lib/fs-utils.js';
 
 /**
  * Generate AGENTS.md content from framework source.
@@ -152,15 +153,4 @@ function formatAgentName(slug) {
     .split('-')
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(' ');
-}
-
-function readVersion(frameworkRoot) {
-  try {
-    return readFileSync(
-      join(frameworkRoot, '.metadata', 'version'),
-      'utf-8'
-    ).trim();
-  } catch {
-    return '0.0.0';
-  }
 }

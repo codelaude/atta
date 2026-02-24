@@ -1,4 +1,4 @@
-import { existsSync, writeFileSync, renameSync, mkdirSync, readdirSync, rmSync } from 'node:fs';
+import { existsSync, writeFileSync, renameSync, mkdirSync, rmSync } from 'node:fs';
 import { resolve, join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as p from '@clack/prompts';
@@ -10,6 +10,7 @@ import { install as installGemini } from '../adapters/gemini.js';
 import { runSetupPrompts, generateProfile } from '../prompts/setup.js';
 import { generateGettingStarted } from '../guides/getting-started.js';
 import { printBanner } from '../banner.js';
+import { countFiles } from '../lib/fs-utils.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -235,22 +236,4 @@ function listFrameworkFiles() {
     const count = countFiles(src);
     console.log(`  ${dir}/ (${count} files)`);
   }
-}
-
-function countFiles(dir) {
-  let count = 0;
-  try {
-    const entries = readdirSync(dir, { withFileTypes: true });
-    for (const entry of entries) {
-      const fullPath = join(dir, entry.name);
-      if (entry.isFile()) {
-        count++;
-      } else if (entry.isDirectory()) {
-        count += countFiles(fullPath);
-      }
-    }
-  } catch {
-    // Ignore
-  }
-  return count;
 }

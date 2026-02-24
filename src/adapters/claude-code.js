@@ -10,6 +10,7 @@ import {
 import { join, dirname } from 'node:path';
 import pc from 'picocolors';
 import { generateAgentsMd } from './agents-md.js';
+import { readVersion, countFiles } from '../lib/fs-utils.js';
 
 /** Directories to copy from canonical .claude/ source */
 const FRAMEWORK_DIRS = [
@@ -242,17 +243,6 @@ export function generateClaudeMd(frameworkRoot) {
     );
 }
 
-function readVersion(frameworkRoot) {
-  try {
-    return readFileSync(
-      join(frameworkRoot, '.metadata', 'version'),
-      'utf-8'
-    ).trim();
-  } catch {
-    return '0.0.0';
-  }
-}
-
 /** Parse SKILL.md frontmatter and return skill metadata */
 export function listSkills(frameworkRoot) {
   const skillsDir = join(frameworkRoot, 'skills');
@@ -293,22 +283,4 @@ export function parseFrontmatter(filePath) {
     result[key] = value;
   }
   return result;
-}
-
-function countFiles(dir) {
-  let count = 0;
-  try {
-    const entries = readdirSync(dir, { withFileTypes: true });
-    for (const entry of entries) {
-      const fullPath = join(dir, entry.name);
-      if (entry.isFile()) {
-        count++;
-      } else if (entry.isDirectory()) {
-        count += countFiles(fullPath);
-      }
-    }
-  } catch {
-    // Ignore
-  }
-  return count;
 }

@@ -8,47 +8,13 @@
 
 set -euo pipefail
 
+# Load shared utilities
+source "$(dirname "${BASH_SOURCE[0]}")/lib/_common.sh"
+
 # Determine Claude directory (allow override via argument)
 CLAUDE_DIR="${1:-}"
-
-if [ -z "$CLAUDE_DIR" ]; then
-  # Auto-detect from settings.json or settings.local.json
-  extract_claude_dir() {
-    local file="$1"
-    if command -v python3 >/dev/null 2>&1; then
-      python3 -c "
-import json,sys
-try:
-    d=json.load(open(sys.argv[1]))
-    print(d.get('claudeDir','.claude'))
-except (FileNotFoundError, json.JSONDecodeError):
-    print('.claude')
-" "$file" 2>/dev/null
-    else
-      grep -o '"claudeDir" *: *"[^"]*"' "$file" 2>/dev/null | sed 's/.*: *"//;s/"//' || echo ".claude"
-    fi
-  }
-
-  if [ -f ".claude/settings.local.json" ]; then
-    CLAUDE_DIR=$(extract_claude_dir ".claude/settings.local.json")
-  elif [ -f ".claude/settings.json" ]; then
-    CLAUDE_DIR=$(extract_claude_dir ".claude/settings.json")
-  else
-    CLAUDE_DIR=".claude"
-  fi
-fi
-
-# Path containment: ensure CLAUDE_DIR physically resolves inside the project root
-# Uses pwd -P to resolve symlinks — prevents symlink-to-outside-root bypass
-PROJECT_ROOT="$(pwd -P)"
-if [ -d "$CLAUDE_DIR" ]; then
-  CLAUDE_DIR_REAL=$(cd "$CLAUDE_DIR" && pwd -P)
-else
-  # Directory doesn't exist yet — resolve parent + basename (reject if parent is outside root)
-  CLAUDE_DIR_PARENT=$(cd "$(dirname "$CLAUDE_DIR")" 2>/dev/null && pwd -P) || { echo "Error: claudeDir parent does not exist" >&2; exit 1; }
-  CLAUDE_DIR_REAL="$CLAUDE_DIR_PARENT/$(basename "$CLAUDE_DIR")"
-fi
-case "$CLAUDE_DIR_REAL" in "$PROJECT_ROOT"/*) ;; *) echo "Error: claudeDir escapes project root" >&2; exit 1 ;; esac
+resolve_claude_dir
+validate_claude_dir
 
 CONTEXT_DIR="$CLAUDE_DIR/.context"
 CORRECTIONS_FILE="$CONTEXT_DIR/corrections.jsonl"
@@ -71,9 +37,10 @@ fi
 mkdir -p "$CONTEXT_DIR"
 
 # Aggregate corrections and rebuild patterns-learned.json
+# Optimized: pre-sort groups once, single-pass time-window accumulation
 python3 -c "
 import json, sys, os
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from collections import defaultdict
 
 corrections_file = sys.argv[1]
@@ -87,21 +54,71 @@ THRESHOLDS = {
     'command-sequence': 3,
 }
 
-# Read all correction events
+# Time windows (computed once)
+now_dt = datetime.now(timezone.utc)
+now = now_dt.strftime('%Y-%m-%dT%H:%M:%SZ')
+seven_days_ago_str = (now_dt - timedelta(days=7)).strftime('%Y-%m-%dT%H:%M:%SZ')
+fourteen_days_ago_str = (now_dt - timedelta(days=14)).strftime('%Y-%m-%dT%H:%M:%SZ')
+thirty_days_ago_str = (now_dt - timedelta(days=30)).strftime('%Y-%m-%dT%H:%M:%SZ')
+
+# --- Pass 1: Read, parse, and accumulate in a single pass ---
 events = []
+groups = defaultdict(list)
+agent_groups = defaultdict(list)
+all_pattern_agents = defaultdict(lambda: {'agents': set(), 'total': 0, 'desc': ''})
+
+# Time-window counters (accumulated during read)
+last_7_count = 0
+prior_7_count = 0
+all_last7_accepted = 0
+all_last7_total = 0
+all_last30_accepted = 0
+all_last30_total = 0
+
 with open(corrections_file, 'r') as f:
     for line_num, line in enumerate(f, 1):
         line = line.strip()
         if not line:
             continue
         try:
-            events.append(json.loads(line))
+            ev = json.loads(line)
         except json.JSONDecodeError:
             print('Warning: Skipping malformed line %d in corrections.jsonl' % line_num, file=sys.stderr)
+            continue
+
+        events.append(ev)
+        ts = ev.get('timestamp', '')
+        pattern_key = ev.get('pattern', 'unknown')
+        agent_id = ev.get('agentId') or ev.get('context', {}).get('agent', '')
+        outcome = ev.get('outcome', '')
+
+        # Group by pattern
+        groups[pattern_key].append(ev)
+
+        # Group by agent
+        if agent_id:
+            agent_groups[agent_id].append(ev)
+            # Project-wide pattern-agent tracking
+            all_pattern_agents[pattern_key]['agents'].add(agent_id)
+            all_pattern_agents[pattern_key]['total'] += 1
+            all_pattern_agents[pattern_key]['desc'] = ev.get('description', '')
+
+        # Time-window accumulation
+        if ts >= seven_days_ago_str:
+            last_7_count += 1
+            all_last7_total += 1
+            if outcome == 'accepted':
+                all_last7_accepted += 1
+        elif ts >= fourteen_days_ago_str:
+            prior_7_count += 1
+
+        if ts >= thirty_days_ago_str:
+            all_last30_total += 1
+            if outcome == 'accepted':
+                all_last30_accepted += 1
 
 if not events:
     # Write empty-but-valid files to clear any stale data
-    now = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
     empty_patterns = {'schemaVersion': '1.1.0', 'generatedAt': now, 'patterns': [], 'stats': {'totalCorrections': 0, 'uniquePatterns': 0, 'readyToPromote': 0, 'alreadyPromoted': 0}, 'trends': None, 'recommendations': []}
     empty_agents = {'schemaVersion': '1.1.0', 'generatedAt': now, 'agents': {}, 'projectPreferences': [], 'stats': {'totalAgentsTracked': 0, 'totalEvents': 0, 'overallAcceptanceRate': 0}, 'trends': None, 'recommendations': []}
     for fpath, data in [(output_file, empty_patterns), (agent_file, empty_agents)]:
@@ -111,10 +128,10 @@ if not events:
     print('No correction events found. Cleared stale data.')
     sys.exit(0)
 
-# Group by pattern key
-groups = defaultdict(list)
-for ev in events:
-    groups[ev.get('pattern', 'unknown')].append(ev)
+# --- Pre-sort each group once (reused by pattern summaries, trend analysis, aging) ---
+sorted_groups = {}
+for key, entries in groups.items():
+    sorted_groups[key] = sorted(entries, key=lambda e: e.get('timestamp', ''))
 
 # Load promoted patterns from append-only tracking file (if exists)
 promoted_file = os.path.join(os.path.dirname(corrections_file), 'promoted-patterns.json')
@@ -130,12 +147,15 @@ if os.path.exists(promoted_file):
 # Category priority for deterministic tie-breaking (lower = higher priority)
 CATEGORY_PRIORITY = {'anti-pattern': 0, 'correction': 1, 'command-sequence': 2}
 
-# Build pattern summaries
+# --- Build pattern summaries (using pre-sorted groups) ---
 patterns = []
 total_promoted = 0
 total_ready = 0
 
-for pattern_key, entries in sorted(groups.items()):
+for pattern_key in sorted(groups.keys()):
+    entries = groups[pattern_key]
+    sorted_entries = sorted_groups[pattern_key]
+
     # Use the most common category for this pattern (deterministic tie-break by priority)
     categories = [e.get('category', 'correction') for e in entries]
     primary_category = max(set(categories), key=lambda c: (categories.count(c), -CATEGORY_PRIORITY.get(c, 99)))
@@ -152,8 +172,7 @@ for pattern_key, entries in sorted(groups.items()):
     if promoted:
         total_promoted += 1
 
-    # Extract most recent description
-    sorted_entries = sorted(entries, key=lambda e: e.get('timestamp', ''))
+    # Extract from pre-sorted entries
     description = sorted_entries[-1].get('description', '')
     first_seen = sorted_entries[0].get('timestamp', '')
     last_seen = sorted_entries[-1].get('timestamp', '')
@@ -197,53 +216,37 @@ for pattern_key, entries in sorted(groups.items()):
 # Sort: ready-and-unpromoted first, then by count descending
 patterns.sort(key=lambda p: (not (p['ready'] and not p['promoted']), -p['count']))
 
-# --- Trend Analysis ---
-from datetime import timedelta
-
-now_dt = datetime.now(timezone.utc)
-now = now_dt.strftime('%Y-%m-%dT%H:%M:%SZ')
-seven_days_ago_str = (now_dt - timedelta(days=7)).strftime('%Y-%m-%dT%H:%M:%SZ')
-fourteen_days_ago_str = (now_dt - timedelta(days=14)).strftime('%Y-%m-%dT%H:%M:%SZ')
-
-# Pattern velocity: events in last 7 vs prior 7
-last_7_count = sum(1 for e in events if e.get('timestamp', '') >= seven_days_ago_str)
-prior_7_count = sum(1 for e in events if fourteen_days_ago_str <= e.get('timestamp', '') < seven_days_ago_str)
+# --- Trend Analysis (using pre-sorted groups and accumulated counters) ---
 velocity_direction = 'up' if last_7_count > prior_7_count else ('down' if last_7_count < prior_7_count else 'stable')
 
 # Avg time-to-ready: days from firstSeen to threshold for ready patterns
 ready_times = []
+aging = []
 for p in patterns:
-    if p['ready'] and p['firstSeen'] and p['lastSeen']:
+    if not p['ready']:
+        continue
+    if p['firstSeen'] and p['lastSeen']:
         try:
             first = datetime.strptime(p['firstSeen'][:19], '%Y-%m-%dT%H:%M:%S').replace(tzinfo=timezone.utc)
-            # Approximate ready time: when the threshold-th event arrived
-            group_events_sorted = sorted(groups[p['pattern']], key=lambda e: e.get('timestamp', ''))
-            threshold_idx = min(p['threshold'], len(group_events_sorted)) - 1
-            ready_ts = group_events_sorted[threshold_idx].get('timestamp', p['lastSeen'])
-            ready = datetime.strptime(ready_ts[:19], '%Y-%m-%dT%H:%M:%S').replace(tzinfo=timezone.utc)
-            ready_times.append((ready - first).total_seconds() / 86400)
+            # Approximate ready time: when the threshold-th event arrived (from pre-sorted group)
+            group_sorted = sorted_groups[p['pattern']]
+            threshold_idx = min(p['threshold'], len(group_sorted)) - 1
+            ready_ts = group_sorted[threshold_idx].get('timestamp', p['lastSeen'])
+            ready_dt = datetime.strptime(ready_ts[:19], '%Y-%m-%dT%H:%M:%S').replace(tzinfo=timezone.utc)
+            ready_times.append((ready_dt - first).total_seconds() / 86400)
+
+            # Aging check (ready + not promoted + waiting 7+ days)
+            if not p['promoted']:
+                days_since_ready = round((now_dt - ready_dt).total_seconds() / 86400, 1)
+                if days_since_ready >= 7:
+                    aging.append({
+                        'pattern': p['pattern'],
+                        'readySince': ready_ts,
+                        'daysSinceReady': days_since_ready,
+                    })
         except (ValueError, IndexError):
             pass
 avg_time_to_ready = round(sum(ready_times) / len(ready_times), 1) if ready_times else None
-
-# Aging patterns: ready + not promoted + waiting 7+ days
-aging = []
-for p in patterns:
-    if p['ready'] and not p['promoted']:
-        try:
-            group_events_sorted = sorted(groups[p['pattern']], key=lambda e: e.get('timestamp', ''))
-            threshold_idx = min(p['threshold'], len(group_events_sorted)) - 1
-            ready_since = group_events_sorted[threshold_idx].get('timestamp', p['firstSeen'])
-            ready_dt = datetime.strptime(ready_since[:19], '%Y-%m-%dT%H:%M:%S').replace(tzinfo=timezone.utc)
-            days_since_ready = round((now_dt - ready_dt).total_seconds() / 86400, 1)
-            if days_since_ready >= 7:
-                aging.append({
-                    'pattern': p['pattern'],
-                    'readySince': ready_since,
-                    'daysSinceReady': days_since_ready,
-                })
-        except (ValueError, IndexError):
-            pass
 
 trends_data = {
     'velocity': {
@@ -315,35 +318,44 @@ with open(output_file, 'w') as f:
     json.dump(output, f, indent=2, ensure_ascii=False)
     f.write('\n')
 
-# --- Per-Agent Learning Aggregation ---
+# --- Per-Agent Learning Aggregation (using pre-accumulated agent_groups) ---
 
-# Group by effective agent ID (agentId field, fallback to context.agent)
-agent_groups = defaultdict(list)
-for ev in events:
-    agent_id = ev.get('agentId') or ev.get('context', {}).get('agent', '')
-    if agent_id:
-        agent_groups[agent_id].append(ev)
-
-# Time window helpers (reuse now_dt, seven_days_ago_str from trend analysis)
-thirty_days_ago = (now_dt - timedelta(days=30)).strftime('%Y-%m-%dT%H:%M:%SZ')
-seven_days_ago = seven_days_ago_str
+# Pre-sort each agent's events once
+sorted_agent_groups = {}
+for aid, aevents in agent_groups.items():
+    sorted_agent_groups[aid] = sorted(aevents, key=lambda e: e.get('timestamp', ''))
 
 agents_data = {}
-for agent_id, agent_events in sorted(agent_groups.items()):
-    accepted = sum(1 for e in agent_events if e.get('outcome') == 'accepted')
-    rejected = sum(1 for e in agent_events if e.get('outcome') == 'rejected')
-    neutral = len(agent_events) - accepted - rejected
+for agent_id in sorted(agent_groups.keys()):
+    agent_events = agent_groups[agent_id]
+    sorted_events = sorted_agent_groups[agent_id]
     total = len(agent_events)
 
-    # Group this agent's events by pattern
+    # Accumulate outcome counts and time-window stats in a single pass
+    accepted = 0
+    rejected = 0
+    last_7 = 0
+    last_30 = 0
     agent_pattern_groups = defaultdict(list)
     for e in agent_events:
+        outcome = e.get('outcome', '')
+        if outcome == 'accepted':
+            accepted += 1
+        elif outcome == 'rejected':
+            rejected += 1
+        ts = e.get('timestamp', '')
+        if ts >= seven_days_ago_str:
+            last_7 += 1
+        if ts >= thirty_days_ago_str:
+            last_30 += 1
         agent_pattern_groups[e.get('pattern', 'unknown')].append(e)
+
+    neutral = total - accepted - rejected
 
     top_patterns = []
     preferences = []
     for pkey, pentries in sorted(agent_pattern_groups.items(), key=lambda x: -len(x[1])):
-        last_entry = sorted(pentries, key=lambda e: e.get('timestamp', ''))[-1]
+        last_entry = max(pentries, key=lambda e: e.get('timestamp', ''))
         top_patterns.append({
             'pattern': pkey,
             'count': len(pentries),
@@ -364,10 +376,7 @@ for agent_id, agent_events in sorted(agent_groups.items()):
                     'rejected': rejected_count,
                 })
 
-    sorted_events = sorted(agent_events, key=lambda e: e.get('timestamp', ''))
     last_seen = sorted_events[-1].get('timestamp', '') if sorted_events else ''
-    last_7 = sum(1 for e in agent_events if e.get('timestamp', '') >= seven_days_ago)
-    last_30 = sum(1 for e in agent_events if e.get('timestamp', '') >= thirty_days_ago)
 
     agents_data[agent_id] = {
         'totalEvents': total,
@@ -384,15 +393,8 @@ for agent_id, agent_events in sorted(agent_groups.items()):
         },
     }
 
-# Project-wide preferences: patterns across 3+ agents or 5+ total occurrences
+# Project-wide preferences (using pre-accumulated all_pattern_agents)
 project_prefs = []
-all_pattern_agents = defaultdict(lambda: {'agents': set(), 'total': 0, 'desc': ''})
-for agent_id, agent_events in agent_groups.items():
-    for e in agent_events:
-        pkey = e.get('pattern', 'unknown')
-        all_pattern_agents[pkey]['agents'].add(agent_id)
-        all_pattern_agents[pkey]['total'] += 1
-        all_pattern_agents[pkey]['desc'] = e.get('description', '')
 for pkey, info in sorted(all_pattern_agents.items(), key=lambda x: -x[1]['total']):
     if len(info['agents']) >= 3 or info['total'] >= 5:
         conf = 'medium' if info['total'] < 5 else 'high'
@@ -404,16 +406,20 @@ for pkey, info in sorted(all_pattern_agents.items(), key=lambda x: -x[1]['total'
             'occurrences': info['total'],
         })
 
-# --- Agent Trend Analysis ---
+# --- Agent Trend Analysis (using pre-accumulated time-window stats) ---
 agent_recommendations = []
 
 for aid, adata in agents_data.items():
-    a_events = agent_groups[aid]
-    last7_events = [e for e in a_events if e.get('timestamp', '') >= seven_days_ago]
-    last30_events = [e for e in a_events if e.get('timestamp', '') >= thirty_days_ago]
+    last7_total = adata['recentActivity']['last7Days']
+    last30_total = adata['recentActivity']['last30Days']
 
-    rate_7 = round(sum(1 for e in last7_events if e.get('outcome') == 'accepted') / max(len(last7_events), 1) * 100, 1) if last7_events else None
-    rate_30 = round(sum(1 for e in last30_events if e.get('outcome') == 'accepted') / max(len(last30_events), 1) * 100, 1) if last30_events else None
+    # Count accepted in time windows from pre-sorted events
+    sorted_events = sorted_agent_groups[aid]
+    last7_accepted = sum(1 for e in sorted_events if e.get('timestamp', '') >= seven_days_ago_str and e.get('outcome') == 'accepted')
+    last30_accepted = sum(1 for e in sorted_events if e.get('timestamp', '') >= thirty_days_ago_str and e.get('outcome') == 'accepted')
+
+    rate_7 = round(last7_accepted / max(last7_total, 1) * 100, 1) if last7_total else None
+    rate_30 = round(last30_accepted / max(last30_total, 1) * 100, 1) if last30_total else None
 
     if rate_7 is not None and rate_30 is not None:
         delta = round(rate_7 - rate_30, 1)
@@ -443,13 +449,11 @@ for aid, adata in agents_data.items():
     else:
         adata['trends'] = None
 
-# Project-wide acceptance rate trends
-all_last7 = [e for e in events if e.get('timestamp', '') >= seven_days_ago]
-all_last30 = [e for e in events if e.get('timestamp', '') >= thirty_days_ago]
-overall_rate_7 = round(sum(1 for e in all_last7 if e.get('outcome') == 'accepted') / max(len(all_last7), 1) * 100, 1) if all_last7 else None
-overall_rate_30 = round(sum(1 for e in all_last30 if e.get('outcome') == 'accepted') / max(len(all_last30), 1) * 100, 1) if all_last30 else None
-
+# Project-wide acceptance rate trends (using pre-accumulated counters)
 project_trends = None
+overall_rate_7 = round(all_last7_accepted / max(all_last7_total, 1) * 100, 1) if all_last7_total else None
+overall_rate_30 = round(all_last30_accepted / max(all_last30_total, 1) * 100, 1) if all_last30_total else None
+
 if overall_rate_7 is not None and overall_rate_30 is not None:
     overall_delta = round(overall_rate_7 - overall_rate_30, 1)
     project_trends = {
@@ -486,5 +490,5 @@ if agents_data:
     print('Agent learning: %d agent(s) tracked.' % len(agents_data))
 ready_unpromoted = sum(1 for p in patterns if p.get('ready') and not p.get('promoted'))
 if ready_unpromoted > 0:
-    print('%d pattern(s) ready for promotion. Run `/patterns suggest` to see details.' % ready_unpromoted)
+    print('%d pattern(s) ready for promotion. Run \`/patterns suggest\` to see details.' % ready_unpromoted)
 " "$CORRECTIONS_FILE" "$OUTPUT_FILE" "$AGENT_FILE"

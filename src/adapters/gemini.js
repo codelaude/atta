@@ -88,6 +88,7 @@ function skillToToml(skill, skillFile) {
     .replace(/"""/g, '\\"""');
 
   const desc = (skill.description || `Run the ${skill.name} skill`)
+    .replace(/\\/g, '\\\\')
     .replace(/"/g, '\\"');
 
   const lines = [];

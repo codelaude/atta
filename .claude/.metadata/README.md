@@ -6,13 +6,13 @@ This directory contains system metadata for the adaptive bootstrap system.
 
 ### `version`
 Contains the current user's version of the `.claude/` system.
-- **Current version**: 2.5.3
+- **Current version**: 2.5.4
 - **Used by**: `/atta` and `/migrate` skills for version detection
 - **Note**: This is the user's version, which may have customizations
 
 ### `framework-version` (introduced in v2.1)
 Contains the framework version that was last applied.
-- **Current version**: 2.5.3
+- **Current version**: 2.5.4
 - **Used by**: `/update` skill to check for framework updates
 - **Note**: This is separate from user version to track framework updates independently
 
@@ -114,6 +114,7 @@ Template for the file-manifest.json structure.
 
 ## Version History
 
+- **2.5.4**: Pre-v2.6 Cleanup — code deduplication, script performance, `/ship` skill, PR workflow refactor, docs refresh, pre-publish fixes
 - **2.5.3**: Context Diet Pass 2 + Session Tracking Hooks — hook-based session tracking (replaced ~1,000 lines of in-skill boilerplate), compressed remaining skills (~880 lines), triaged v2.5.1 open items
 - **2.5.2**: Context Diet — reduced SKILL.md and agent definition context footprint by ~55%, removed legacy agents, cross-AI reviewed
 - **2.5.1**: OSS readiness audit — security hardening, community files, npm packaging

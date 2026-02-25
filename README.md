@@ -47,6 +47,7 @@ The interactive setup interviews you about your project, auto-detects your tech 
 /agent rubber-duck     Help me understand focus management
 /review                Review my changed files
 /preflight             Run full pre-PR validation
+/ship                  Generate PR description and finalize
 ```
 
 ## Skills (Slash Commands)
@@ -63,6 +64,7 @@ The interactive setup interviews you about your project, auto-detects your tech 
 | `/security-audit` | OWASP Top 10 security scan — vulnerabilities, secrets, dependencies |
 | `/lint` | Pattern-based checks against project rules |
 | `/preflight` | Full pre-PR pipeline: lint + security + test + review |
+| `/ship` | Completion workflow — tests, ACC validation, PR description, learnings |
 | `/tutorial` | Interactive 5-minute onboarding walkthrough |
 | `/patterns` | Pattern detection and learning — analyze corrections, suggest promotions, track agent adaptation |
 | `/librarian` | Capture a directive or extract learnings |

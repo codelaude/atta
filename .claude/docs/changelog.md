@@ -4,7 +4,7 @@ Full version history for the Atta framework.
 
 ---
 
-## v2.6.0 — Enhanced Testing
+## v2.6.0 (2026-02-25) — Enhanced Testing
 
 E2E testing detection and specialist agents, PR template awareness, and a new `/test` skill.
 

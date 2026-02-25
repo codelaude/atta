@@ -665,19 +665,20 @@ e2e_testing:
       E2E_FRAMEWORK_NAME: "Selenium"
       E2E_FRAMEWORK_ID: "selenium"
       E2E_DIR: "tests/e2e"
-      EXT: "js"
       DOCUMENTATION_URLS: "https://www.selenium.dev/documentation/"
       TEAM_LEAD: "fe-team-lead"
+      # Note: EXT intentionally omitted — Selenium is multi-language (JS, Java, Python, C#, Ruby).
+      # The template should adapt examples to the project's detected language.
     rules:
-      - "Use explicit waits (`WebDriverWait`) — never `Thread.sleep()` or implicit waits"
+      - "Use explicit waits — never fixed sleeps or implicit waits"
       - "Use Page Object Model for all page interactions"
-      - "Prefer `By.id()` and `By.cssSelector()` over `By.xpath()`"
-      - "Close WebDriver in `@AfterAll` / `teardown` — prevent zombie browsers"
+      - "Prefer ID and CSS selectors over XPath"
+      - "Close WebDriver in teardown — prevent zombie browsers"
       - "Use WebDriver Manager for automatic driver management"
       - "Set explicit timeouts on driver initialization"
     anti_patterns:
-      - pattern: "Using `Thread.sleep()` or implicit waits"
-        fix: "Use `WebDriverWait` with `ExpectedConditions`"
+      - pattern: "Using fixed sleeps or implicit waits"
+        fix: "Use explicit waits with expected conditions"
         severity: "CRITICAL"
       - pattern: "Using XPath for simple selectors"
         fix: "Use CSS selectors or ID-based locators"

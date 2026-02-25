@@ -316,6 +316,11 @@ browser_mcp:
     condition: has_e2e_tests
     agents_with_access:
       - testing-specialist
+      - cypress-e2e
+      - playwright-e2e
+      - puppeteer-e2e
+      - selenium-e2e
+      - webdriverio-e2e
       - accessibility
       - fe-team-lead
     recommendation_reason: "E2E tests detected - MCP can help with browser automation and testing"

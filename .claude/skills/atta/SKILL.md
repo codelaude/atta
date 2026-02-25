@@ -219,7 +219,7 @@ Each pattern file: key rules from existing code, anti-patterns, conventions, doc
 
 ### PR Template (conditional)
 
-**If a PR template was detected in Phase 2b:**
+**If a PR template was detected in the PR Template Detection step (Phase 2):**
 
 1. Read the detected template's full content
 2. Overwrite `.claude/knowledge/templates/pr-template.md` with a mapped version that:

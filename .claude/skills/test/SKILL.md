@@ -82,7 +82,7 @@ No E2E test framework detected. To add E2E testing:
 | Maven | `mvn test jacoco:report` |
 | Gradle | `gradle test jacocoTestReport` |
 | Cypress | `npx cypress run --env coverage=true` (requires @cypress/code-coverage) |
-| Playwright | `npx playwright test` (coverage via Istanbul — check config) |
+| Playwright | `npx playwright test` (requires Istanbul instrumentation — not built-in; see [Playwright coverage docs](https://playwright.dev/docs/api/class-coverage)) |
 
 ### `--watch` flag
 

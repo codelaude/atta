@@ -555,6 +555,173 @@ testing:
         fix: "Test both success and failure paths"
         severity: "HIGH"
 
+# E2E Testing Specialists (generated when a framework with triggers_e2e_specialist is detected)
+e2e_testing:
+  cypress:
+    condition: has_e2e_tools
+    template: e2e-testing-specialist.template.md
+    output: agents/specialists/cypress-e2e.md
+    pattern_file: patterns/e2e-testing-patterns.md
+    variables:
+      E2E_FRAMEWORK_NAME: "Cypress"
+      E2E_FRAMEWORK_ID: "cypress"
+      E2E_DIR: "cypress"
+      EXT: "js"
+      DOCUMENTATION_URLS: "https://docs.cypress.io/"
+      TEAM_LEAD: "fe-team-lead"
+    rules:
+      - "Use `cy.intercept()` for network stubbing — never `cy.route()`"
+      - "Prefer `data-testid` selectors over CSS classes"
+      - "Use `cy.session()` for authentication caching across tests"
+      - "Avoid `cy.wait(ms)` — use `cy.intercept()` aliases instead"
+      - "Keep tests independent — no order dependencies"
+      - "Use `beforeEach` for test isolation, not `before`"
+    anti_patterns:
+      - pattern: "Using `cy.wait(2000)` for timing"
+        fix: "Use `cy.intercept()` with alias: `cy.wait('@apiCall')`"
+        severity: "HIGH"
+      - pattern: "Chaining unrelated assertions in one test"
+        fix: "Split into separate `it()` blocks for clear failures"
+        severity: "MEDIUM"
+      - pattern: "Using `cy.get('.css-class')` selectors"
+        fix: "Use `cy.get('[data-testid=\"element\"]')` or `cy.findByRole()`"
+        severity: "HIGH"
+      - pattern: "Sharing state between tests via `before()`"
+        fix: "Use `beforeEach()` for full isolation"
+        severity: "CRITICAL"
+
+  playwright:
+    condition: has_e2e_tools
+    template: e2e-testing-specialist.template.md
+    output: agents/specialists/playwright-e2e.md
+    pattern_file: patterns/e2e-testing-patterns.md
+    variables:
+      E2E_FRAMEWORK_NAME: "Playwright"
+      E2E_FRAMEWORK_ID: "playwright"
+      E2E_DIR: "tests"
+      EXT: "ts"
+      DOCUMENTATION_URLS: "https://playwright.dev/docs/intro"
+      TEAM_LEAD: "fe-team-lead"
+    rules:
+      - "Use `page.getByRole()` and `page.getByTestId()` for selectors"
+      - "Use `test.describe()` for grouping related tests"
+      - "Leverage auto-waiting — avoid explicit waits"
+      - "Use `page.route()` for network mocking"
+      - "Use `test.use({ storageState })` for auth caching"
+      - "Run tests in parallel by default"
+    anti_patterns:
+      - pattern: "Using `page.waitForTimeout(ms)` for timing"
+        fix: "Use `page.waitForSelector()` or auto-waiting locators"
+        severity: "HIGH"
+      - pattern: "Using CSS selectors directly"
+        fix: "Use `getByRole()`, `getByTestId()`, or `getByText()`"
+        severity: "HIGH"
+      - pattern: "Not using test fixtures for setup"
+        fix: "Use Playwright fixtures for reusable setup/teardown"
+        severity: "MEDIUM"
+      - pattern: "Sequential test execution in CI"
+        fix: "Enable `fullyParallel: true` in playwright.config"
+        severity: "MEDIUM"
+
+  puppeteer:
+    condition: has_e2e_tools
+    template: e2e-testing-specialist.template.md
+    output: agents/specialists/puppeteer-e2e.md
+    pattern_file: patterns/e2e-testing-patterns.md
+    variables:
+      E2E_FRAMEWORK_NAME: "Puppeteer"
+      E2E_FRAMEWORK_ID: "puppeteer"
+      E2E_DIR: "tests/e2e"
+      EXT: "js"
+      DOCUMENTATION_URLS: "https://pptr.dev/"
+      TEAM_LEAD: "fe-team-lead"
+    rules:
+      - "Use `page.waitForSelector()` instead of `page.waitForTimeout()`"
+      - "Close browser in `afterAll` to prevent resource leaks"
+      - "Use `page.setRequestInterception()` for network control"
+      - "Set explicit viewport with `page.setViewport()`"
+      - "Use `page.$eval()` for single-element queries, `page.$$eval()` for collections"
+      - "Handle navigation with `page.waitForNavigation()` alongside click actions"
+    anti_patterns:
+      - pattern: "Using `page.waitForTimeout(ms)` for timing"
+        fix: "Use `page.waitForSelector()` or `page.waitForFunction()`"
+        severity: "HIGH"
+      - pattern: "Not closing browser after tests"
+        fix: "Always call `browser.close()` in teardown"
+        severity: "HIGH"
+      - pattern: "Missing error handling for navigation"
+        fix: "Wrap navigation in try/catch, use `waitForNavigation()`"
+        severity: "MEDIUM"
+      - pattern: "Hardcoded URLs"
+        fix: "Use base URL config and relative paths"
+        severity: "MEDIUM"
+
+  selenium:
+    condition: has_e2e_tools
+    template: e2e-testing-specialist.template.md
+    output: agents/specialists/selenium-e2e.md
+    pattern_file: patterns/e2e-testing-patterns.md
+    variables:
+      E2E_FRAMEWORK_NAME: "Selenium"
+      E2E_FRAMEWORK_ID: "selenium"
+      E2E_DIR: "tests/e2e"
+      EXT: "js"
+      DOCUMENTATION_URLS: "https://www.selenium.dev/documentation/"
+      TEAM_LEAD: "fe-team-lead"
+    rules:
+      - "Use explicit waits (`WebDriverWait`) — never `Thread.sleep()` or implicit waits"
+      - "Use Page Object Model for all page interactions"
+      - "Prefer `By.id()` and `By.cssSelector()` over `By.xpath()`"
+      - "Close WebDriver in `@AfterAll` / `teardown` — prevent zombie browsers"
+      - "Use WebDriver Manager for automatic driver management"
+      - "Set explicit timeouts on driver initialization"
+    anti_patterns:
+      - pattern: "Using `Thread.sleep()` or implicit waits"
+        fix: "Use `WebDriverWait` with `ExpectedConditions`"
+        severity: "CRITICAL"
+      - pattern: "Using XPath for simple selectors"
+        fix: "Use CSS selectors or ID-based locators"
+        severity: "MEDIUM"
+      - pattern: "Not quitting WebDriver after tests"
+        fix: "Always call `driver.quit()` in teardown"
+        severity: "HIGH"
+      - pattern: "Hardcoded browser driver paths"
+        fix: "Use WebDriver Manager or environment variables"
+        severity: "MEDIUM"
+
+  webdriverio:
+    condition: has_e2e_tools
+    template: e2e-testing-specialist.template.md
+    output: agents/specialists/webdriverio-e2e.md
+    pattern_file: patterns/e2e-testing-patterns.md
+    variables:
+      E2E_FRAMEWORK_NAME: "WebdriverIO"
+      E2E_FRAMEWORK_ID: "webdriverio"
+      E2E_DIR: "test"
+      EXT: "js"
+      DOCUMENTATION_URLS: "https://webdriver.io/docs/gettingstarted"
+      TEAM_LEAD: "fe-team-lead"
+    rules:
+      - "Use `$()` and `$$()` shorthand for element queries"
+      - "Leverage built-in `waitForDisplayed()` and `waitForClickable()`"
+      - "Use `browser.url()` with base URL from config"
+      - "Use `wdio.conf.js` services for automatic setup (chromedriver, etc.)"
+      - "Group tests with `describe` and use `beforeEach` for isolation"
+      - "Use `addCommand()` for reusable custom commands"
+    anti_patterns:
+      - pattern: "Using `browser.pause(ms)` for timing"
+        fix: "Use `waitForDisplayed()`, `waitForExist()`, or `waitUntil()`"
+        severity: "HIGH"
+      - pattern: "Not using Page Object pattern"
+        fix: "Create page objects extending `Page` class"
+        severity: "MEDIUM"
+      - pattern: "Hardcoded selectors in test files"
+        fix: "Encapsulate selectors in page objects"
+        severity: "MEDIUM"
+      - pattern: "Missing `wdio.conf.js` service configuration"
+        fix: "Configure services for automatic driver management"
+        severity: "LOW"
+
 # Security Specialist (generated when a tool with triggers_security_specialist is detected)
 security:
   security-specialist:

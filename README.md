@@ -62,6 +62,7 @@ The interactive setup interviews you about your project, auto-detects your tech 
 | `/collaborate` | Multi-agent collaboration — 2-4 specialists in parallel with conflict detection |
 | `/review` | Multi-domain code review with severity-rated findings (includes security) |
 | `/security-audit` | OWASP Top 10 security scan — vulnerabilities, secrets, dependencies |
+| `/test` | Run tests with auto-detection — `--e2e`, `--coverage`, `--watch` flags |
 | `/lint` | Pattern-based checks against project rules |
 | `/preflight` | Full pre-PR pipeline: lint + security + test + review |
 | `/ship` | Completion workflow — tests, ACC validation, PR description, learnings |
@@ -104,7 +105,8 @@ Specialists (generated from your tech stack)
 ├── Database            PostgreSQL, MongoDB, Redis, ...
 ├── Accessibility       WCAG/ARIA compliance
 ├── Security            OWASP Top 10, secrets, injections
-└── Testing             Jest, pytest, JUnit, Playwright, ...
+├── Testing             Jest, pytest, JUnit, Vitest, ...
+└── E2E Testing         Cypress, Playwright, Puppeteer, Selenium, WebdriverIO
 ```
 
 Every agent has constraints — what it does **and what it doesn't do**. Constraints are what make specialization real instead of just a label.

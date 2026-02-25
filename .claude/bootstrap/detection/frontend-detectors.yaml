@@ -446,10 +446,17 @@ testing:
       config_files:
         - cypress.config.js
         - cypress.config.ts
+        - cypress.config.mjs
+        - cypress.json
+      directory_exists:
+        - cypress
+        - cypress/e2e
+        - cypress/integration
     metadata:
       type: testing
       e2e_test: true
       specialist_type: testing
+      triggers_e2e_specialist: true
 
   # Playwright
   - name: Playwright
@@ -458,13 +465,71 @@ testing:
       package_json:
         dev_dependencies:
           - "@playwright/test"
+          - playwright
       config_files:
         - playwright.config.js
         - playwright.config.ts
+        - playwright.config.mjs
+      directory_exists:
+        - e2e
     metadata:
       type: testing
       e2e_test: true
       specialist_type: testing
+      triggers_e2e_specialist: true
+
+  # Puppeteer
+  - name: Puppeteer
+    identifier: puppeteer
+    detection:
+      package_json:
+        dev_dependencies:
+          - puppeteer
+          - puppeteer-core
+      config_files:
+        - .puppeteerrc.cjs
+        - .puppeteerrc.js
+    metadata:
+      type: testing
+      e2e_test: true
+      specialist_type: testing
+      triggers_e2e_specialist: true
+
+  # Selenium WebDriver
+  - name: Selenium
+    identifier: selenium
+    detection:
+      package_json:
+        dev_dependencies:
+          - selenium-webdriver
+        dependencies:
+          - selenium-webdriver
+      content_match:
+        requirements.txt: "selenium"
+        pom.xml: "selenium"
+        build.gradle: "selenium"
+    metadata:
+      type: testing
+      e2e_test: true
+      specialist_type: testing
+      triggers_e2e_specialist: true
+
+  # WebdriverIO
+  - name: WebdriverIO
+    identifier: webdriverio
+    detection:
+      package_json:
+        dev_dependencies:
+          - "@wdio/cli"
+          - webdriverio
+      config_files:
+        - wdio.conf.js
+        - wdio.conf.ts
+    metadata:
+      type: testing
+      e2e_test: true
+      specialist_type: testing
+      triggers_e2e_specialist: true
 
 # Accessibility tools
 accessibility:

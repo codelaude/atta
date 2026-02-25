@@ -184,6 +184,19 @@ if has_any_backend_framework:
     specialists: [list of detected backend specialists]
   })
 
+// E2E testing specialist (attaches to fe-team-lead or project-owner)
+// Only testing frameworks with triggers_e2e_specialist: true cause generation
+has_e2e_tools = (detected.testing || []).some(t => t.metadata.triggers_e2e_specialist)
+if has_e2e_tools:
+  // Find the detected E2E framework (first match — typically only one)
+  e2e_framework = (detected.testing || []).find(t => t.metadata.triggers_e2e_specialist)
+  e2e_mapping = e2e_testing[e2e_framework.identifier]
+  if e2e_mapping:
+    if has_any_frontend_framework:
+      e2e_mapping.variables.TEAM_LEAD = 'fe-team-lead'
+    else:
+      e2e_mapping.variables.TEAM_LEAD = 'project-owner'
+
 // Security specialist (cross-cutting — attaches to whichever team lead exists)
 // Only tools with triggers_security_specialist: true cause generation
 has_security_tools = (detected.security || []).some(s => s.metadata.triggers_security_specialist)

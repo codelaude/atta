@@ -12,7 +12,7 @@ Code deduplication, script performance, docs refresh, `/ship` skill, and pre-pub
 - **Script performance**: Rewrote `pattern-analyze.sh` with single-pass accumulation (6→1 event passes, 11→5 sorts)
 - **`/ship` skill**: New completion workflow — runs tests, validates ACCs, generates PR description from template, captures learnings. Suggested by `/preflight` on all-pass.
 - **PR workflow**: PR descriptions now written to `{claudeDir}/knowledge/PR/` (previously `knowledge/sessions/`), new `pr-template.md` with standardized 4-section format
-- **Docs refresh**: `session-tracking.md` rewritten for hooks-based architecture (v2.5.3), `.claude_dev/README.md` version updated
+- **Docs refresh**: `session-tracking.md` rewritten for hooks-based architecture (v2.5.3), metadata docs version-bumped
 - **Pre-publish fixes**: `schema.json` `$id` URL fixed, `generate-context.sh` Python subprocesses merged, root `CHANGELOG.md` symlink added, hooks + shared lib added to npm package files
 - **14 skills** (up from 13): `/ship` added
 

@@ -18,25 +18,16 @@
 
 ## PR Template Structure
 
-```markdown
-# [TICKET-ID]
+Follow the full structure defined in `.claude/knowledge/templates/pr-template.md`:
 
-## About
-[Description of feature/fix]
-
-## Changes
-### New/Modified Components
-- Component details, props, emits, features
-
-### Tests
-- Test counts and coverage
-
-## Testing
-[Step-by-step testing instructions]
-
-## Notes
-[Important callouts, known limitations]
-```
+1. `# PR: {branch-name}` — Header
+2. `## Suggested Commit Message` — In a code block
+3. `## PR Title` — In a code block (under 70 characters)
+4. `## PR Description` — In a ` ```markdown ``` ` code block containing:
+   - `## Summary` — 1-3 bullet points
+   - `## Changes` — Grouped by category, with file names
+   - `## Verification` — Checkmark list of what was tested
+   - `## Notes` — Breaking changes, limitations, reviewer guidance
 
 ## Guidelines
 

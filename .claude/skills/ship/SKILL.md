@@ -29,7 +29,7 @@ You are now running the **ship** completion workflow. This finalizes work for PR
 npm test
 ```
 
-If the project uses snapshot tests, run with `--updateSnapshot` flag. Detect from `package.json` (Jest, Vitest) or ask.
+If the project uses snapshot tests (detected from `package.json` for Jest or Vitest), ask the user whether snapshots are expected to change. Only add `--updateSnapshot` if the user confirms; otherwise run without it.
 
 **If tests fail, stop and report.** Do not proceed to PR generation with failing tests.
 
@@ -61,27 +61,14 @@ If no ACC files exist, skip this step silently.
 
 ### Step 4: Generate PR Description
 
-Generate a PR description following this structure:
+Write the PR file to `{claudeDir}/knowledge/PR/PR-{branch-name}.md` following the full structure in `.claude/knowledge/templates/pr-template.md` (Header, Suggested Commit Message, PR Title, PR Description).
 
-```markdown
-## Summary
-- [1-3 bullet points describing the change]
+The PR Description section (inside the markdown code block) should contain:
 
-## Changes
-- [Grouped by category: Features, Fixes, Refactoring, Docs, etc.]
-- [Include file names for significant changes]
-
-## Verification
-- [x] Tests pass
-- [x] Lint checks pass (if /preflight was run)
-- [x] Security scan clean (if /preflight was run)
-- [ACC status if applicable]
-
-## Notes
-- [Breaking changes, migration steps, or reviewer guidance]
-```
-
-Write the PR description to `{claudeDir}/knowledge/PR/PR-{branch-name}.md` following the template in `.claude/knowledge/templates/pr-template.md`.
+- `## Summary` — 1-3 bullet points describing the change
+- `## Changes` — Grouped by category (Features, Fixes, Refactoring, Docs). Include file names for significant changes.
+- `## Verification` — Checkmark list (tests, lint, security, ACCs if applicable)
+- `## Notes` — Breaking changes, migration steps, or reviewer guidance
 
 ### Step 5: Capture Learnings
 

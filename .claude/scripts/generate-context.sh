@@ -8,47 +8,13 @@
 
 set -euo pipefail
 
+# Load shared utilities
+source "$(dirname "${BASH_SOURCE[0]}")/lib/_common.sh"
+
 # Determine Claude directory (allow override via argument)
 CLAUDE_DIR="${1:-}"
-
-if [ -z "$CLAUDE_DIR" ]; then
-  # Auto-detect from settings.json or settings.local.json
-  extract_claude_dir() {
-    local file="$1"
-    if command -v python3 >/dev/null 2>&1; then
-      python3 -c "
-import json,sys
-try:
-    d=json.load(open(sys.argv[1]))
-    print(d.get('claudeDir','.claude'))
-except (FileNotFoundError, json.JSONDecodeError):
-    print('.claude')
-" "$file" 2>/dev/null
-    else
-      grep -o '"claudeDir" *: *"[^"]*"' "$file" 2>/dev/null | sed 's/.*: *"//;s/"//' || echo ".claude"
-    fi
-  }
-
-  if [ -f ".claude/settings.local.json" ]; then
-    CLAUDE_DIR=$(extract_claude_dir ".claude/settings.local.json")
-  elif [ -f ".claude/settings.json" ]; then
-    CLAUDE_DIR=$(extract_claude_dir ".claude/settings.json")
-  else
-    CLAUDE_DIR=".claude"
-  fi
-fi
-
-# Path containment: ensure CLAUDE_DIR physically resolves inside the project root
-# Uses pwd -P to resolve symlinks — prevents symlink-to-outside-root bypass
-PROJECT_ROOT="$(pwd -P)"
-if [ -d "$CLAUDE_DIR" ]; then
-  CLAUDE_DIR_REAL=$(cd "$CLAUDE_DIR" && pwd -P)
-else
-  # Directory doesn't exist yet — resolve parent + basename (reject if parent is outside root)
-  CLAUDE_DIR_PARENT=$(cd "$(dirname "$CLAUDE_DIR")" 2>/dev/null && pwd -P) || { echo "Error: claudeDir parent does not exist" >&2; exit 1; }
-  CLAUDE_DIR_REAL="$CLAUDE_DIR_PARENT/$(basename "$CLAUDE_DIR")"
-fi
-case "$CLAUDE_DIR_REAL" in "$PROJECT_ROOT"/*) ;; *) echo "Error: claudeDir escapes project root" >&2; exit 1 ;; esac
+resolve_claude_dir
+validate_claude_dir
 
 SESSIONS_DIR="$CLAUDE_DIR/.sessions"
 CONTEXT_DIR="$CLAUDE_DIR/.context"
@@ -83,13 +49,16 @@ EOF
   exit 0
 fi
 
-# Generate recent.md — Python discovers and parses session files directly
+# Generate recent.md — single Python subprocess handles sessions + pattern summary
 # (no shell interpolation of filenames into Python source)
+PATTERNS_FILE="$CONTEXT_DIR/patterns-learned.json"
 python3 -c "
 import json, glob, os, sys
 
 sessions_dir = sys.argv[1]
 max_recent = int(sys.argv[2])
+output_file = sys.argv[3]
+patterns_file = sys.argv[4]
 
 # Discover session files (newest first by filename timestamp)
 pattern = os.path.join(sessions_dir, 'session-*.json')
@@ -145,51 +114,39 @@ for f in files:
     except (json.JSONDecodeError, FileNotFoundError, KeyError):
         continue
 
-# Write output
+# Build output
 header = '''# Recent Work Context
 
 *Auto-generated from last 5 sessions. Do not edit manually.*
 
 '''
 
+content = header
 if lines:
-    print(header + '\n'.join(lines))
+    content += '\n'.join(lines)
 else:
-    print(header + 'No recent sessions found. Run a skill (e.g., \`/atta\`, \`/tutorial\`) to start tracking.')
-" "$SESSIONS_DIR" "$MAX_RECENT" > "$OUTPUT_FILE"
+    content += 'No recent sessions found. Run a skill (e.g., \`/atta\`, \`/tutorial\`) to start tracking.'
 
-# Append pattern detection summary (if corrections exist)
-PATTERNS_FILE="$CONTEXT_DIR/patterns-learned.json"
-if [ -f "$PATTERNS_FILE" ] && command -v python3 >/dev/null 2>&1; then
-  python3 -c "
-import json, sys
+# Append pattern detection summary (if corrections file exists)
+if os.path.isfile(patterns_file):
+    try:
+        with open(patterns_file) as pf:
+            data = json.load(pf)
+        stats = data.get('stats', {})
+        total = stats.get('totalCorrections', 0)
+        unique = stats.get('uniquePatterns', 0)
+        ready = stats.get('readyToPromote', 0)
+        if total > 0:
+            content += '\n\n## Patterns Detected\n\n'
+            content += '- %d correction(s) across %d pattern(s)\n' % (total, unique)
+            if ready > 0:
+                content += '- **%d pattern(s) ready for promotion** (run \`/patterns suggest\`)\n' % ready
+    except (json.JSONDecodeError, IOError):
+        pass
 
-patterns_file = sys.argv[1]
-output_file = sys.argv[2]
-
-try:
-    with open(patterns_file) as f:
-        data = json.load(f)
-except (FileNotFoundError, json.JSONDecodeError):
-    sys.exit(0)
-
-stats = data.get('stats', {})
-total = stats.get('totalCorrections', 0)
-unique = stats.get('uniquePatterns', 0)
-ready = stats.get('readyToPromote', 0)
-
-if total == 0:
-    sys.exit(0)
-
-section = '\n## Patterns Detected\n\n'
-section += '- %d correction(s) across %d pattern(s)\n' % (total, unique)
-if ready > 0:
-    section += '- **%d pattern(s) ready for promotion** (run \`/patterns suggest\`)\n' % ready
-
-with open(output_file, 'a') as f:
-    f.write(section)
-" "$PATTERNS_FILE" "$OUTPUT_FILE"
-fi
+with open(output_file, 'w') as out:
+    out.write(content)
+" "$SESSIONS_DIR" "$MAX_RECENT" "$OUTPUT_FILE" "$PATTERNS_FILE"
 
 # Count files for status message
 file_count=$(find "$SESSIONS_DIR" -name "session-*.json" -type f | head -n "$MAX_RECENT" | wc -l | tr -d ' ')

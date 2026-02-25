@@ -8,48 +8,13 @@
 
 set -euo pipefail
 
+# Load shared utilities
+source "$(dirname "${BASH_SOURCE[0]}")/lib/_common.sh"
+
 # Determine Claude directory (allow override via argument)
 CLAUDE_DIR="${1:-}"
-
-if [ -z "$CLAUDE_DIR" ]; then
-  # Auto-detect from settings.json or settings.local.json
-  # Try python3 first (robust JSON parsing), fall back to grep
-  extract_claude_dir() {
-    local file="$1"
-    if command -v python3 >/dev/null 2>&1; then
-      python3 -c "
-import json,sys
-try:
-    d=json.load(open(sys.argv[1]))
-    print(d.get('claudeDir','.claude'))
-except (FileNotFoundError, json.JSONDecodeError):
-    print('.claude')
-" "$file" 2>/dev/null
-    else
-      grep -o '"claudeDir" *: *"[^"]*"' "$file" 2>/dev/null | sed 's/.*: *"//;s/"//' || echo ".claude"
-    fi
-  }
-
-  if [ -f ".claude/settings.local.json" ]; then
-    CLAUDE_DIR=$(extract_claude_dir ".claude/settings.local.json")
-  elif [ -f ".claude/settings.json" ]; then
-    CLAUDE_DIR=$(extract_claude_dir ".claude/settings.json")
-  else
-    CLAUDE_DIR=".claude"
-  fi
-fi
-
-# Path containment: ensure CLAUDE_DIR physically resolves inside the project root
-# Uses pwd -P to resolve symlinks — prevents symlink-to-outside-root bypass
-PROJECT_ROOT="$(pwd -P)"
-if [ -d "$CLAUDE_DIR" ]; then
-  CLAUDE_DIR_REAL=$(cd "$CLAUDE_DIR" && pwd -P)
-else
-  # Directory doesn't exist yet — resolve parent + basename (reject if parent is outside root)
-  CLAUDE_DIR_PARENT=$(cd "$(dirname "$CLAUDE_DIR")" 2>/dev/null && pwd -P) || { echo "Error: claudeDir parent does not exist" >&2; exit 1; }
-  CLAUDE_DIR_REAL="$CLAUDE_DIR_PARENT/$(basename "$CLAUDE_DIR")"
-fi
-case "$CLAUDE_DIR_REAL" in "$PROJECT_ROOT"/*) ;; *) echo "Error: claudeDir escapes project root" >&2; exit 1 ;; esac
+resolve_claude_dir
+validate_claude_dir
 
 SESSIONS_DIR="$CLAUDE_DIR/.sessions"
 MAX_SESSIONS=10

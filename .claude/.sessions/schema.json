@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://codelaude.com/schemas/session.json",
+  "$id": "https://raw.githubusercontent.com/codelaude/atta/main/.claude/.sessions/schema.json",
   "title": "Atta Session",
   "description": "Tracks a single skill invocation session with agent usage",
   "type": "object",

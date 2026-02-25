@@ -34,7 +34,7 @@ If project-context.md is unavailable or doesn't specify test commands, auto-dete
 | `pom.xml` exists | Maven | `mvn test` | — |
 | `build.gradle` exists | Gradle | `gradle test` | — |
 | `cypress.config.*` or `cypress/` dir | Cypress | — | `npx cypress run` |
-| `playwright.config.*` | Playwright | — | `npx playwright test` |
+| `playwright.config.*` or `@playwright/test` / `playwright` in devDeps | Playwright | — | `npx playwright test` |
 | `wdio.conf.*` | WebdriverIO | — | `npx wdio run wdio.conf.js` |
 | `puppeteer` in devDeps | Puppeteer | — | *(custom — check package.json scripts)* |
 | `selenium-webdriver` in devDeps or `selenium` in requirements/pom.xml/build.gradle | Selenium | — | *(custom — check package.json scripts or language-specific runner)* |

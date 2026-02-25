@@ -225,7 +225,7 @@ Each pattern file: key rules from existing code, anti-patterns, conventions, doc
 2. Overwrite `.claude/knowledge/templates/pr-template.md` with a mapped version that:
    - Keeps the standard Atta frontmatter (`applyTo`, `description`)
    - Keeps the Atta file structure (Header, Suggested Commit Message, PR Title, PR Description)
-   - Adds a **"Project PR Template"** section containing the original template verbatim in a code block
+   - Adds a **"Project PR Template"** section containing the original template verbatim in a code block (use a longer fence like ```````` or `~~~~` if the template itself contains triple backticks)
    - Adds a **"Section Mapping"** table showing how Atta's PR Description subsections (Summary, Changes, Verification, Notes) map to the project template's sections
    - Instructs the AI: "Format the PR Description body to match the project's template structure below, while preserving all Atta content (summary, changes, verification, notes). Sections from the project template that have no Atta equivalent should be included with a placeholder comment."
 

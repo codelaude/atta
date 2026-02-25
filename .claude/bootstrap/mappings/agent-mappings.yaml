@@ -721,7 +721,7 @@ e2e_testing:
         severity: "MEDIUM"
       - pattern: "Missing `wdio.conf.js` service configuration"
         fix: "Configure services for automatic driver management"
-        severity: "LOW"
+        severity: "MEDIUM"
 
 # Security Specialist (generated when a tool with triggers_security_specialist is detected)
 security:

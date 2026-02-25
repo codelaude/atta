@@ -36,7 +36,7 @@ If project-context.md is unavailable or doesn't specify test commands, auto-dete
 | `cypress.config.*` or `cypress/` dir | Cypress | — | `npx cypress run` |
 | `playwright.config.*` or `@playwright/test` / `playwright` in devDeps | Playwright | — | `npx playwright test` |
 | `wdio.conf.*` | WebdriverIO | — | `npx wdio run wdio.conf.js` |
-| `puppeteer` in devDeps | Puppeteer | — | *(custom — check package.json scripts)* |
+| `puppeteer` or `puppeteer-core` in devDeps | Puppeteer | — | *(custom — check package.json scripts)* |
 | `selenium-webdriver` in devDeps or `selenium` in requirements/pom.xml/build.gradle | Selenium | — | *(custom — check package.json scripts or language-specific runner)* |
 
 Also check `package.json` scripts for `test`, `test:e2e`, `test:unit`, `test:coverage`, `e2e` keys — prefer project-defined scripts over raw framework commands.
@@ -58,7 +58,7 @@ No test framework detected. To add testing:
 
 ### Default mode (no flags)
 
-Run the detected unit/integration test command. If a `<path>` argument is provided, append it.
+Run the detected unit/integration test command. If a `<path>` argument is provided, append it using framework-appropriate syntax (e.g., Jest/Vitest/pytest support path args directly; for Maven/Gradle, run the full suite instead).
 
 ### `--e2e` flag
 

@@ -61,18 +61,34 @@
 ```
 {{E2E_DIR}}/
 ├── pages/              # Page objects
+{{#if EXT}}
 │   ├── login.page.{{EXT}}
 │   ├── dashboard.page.{{EXT}}
 │   └── checkout.page.{{EXT}}
+{{else}}
+│   ├── login.page.<ext>
+│   ├── dashboard.page.<ext>
+│   └── checkout.page.<ext>
+{{/if}}
 ├── fixtures/           # Test data
 │   ├── users.json
 │   └── products.json
 ├── specs/              # Test files
+{{#if EXT}}
 │   ├── auth.spec.{{EXT}}
 │   └── checkout.spec.{{EXT}}
+{{else}}
+│   ├── auth.spec.<ext>
+│   └── checkout.spec.<ext>
+{{/if}}
 └── support/            # Helpers and utilities
+{{#if EXT}}
     ├── commands.{{EXT}}
     └── selectors.{{EXT}}
+{{else}}
+    ├── commands.<ext>
+    └── selectors.<ext>
+{{/if}}
 ```
 
 ### Page Object Guidelines

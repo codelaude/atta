@@ -59,19 +59,36 @@
 ```
 {{E2E_DIR}}/
 ├── pages/              # Page objects
+{{#if EXT}}
 │   ├── login.page.{{EXT}}
 │   ├── dashboard.page.{{EXT}}
 │   └── checkout.page.{{EXT}}
+{{else}}
+│   ├── login.page.<ext>
+│   ├── dashboard.page.<ext>
+│   └── checkout.page.<ext>
+{{/if}}
 ├── fixtures/           # Test data and factories
 │   ├── users.json
 │   └── products.json
 ├── specs/              # Test files (one per journey)
+{{#if EXT}}
 │   ├── auth.spec.{{EXT}}
 │   ├── checkout.spec.{{EXT}}
 │   └── navigation.spec.{{EXT}}
+{{else}}
+│   ├── auth.spec.<ext>
+│   ├── checkout.spec.<ext>
+│   └── navigation.spec.<ext>
+{{/if}}
 └── support/            # Helpers and custom commands
+{{#if EXT}}
     ├── commands.{{EXT}}
     └── selectors.{{EXT}}
+{{else}}
+    ├── commands.<ext>
+    └── selectors.<ext>
+{{/if}}
 ```
 
 ## What to E2E Test

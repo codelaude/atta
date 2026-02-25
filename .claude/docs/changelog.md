@@ -4,6 +4,20 @@ Full version history for the Atta framework.
 
 ---
 
+## v2.5.4 — Pre-v2.6 Cleanup
+
+Code deduplication, script performance, docs refresh, `/ship` skill, and pre-publish fixes.
+
+- **Code deduplication**: Extracted `readVersion()` + `countFiles()` to shared `src/lib/fs-utils.js`, extracted `extract_claude_dir()` to shared `.claude/scripts/lib/_common.sh` — eliminated ~120 lines of duplication
+- **Script performance**: Rewrote `pattern-analyze.sh` with single-pass accumulation (6→1 event passes, 11→5 sorts)
+- **`/ship` skill**: New completion workflow — runs tests, validates ACCs, generates PR description from template, captures learnings. Suggested by `/preflight` on all-pass.
+- **PR workflow**: PR descriptions now written to `{claudeDir}/knowledge/PR/` (previously `knowledge/sessions/`), new `pr-template.md` with standardized 4-section format
+- **Docs refresh**: `session-tracking.md` rewritten for hooks-based architecture (v2.5.3), `.claude_dev/README.md` version updated
+- **Pre-publish fixes**: `schema.json` `$id` URL fixed, `generate-context.sh` Python subprocesses merged, root `CHANGELOG.md` symlink added, hooks + shared lib added to npm package files
+- **14 skills** (up from 13): `/ship` added
+
+---
+
 ## v2.5.3 — Context Diet Pass 2 + Session Tracking Hooks
 
 Moves session tracking from in-skill boilerplate to Claude Code hooks, and compresses the remaining large SKILL.md files.

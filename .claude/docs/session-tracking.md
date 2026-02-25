@@ -1,18 +1,18 @@
 # Session Tracking
 
-**Status**: Foundation (Enables future learning features)
+**Status**: Foundation (Enables learning features)
 
 ## Overview
 
 Session tracking is a lightweight system that records metadata about skill executions and agent invocations. It doesn't log conversation content—just timestamps, which skills ran, which agents were used, and how long things took.
 
-This infrastructure enables future intelligence features:
-- **v2.5**: Pattern detection and learning from your workflow
-- **v3.5**: Token/cost analytics and usage insights
+This infrastructure enables intelligence features:
+- **v2.5**: Pattern detection and learning from your workflow (shipped)
+- **Future**: Token/cost analytics and usage insights
 
 ## What Gets Tracked
 
-For skills with session tracking enabled (see [Skill Coverage](#skill-coverage) below), the system creates a session file with:
+When a skill runs, the system creates a session file with:
 
 ```json
 {
@@ -73,77 +73,63 @@ The system automatically keeps only the **10 most recent sessions**. Older sessi
 
 ## How It Works
 
+Since v2.5.3, session tracking is handled automatically by **Claude Code hooks** — no in-skill boilerplate needed.
+
 ### 1. You run a skill
 
 ```bash
 /review
 ```
 
-### 2. Session file created
+### 2. Hook creates session file
 
-A new file appears in `{claudeDir}/.sessions/`:
+The `PostToolUse` hook fires on the Skill tool, creating a session file in `{claudeDir}/.sessions/`:
 ```
-session-2026-02-16-143000.json
-```
-
-### 3. Agents tracked
-
-As agents are invoked, they're added to the session:
-```json
-"agents": [
-  {"name": "security-specialist", "status": "completed"},
-  {"name": "accessibility", "status": "completed"}
-]
+session-2026-02-16-143000-f47ac10b.json
 ```
 
-### 4. Session finalized
+### 3. Skill executes normally
 
-When the skill completes:
+The skill runs without any tracking overhead — hooks handle everything externally.
+
+### 4. Session finalized on exit
+
+When the session ends (`Stop` event):
 - Status updated to "completed"
 - Duration calculated
 - Cleanup runs (keeps last 10)
+- Context regenerated (`recent.md`)
 
-## Future Features
+## Hook Architecture (v2.5.3+)
 
-### v2.5: Pattern Detection (Planned)
-Session history will enable:
-- "You often invoke security-specialist after accessibility—want to create a workflow?"
-- "This pattern caused issues last 3 times—here's what worked instead"
-- Learning from your corrections and preferences
+The hook script `.claude/hooks/session-track.sh` handles the full lifecycle:
 
-### v3.5: Analytics Dashboard (Planned)
-Session data will power:
-- Which skills you use most
-- Which agents provide most value
-- Token usage and cost tracking
-- Performance metrics
+| Event | Action |
+|-------|--------|
+| `PostToolUse` (Skill) | Create session JSON with status `in_progress` |
+| `Stop` | Finalize latest in-progress session, run cleanup + context generation |
+
+Hook configuration is generated in `.claude/settings.local.json` by the Claude Code adapter during `npx atta-dev init`.
+
+**Other tools** (Copilot, Codex, Gemini) do not support hooks — session tracking is Claude Code only.
+
+## Pattern Detection (v2.5)
+
+Session history enables the pattern detection system:
+- Correction logging and aggregation
+- Per-agent acceptance rates and learning profiles
+- `/patterns dashboard` with velocity trends and recommendations
+- Pattern promotion from corrections to directives or pattern files
+
+See [Changelog](changelog.md) for full details on the v2.5 pattern detection system.
 
 ## For Developers
 
-If you're building custom skills and want to integrate session tracking:
+If you're building custom skills or want to understand the internals:
 
-📖 **[Integration Guide](../.sessions/TRACKING_GUIDE.md)** - Step-by-step instructions
-📖 **[Skill Template](../.sessions/SKILL_TEMPLATE.md)** - Ready-to-use template
-📖 **[Example Integration](../.sessions/INTEGRATION_EXAMPLE.md)** - Before/after comparison
-📖 **[Schema Reference](../.sessions/schema.json)** - Full JSON Schema
-
-## Skill Coverage
-
-9 of 12 skills include session tracking with standardized init, finalization, and cleanup blocks. Infrastructure skills (`/atta`, `/update`, `/migrate`) do not have session tracking.
-
-| Skill | Agent Tracking | Notes |
-|-------|---------------|-------|
-| `/tutorial` | No | Guided walkthrough, no agents |
-| `/collaborate` | Yes (2-4) | Multi-agent collaboration sessions |
-| `/lint` | No | No agents invoked |
-| `/librarian` | No | No agents invoked |
-| `/agent` | Yes (always 1) | Every invocation loads exactly 1 agent |
-| `/team-lead` | Yes (always 1) | Always loads 1 coordinator |
-| `/review` | Yes (conditional) | Tracks if specialist invoked inline |
-| `/security-audit` | Yes (conditional) | Tracks if specialist invoked inline |
-| `/preflight` | Yes (conditional) | Tracks if agent invoked inline |
-
-Skills without agent tracking (`/lint`, `/librarian`, `/tutorial`) still create session files with an empty `agents` array.
+- **[Integration Guide](../.sessions/TRACKING_GUIDE.md)** - Hook-based tracking details
+- **[Skill Template](../.sessions/SKILL_TEMPLATE.md)** - Ready-to-use template
+- **[Schema Reference](../.sessions/schema.json)** - Full JSON Schema
 
 ## Disabling Session Tracking
 
@@ -154,25 +140,26 @@ If you prefer not to use session tracking, you can:
    rm -rf {claudeDir}/.sessions/*.json
    ```
 
-2. **Prevent regeneration** (when integrated):
-   - Skip the tracking sections in skill templates
-   - Or comment out cleanup script calls
+2. **Remove the hook**: Delete the `session-track.sh` entry from `.claude/settings.local.json`
 
-Note: Session tracking is foundational infrastructure—disabling it will prevent v2.5+ learning features from working.
+Note: Disabling session tracking will prevent pattern detection features from working.
 
 ## Files and Locations
 
 ### Framework Files (Committed)
 ```
+.claude/hooks/
+└── session-track.sh         # Hook script (lifecycle management)
+
 .claude/.sessions/
-├── README.md              # Technical overview
-├── schema.json            # JSON Schema definition
-├── TRACKING_GUIDE.md      # Developer integration guide
-├── SKILL_TEMPLATE.md      # Integration template
-└── INTEGRATION_EXAMPLE.md # Before/after example
+├── README.md                # Technical overview
+├── schema.json              # JSON Schema definition
+├── TRACKING_GUIDE.md        # Developer integration guide
+└── SKILL_TEMPLATE.md        # Integration template
 
 .claude/scripts/
-└── session-cleanup.sh     # Automatic cleanup utility
+├── session-cleanup.sh       # Automatic cleanup utility
+└── generate-context.sh      # Context regeneration
 ```
 
 ### Generated Files (Local, Gitignored)
@@ -181,8 +168,8 @@ Note: Session tracking is foundational infrastructure—disabling it will preven
 
 ```
 {claudeDir}/.sessions/
-├── session-2026-02-16-143000.json
-├── session-2026-02-16-154530.json
+├── session-2026-02-16-143000-f47ac10b.json
+├── session-2026-02-16-154530-a1b2c3d4.json
 └── ... (up to 10 files)
 ```
 
@@ -190,7 +177,7 @@ Note: Session tracking is foundational infrastructure—disabling it will preven
 
 - **Schema Version**: 1.0.0 (with migration support for future versions)
 - **Storage Format**: JSON (human-readable, easy to parse)
-- **File Naming**: `session-YYYY-MM-DD-HHMMSS.json`
+- **File Naming**: `session-YYYY-MM-DD-HHMMSS-{uuid}.json`
 - **UUID Standard**: v4 (RFC 4122 compliant)
 - **Timestamp Format**: ISO 8601 (UTC)
 
@@ -200,7 +187,7 @@ Note: Session tracking is foundational infrastructure—disabling it will preven
 A: Yes! They're plain JSON files with a documented schema. Build your own analytics, export to CSV, or integrate with other tools.
 
 **Q: Will this slow down skills?**
-A: No. Session tracking adds <10ms overhead. File writes are small and cleanup is fast.
+A: No. Hook-based tracking runs externally with <10ms overhead. Skills have zero tracking code.
 
 **Q: What if I delete .sessions/ by accident?**
 A: No problem! Session tracking is non-critical. Skills will continue working. New sessions will be created as you use skills.
@@ -208,8 +195,8 @@ A: No problem! Session tracking is non-critical. Skills will continue working. N
 **Q: Can I change the retention policy?**
 A: Yes. Edit `MAX_SESSIONS=10` in `.claude/scripts/session-cleanup.sh` to keep more or fewer sessions.
 
-**Q: Is this required for the framework to work?**
-A: No. Session tracking is infrastructure for future features. All skills work without it. Future versions (v2.5+) will use it for pattern detection and learning.
+**Q: Does this work with Copilot/Codex/Gemini?**
+A: No. Session tracking requires Claude Code hooks. Other tools skip tracking entirely.
 
 ## See Also
 
@@ -223,5 +210,5 @@ A: No. Session tracking is infrastructure for future features. All skills work w
 ---
 
 **Added in**: v2.2 (2026-02-16)
-**Updated**: v2.4 (2026-02-19) — `/collaborate` session tracking, collaboration schema extension
-**Updated**: v2.4.1 (2026-02-20) — Session tracking expanded to all 9 skills
+**Updated**: v2.4.1 (2026-02-20) — Session tracking expanded to all skills
+**Updated**: v2.5.3 (2026-02-24) — Migrated from in-skill boilerplate to Claude Code hooks

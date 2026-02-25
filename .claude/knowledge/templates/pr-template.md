@@ -1,92 +1,42 @@
 ---
 applyTo: "**"
-description: PR Description Template Guidelines
+description: PR Description Template
 ---
 
 # Pull Request Description Template
 
-When creating pull request descriptions, follow this structure for clarity and completeness.
+When generating a PR description, follow this exact structure. Write the file to `{claudeDir}/knowledge/PR/PR-{branch-name}.md`.
 
-## Structure
+## File Structure
 
-### Header
-```markdown
-# [TICKET-ID]
-## About
-[1-2 paragraph description of the feature/fix and its purpose]
-```
+The PR file has 4 sections in this order:
 
-### Changes Section
-Organize changes by category:
+### 1. Header
 
-#### New Components Created
-For each new component, document:
-- Component name and file path
-- Props (name and type)
-- Emits (event names)
-- Key features (bullet points)
-- Test coverage percentage
+`# PR: {branch-name}`
 
-#### Modified Components
-For each modified component:
-- Component name and brief description of changes
-- Key functionality added/changed
-- API changes (new props, events, methods)
+### 2. Suggested Commit Message
 
-#### Shared Utilities/Composables
-Document changes to shared code:
-- File path
-- Function signature changes
-- New parameters/return values
-- Backward compatibility notes
+A `## Suggested Commit Message` heading followed by a code block with a concise commit message (what and why, not how).
 
-#### Styling Updates
-Document CSS/SCSS changes:
-- File names
-- New classes/variants
-- Theme variable changes
-- Component registrations
+### 3. PR Title
 
-#### Tests
-For each test file:
-- Test file name
-- Key test scenarios covered
-- Number of tests
-- Coverage percentage (if applicable)
-- Snapshot updates
+A `## PR Title` heading followed by a code block with a short title (under 70 characters).
 
-### Testing Section
-```markdown
-## Testing
-- [Step-by-step instructions for testing]
-- [Any required setup or configuration]
-- [Expected behavior to verify]
-- [Edge cases to test]
-```
+### 4. PR Description
 
-### Notes Section
-```markdown
-## Notes
-- [Important callouts]
-- [Dependencies or prerequisites]
-- [Known limitations]
-- [Future improvements needed]
-```
+A `## PR Description` heading followed by a **markdown code block** (` ```markdown `) containing:
+
+- `## Summary` — 1-3 bullet points describing the change and its purpose
+- `## Changes` — Grouped by category (Features, Fixes, Refactoring, Docs). Use **NEW**, **MODIFIED**, **REMOVED** prefixes. Include file names for significant changes.
+- `## Verification` — Checkmark list of what was tested
+- `## Notes` — Breaking changes, migration steps, known limitations, deferred items
+
+The markdown code block makes the description ready to paste directly into GitHub/GitLab.
 
 ## Best Practices
 
-### Be Specific
-- Bad: "Updated component"
-- Good: "Added state management with cookie persistence to ChatWidget component"
-
-### Document Test Coverage
-- Always include test counts and coverage percentages for new components
-- Note snapshot updates separately
-
-### Highlight Breaking Changes
-- Document migration steps if needed
-
-### Group Related Changes
-- Keep component changes together
-- Separate frontend and backend changes
-- Group test updates by component
+- **Be specific**: "Added cookie persistence to ChatWidget state" not "Updated component"
+- **Group related changes**: Keep component, test, and style changes together by feature
+- **Highlight breaking changes**: Document migration steps if any
+- **Include verification**: List what was tested and how

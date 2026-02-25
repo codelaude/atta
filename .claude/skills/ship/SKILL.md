@@ -1,0 +1,138 @@
+---
+name: ship
+description: Completion workflow — run tests, validate ACCs, generate PR description, and capture learnings. Use after /preflight passes.
+---
+
+You are now running the **ship** completion workflow. This finalizes work for PR submission.
+
+## How to Use
+
+```
+/ship                    # Full completion workflow
+/ship --skip-tests       # Skip test execution (if already verified)
+```
+
+---
+
+## Prerequisites
+
+- All changes are implemented and reviewed
+- `/preflight` has passed (or user has explicitly decided to skip it)
+
+---
+
+## Execution Steps
+
+### Step 1: Run Tests
+
+```bash
+npm test
+```
+
+If the project uses snapshot tests, run with `--updateSnapshot` flag. Detect from `package.json` (Jest, Vitest) or ask.
+
+**If tests fail, stop and report.** Do not proceed to PR generation with failing tests.
+
+> If `--skip-tests` flag is set, skip this step.
+
+### Step 2: Extract Ticket ID
+
+Extract ticket ID from the current git branch name:
+
+```bash
+git rev-parse --abbrev-ref HEAD
+```
+
+Look for patterns: `feature/ABC-123`, `bugfix/ABC-123`, `fix/ABC-123`, `hotfix/ABC-123`.
+
+If no ticket ID is found, note "No ticket ID detected" and continue.
+
+### Step 3: Validate Acceptance Criteria
+
+Check if ACC files exist in `.claude/knowledge/accs/` or `{claudeDir}/knowledge/accs/`.
+
+If ACCs exist for the current feature:
+- Read the relevant ACC file
+- Verify each criterion against the implemented changes
+- Report status: MET / NOT MET / PARTIAL for each criterion
+- If any critical ACCs are NOT MET, warn but don't block
+
+If no ACC files exist, skip this step silently.
+
+### Step 4: Generate PR Description
+
+Generate a PR description following this structure:
+
+```markdown
+## Summary
+- [1-3 bullet points describing the change]
+
+## Changes
+- [Grouped by category: Features, Fixes, Refactoring, Docs, etc.]
+- [Include file names for significant changes]
+
+## Verification
+- [x] Tests pass
+- [x] Lint checks pass (if /preflight was run)
+- [x] Security scan clean (if /preflight was run)
+- [ACC status if applicable]
+
+## Notes
+- [Breaking changes, migration steps, or reviewer guidance]
+```
+
+Write the PR description to `{claudeDir}/knowledge/PR/PR-{branch-name}.md` following the template in `.claude/knowledge/templates/pr-template.md`.
+
+### Step 5: Capture Learnings
+
+Ask the user: "Any learnings or corrections from this session to capture?"
+
+If yes, invoke the librarian to capture them.
+If no, skip.
+
+### Step 6: Present Summary
+
+Present to the user:
+1. Test results (pass/fail count)
+2. ACC validation results (if applicable)
+3. The generated PR description (ready to copy-paste)
+4. Suggested commit message
+
+---
+
+## Error Handling & Recovery
+
+### Tests Fail
+
+```markdown
+Tests failed — cannot proceed with ship.
+
+Recovery:
+1. Fix failing tests
+2. Rerun `/ship` (or `/ship --skip-tests` if tests are flaky and you've verified manually)
+```
+
+### No Git Branch Detected
+
+```markdown
+Could not determine current branch.
+
+Recovery:
+1. Ensure you're in a git repository
+2. Check that you're on a feature/bugfix branch
+3. Rerun `/ship`
+```
+
+### PR File Already Exists
+
+If a PR file for this branch already exists, ask the user whether to overwrite or append.
+
+---
+
+## Related Skills
+
+- `/preflight` - Run before `/ship` to validate code quality
+- `/review` - Code review only
+- `/lint` - Quick pattern checks
+- `/agent pr-manager` - PR description generation (standalone)
+- `/librarian` - Knowledge capture (standalone)

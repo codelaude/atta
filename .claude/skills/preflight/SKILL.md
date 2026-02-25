@@ -124,9 +124,11 @@ Run comprehensive review on changed files (same as `/review`).
 1. Make changes
 2. /preflight              <- Validate before completing
 3. Fix any issues
-4. "all is ok"             <- Triggers PR generation
+4. /ship                   <- Run completion workflow (tests, PR description, learnings)
 5. PR description ready
 ```
+
+When all checks pass (status READY FOR PR), include in your summary: "All checks passed. You can now run `/ship` to generate the PR description and finalize."
 
 ---
 
@@ -135,7 +137,7 @@ Run comprehensive review on changed files (same as `/review`).
 - `/lint` - Pattern checks only
 - `/security-audit` - Deep security analysis (OWASP, deps, secrets)
 - `/review` - Code review only (includes security checks)
-- `/agent pr-manager` - PR description generation
+- `/ship` - Completion workflow (run after preflight passes)
 
 ---
 

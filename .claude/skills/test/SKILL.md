@@ -37,6 +37,7 @@ If project-context.md is unavailable or doesn't specify test commands, auto-dete
 | `playwright.config.*` | Playwright | — | `npx playwright test` |
 | `wdio.conf.*` | WebdriverIO | — | `npx wdio run wdio.conf.js` |
 | `puppeteer` in devDeps | Puppeteer | — | *(custom — check package.json scripts)* |
+| `selenium-webdriver` in devDeps or `selenium` in requirements/pom.xml/build.gradle | Selenium | — | *(custom — check package.json scripts or language-specific runner)* |
 
 Also check `package.json` scripts for `test`, `test:e2e`, `test:unit`, `test:coverage`, `e2e` keys — prefer project-defined scripts over raw framework commands.
 

@@ -11,7 +11,7 @@ E2E testing detection and specialist agents, PR template awareness, and a new `/
 - **PR template detection**: `/atta` now detects existing PR templates (GitHub, GitLab, Azure DevOps — 6 locations) and generates a mapped `pr-template.md` that aligns Atta's output with the project's template structure
 - **E2E testing detection**: Enhanced `frontend-detectors.yaml` with Puppeteer, Selenium, WebdriverIO detection; enriched Cypress/Playwright with config variants and directory detection; all E2E entries trigger specialist generation via `triggers_e2e_specialist: true`
 - **E2E specialist agent**: New `e2e-testing-specialist.template.md` covering page object patterns, selector strategy (test IDs > ARIA > semantic > text), flakiness prevention, CI/CD integration; 5 framework-specific mappings in `agent-mappings.yaml` with tailored rules and anti-patterns
-- **`/test` skill**: New framework-level skill with auto-detection (7 unit + 4 E2E frameworks), `--e2e` flag, `--coverage` flag with per-category analysis, `--watch` flag for interactive mode; integrated with `/preflight`
+- **`/test` skill**: New framework-level skill with auto-detection (7 unit + 5 E2E frameworks), `--e2e` flag, `--coverage` flag with per-category analysis, `--watch` flag for interactive mode; integrated with `/preflight`
 - **E2E testing patterns**: New `e2e-testing-patterns.template.md` with 10 anti-patterns, 7 flakiness causes, test organization structure, coverage guidelines, framework-specific doc links
 - **15 skills** (up from 14): `/test` added
 

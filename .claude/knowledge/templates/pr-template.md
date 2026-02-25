@@ -15,6 +15,8 @@ The PR file has 4 sections in this order:
 
 `# PR: {branch-name}`
 
+Here, `{branch-name}` is the original branch name (e.g., `feature/ABC-123`), not the slugified `{branch-slug}` used in the filename.
+
 ### 2. Suggested Commit Message
 
 A `## Suggested Commit Message` heading followed by a code block with a concise commit message (what and why, not how).

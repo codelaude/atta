@@ -46,6 +46,9 @@
     ".claude/.metadata/",
     ".claude/.sessions/schema.json",
     ".claude/.sessions/README.md",
+    ".claude/.sessions/TRACKING_GUIDE.md",
+    ".claude/.sessions/SKILL_TEMPLATE.md",
+    ".claude/.sessions/INTEGRATION_EXAMPLE.md",
     "README.md",
     "atta.svg"
   ],

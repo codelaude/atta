@@ -43,6 +43,8 @@ Extract ticket ID from the current git branch name:
 git rev-parse --abbrev-ref HEAD
 ```
 
+If the result is `HEAD` or empty (detached HEAD state), trigger the "No Git Branch Detected" recovery.
+
 Look for patterns: `feature/ABC-123`, `bugfix/ABC-123`, `fix/ABC-123`, `hotfix/ABC-123`.
 
 If no ticket ID is found, note "No ticket ID detected" and continue.
@@ -61,7 +63,9 @@ If no ACC files exist, skip this step silently.
 
 ### Step 4: Generate PR Description
 
-Write the PR file to `{claudeDir}/knowledge/PR/PR-{branch-name}.md` following the full structure in `.claude/knowledge/templates/pr-template.md` (Header, Suggested Commit Message, PR Title, PR Description).
+Ensure `{claudeDir}/knowledge/PR/` exists (create if needed). Write the PR file to `{claudeDir}/knowledge/PR/PR-{branch-slug}.md` following the full structure in `.claude/knowledge/templates/pr-template.md` (Header, Suggested Commit Message, PR Title, PR Description).
+
+`branch-slug` is the branch name with `/` replaced by `-` (e.g., `feature/ABC-123` → `feature-ABC-123`).
 
 The PR Description section (inside the markdown code block) should contain:
 

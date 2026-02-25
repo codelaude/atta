@@ -155,7 +155,8 @@ Note: Disabling session tracking will prevent pattern detection features from wo
 ├── README.md                # Technical overview
 ├── schema.json              # JSON Schema definition
 ├── TRACKING_GUIDE.md        # Developer integration guide
-└── SKILL_TEMPLATE.md        # Integration template
+├── SKILL_TEMPLATE.md        # Integration template
+└── INTEGRATION_EXAMPLE.md   # Before/after example
 
 .claude/scripts/
 ├── session-cleanup.sh       # Automatic cleanup utility

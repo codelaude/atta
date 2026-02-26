@@ -104,7 +104,9 @@ Scan config files at confirmed project root.
 |-----------|---------|
 | `jest` / `vitest` | Test runner |
 | `@testing-library/*` | Testing Library |
-| `cypress` / `playwright` | E2E |
+| `cypress` / `playwright` / `puppeteer` / `selenium-webdriver` / `@wdio/cli` | E2E framework |
+
+If any detected E2E framework has `triggers_e2e_specialist: true`, generate E2E specialist from `bootstrap/templates/agents/e2e-testing-specialist.template.md`. Attach to `fe-team-lead` (or `project-owner` as fallback).
 
 #### State Management
 | Dependency | Detects |
@@ -143,11 +145,28 @@ If any detected security tool has `triggers_security_specialist: true`, generate
 
 Sample up to 10 source files for: naming conventions, component patterns, import patterns, styling approach, test file location.
 
+### PR Template Detection
+
+Check for an existing PR template at the confirmed project root, in priority order:
+
+| Priority | Path | Platform |
+|----------|------|----------|
+| 1 | `.github/PULL_REQUEST_TEMPLATE.md` | GitHub |
+| 2 | `.github/pull_request_template.md` | GitHub (lowercase) |
+| 3 | `.github/PULL_REQUEST_TEMPLATE/` directory | GitHub (multiple templates) |
+| 4 | `.gitlab/merge_request_templates/` directory | GitLab |
+| 5 | `.azuredevops/pull_request_template.md` | Azure DevOps |
+| 6 | `docs/pull_request_template.md` | GitHub (fallback location) |
+
+Stop at the first match. For directories (priorities 3–4), use `default.md` if it exists, otherwise the first `.md` file alphabetically.
+
+If found: note the path and read the template content for use in Phase 3 and Phase 4.
+
 ---
 
 ## Phase 3: Reconcile & Confirm
 
-Present detected stack to user: project root, command directory, package manager, frontend stack, backend stack, security tooling, agents to activate (including security-specialist (if triggered)). Wait for confirmation before writing files.
+Present detected stack to user: project root, command directory, package manager, frontend stack, backend stack, security tooling, agents to activate (including security-specialist (if triggered)), and PR template (if detected — show path and platform). Wait for confirmation before writing files.
 
 ---
 
@@ -197,6 +216,20 @@ Write `.claude/knowledge/project/project-context.md`:
 | Java / Python / Node backend | `patterns/[tech]-patterns.md` |
 
 Each pattern file: key rules from existing code, anti-patterns, conventions, doc references.
+
+### PR Template (conditional)
+
+**If a PR template was detected in the PR Template Detection step (Phase 2):**
+
+1. Read the detected template's full content
+2. Overwrite `.claude/knowledge/templates/pr-template.md` with a mapped version that:
+   - Keeps the standard Atta frontmatter (`applyTo`, `description`)
+   - Keeps the Atta file structure (Header, Suggested Commit Message, PR Title, PR Description)
+   - Adds a **"Project PR Template"** section containing the original template verbatim in a code block (use a longer fence like ```````` or `~~~~` if the template itself contains triple backticks)
+   - Adds a **"Section Mapping"** table showing how Atta's PR Description subsections (Summary, Changes, Verification, Notes) map to the project template's sections
+   - Instructs the AI: "Format the PR Description body to match the project's template structure below, while preserving all Atta content (summary, changes, verification, notes). Sections from the project template that have no Atta equivalent should be included with a placeholder comment."
+
+**If no PR template was detected:** Do nothing — the default `pr-template.md` shipped with the framework is already in place.
 
 ### BE Team Lead
 
@@ -282,6 +315,8 @@ Write `.claude/.metadata/file-manifest.json` for the update system. Minimal skel
 
 Populate `files` with one entry per generated/framework file. For `"generated"` sources, add `"regenerate_on_init": true` and `"template": "<template-name>"`.
 
+> **PR template override:** If a custom `pr-template.md` was generated in Phase 4 (mapped to project's existing PR template), classify `knowledge/templates/pr-template.md` as `tier_3_never_touch` instead of `tier_1_safe_replace` — it contains project-specific mapping that must not be overwritten by framework updates.
+
 Also write `.claude/.metadata/framework-version` (`{{FRAMEWORK_VERSION}}`) and `.claude/.metadata/update-history.json` with initial setup entry.
 
 ---
@@ -296,6 +331,7 @@ Display initialization summary: files created/updated, active agents table, quic
 
 - Skip user interview (reuse answers from project-context.md)
 - Re-detect tech stack from config files
+- Re-check for PR templates (if one is now present or changed, regenerate `pr-template.md` mapping)
 - Update pattern files with new findings
 - Preserve manual edits (only update auto-generated sections)
 - Report what changed

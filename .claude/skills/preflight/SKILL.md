@@ -78,7 +78,10 @@ Run security pattern checks on all changed files:
 
 ### Step 4: Run Tests
 
+Use the same detection logic as `/test` — read `project-context.md` for the test command, or auto-detect the framework. Run the unit/integration test suite (not E2E — those are too slow for preflight).
+
 ```bash
+# Example (actual command determined by detection):
 npm test
 ```
 
@@ -134,6 +137,7 @@ When all checks pass (status READY FOR PR), include in your summary: "All checks
 
 ## Related Skills
 
+- `/test` - Run tests standalone (with `--e2e`, `--coverage`, `--watch` flags)
 - `/lint` - Pattern checks only
 - `/security-audit` - Deep security analysis (OWASP, deps, secrets)
 - `/review` - Code review only (includes security checks)

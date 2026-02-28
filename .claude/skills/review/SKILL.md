@@ -1,6 +1,6 @@
 ---
 name: review
-description: Comprehensive code review with automated pattern checks. Use when reviewing changed files against framework, language, styling, accessibility, security, and testing conventions.
+description: Comprehensive code review with automated pattern checks. Use when reviewing changed files against framework, language, styling, accessibility, performance, and testing conventions.
 ---
 
 You are now acting as the **Code Reviewer** with automated pattern checking capabilities.
@@ -60,19 +60,6 @@ Apply these pattern checks automatically. Adapt checks to the project's detected
 | `.vue` | `v-html` | `grep "v-html"` |
 | `.jsx/.tsx` | `dangerouslySetInnerHTML` | `grep "dangerouslySetInnerHTML"` |
 
-Security CRITICAL checks (patterns contain regex alternation, listed separately):
-
-```bash
-# Hardcoded secrets (all files)
-grep -E "(AKIA[0-9A-Z]{16}|-----BEGIN.*PRIVATE KEY)"
-
-# eval/exec with variables (all files)
-grep -E "eval[[:space:]]*\(|exec[[:space:]]*\("
-
-# SQL string concatenation / interpolation (all files)
-grep -Ei "((SELECT|INSERT|UPDATE|DELETE)[^\n]{0,80}\+|\+[^\n]{0,80}(SELECT|INSERT|UPDATE|DELETE)|f['\"][^\n]{0,200}(SELECT|INSERT|UPDATE|DELETE)|\$\{[^}]+\}[^\n]{0,80}(SELECT|INSERT|UPDATE|DELETE))"
-```
-
 #### HIGH Checks
 
 | File Type | Pattern | Check |
@@ -120,32 +107,49 @@ After automated checks, review for:
 - [ ] Async tests use `flushPromises`
 - [ ] Cleanup in `afterEach`
 
-#### Security (OWASP Top 10:2025)
-- [ ] No `v-html` / `dangerouslySetInnerHTML` without sanitization (A05)
-- [ ] No `eval()` or `new Function()` with user input (A05)
-- [ ] Input validation on user data at system boundaries (A05)
-- [ ] No hardcoded secrets, API keys, or tokens (A04)
-- [ ] Parameterized queries only — no SQL string concatenation (A05)
-- [ ] Authorization checks on endpoints/routes (A01)
-- [ ] HTTPS enforced, no mixed content (A04)
-- [ ] No sensitive data in logs or error messages (A09)
-- [ ] Proper error handling — no silent failures or leaked stack traces (A10)
+#### Security
+> Deep security analysis is handled by `/security-audit`. Preflight invokes it automatically.
+> During code review, only flag obvious security issues encountered while reading
+> (e.g., `eval()` with user input, hardcoded credentials).
+
+#### Performance
+- [ ] No expensive computations in templates/render functions
+- [ ] No unnecessary re-renders (reactive deps are minimal)
+- [ ] Large lists use virtual scrolling or pagination
+- [ ] Images/assets use lazy loading where appropriate
+- [ ] No synchronous blocking operations in async contexts
+- [ ] Event handlers are debounced/throttled where needed
+- [ ] No N+1 query patterns in data fetching
+- [ ] Bundle impact considered (no large imports for small features)
+
+#### Bug & Logic Review
+- [ ] Edge cases handled (empty arrays, null values, boundary conditions)
+- [ ] Error paths don't silently swallow failures
+- [ ] Async operations have proper error handling
+- [ ] State mutations are intentional (no accidental side effects)
+- [ ] Conditional logic covers all branches
+- [ ] Loop termination conditions are correct
+- [ ] Type coercion doesn't produce unexpected results
+- [ ] Race conditions between async operations considered
 
 ### Step 5: Generate Review Output
+
+Categorize each finding by severity: **CRITICAL** / **HIGH** / **MEDIUM** / **LOW**.
 
 ```markdown
 ## Code Review: [target]
 
 ### Summary
-| Category | Status |
-|----------|--------|
-| Automated Checks | X passed / X failed |
-| Framework Patterns | [status] |
-| TypeScript | [status] |
-| SCSS | [status] |
-| Accessibility | [status] |
-| Security | [status] |
-| Testing | [status] |
+| Category | Status | Findings |
+|----------|--------|----------|
+| Automated Checks | X passed / X failed | — |
+| Framework Patterns | [status] | X critical, X high, X medium |
+| TypeScript | [status] | X critical, X high, X medium |
+| SCSS | [status] | X critical, X high, X medium |
+| Accessibility | [status] | X critical, X high, X medium |
+| Performance | [status] | X critical, X high, X medium |
+| Bug & Logic | [status] | X critical, X high, X medium |
+| Testing | [status] | X critical, X high, X medium |
 
 **Verdict:** [APPROVED / CHANGES REQUESTED / NEEDS DISCUSSION]
 ```

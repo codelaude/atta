@@ -57,22 +57,7 @@ Run pattern checks on all changed files:
 
 ### Step 3: Security Scan
 
-Run security pattern checks on all changed files:
-
-**Critical security patterns (must pass):**
-- No hardcoded secrets, API keys, or tokens in source code
-- No `eval()` / `exec()` with user-controlled input
-- No SQL string concatenation (use parameterized queries)
-- No `v-html` / `dangerouslySetInnerHTML` with unsanitized user data
-- No `innerHTML` assignment with user data
-- No embedded private keys
-
-**Also scan for (report but don't block):**
-- Missing input validation on user-facing endpoints
-- Missing CSRF protection on state-changing endpoints
-- Overly permissive CORS configuration
-- Sensitive data in URL parameters or logs
-- Missing security headers
+Run `/security-audit --quick` on all changed files.
 
 **If critical security issues found, report and block.**
 
@@ -89,9 +74,13 @@ npm test
 
 ### Step 5: Code Review
 
-Run comprehensive review on changed files (same as `/review`).
+Run `/review` on changed files, covering:
+- Framework patterns, TypeScript, SCSS, accessibility
+- Performance analysis (re-renders, expensive computations, bundle impact)
+- Bug/logic review (edge cases, error handling, race conditions)
 
-**Report all findings but don't block.**
+Categorize findings by severity (CRITICAL / HIGH / MEDIUM / LOW).
+Report all findings but don't block unless CRITICAL issues are found.
 
 ### Step 6: Generate Summary
 
@@ -105,7 +94,7 @@ Run comprehensive review on changed files (same as `/review`).
 | Lint | Passed | No critical issues |
 | Security | Passed | No critical vulnerabilities |
 | Tests | Passed | X tests, 0 failures |
-| Review | X issues | See below |
+| Review | X critical, X high, X medium | See below |
 ```
 
 ---
@@ -140,7 +129,7 @@ When all checks pass (status READY FOR PR), include in your summary: "All checks
 - `/test` - Run tests standalone (with `--e2e`, `--coverage`, `--watch` flags)
 - `/lint` - Pattern checks only
 - `/security-audit` - Deep security analysis (OWASP, deps, secrets)
-- `/review` - Code review only (includes security checks)
+- `/review` - Code review only (framework, performance, bug/logic)
 - `/ship` - Completion workflow (run after preflight passes)
 
 ---

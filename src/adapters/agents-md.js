@@ -74,7 +74,7 @@ export function generateAgentsMd(frameworkRoot, options = {}) {
     lines.push('| Command | Description |');
     lines.push('|---------|-------------|');
     for (const skill of skills) {
-      const displayName = skillRenames[skill.name] || skill.name;
+      const displayName = skillRenames[skill.dirName] || skill.name;
       lines.push(`| \`${skillPrefix}${displayName}\` | ${skill.description} |`);
     }
     lines.push('');
@@ -100,7 +100,7 @@ export function generateAgentsMd(frameworkRoot, options = {}) {
   // Footer
   lines.push('---');
   lines.push('');
-  lines.push(`*Atta v${version} — Run \`/atta\` in Claude Code to generate agents tailored to your tech stack.*`);
+  lines.push(`*Atta v${version} — Run \`${skillPrefix}atta\` to generate agents tailored to your tech stack.*`);
   lines.push('');
 
   return lines.join('\n');

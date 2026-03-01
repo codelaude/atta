@@ -6,13 +6,13 @@ This directory contains system metadata for the adaptive bootstrap system.
 
 ### `version`
 Contains the current user's version of the `.claude/` system.
-- **Current version**: 2.6.1
+- **Current version**: 2.7.0
 - **Used by**: `/atta` and `/migrate` skills for version detection
 - **Note**: This is the user's version, which may have customizations
 
 ### `framework-version` (introduced in v2.1)
 Contains the framework version that was last applied.
-- **Current version**: 2.6.1
+- **Current version**: 2.7.0
 - **Used by**: `/update` skill to check for framework updates
 - **Note**: This is separate from user version to track framework updates independently
 
@@ -114,6 +114,7 @@ Template for the file-manifest.json structure.
 
 ## Version History
 
+- **2.7.0**: Developer Profile + Prompt Optimizer — `/profile` skill (two-layer propagation), architectural pattern extraction, staleness detection, `/optimize` skill (cross-tool context enrichment), adapter smoke test fixes (bootstrap copy, adapter detection in `/atta`)
 - **2.6.1**: Preflight Gap Closure — security deduplication, performance + bug/logic review dimensions, OWASP expansion, dev publish skill
 - **2.6.0**: Enhanced Testing — PR template detection in `/atta`, E2E testing detection (5 frameworks), E2E specialist agent + patterns, `/test` skill with `--e2e`/`--coverage`/`--watch`
 - **2.5.4**: Pre-v2.6 Cleanup — code deduplication, script performance, `/ship` skill, PR workflow refactor, docs refresh, pre-publish fixes

@@ -225,6 +225,20 @@ if has_security_tools:
     security_mapping.variables.TEAM_LEAD = 'project-owner'
 ```
 
+### Utility Agents (Always Generated)
+
+Some agents are unconditionally generated regardless of detected tech stack:
+
+```javascript
+// Utility agents — no condition check, always generated
+utility_agents = agent_mappings.utility || {}
+for (const [id, mapping] of Object.entries(utility_agents)):
+  mapping.variables.TEAM_LEAD = 'project-owner'  // utility agents report to project-owner
+  generation_queue.push({ id, mapping })
+```
+
+Currently: `prompt-engineer` (context enrichment specialist for `/optimize`).
+
 ### Agent Generation Queue
 
 Build the complete list of agents to generate:
@@ -232,6 +246,7 @@ Build the complete list of agents to generate:
 generation_queue = [
   ...coordinators_to_generate,
   ...specialists_from_mappings,
+  ...utility_agents,
   ...universal_agents_if_missing
 ]
 ```

@@ -202,13 +202,13 @@ Security hardening, community files, and npm packaging improvements from 3-way c
 
 ---
 
-## By the Numbers (v2.6.0)
+## By the Numbers (v2.7)
 
-- **100+ Technology Detectors** across frontend, backend, databases, security tools
-- **10 Universal Agent Templates** that generate project-specific specialists (+ E2E specialist)
-- **5 Detection Rule Files** covering frontend, backend, databases, tools, and security
-- **21+ Pattern File Templates** for different tech stacks (+ E2E testing patterns)
-- **15 Skills** (slash commands), `/patterns` with 7 subcommands, `/test` with 3 flags
+- **100+ Technology Detectors** across frontend, backend, databases, security tools, architecture
+- **11 Universal Agent Templates** that generate project-specific specialists (+ E2E, prompt engineer)
+- **6 Detection Rule Files** covering frontend, backend, databases, tools, security, and architecture
+- **21+ Pattern File Templates** for different tech stacks (+ E2E testing, prompt patterns)
+- **17 Skills** (slash commands), `/patterns` with 7 subcommands, `/test` with 3 flags
 - **3-Tier Agent Architecture** (7 core + 2 coordinators + N specialists)
 - **51 Framework Validation Assertions** (pattern detection, agent adaptation, learning dashboard)
 - **100% Configuration-Driven** — add new tech via YAML, no code changes

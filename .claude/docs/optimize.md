@@ -83,6 +83,6 @@ Produces a self-contained prompt with full tech stack, auth-related patterns, an
 
 ## Related
 
-- [`/atta`](.claude/docs/bootstrap-system.md) — Generates the project context that `/optimize` reads
-- [`/profile`](.claude/docs/profile.md) — Sets preferences included in enriched prompts
-- [`/agent prompt-engineer`](.claude/skills/agent/SKILL.md) — The underlying agent for custom workflows
+- [`/atta`](bootstrap-system.md) — Generates the project context that `/optimize` reads
+- [`/profile`](profile.md) — Sets preferences included in enriched prompts
+- [`/agent prompt-engineer`](../skills/agent/SKILL.md) — The underlying agent for custom workflows

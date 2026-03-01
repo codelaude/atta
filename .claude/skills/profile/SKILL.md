@@ -117,6 +117,7 @@ Options:
 - **Concise** — straight to the point, actionable
 - **Detailed** — teach as you go, explain reasoning
 - **Questions-first** — clarify before acting
+- **Direct** — give direct recommendations, skip alternatives
 
 **Question 3 — Code Review Priorities** (multi-select)
 
@@ -323,7 +324,7 @@ Extract the checked preferences into structured data:
 
 **Core (from --update):**
 - `collaboration`: guidance-first | implementation-first | balanced
-- `responseStyle`: concise | detailed | questions-first
+- `responseStyle`: concise | detailed | questions-first | direct
 - `codeOwnership`: review-ready | learning-focused | time-sensitive
 - `reviewPriorities`: list of checked priorities
 - `errorHandling`: defensive | fast-fail | user-friendly | developer-friendly

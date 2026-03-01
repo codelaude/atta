@@ -190,7 +190,7 @@ Size limit: 32 KiB combined across all AGENTS.md files (configurable via `projec
 - AGENTS.md loaded as system prompt context
 - Skills discovered from `.agents/skills/`
 - Agent definitions available at `.agents/agents/`
-- `/agent` skill resolves agent files from `.agents/agents/` path
+- `$agent` skill resolves agent files from `.agents/agents/` path
 - `$skill-name` invocation
 - `/skills` browser for discovery
 - Implicit skill matching

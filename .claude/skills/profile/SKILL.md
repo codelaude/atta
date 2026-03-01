@@ -377,15 +377,15 @@ Example (full — after `--complete`):
 
 > If a `## Preferences` section already exists, replace it entirely. If project-context.md doesn't exist, create it with just this section.
 
-### Step 7: Regenerate Agent Templates
+### Step 7: Agent Template Propagation
 
-Read the existing generated agents in `{claudeDir}/agents/` (coordinators and specialists).
+Profile preferences propagate to agents through two layers:
 
-For each generated agent file that contains a `## Context Sources` section referencing `developer-profile.md`:
-- The agent already has access to profile data at runtime via project-context.md (which they read).
-- No file changes needed — the project-context.md update in Step 6 handles propagation.
+1. **Runtime** (immediate): The `## Preferences` section written to `project-context.md` in Step 6. All agents that read `project-context.md` pick up preferences automatically — no file changes needed.
 
-> **Note**: Generation-time template injection (Handlebars vars like `{{RESPONSE_STYLE}}`) is handled separately in Track 1b. This step confirms the runtime path works via project-context.md.
+2. **Generation-time** (on next `/atta` run): During agent generation, `/atta` reads `developer-profile.md` and appends a `## Developer Preferences` section to each generated agent file. This is centralized in `generator.md` Phase 4 "Profile Injection" — not in individual templates. The section includes response style, collaboration approach, review priorities, and other preferences extracted from the profile.
+
+> **Tip**: If the user has changed profile preferences and wants generated agents to reflect them, suggest running `/atta --rescan` to regenerate agents with the updated profile variables.
 
 Report what was propagated:
 
@@ -397,9 +397,9 @@ Report what was propagated:
 - Reviews: [priorities]
 - Approach: [ownership], [errorHandling]
 
-**Agent propagation**: All agents that read `project-context.md` will pick up your preferences automatically.
-
-> To customize agent templates with profile-specific behavior, see Track 1b (generation-time injection).
+**Agent propagation**:
+- **Runtime**: All agents that read `project-context.md` will pick up your preferences automatically.
+- **Generation-time**: Run `/atta --rescan` to regenerate agents with profile-specific behavior baked in.
 ```
 
 ---

@@ -318,12 +318,19 @@ Result:
    generated_content = substitute_variables(template_content, variables)
    ```
 
-4. **Write agent file**:
+4. **Append Developer Preferences** (see [Profile Injection](#profile-injection-post-processing) below):
+   ```javascript
+   if (profile_preferences) {
+     generated_content += profile_preferences_section
+   }
+   ```
+
+5. **Write agent file**:
    ```javascript
    write_file(mapping.output, generated_content)
    ```
 
-5. **Update manifest**:
+6. **Update manifest**:
    ```javascript
    manifest.generated_files.push({
      file: mapping.output,
@@ -332,6 +339,52 @@ Result:
      timestamp: now()
    })
    ```
+
+### Profile Injection (Post-Processing)
+
+After all template substitution is complete, append a `## Developer Preferences` section to each generated agent. This is centralized here — **not** in individual templates — so preferences are managed in one place.
+
+**Step 1: Parse profile**
+
+Read `.claude/knowledge/project/developer-profile.md`. If the file doesn't exist or has no `[x]` checkboxes, skip profile injection entirely.
+
+Extract checked preferences:
+
+| Profile Section | Extract | Example Value |
+|----------------|---------|---------------|
+| AI Collaboration Approach | Single selection | `guidance-first` / `implementation-first` / `balanced` |
+| Response Style | Single selection | `concise` / `detailed` / `questions-first` / `direct` |
+| Code Ownership | Single selection | `review-ready` / `learning-focused` / `time-sensitive` |
+| Error Handling | Single selection | `defensive` / `fast-fail` / `user-friendly` / `developer-friendly` |
+| Code Review Priorities | Multi-select | `correctness, security, readability` |
+| Testing Approach | Single selection | `TDD` / `test-after` / `critical-paths` / `high-coverage` |
+| Code Examples | Single selection | `minimal` / `complete` / `reference-existing` / `pseudocode` |
+| Documentation | Single selection | `inline-comments` / `jsdoc` / `readme-per-module` / `minimal` |
+
+**Step 2: Build the section**
+
+Construct a `## Developer Preferences` section from the extracted values. Only include lines for preferences that have a value — skip undefined fields.
+
+```markdown
+## Developer Preferences
+
+- **Response style**: [concise / detailed / questions-first / direct]
+- **Collaboration**: [guidance-first / implementation-first / balanced]
+- **Code ownership**: [review-ready / learning-focused / time-sensitive]
+- **Review priorities**: [comma-separated list]
+- **Error handling**: [defensive / fast-fail / user-friendly / developer-friendly]
+- **Testing**: [TDD / test-after / critical-paths / high-coverage]
+- **Code examples**: [minimal / complete / reference-existing / pseudocode]
+- **Documentation**: [inline-comments / jsdoc / readme-per-module / minimal]
+```
+
+Omit any line where the value is not set. A core-only profile (from `--update`) will produce ~5 lines; a full profile (from `--complete`) will produce all 8.
+
+**Step 3: Append to each generated agent**
+
+Insert the section before the `## Escalation` section in the generated agent file (or at the end if no Escalation section exists). This places preferences near the end — after domain-specific content, before escalation rules.
+
+> **Design rationale**: Centralizing here instead of in templates avoids repeating the same block across 10+ templates. When profile fields change, only this section needs updating — not every template file.
 
 ### Pattern File Generation
 

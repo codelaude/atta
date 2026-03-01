@@ -84,6 +84,7 @@ yaml_files=(
   ".claude/bootstrap/detection/database-detectors.yaml"
   ".claude/bootstrap/detection/tool-detectors.yaml"
   ".claude/bootstrap/detection/security-tools.yaml"
+  ".claude/bootstrap/detection/architectural-detectors.yaml"
   ".claude/bootstrap/mappings/agent-mappings.yaml"
   ".claude/bootstrap/mappings/mcp-mappings.yaml"
   ".claude/bootstrap/mappings/skill-mappings.yaml"

@@ -192,6 +192,32 @@ conventions:
 
 > If fewer than 3 source files are found, skip convention detection entirely — not enough signal.
 
+### Architectural Pattern Extraction
+
+Detect project structure, component organization, and routing patterns by checking for directory presence and file patterns. Load detection rules from `bootstrap/detection/architectural-detectors.yaml`.
+
+For each detector category (structure, components, routes, api, state):
+1. Check `directory_exists` — does the directory exist at the project root?
+2. Check `file_patterns` — do any files match the glob pattern?
+3. Check `files` — do any specific files exist?
+
+A detector matches if **all** its detection conditions are met (AND logic within a detector). Multiple detectors can match across categories.
+
+#### Store Results
+
+Hold detected patterns in memory for use in Phase 4. Format:
+
+```
+architectural_patterns:
+  structure: feature-sliced | domain-modules | layered | mvc | clean-architecture | hexagonal | none
+  components: atomic-design | flat-components | colocated-components | none
+  routes: file-routing | centralized-router | none
+  api: api-routes | service-layer | none
+  state: store-per-feature | centralized-store | none
+```
+
+> Only include categories with a detected match. Skip categories with no match — do not write "none".
+
 ### PR Template Detection
 
 Check for an existing PR template at the confirmed project root, in priority order:
@@ -213,7 +239,7 @@ If found: note the path and read the template content for use in Phase 3 and Pha
 
 ## Phase 3: Reconcile & Confirm
 
-Present detected stack to user: project root, command directory, package manager, frontend stack, backend stack, security tooling, agents to activate (including security-specialist (if triggered)), PR template (if detected — show path and platform), and detected conventions (naming + documentation style, if detected). Wait for confirmation before writing files.
+Present detected stack to user: project root, command directory, package manager, frontend stack, backend stack, security tooling, agents to activate (including security-specialist (if triggered)), PR template (if detected — show path and platform), detected conventions (naming + documentation style, if detected), and architectural patterns (if detected — list matched categories with descriptions). Wait for confirmation before writing files.
 
 ---
 
@@ -248,7 +274,17 @@ Write `.claude/knowledge/project/project-context.md`:
 
 ## Git Workflow
 - **Base branch**: [main/develop]
+
+## Architectural Patterns
+[Only include if architectural pattern extraction detected matches. Max 10 lines. Example:]
+- **Structure**: Feature-sliced design (features/, entities/, shared/)
+- **Components**: Co-located components (index + styles per folder)
+- **Routing**: File-based routing (pages/ or app/)
+- **API**: Service layer abstraction (services/)
+- **State**: Store-per-feature pattern
 ```
+
+> The `## Architectural Patterns` section is only written if at least one pattern was detected. Use the `description` field from the matched detector in `architectural-detectors.yaml`. Omit categories with no match. On `--rescan`, replace this section entirely with fresh detection results — but if the user has manually edited it (added lines not matching any detector description), preserve those manual additions at the end.
 
 ### Pattern Files
 
@@ -403,11 +439,13 @@ Display initialization summary: files created/updated, active agents table, quic
 
 - Skip user interview (reuse answers from project-context.md)
 - Re-detect tech stack from config files
+- Re-detect architectural patterns (update `## Architectural Patterns` section in project-context.md, preserving manual additions)
 - Re-check for PR templates (if one is now present or changed, regenerate `pr-template.md` mapping)
 - Update pattern files with new findings
 - Preserve manual edits (only update auto-generated sections)
 - **Apply developer profile**: If `.claude/knowledge/project/developer-profile.md` exists and has checked items, run the `/profile --apply` logic (Steps 5-6 from profile/SKILL.md) — parse the profile, write/replace the `## Preferences` section in `project-context.md`. This ensures profile preferences stay in sync after regeneration without requiring a separate `/profile --apply` call.
-- Report what changed (include profile propagation status in the report)
+- **Update detection sources**: Record current mtimes of all detection source files (package.json, lock files, config files) in `generated-manifest.json` `detection_sources` field. This resets the staleness baseline so `generate-context.sh` won't warn until files change again.
+- Report what changed (include architectural patterns, profile propagation status, and staleness reset in the report)
 
 ---
 

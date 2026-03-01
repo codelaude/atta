@@ -33,6 +33,7 @@ Load YAML detection rules from:
 3. `bootstrap/detection/database-detectors.yaml`
 4. `bootstrap/detection/tool-detectors.yaml`
 5. `bootstrap/detection/security-tools.yaml`
+6. `bootstrap/detection/architectural-detectors.yaml`
 
 ### Detection Process
 
@@ -127,6 +128,19 @@ detected:
           type: dependency_scanner
           category: security
           triggers_security_specialist: true
+  architectural_patterns:
+    - feature-sliced:
+        detected_via: directory_exists (src/features, src/entities, src/shared)
+        metadata:
+          type: architectural_pattern
+          category: structure
+          description: "Feature-sliced design (features/, entities/, shared/)"
+    - centralized-router:
+        detected_via: files (src/router/index.ts)
+        metadata:
+          type: architectural_pattern
+          category: routes
+          description: "Centralized route configuration"
 ```
 
 ---
@@ -560,7 +574,8 @@ Write `.metadata/generated-manifest.json`:
     "frontend": ["vue", "typescript", "scss", "vite"],
     "backend": ["python", "django", "postgresql"],
     "testing": ["jest", "pytest"],
-    "build_tools": ["vite"]
+    "build_tools": ["vite"],
+    "architectural_patterns": ["feature-sliced", "centralized-router"]
   },
   "generated_files": {
     "agents": [
@@ -588,9 +603,24 @@ Write `.metadata/generated-manifest.json`:
       "agents/INDEX.md"
     ]
   },
-  "mcp_servers_configured": ["docs-mcp-vue", "db-mcp-postgresql"]
+  "mcp_servers_configured": ["docs-mcp-vue", "db-mcp-postgresql"],
+  "detection_sources": {
+    "package.json": "2026-02-14T10:25:00Z",
+    "tsconfig.json": "2026-02-10T08:00:00Z",
+    "yarn.lock": "2026-02-14T10:20:00Z"
+  }
 }
 ```
+
+### Record Detection Sources
+
+The `detection_sources` field records the ISO 8601 modification timestamp of each file that influenced detection results. Include:
+- `package.json` (dependencies)
+- Lock files (`yarn.lock`, `pnpm-lock.yaml`, `package-lock.json`, `bun.lockb`) — whichever exists
+- `tsconfig.json` / `jsconfig.json` (if present)
+- Backend config files (`pom.xml`, `requirements.txt`, `go.mod`, etc.) — if detected
+
+Use the file's `mtime` converted to ISO 8601. This snapshot enables `generate-context.sh` to detect staleness without re-running full detection — it compares current file mtimes against these recorded values.
 
 ### Update Version Tracking
 

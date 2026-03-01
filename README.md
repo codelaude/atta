@@ -114,7 +114,7 @@ Every agent has constraints — what it does **and what it doesn't do**. Constra
 
 ## Key Features
 
-- **Universal Bootstrap** — 100+ technologies detected. Generates project-specific agents and pattern files from YAML configuration.
+- **Universal Bootstrap** — 100+ technologies detected, plus architectural patterns (structure, components, routing, API, state). Generates project-specific agents and pattern files from YAML configuration. Staleness detection warns when project has drifted since last scan.
 - **Multi-Agent Collaboration** — `/collaborate` invokes 2-4 specialists in parallel with three-layer conflict detection.
 - **Security Built In** — OWASP Top 10 (2025), `/security-audit`, and security checks in `/review` and `/preflight`.
 - **MCP Integration** — Smart recommendations based on detected stack (docs, database, browser MCPs).

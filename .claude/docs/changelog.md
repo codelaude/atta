@@ -16,6 +16,11 @@ Developer profile system, convention detection, and smarter context generation.
 - **CLI init profile pre-fill**: `npx atta-dev init` asks 5 core preference questions during setup and generates a pre-filled `developer-profile.md`
 - **Profile documentation**: New `.claude/docs/profile.md` user-facing guide
 - **Tutorial updated**: Step 1 mentions `/profile` for personalization; quick reference card includes `/profile`
+- **Architectural pattern extraction**: `/atta` Phase 2 now detects project structure (feature-sliced, layered, MVC, clean architecture, hexagonal), component organization (atomic design, co-located), routing (file-based, centralized), API layer, and state management patterns. Results written to `## Architectural Patterns` section in `project-context.md` (max 10 lines)
+- **New detection file**: `bootstrap/detection/architectural-detectors.yaml` — 15 structural detectors across 5 categories
+- **Staleness detection**: `generate-context.sh` compares current file mtimes against the detection snapshot recorded in `generated-manifest.json`. When `package.json`, lock files, or config files change after `/atta`, a `## Context Staleness` warning appears in `.context/recent.md` with the list of changed files and a prompt to run `/atta --rescan`
+- **Detection sources in manifest**: `generated-manifest.json` Phase 7 now records `detection_sources` — ISO 8601 timestamps of all files that influenced detection, enabling lightweight staleness comparison
+- **`--rescan` enhancements**: Re-detects architectural patterns, resets staleness baseline after regeneration
 - **16 skills** (up from 15): `/profile` added
 
 ---

@@ -1,0 +1,200 @@
+# Architectural Pattern Detection Rules
+# Detects project structure, routing patterns, and component organization
+#
+# These patterns are extracted during /atta Phase 2 and written to
+# project-context.md as a max-10-line "Architectural Patterns" section.
+# Detection uses directory presence and file patterns only — no shell commands.
+
+# Directory Structure Patterns
+structure:
+  # Feature-based / domain-driven organization
+  - name: Feature-Sliced
+    identifier: feature-sliced
+    detection:
+      directory_exists:
+        - src/features
+        - src/entities
+        - src/shared
+    metadata:
+      type: architectural_pattern
+      category: structure
+      description: "Feature-sliced design (features/, entities/, shared/)"
+
+  - name: Domain-Driven Modules
+    identifier: domain-modules
+    detection:
+      directory_exists:
+        - src/modules
+        - src/domain
+    metadata:
+      type: architectural_pattern
+      category: structure
+      description: "Domain-driven modules (modules/ or domain/)"
+
+  - name: Layered Architecture
+    identifier: layered
+    detection:
+      directory_exists:
+        - src/controllers
+        - src/services
+        - src/models
+    metadata:
+      type: architectural_pattern
+      category: structure
+      description: "Layered architecture (controllers/, services/, models/)"
+
+  - name: MVC
+    identifier: mvc
+    detection:
+      directory_exists:
+        - app/controllers
+        - app/models
+        - app/views
+    metadata:
+      type: architectural_pattern
+      category: structure
+      description: "MVC pattern (app/controllers/, models/, views/)"
+
+  - name: Clean Architecture
+    identifier: clean-architecture
+    detection:
+      directory_exists:
+        - src/usecases
+        - src/entities
+        - src/adapters
+    metadata:
+      type: architectural_pattern
+      category: structure
+      description: "Clean architecture (usecases/, entities/, adapters/)"
+
+  - name: Hexagonal / Ports & Adapters
+    identifier: hexagonal
+    detection:
+      directory_exists:
+        - src/ports
+        - src/adapters
+    metadata:
+      type: architectural_pattern
+      category: structure
+      description: "Hexagonal architecture (ports/, adapters/)"
+
+# Component Organization Patterns
+components:
+  - name: Atomic Design
+    identifier: atomic-design
+    detection:
+      directory_exists:
+        - src/components/atoms
+        - src/components/molecules
+    metadata:
+      type: architectural_pattern
+      category: components
+      description: "Atomic design (atoms/, molecules/, organisms/)"
+
+  - name: Flat Components
+    identifier: flat-components
+    detection:
+      directory_exists:
+        - src/components
+      file_patterns:
+        - src/components/*.{vue,tsx,jsx,svelte}
+    metadata:
+      type: architectural_pattern
+      category: components
+      description: "Flat component directory"
+
+  - name: Co-located Component Files
+    identifier: colocated-components
+    detection:
+      file_patterns:
+        - src/components/**/index.{ts,tsx,js,jsx}
+        - src/components/**/*.module.{css,scss}
+    metadata:
+      type: architectural_pattern
+      category: components
+      description: "Co-located components (index + styles per folder)"
+
+# Route Patterns
+routes:
+  - name: File-Based Routing
+    identifier: file-routing
+    detection:
+      directory_exists:
+        - src/pages
+        - src/app
+        - src/routes
+      file_patterns:
+        - src/pages/**/*.{vue,tsx,jsx,svelte,astro}
+        - app/**/page.{tsx,jsx,ts,js}
+    metadata:
+      type: architectural_pattern
+      category: routes
+      description: "File-based routing (pages/ or app/)"
+
+  - name: Centralized Router
+    identifier: centralized-router
+    detection:
+      files:
+        - src/router/index.ts
+        - src/router/index.js
+        - src/router.ts
+        - src/router.js
+        - src/routes/index.ts
+        - src/routes/index.js
+    metadata:
+      type: architectural_pattern
+      category: routes
+      description: "Centralized route configuration"
+
+# API Layer Patterns
+api:
+  - name: API Route Handlers
+    identifier: api-routes
+    detection:
+      directory_exists:
+        - src/api
+        - src/app/api
+        - pages/api
+      file_patterns:
+        - src/api/**/*.{ts,js}
+        - app/api/**/route.{ts,js}
+    metadata:
+      type: architectural_pattern
+      category: api
+      description: "API route handlers (api/ directory)"
+
+  - name: Service Layer
+    identifier: service-layer
+    detection:
+      directory_exists:
+        - src/services
+        - src/lib/services
+    metadata:
+      type: architectural_pattern
+      category: api
+      description: "Service layer abstraction (services/)"
+
+# State / Store Patterns
+state:
+  - name: Store Per Feature
+    identifier: store-per-feature
+    detection:
+      file_patterns:
+        - src/stores/*.{ts,js}
+        - src/store/modules/*.{ts,js}
+    metadata:
+      type: architectural_pattern
+      category: state
+      description: "Store-per-feature pattern"
+
+  - name: Centralized Store
+    identifier: centralized-store
+    detection:
+      files:
+        - src/store/index.ts
+        - src/store/index.js
+        - src/store.ts
+    metadata:
+      type: architectural_pattern
+      category: state
+      description: "Centralized store configuration"

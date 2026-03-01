@@ -49,16 +49,19 @@ EOF
   exit 0
 fi
 
-# Generate recent.md — single Python subprocess handles sessions + pattern summary
+# Generate recent.md — single Python subprocess handles sessions + patterns + staleness
 # (no shell interpolation of filenames into Python source)
 PATTERNS_FILE="$CONTEXT_DIR/patterns-learned.json"
+MANIFEST_FILE="$CLAUDE_DIR/.metadata/generated-manifest.json"
 python3 -c "
 import json, glob, os, sys
+from datetime import datetime, timezone
 
 sessions_dir = sys.argv[1]
 max_recent = int(sys.argv[2])
 output_file = sys.argv[3]
 patterns_file = sys.argv[4]
+manifest_file = sys.argv[5]
 
 # Discover session files (newest first by filename timestamp)
 pattern = os.path.join(sessions_dir, 'session-*.json')
@@ -144,9 +147,41 @@ if os.path.isfile(patterns_file):
     except (json.JSONDecodeError, IOError):
         pass
 
+# Append staleness detection (if manifest with detection_sources exists)
+if os.path.isfile(manifest_file):
+    try:
+        with open(manifest_file) as mf:
+            manifest = json.load(mf)
+        sources = manifest.get('detection_sources', {})
+        generated_at = manifest.get('generated_at', '')
+        if sources and generated_at:
+            # Find project root — manifest is at .claude/.metadata/generated-manifest.json
+            # Project root is two levels up from manifest directory
+            manifest_dir = os.path.dirname(manifest_file)
+            claude_root = os.path.dirname(manifest_dir)
+            project_root = manifest.get('project_root', os.path.dirname(claude_root))
+
+            stale_files = []
+            for src_file, recorded_ts in sources.items():
+                full_path = os.path.join(project_root, src_file)
+                if os.path.isfile(full_path):
+                    current_mtime = os.path.getmtime(full_path)
+                    current_iso = datetime.fromtimestamp(current_mtime, tz=timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+                    if current_iso > recorded_ts:
+                        stale_files.append(src_file)
+
+            if stale_files:
+                content += '\n\n## Context Staleness\n\n'
+                content += '**%d file(s) changed** since last \`/atta\` scan:\n' % len(stale_files)
+                for sf in stale_files:
+                    content += '- \`%s\`\n' % sf
+                content += '\nRun `/atta --rescan` to update project context.\n'
+    except (json.JSONDecodeError, IOError, ValueError):
+        pass
+
 with open(output_file, 'w') as out:
     out.write(content)
-" "$SESSIONS_DIR" "$MAX_RECENT" "$OUTPUT_FILE" "$PATTERNS_FILE"
+" "$SESSIONS_DIR" "$MAX_RECENT" "$OUTPUT_FILE" "$PATTERNS_FILE" "$MANIFEST_FILE"
 
 # Count files for status message
 file_count=$(find "$SESSIONS_DIR" -name "session-*.json" -type f | head -n "$MAX_RECENT" | wc -l | tr -d ' ')

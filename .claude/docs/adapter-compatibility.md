@@ -41,7 +41,7 @@ project/
 │   └── .metadata/
 ├── .claude-plugin/plugin.json    # Plugin manifest
 ├── CLAUDE.md                     # Instructions
-└── settings.local.json           # Hook config + permissions
+└── .claude/settings.local.json   # Hook config + permissions
 ```
 
 ### Discovery Mechanism

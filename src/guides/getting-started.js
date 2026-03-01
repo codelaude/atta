@@ -12,6 +12,10 @@ export function generateGettingStarted(adapter, answers) {
   // Codex uses $ prefix for skills, all others use /
   const p = adapter === 'codex' ? '$' : '/';
 
+  // Copilot renames skills that conflict with built-in commands
+  const agent = adapter === 'copilot' ? 'atta-agent' : 'agent';
+  const review = adapter === 'copilot' ? 'atta-review' : 'review';
+
   const lines = [];
 
   lines.push('# Getting Started with Atta');
@@ -94,9 +98,9 @@ export function generateGettingStarted(adapter, answers) {
   lines.push('');
   lines.push('| Command | What it does |');
   lines.push('|---------|-------------|');
-  lines.push(`| \`${p}agent project-owner\` | Route any task to the right specialist |`);
+  lines.push(`| \`${p}${agent} project-owner\` | Route any task to the right specialist |`);
   lines.push(`| \`${p}team-lead [task]\` | Decompose a feature into specialist tracks |`);
-  lines.push(`| \`${p}agent rubber-duck\` | Think through a problem with guided questions |`);
+  lines.push(`| \`${p}${agent} rubber-duck\` | Think through a problem with guided questions |`);
   lines.push('');
 
   lines.push('### Code Quality');
@@ -104,7 +108,7 @@ export function generateGettingStarted(adapter, answers) {
   lines.push('| Command | What it does |');
   lines.push('|---------|-------------|');
   lines.push(`| \`${p}lint [file]\` | Fast pattern check |`);
-  lines.push(`| \`${p}review\` | Deep code review against conventions |`);
+  lines.push(`| \`${p}${review}\` | Deep code review against conventions |`);
   lines.push(`| \`${p}security-audit\` | OWASP Top 10 vulnerability scan |`);
   lines.push(`| \`${p}preflight\` | Full pre-PR validation (lint + review + security + tests) |`);
   lines.push('');

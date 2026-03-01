@@ -33,7 +33,7 @@ const ADAPTERS = {
     label: 'Copilot CLI',
     nextSteps: [
       `Open your project in Copilot CLI`,
-      `Try ${pc.cyan('/review')} to review changed files`,
+      `Try ${pc.cyan('/atta-review')} to review changed files`,
       `See ${pc.cyan('AGENTS.md')} for full agent registry`,
     ],
   },
@@ -50,7 +50,7 @@ const ADAPTERS = {
     install: installGemini,
     label: 'Gemini CLI',
     nextSteps: [
-      `Install the extension: ${pc.cyan('gemini extensions install .')}`,
+      `Open your project in Gemini CLI`,
       `Use ${pc.cyan('/review')} or ${pc.cyan('/preflight')} as slash commands`,
       `See ${pc.cyan('GEMINI.md')} for agent context`,
     ],
@@ -175,23 +175,27 @@ async function runInstall(targetDir, adapterName, dryRun, answers) {
 
   // Print welcome summary
   console.log('');
-  printWelcome(adapter, answers);
+  printWelcome(adapterName, adapter, answers);
 }
 
-function printWelcome(adapter, answers) {
+function printWelcome(adapterName, adapter, answers) {
+  const prefix = adapterName === 'codex' ? '$' : '/';
+  const agent = adapterName === 'copilot' ? 'atta-agent' : 'agent';
+  const review = adapterName === 'copilot' ? 'atta-review' : 'review';
+
   console.log(pc.bold(pc.green('Setup complete!')));
   console.log('');
 
   // Quick reference
   console.log(pc.bold('Quick Reference'));
   console.log(pc.dim('─'.repeat(40)));
-  console.log(`  ${pc.cyan('/atta')}          Set up agents for your stack`);
-  console.log(`  ${pc.cyan('/review')}        Code review against conventions`);
-  console.log(`  ${pc.cyan('/preflight')}     Full pre-PR validation`);
-  console.log(`  ${pc.cyan('/agent <id>')}    Invoke any agent directly`);
+  console.log(`  ${pc.cyan(`${prefix}atta`)}          Set up agents for your stack`);
+  console.log(`  ${pc.cyan(`${prefix}${review}`)}        Code review against conventions`);
+  console.log(`  ${pc.cyan(`${prefix}preflight`)}     Full pre-PR validation`);
+  console.log(`  ${pc.cyan(`${prefix}${agent} <id>`)}    Invoke any agent directly`);
 
   if (answers?.includeTutorial !== false) {
-    console.log(`  ${pc.cyan('/tutorial')}      5-minute interactive walkthrough`);
+    console.log(`  ${pc.cyan(`${prefix}tutorial`)}      5-minute interactive walkthrough`);
   }
 
   console.log(pc.dim('─'.repeat(40)));

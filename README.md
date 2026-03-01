@@ -65,6 +65,7 @@ The interactive setup interviews you about your project, auto-detects your tech 
 | `/test` | Run tests with auto-detection — `--e2e`, `--coverage`, `--watch` flags |
 | `/lint` | Pattern-based checks against project rules |
 | `/profile` | View/update developer preferences — collaboration style, review priorities, response format |
+| `/optimize` | Optimize prompts for better results — rephrase in-session or enrich for cross-tool handoff |
 | `/preflight` | Full pre-PR pipeline: lint + security + test + review |
 | `/ship` | Completion workflow — tests, ACC validation, PR description, learnings |
 | `/tutorial` | Interactive 5-minute onboarding walkthrough |
@@ -134,6 +135,7 @@ Start here, then dive deeper:
 | **[MCP Setup Guide](/.claude/docs/mcp-setup.md)** | Configure Model Context Protocol servers |
 | **[Session Tracking](/.claude/docs/session-tracking.md)** | What's tracked, privacy, retention policy |
 | **[Developer Profile](/.claude/docs/profile.md)** | How `/profile` works — modes, preferences, propagation |
+| **[Prompt Optimizer](/.claude/docs/optimize.md)** | How `/optimize` works — cross-tool context enrichment |
 | **[Extending the System](/.claude/docs/extending.md)** | Add new technologies and custom agents via YAML |
 | **[Updating](/.claude/docs/updating.md)** | How to update without losing customizations |
 | **[Token Usage & Cost](/.claude/docs/token-usage.md)** | Estimated tokens and cost per skill |

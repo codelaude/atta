@@ -21,7 +21,11 @@ Developer profile system, convention detection, and smarter context generation.
 - **Staleness detection**: `generate-context.sh` compares current file mtimes against the detection snapshot recorded in `generated-manifest.json`. When `package.json`, lock files, or config files change after `/atta`, a `## Context Staleness` warning appears in `.context/recent.md` with the list of changed files and a prompt to run `/atta --rescan`
 - **Detection sources in manifest**: `generated-manifest.json` Phase 7 now records `detection_sources` — ISO 8601 timestamps of all files that influenced detection, enabling lightweight staleness comparison
 - **`--rescan` enhancements**: Re-detects architectural patterns, resets staleness baseline after regeneration
-- **16 skills** (up from 15): `/profile` added
+- **`/optimize` skill**: Prompt optimization and cross-tool context enrichment. Two modes: same-session (rephrase/restructure prompts for better results in the current conversation, with `--rephrase` flag) and cross-tool (`--target` for handoff to Codex, Copilot, ChatGPT, Gemini). Injects tech stack, conventions, architectural patterns, and preferences
+- **Prompt engineer agent**: New `prompt-engineer` agent template — always generated during `/atta`, specializes in context injection and cross-tool prompt adaptation
+- **Prompt patterns**: New `knowledge/patterns/prompt-patterns.md` — enrichment principles, common patterns (stack declaration, convention injection, architecture context), anti-patterns, and target tool characteristics
+- **Optimize documentation**: New `.claude/docs/optimize.md` user-facing guide
+- **17 skills** (up from 15): `/profile` and `/optimize` added
 
 ---
 

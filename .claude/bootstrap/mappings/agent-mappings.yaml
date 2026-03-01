@@ -786,3 +786,14 @@ accessibility:
       - pattern: "Keyboard traps"
         fix: "Ensure tab navigation works"
         severity: "CRITICAL"
+
+# Prompt Engineer (always generated — cross-tool context enrichment)
+utility:
+  prompt-engineer:
+    template: prompt-engineer.template.md
+    output: agents/specialists/prompt-engineer.md
+    pattern_file: patterns/prompt-patterns.md
+    variables:
+      SPECIALIST_NAME: "Prompt Engineer"
+      SPECIALIST_ID: "prompt-engineer"
+      TEAM_LEAD: "project-owner"

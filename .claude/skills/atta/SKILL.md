@@ -143,7 +143,54 @@ If any detected security tool has `triggers_security_specialist: true`, generate
 
 ### Detect Conventions
 
-Sample up to 10 source files for: naming conventions, component patterns, import patterns, styling approach, test file location.
+Sample up to 10 source files (`.js`, `.ts`, `.jsx`, `.tsx`, `.vue`, `.py`, `.rb`, `.go`, `.java`) from the `src/` or `lib/` directory (or project root if neither exists). Use the Read tool — do not run shell commands.
+
+#### Naming Conventions
+
+Analyze the sampled files for:
+
+| Convention | How to Detect | Example |
+|-----------|--------------|---------|
+| Function naming | Look at `function` declarations, arrow functions, method definitions | `camelCase`, `snake_case`, `PascalCase` |
+| Variable naming | Look at `const`/`let`/`var` declarations | `camelCase`, `snake_case` |
+| Constants | Look at `const` declarations with ALL_CAPS or enum values | `UPPER_SNAKE_CASE`, `camelCase` |
+| Interfaces/Types | Look at `interface` and `type` declarations | `IFoo` (prefixed), `Foo` (plain), `TFoo` (prefixed) |
+| CSS classes | Look at class names in templates, JSX, or stylesheets | `kebab-case`, `camelCase`, `BEM` |
+
+Determine the **dominant pattern** (most frequently used across samples). If mixed or unclear, note "mixed" and skip that convention.
+
+Also check tool configs if present — they override file sampling:
+- `.eslintrc*` / `eslint.config.*` → `@typescript-eslint/naming-convention` rules
+- `.prettierrc*` → formatting style
+- `.editorconfig` → indentation, charset
+
+#### Documentation Style
+
+Analyze the sampled files for:
+
+| Style | How to Detect |
+|-------|--------------|
+| JSDoc/docstrings | `/** */` blocks on functions/classes |
+| Inline comments | `//` or `#` comments within function bodies |
+| Minimal | Few or no comments in sampled files |
+
+Count occurrences across samples. The dominant pattern wins.
+
+#### Store Results
+
+Hold detected conventions in memory for use in Phase 4. Format:
+
+```
+conventions:
+  functions: camelCase | snake_case | PascalCase | mixed
+  variables: camelCase | snake_case | mixed
+  constants: UPPER_SNAKE_CASE | camelCase | mixed
+  interfaces: IPrefix | plain | TPrefix | mixed
+  cssClasses: kebab-case | camelCase | BEM | mixed | N/A
+  documentation: jsdoc | inline | minimal | mixed
+```
+
+> If fewer than 3 source files are found, skip convention detection entirely — not enough signal.
 
 ### PR Template Detection
 
@@ -166,7 +213,7 @@ If found: note the path and read the template content for use in Phase 3 and Pha
 
 ## Phase 3: Reconcile & Confirm
 
-Present detected stack to user: project root, command directory, package manager, frontend stack, backend stack, security tooling, agents to activate (including security-specialist (if triggered)), and PR template (if detected — show path and platform). Wait for confirmation before writing files.
+Present detected stack to user: project root, command directory, package manager, frontend stack, backend stack, security tooling, agents to activate (including security-specialist (if triggered)), PR template (if detected — show path and platform), and detected conventions (naming + documentation style, if detected). Wait for confirmation before writing files.
 
 ---
 
@@ -230,6 +277,31 @@ Each pattern file: key rules from existing code, anti-patterns, conventions, doc
    - Instructs the AI: "Format the PR Description body to match the project's template structure below, while preserving all Atta content (summary, changes, verification, notes). Sections from the project template that have no Atta equivalent should be included with a placeholder comment."
 
 **If no PR template was detected:** Do nothing — the default `pr-template.md` shipped with the framework is already in place.
+
+### Pre-Fill Developer Profile
+
+If convention detection (Phase 2) produced results, update `.claude/knowledge/project/developer-profile.md`:
+
+**Naming Conventions section** — Replace the placeholder values with detected conventions:
+
+Before (template default):
+- Functions: `[camelCase / snake_case / PascalCase]`
+
+After (auto-detected):
+- Functions: `camelCase`
+
+> Only replace conventions that were confidently detected (not "mixed"). Leave placeholders for any convention marked "mixed" or not detected. Add a note at the top of the section: `_Auto-detected from project source. Edit if needed._`
+
+**Documentation section** — Check the appropriate checkbox based on detection:
+
+| Detected | Check |
+|----------|-------|
+| `jsdoc` | `[x] JSDoc/docstrings for all public APIs` |
+| `inline` | `[x] Inline comments for complex logic` |
+| `minimal` | `[x] Minimal comments (code should be self-documenting)` |
+| `mixed` | Leave all unchecked |
+
+> Only pre-fill if the file exists and these sections haven't been manually configured yet (no existing `[x]` checkboxes in the section). Never overwrite user selections.
 
 ### BE Team Lead
 

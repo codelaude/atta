@@ -181,6 +181,17 @@ Recovery options:
 3. If test infra is temporarily unstable, run `/preflight --skip-tests` and note this risk in your PR
 ```
 
+### Review Blocked
+
+```markdown
+Preflight stopped: critical code review findings found.
+
+Recovery options:
+1. Fix CRITICAL review findings first, then rerun `/preflight`
+2. Run `/review <target>` to focus on specific files
+3. Use `/review --quick <target>` for fast critical-only validation
+```
+
 ### Review Step Unavailable
 
 ```markdown

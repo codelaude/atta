@@ -406,7 +406,8 @@ Display initialization summary: files created/updated, active agents table, quic
 - Re-check for PR templates (if one is now present or changed, regenerate `pr-template.md` mapping)
 - Update pattern files with new findings
 - Preserve manual edits (only update auto-generated sections)
-- Report what changed
+- **Apply developer profile**: If `.claude/knowledge/project/developer-profile.md` exists and has checked items, run the `/profile --apply` logic (Steps 5-6 from profile/SKILL.md) — parse the profile, write/replace the `## Preferences` section in `project-context.md`. This ensures profile preferences stay in sync after regeneration without requiring a separate `/profile --apply` call.
+- Report what changed (include profile propagation status in the report)
 
 ---
 

@@ -4,6 +4,22 @@ Full version history for the Atta framework.
 
 ---
 
+## v2.7 — Developer Profile + Prompt Optimizer
+
+Developer profile system, convention detection, and smarter context generation.
+
+- **`/profile` skill**: View, update, and apply developer preferences — collaboration style, response format, review priorities, error handling, testing approach, and more. Four modes: view (default), `--update` (5 core questions), `--complete` (extended preferences), `--apply` (re-propagate without changes)
+- **Two-layer profile propagation**: Runtime layer writes distilled `## Preferences` section to `project-context.md` (all agents pick up automatically). Generation-time layer injects `## Developer Preferences` into each generated agent during `/atta` (zero runtime cost)
+- **Profile injection in generator**: Centralized in `generator.md` Phase 4 — extracts 8 profile fields, builds section, appends to all generated agents. No template changes needed when profile fields evolve
+- **`/atta` convention detection**: Phase 2 auto-detects naming conventions and documentation style from project code, pre-fills profile sections
+- **`/atta --rescan` profile integration**: Rescan now automatically runs `/profile --apply` logic — re-propagates preferences to `project-context.md` as part of regeneration
+- **CLI init profile pre-fill**: `npx atta-dev init` asks 5 core preference questions during setup and generates a pre-filled `developer-profile.md`
+- **Profile documentation**: New `.claude/docs/profile.md` user-facing guide
+- **Tutorial updated**: Step 1 mentions `/profile` for personalization; quick reference card includes `/profile`
+- **16 skills** (up from 15): `/profile` added
+
+---
+
 ## v2.6.1 — Preflight Gap Closure
 
 Security deduplication, expanded review dimensions, and a dev-only publish skill.

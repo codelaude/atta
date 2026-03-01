@@ -57,9 +57,10 @@ Run pattern checks on all changed files:
 
 ### Step 3: Security Scan
 
-Run `/security-audit --quick` on all changed files.
+Run `/security-audit` on all changed files (full scan).
 
-**If critical security issues found, report and block.**
+**If CRITICAL security issues are found, report and block.**
+**If only HIGH-level issues are found, report them but do not block preflight.**
 
 ### Step 4: Run Tests
 

@@ -148,6 +148,7 @@ Categorize each finding by severity: **CRITICAL** / **HIGH** / **MEDIUM** / **LO
 | SCSS | [status] | X critical, X high, X medium |
 | Accessibility | [status] | X critical, X high, X medium |
 | Performance | [status] | X critical, X high, X medium |
+| Security | [status] | X critical, X high, X medium |
 | Bug & Logic | [status] | X critical, X high, X medium |
 | Testing | [status] | X critical, X high, X medium |
 

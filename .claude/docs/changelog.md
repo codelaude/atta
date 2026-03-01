@@ -8,7 +8,7 @@ Full version history for the Atta framework.
 
 Security deduplication, expanded review dimensions, and a dev-only publish skill.
 
-- **Security deduplication**: `/review` no longer owns security checks — delegates to `/security-audit`. `/preflight` Step 3 now runs `/security-audit --quick` instead of inline patterns. Single source of truth for all security scanning.
+- **Security deduplication**: `/review` no longer owns security checks — delegates to `/security-audit`. `/preflight` Step 3 now runs a full `/security-audit` scan instead of inline patterns — blocks on CRITICAL, reports HIGH without blocking. Single source of truth for all security scanning.
 - **Expanded review dimensions**: `/review` Step 4 gains Performance (8 checks) and Bug & Logic Review (8 checks) sections. Review output now includes per-finding severity (CRITICAL/HIGH/MEDIUM/LOW).
 - **OWASP coverage expansion**: `/security-audit` gains 7 missing categories — unsafe deserialization, SSRF, TOCTOU race conditions, XXE, broken authentication, broken access control, insufficient logging.
 - **Cross-reference cleanup**: Integration sections across all 3 skills updated to reflect new responsibility lanes.

@@ -46,6 +46,22 @@ while IFS= read -r -d '' skill; do
   fi
 done < <(find "$TMPDIR/.github/skills" -name "SKILL.md" -print0 2>/dev/null)
 
+# Check agent definitions exist in .github/atta/agents/
+AGENT_COUNT=$(find "$TMPDIR/.github/atta/agents" -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
+if [ "$AGENT_COUNT" -eq 0 ]; then
+  echo "FAIL: No agent definitions in .github/atta/agents/"
+  ERRORS=$((ERRORS + 1))
+fi
+
+# Check .atta/bootstrap/ exists with detection files
+if [ ! -d "$TMPDIR/.atta/bootstrap" ]; then
+  echo "FAIL: .atta/bootstrap/ directory missing"
+  ERRORS=$((ERRORS + 1))
+elif [ ! -f "$TMPDIR/.atta/bootstrap/generator.md" ]; then
+  echo "FAIL: .atta/bootstrap/generator.md missing"
+  ERRORS=$((ERRORS + 1))
+fi
+
 # Check GETTING-STARTED.md exists
 if [ ! -s "$TMPDIR/GETTING-STARTED.md" ]; then
   echo "FAIL: GETTING-STARTED.md missing or empty"
@@ -53,7 +69,7 @@ if [ ! -s "$TMPDIR/GETTING-STARTED.md" ]; then
 fi
 
 if [ $ERRORS -eq 0 ]; then
-  echo "PASS: Copilot adapter output structure correct ($SKILL_COUNT skills)"
+  echo "PASS: Copilot adapter output structure correct ($SKILL_COUNT skills, $AGENT_COUNT agents)"
   exit 0
 else
   echo "FAIL: $ERRORS errors found"

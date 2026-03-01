@@ -8,11 +8,19 @@ You are now acting as the requested specialist agent.
 Follow these steps:
 
 1. **Identify the agent**: Extract the agent ID from the command
-2. **Load agent definition**: Search for the agent's definition file in this order:
-   - `.claude/agents/{agent-id}.md` (core agents)
-   - `.claude/agents/coordinators/{agent-id}.md` (generated coordinators)
-   - `.claude/agents/specialists/{agent-id}.md` (generated specialists)
-   Use the first match found.
+2. **Load agent definition**: Search for the agent's definition file. Try these paths in order, using the first match found:
+   - `.claude/agents/{agent-id}.md` (Claude Code)
+   - `.claude/agents/coordinators/{agent-id}.md` (Claude Code coordinators)
+   - `.claude/agents/specialists/{agent-id}.md` (Claude Code specialists)
+   - `.github/atta/agents/{agent-id}.md` (Copilot)
+   - `.github/atta/agents/coordinators/{agent-id}.md` (Copilot coordinators)
+   - `.github/atta/agents/specialists/{agent-id}.md` (Copilot specialists)
+   - `.agents/agents/{agent-id}.md` (Codex)
+   - `.agents/agents/coordinators/{agent-id}.md` (Codex coordinators)
+   - `.agents/agents/specialists/{agent-id}.md` (Codex specialists)
+   - `.gemini/agents/{agent-id}.md` (Gemini)
+   - `.gemini/agents/coordinators/{agent-id}.md` (Gemini coordinators)
+   - `.gemini/agents/specialists/{agent-id}.md` (Gemini specialists)
 3. **Load knowledge base**: Read any pattern files referenced by the agent from `.claude/knowledge/`
 3b. **Load learning profile**: Read `{claudeDir}/.context/agent-learning.json` (if it exists). If the file contains an entry for the requested agent ID, inject it into the agent context as follows:
    ```

@@ -1,6 +1,6 @@
 #!/bin/bash
 # check-gemini-adapter.sh
-# Verifies Gemini adapter produces valid TOML commands and extension manifest
+# Verifies Gemini adapter produces valid TOML commands, agents, and bootstrap
 # Requires: python3 (3.11+ for tomllib, or tomli fallback)
 
 set -euo pipefail
@@ -27,22 +27,6 @@ node "$REPO_ROOT/bin/atta.js" init --directory "$TMPDIR" --adapter gemini --yes 
 
 ERRORS=0
 
-# Check gemini-extension.json exists and is valid JSON
-if [ ! -f "$TMPDIR/gemini-extension.json" ]; then
-  echo "FAIL: gemini-extension.json not generated"
-  ERRORS=$((ERRORS + 1))
-else
-  python3 -c "
-import json, sys
-with open('$TMPDIR/gemini-extension.json') as f:
-    data = json.load(f)
-for field in ['name', 'version']:
-    if field not in data:
-        print(f'FAIL: gemini-extension.json missing field: {field}')
-        sys.exit(1)
-" 2>/dev/null || ERRORS=$((ERRORS + 1))
-fi
-
 # Check GEMINI.md exists and is non-empty
 if [ ! -s "$TMPDIR/GEMINI.md" ]; then
   echo "FAIL: GEMINI.md missing or empty"
@@ -57,7 +41,7 @@ fi
 
 # Check TOML commands exist, parse correctly, and have required fields
 TOML_COUNT=0
-if [ -d "$TMPDIR/commands" ]; then
+if [ -d "$TMPDIR/.gemini/commands" ]; then
   while IFS= read -r -d '' toml; do
     TOML_COUNT=$((TOML_COUNT + 1))
     # Parse TOML and validate required fields
@@ -93,16 +77,32 @@ PYEOF
       echo "FAIL: TOML parse/validation failed for $toml"
       ERRORS=$((ERRORS + 1))
     }
-  done < <(find "$TMPDIR/commands" -name "*.toml" -print0 2>/dev/null)
+  done < <(find "$TMPDIR/.gemini/commands" -name "*.toml" -print0 2>/dev/null)
 fi
 
 if [ "$TOML_COUNT" -eq 0 ]; then
-  echo "FAIL: No TOML commands generated in commands/"
+  echo "FAIL: No TOML commands generated in .gemini/commands/"
+  ERRORS=$((ERRORS + 1))
+fi
+
+# Check agent definitions exist in .gemini/agents/
+AGENT_COUNT=$(find "$TMPDIR/.gemini/agents" -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
+if [ "$AGENT_COUNT" -eq 0 ]; then
+  echo "FAIL: No agent definitions in .gemini/agents/"
+  ERRORS=$((ERRORS + 1))
+fi
+
+# Check .atta/bootstrap/ exists with detection files
+if [ ! -d "$TMPDIR/.atta/bootstrap" ]; then
+  echo "FAIL: .atta/bootstrap/ directory missing"
+  ERRORS=$((ERRORS + 1))
+elif [ ! -f "$TMPDIR/.atta/bootstrap/generator.md" ]; then
+  echo "FAIL: .atta/bootstrap/generator.md missing"
   ERRORS=$((ERRORS + 1))
 fi
 
 if [ $ERRORS -eq 0 ]; then
-  echo "PASS: Gemini adapter output valid ($TOML_COUNT TOML commands, syntax-verified)"
+  echo "PASS: Gemini adapter output valid ($TOML_COUNT TOML commands, $AGENT_COUNT agents, syntax-verified)"
   exit 0
 else
   echo "FAIL: $ERRORS errors found"

@@ -3,19 +3,24 @@ import { join } from 'node:path';
 import pc from 'picocolors';
 import { listSkills } from './claude-code.js';
 import { generateAgentsMd } from './agents-md.js';
+import { copyAgentFiles, copyBootstrap } from './shared.js';
 
 /**
- * Codex CLI adapter — generates .agents/skills/ and AGENTS.md.
+ * Codex CLI adapter — generates .agents/skills/, .agents/agents/, and AGENTS.md.
  *
  * Codex CLI reads AGENTS.md as the primary instruction file.
  * Skills are placed at .agents/skills/{name}/SKILL.md.
+ * Agent definitions are placed at .agents/agents/{name}.md.
  * Skill activation via /skills menu or $skill-name mention.
  */
 export function install(frameworkRoot, targetDir, options = {}) {
   const results = { files: 0 };
 
-  // Generate AGENTS.md
-  const agentsMd = generateAgentsMd(frameworkRoot);
+  // Generate AGENTS.md with Codex-specific paths and $ prefix
+  const agentsMd = generateAgentsMd(frameworkRoot, {
+    skillPrefix: '$',
+    agentBasePath: '.agents/agents',
+  });
   writeFileSync(join(targetDir, 'AGENTS.md'), agentsMd);
   results.files++;
 
@@ -46,6 +51,24 @@ export function install(frameworkRoot, targetDir, options = {}) {
       );
     }
   }
+
+  // Copy agent definitions to .agents/agents/
+  const agentCount = copyAgentFiles(
+    frameworkRoot,
+    join(targetDir, '.agents', 'agents'),
+    options
+  );
+  results.files += agentCount;
+
+  if (!options.quiet && agentCount > 0) {
+    console.log(
+      `  ${pc.green('✓')} .agents/agents/ (${agentCount} agent definitions)`
+    );
+  }
+
+  // Copy bootstrap to .atta/bootstrap/ (shared assets for /atta skill)
+  const bootstrapCount = copyBootstrap(frameworkRoot, targetDir, options);
+  results.files += bootstrapCount;
 
   return results;
 }

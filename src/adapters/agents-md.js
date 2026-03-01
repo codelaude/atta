@@ -6,10 +6,17 @@ import { readVersion } from '../lib/fs-utils.js';
 /**
  * Generate AGENTS.md content from framework source.
  * Used by Copilot, Codex, Cursor, and Aider adapters.
+ *
+ * @param {string} frameworkRoot - Path to canonical .claude/ source
+ * @param {object} [options] - Adapter-specific options
+ * @param {string} [options.skillPrefix='/'] - Prefix for skill invocation (e.g., '/' or '$')
+ * @param {string} [options.agentBasePath='.claude/agents'] - Base path for agent files in output
+ * @param {Object<string,string>} [options.skillRenames={}] - Map of original→renamed skill names for conflict avoidance
  */
-export function generateAgentsMd(frameworkRoot) {
+export function generateAgentsMd(frameworkRoot, options = {}) {
+  const { skillPrefix = '/', agentBasePath = '.claude/agents', skillRenames = {} } = options;
   const skills = listSkills(frameworkRoot);
-  const agents = listAgents(frameworkRoot);
+  const agents = listAgents(frameworkRoot, agentBasePath);
   const version = readVersion(frameworkRoot);
 
   const lines = [];
@@ -62,12 +69,13 @@ export function generateAgentsMd(frameworkRoot) {
   if (skills.length > 0) {
     lines.push('## Build & Commands');
     lines.push('');
-    lines.push('Available slash commands (skills):');
+    lines.push('Available commands (skills):');
     lines.push('');
     lines.push('| Command | Description |');
     lines.push('|---------|-------------|');
     for (const skill of skills) {
-      lines.push(`| \`/${skill.name}\` | ${skill.description} |`);
+      const displayName = skillRenames[skill.name] || skill.name;
+      lines.push(`| \`${skillPrefix}${displayName}\` | ${skill.description} |`);
     }
     lines.push('');
   }
@@ -76,7 +84,7 @@ export function generateAgentsMd(frameworkRoot) {
   lines.push('## Code Style');
   lines.push('');
   lines.push(
-    'Use `/review` for comprehensive code review or `/lint` for quick pattern checks. These skills enforce project-specific conventions detected from your tech stack.'
+    `Use \`${skillPrefix}${skillRenames['review'] || 'review'}\` for comprehensive code review or \`${skillPrefix}${skillRenames['lint'] || 'lint'}\` for quick pattern checks. These skills enforce project-specific conventions detected from your tech stack.`
   );
   lines.push('');
 
@@ -98,7 +106,12 @@ export function generateAgentsMd(frameworkRoot) {
   return lines.join('\n');
 }
 
-function listAgents(frameworkRoot) {
+/**
+ * List agent definitions from framework source.
+ * @param {string} frameworkRoot - Path to canonical .claude/ source
+ * @param {string} agentBasePath - Base path prefix for agent files in output
+ */
+function listAgents(frameworkRoot, agentBasePath = '.claude/agents') {
   const agentsDir = join(frameworkRoot, 'agents');
   if (!existsSync(agentsDir)) return [];
 
@@ -113,7 +126,7 @@ function listAgents(frameworkRoot) {
     agents.push({
       name: formatAgentName(name),
       role: 'Core Agent',
-      path: `.claude/agents/${file}`,
+      path: `${agentBasePath}/${file}`,
     });
   }
 
@@ -126,7 +139,7 @@ function listAgents(frameworkRoot) {
       agents.push({
         name: formatAgentName(name),
         role: 'Coordinator',
-        path: `.claude/agents/coordinators/${file}`,
+        path: `${agentBasePath}/coordinators/${file}`,
       });
     }
   }
@@ -140,7 +153,7 @@ function listAgents(frameworkRoot) {
       agents.push({
         name: formatAgentName(name),
         role: 'Specialist',
-        path: `.claude/agents/specialists/${file}`,
+        path: `${agentBasePath}/specialists/${file}`,
       });
     }
   }

@@ -153,7 +153,7 @@ async function runInstall(targetDir, adapterName, dryRun, answers) {
         join(claudeDir, 'skills', 'tutorial'),               // Claude Code
         join(targetDir, '.github', 'skills', 'tutorial'),     // Copilot
         join(targetDir, '.agents', 'skills', 'tutorial'),     // Codex
-        join(targetDir, 'commands', 'tutorial.toml'),          // Gemini
+        join(targetDir, '.gemini', 'commands', 'tutorial.toml'), // Gemini
       ];
       for (const tutorialPath of tutorialPaths) {
         if (existsSync(tutorialPath)) {

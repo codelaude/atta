@@ -14,6 +14,33 @@ You are running **project initialization** — interactive setup that configures
 
 ---
 
+## Step 0: Adapter Detection (BEFORE anything else)
+
+Determine which AI tool is running this skill by checking which directories exist in the project root. This controls where you read bootstrap assets from and where you write generated files.
+
+**Detect adapter:**
+1. If `.claude/bootstrap/` exists → **Claude Code** (native)
+2. Else if `.atta/bootstrap/` exists → **Non-Claude adapter** (Copilot, Codex, or Gemini)
+3. If neither exists → Warn the user: "Bootstrap assets not found. Run `npx atta-dev init --adapter <tool>` first to install the framework, then re-run /atta."
+
+**Resolve paths based on adapter:**
+
+| Path variable | Claude Code | Copilot (`.github/skills/`) | Codex (`.agents/skills/`) | Gemini (`.gemini/commands/`) |
+|---------------|-------------|---------------------------|-------------------------|---------------------------|
+| `{bootstrapDir}` | `.claude/bootstrap` | `.atta/bootstrap` | `.atta/bootstrap` | `.atta/bootstrap` |
+| `{knowledgeDir}` | `.claude/knowledge` | `.claude/knowledge` | `.claude/knowledge` | `.claude/knowledge` |
+| `{agentsDir}` | `.claude/agents` | `.github/atta/agents` | `.agents/agents` | `.gemini/agents` |
+| `{metadataDir}` | `.claude/.metadata` | `.claude/.metadata` | `.claude/.metadata` | `.claude/.metadata` |
+
+**Sub-detect non-Claude adapter** (if `.atta/bootstrap/` was found):
+- If `.github/skills/` exists → Copilot → agents go to `.github/atta/agents/`
+- Else if `.agents/skills/` exists → Codex → agents go to `.agents/agents/`
+- Else if `.gemini/commands/` exists → Gemini → agents go to `.gemini/agents/`
+
+**Use `{bootstrapDir}`, `{knowledgeDir}`, `{agentsDir}`, and `{metadataDir}` for ALL paths below.** When this document says `.claude/bootstrap/...`, read it as `{bootstrapDir}/...`. When it says `.claude/knowledge/...`, read it as `{knowledgeDir}/...`. When it says `.claude/agents/...`, read it as `{agentsDir}/...`. When it says `.claude/.metadata/...`, read it as `{metadataDir}/...`.
+
+---
+
 ## Phase 1: User Interview
 
 Ask questions using AskUserQuestion (max 4 per call).

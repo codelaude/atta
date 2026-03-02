@@ -11,33 +11,27 @@ import { join, dirname } from 'node:path';
 import pc from 'picocolors';
 import { generateAgentsMd } from './agents-md.js';
 import { readVersion, countFiles } from '../lib/fs-utils.js';
+import { copySharedContent, copyBootstrap } from './shared.js';
 
-/** Directories to copy from canonical .claude/ source */
-const FRAMEWORK_DIRS = [
-  'agents',
-  'bootstrap',
-  'docs',
-  'hooks',
-  'knowledge',
-  'scripts',
-  'skills',
-  '.context',
-  '.metadata',
-];
-
-/** Individual files to copy */
-const FRAMEWORK_FILES = ['.sessions/schema.json', '.sessions/README.md'];
+/** Directories to copy from .claude/ source (discovery-required, tool-specific) */
+const CLAUDE_DIRS = ['agents', 'hooks', 'skills'];
 
 /**
- * Claude Code adapter — copies .claude/ directory and generates plugin manifest.
+ * Claude Code adapter — copies .claude/ (tool-specific) and .atta/ (shared) content,
+ * generates settings and plugin manifest.
+ *
+ * @param {string} claudeRoot - Path to .claude/ source (agents, skills, hooks)
+ * @param {string} attaRoot - Path to .atta/ source (knowledge, scripts, docs, metadata, context)
+ * @param {string} targetDir - Project root
+ * @param {object} [options]
  */
-export function install(frameworkRoot, targetDir, options = {}) {
+export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   const claudeDir = join(targetDir, '.claude');
   const results = { files: 0, dirs: [] };
 
-  // Copy framework directories
-  for (const dir of FRAMEWORK_DIRS) {
-    const src = join(frameworkRoot, dir);
+  // Copy tool-specific directories to .claude/
+  for (const dir of CLAUDE_DIRS) {
+    const src = join(claudeRoot, dir);
     const dest = join(claudeDir, dir);
     if (!existsSync(src)) continue;
 
@@ -52,20 +46,13 @@ export function install(frameworkRoot, targetDir, options = {}) {
     }
   }
 
-  // Copy individual files
-  for (const file of FRAMEWORK_FILES) {
-    const src = join(frameworkRoot, file);
-    const dest = join(claudeDir, file);
-    if (!existsSync(src)) continue;
+  // Copy shared content to .atta/
+  const sharedCount = copySharedContent(attaRoot, targetDir, options);
+  results.files += sharedCount;
 
-    mkdirSync(dirname(dest), { recursive: true });
-    cpSync(src, dest);
-    results.files++;
-
-    if (!options.quiet) {
-      console.log(`  ${pc.green('✓')} .claude/${file}`);
-    }
-  }
+  // Copy bootstrap to .atta/bootstrap/
+  const bootstrapCount = copyBootstrap(attaRoot, targetDir, options);
+  results.files += bootstrapCount;
 
   // Generate default settings (only if none exist)
   const settingsPath = join(claudeDir, 'settings.local.json');
@@ -74,16 +61,16 @@ export function install(frameworkRoot, targetDir, options = {}) {
       permissions: {
         allow: [
           // Framework scripts (session cleanup, context generation, pattern detection)
-          'Bash(bash .claude/scripts/session-cleanup.sh:*)',
-          'Bash(bash .claude/scripts/generate-context.sh:*)',
-          'Bash(bash .claude/scripts/pattern-log.sh:*)',
-          'Bash(bash .claude/scripts/pattern-analyze.sh:*)',
+          'Bash(bash .atta/scripts/session-cleanup.sh:*)',
+          'Bash(bash .atta/scripts/generate-context.sh:*)',
+          'Bash(bash .atta/scripts/pattern-log.sh:*)',
+          'Bash(bash .atta/scripts/pattern-analyze.sh:*)',
           // Context files (recent work summary)
-          'Edit(./.claude/.context/**)',
+          'Edit(./.atta/.context/**)',
           // Agent memory (directives, learnings)
           'Edit(./.claude/agents/memory/**)',
           // Knowledge capture (patterns, project context)
-          'Edit(./.claude/knowledge/**)',
+          'Edit(./.atta/knowledge/**)',
         ],
       },
       hooks: {
@@ -190,7 +177,7 @@ export function install(frameworkRoot, targetDir, options = {}) {
   // Generate CLAUDE.md (only if none exist)
   const claudeMdPath = join(targetDir, 'CLAUDE.md');
   if (!existsSync(claudeMdPath)) {
-    const claudeMd = generateClaudeMd(frameworkRoot);
+    const claudeMd = generateClaudeMd(claudeRoot, attaRoot);
     const tmpClaudeMd = claudeMdPath + '.tmp';
     writeFileSync(tmpClaudeMd, claudeMd);
     renameSync(tmpClaudeMd, claudeMdPath);
@@ -205,13 +192,13 @@ export function install(frameworkRoot, targetDir, options = {}) {
   const pluginDir = join(targetDir, '.claude-plugin');
   mkdirSync(pluginDir, { recursive: true });
 
-  const version = readVersion(frameworkRoot);
+  const version = readVersion(attaRoot);
   const manifest = {
     name: 'atta',
     version,
     description:
       'Atta — AI Dev Team Agent. Dynamic agent generation, multi-tool support, and intelligent code review.',
-    skills: listSkills(frameworkRoot).map(({ name, description, path }) => ({ name, description, path })),
+    skills: listSkills(claudeRoot).map(({ name, description, path }) => ({ name, description, path })),
     agents_index: '.claude/agents/INDEX.md',
   };
 
@@ -232,8 +219,8 @@ export function install(frameworkRoot, targetDir, options = {}) {
  * Generate CLAUDE.md — instruction file for Claude Code.
  * Based on AGENTS.md content with Claude Code-specific framing.
  */
-export function generateClaudeMd(frameworkRoot) {
-  const agentsMd = generateAgentsMd(frameworkRoot);
+export function generateClaudeMd(claudeRoot, attaRoot) {
+  const agentsMd = generateAgentsMd(claudeRoot, attaRoot);
 
   return agentsMd
     .replace('# AGENTS.md', '# CLAUDE.md — Atta Agent Context')
@@ -244,8 +231,8 @@ export function generateClaudeMd(frameworkRoot) {
 }
 
 /** Parse SKILL.md frontmatter and return skill metadata */
-export function listSkills(frameworkRoot) {
-  const skillsDir = join(frameworkRoot, 'skills');
+export function listSkills(claudeRoot) {
+  const skillsDir = join(claudeRoot, 'skills');
   if (!existsSync(skillsDir)) return [];
 
   const entries = readdirSync(skillsDir, { withFileTypes: true });

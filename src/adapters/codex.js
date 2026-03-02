@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import pc from 'picocolors';
 import { listSkills } from './claude-code.js';
 import { generateAgentsMd } from './agents-md.js';
-import { copyAgentFiles, copyBootstrap } from './shared.js';
+import { copyAgentFiles, copyBootstrap, copySharedContent } from './shared.js';
 
 /**
  * Codex CLI adapter — generates .agents/skills/, .agents/agents/, and AGENTS.md.
@@ -13,11 +13,11 @@ import { copyAgentFiles, copyBootstrap } from './shared.js';
  * Agent definitions are placed at .agents/agents/{name}.md.
  * Skill activation via /skills menu or $skill-name mention.
  */
-export function install(frameworkRoot, targetDir, options = {}) {
+export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   const results = { files: 0 };
 
   // Generate AGENTS.md with Codex-specific paths and $ prefix
-  const agentsMd = generateAgentsMd(frameworkRoot, {
+  const agentsMd = generateAgentsMd(claudeRoot, attaRoot, {
     skillPrefix: '$',
     agentBasePath: '.agents/agents',
   });
@@ -29,9 +29,9 @@ export function install(frameworkRoot, targetDir, options = {}) {
   }
 
   // Copy skills to .agents/skills/
-  const skillsDir = join(frameworkRoot, 'skills');
+  const skillsDir = join(claudeRoot, 'skills');
   if (existsSync(skillsDir)) {
-    const skills = listSkills(frameworkRoot);
+    const skills = listSkills(claudeRoot);
     const agentsSkillsDir = join(targetDir, '.agents', 'skills');
 
     for (const skill of skills) {
@@ -54,7 +54,7 @@ export function install(frameworkRoot, targetDir, options = {}) {
 
   // Copy agent definitions to .agents/agents/
   const agentCount = copyAgentFiles(
-    frameworkRoot,
+    claudeRoot,
     join(targetDir, '.agents', 'agents'),
     options
   );
@@ -66,8 +66,12 @@ export function install(frameworkRoot, targetDir, options = {}) {
     );
   }
 
-  // Copy bootstrap to .atta/bootstrap/ (shared assets for /atta skill)
-  const bootstrapCount = copyBootstrap(frameworkRoot, targetDir, options);
+  // Copy shared content to .atta/ (knowledge, scripts, docs, metadata, context)
+  const sharedCount = copySharedContent(attaRoot, targetDir, options);
+  results.files += sharedCount;
+
+  // Copy bootstrap to .atta/bootstrap/
+  const bootstrapCount = copyBootstrap(attaRoot, targetDir, options);
   results.files += bootstrapCount;
 
   return results;

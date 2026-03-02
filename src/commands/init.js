@@ -1,4 +1,4 @@
-import { existsSync, writeFileSync, renameSync, mkdirSync, rmSync } from 'node:fs';
+import { existsSync, writeFileSync, renameSync, mkdirSync, rmSync, cpSync } from 'node:fs';
 import { resolve, join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as p from '@clack/prompts';
@@ -15,8 +15,11 @@ import { countFiles } from '../lib/fs-utils.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-/** Path to the canonical .claude/ source bundled with the package */
-const FRAMEWORK_ROOT = resolve(__dirname, '..', '..', '.claude');
+/** Path to .claude/ source (tool-specific: skills, agents, hooks) */
+const CLAUDE_ROOT = resolve(__dirname, '..', '..', '.claude');
+
+/** Path to .atta/ source (shared: knowledge, scripts, docs, metadata, context, bootstrap) */
+const ATTA_ROOT = resolve(__dirname, '..', '..', '.atta');
 
 const ADAPTERS = {
   'claude-code': {
@@ -62,9 +65,9 @@ export async function init(options) {
   const dryRun = options.dryRun;
 
   // Verify framework source exists
-  if (!existsSync(FRAMEWORK_ROOT)) {
+  if (!existsSync(CLAUDE_ROOT) || !existsSync(ATTA_ROOT)) {
     console.error(
-      pc.red('Error: Framework source not found at ') + FRAMEWORK_ROOT
+      pc.red('Error: Framework source not found. Expected .claude/ and .atta/ directories.')
     );
     process.exit(1);
   }
@@ -102,13 +105,24 @@ async function runInstall(targetDir, adapterName, dryRun, answers) {
 
   // Detect existing installation
   const claudeDir = join(targetDir, '.claude');
-  const isUpdate = existsSync(claudeDir);
+  const attaDir = join(targetDir, '.atta');
+  const isUpdate = existsSync(claudeDir) || existsSync(attaDir);
+
+  // Detect pre-v2.8 layout (shared content in .claude/ instead of .atta/)
+  const needsMigration = existsSync(join(claudeDir, 'knowledge')) && !existsSync(attaDir);
 
   if (isUpdate) {
-    p.log.warn(
-      'Existing installation detected — updating framework files.\n' +
-        pc.dim('User-generated content (agents, knowledge) will be preserved.')
-    );
+    if (needsMigration) {
+      p.log.warn(
+        'Pre-v2.8 installation detected — migrating shared content to .atta/.\n' +
+          pc.dim('User-generated content will be preserved and moved to .atta/.')
+      );
+    } else {
+      p.log.warn(
+        'Existing installation detected — updating framework files.\n' +
+          pc.dim('User-generated content (agents, knowledge) will be preserved.')
+      );
+    }
   }
 
   p.log.info(`Target: ${pc.cyan(targetDir)}`);
@@ -126,13 +140,18 @@ async function runInstall(targetDir, adapterName, dryRun, answers) {
 
   let results;
   try {
+    // Migrate pre-v2.8 layout if needed (move shared content from .claude/ to .atta/)
+    if (needsMigration) {
+      migrateToAtta(targetDir);
+    }
+
     // Run the adapter
-    results = adapter.install(FRAMEWORK_ROOT, targetDir, { quiet: true });
+    results = adapter.install(CLAUDE_ROOT, ATTA_ROOT, targetDir, { quiet: true });
 
     // Pre-fill developer profile if we have answers
     if (answers) {
       const profileContent = generateProfile(answers);
-      const profileDir = join(claudeDir, 'knowledge', 'project');
+      const profileDir = join(attaDir, 'knowledge', 'project');
       mkdirSync(profileDir, { recursive: true });
       const profilePath = join(profileDir, 'developer-profile.md');
       writeFileSync(profilePath + '.tmp', profileContent);
@@ -203,7 +222,7 @@ function printWelcome(adapterName, adapter, answers) {
   if (answers) {
     console.log('');
     console.log(
-      pc.dim('Your preferences were saved to .claude/knowledge/project/developer-profile.md')
+      pc.dim('Your preferences were saved to .atta/knowledge/project/developer-profile.md')
     );
     console.log(pc.dim('Edit it anytime to refine how agents work with you.'));
   }
@@ -223,21 +242,46 @@ function printWelcome(adapterName, adapter, answers) {
 }
 
 function listFrameworkFiles() {
-  const DIRS = [
-    'agents',
-    'bootstrap',
-    'docs',
-    'knowledge',
-    'scripts',
-    'skills',
-    '.context',
-    '.metadata',
-  ];
+  // Tool-specific (from .claude/)
+  const CLAUDE_DIRS = ['agents', 'hooks', 'skills'];
+  // Shared (from .atta/)
+  const ATTA_DIRS = ['bootstrap', 'docs', 'knowledge', 'scripts', '.context', '.metadata'];
 
-  for (const dir of DIRS) {
-    const src = join(FRAMEWORK_ROOT, dir);
+  console.log(pc.dim('.claude/ (tool-specific):'));
+  for (const dir of CLAUDE_DIRS) {
+    const src = join(CLAUDE_ROOT, dir);
     if (!existsSync(src)) continue;
     const count = countFiles(src);
     console.log(`  ${dir}/ (${count} files)`);
+  }
+
+  console.log(pc.dim('.atta/ (shared):'));
+  for (const dir of ATTA_DIRS) {
+    const src = join(ATTA_ROOT, dir);
+    if (!existsSync(src)) continue;
+    const count = countFiles(src);
+    console.log(`  ${dir}/ (${count} files)`);
+  }
+}
+
+/**
+ * Migrate pre-v2.8 installation: move shared content from .claude/ to .atta/.
+ * Preserves user-generated content (custom patterns, profiles, corrections).
+ */
+function migrateToAtta(targetDir) {
+  const claudeDir = join(targetDir, '.claude');
+  const attaDir = join(targetDir, '.atta');
+
+  const SHARED_DIRS = ['knowledge', 'scripts', 'docs', 'bootstrap', '.metadata', '.context', '.sessions'];
+
+  mkdirSync(attaDir, { recursive: true });
+
+  for (const dir of SHARED_DIRS) {
+    const src = join(claudeDir, dir);
+    if (!existsSync(src)) continue;
+    const dest = join(attaDir, dir);
+    mkdirSync(dest, { recursive: true });
+    cpSync(src, dest, { recursive: true });
+    rmSync(src, { recursive: true });
   }
 }

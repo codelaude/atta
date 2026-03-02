@@ -4,7 +4,7 @@ node_modules/
 package-lock.json
 
 # Generated context files (keep README, ignore generated content)
-.claude/.context/recent.md
+.atta/.context/recent.md
 
 # User-specific settings (generated per-project by atta init)
 .claude/settings.local.json

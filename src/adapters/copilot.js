@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import pc from 'picocolors';
 import { listSkills } from './claude-code.js';
 import { generateAgentsMd } from './agents-md.js';
-import { copyAgentFiles, copyBootstrap } from './shared.js';
+import { copyAgentFiles, copyBootstrap, copySharedContent } from './shared.js';
 
 /**
  * Copilot CLI adapter — generates .github/skills/, .github/atta/agents/, and AGENTS.md.
@@ -25,11 +25,11 @@ const SKILL_RENAMES = Object.fromEntries(
   [...COPILOT_BUILTIN_CONFLICTS].map((name) => [name, `atta-${name}`])
 );
 
-export function install(frameworkRoot, targetDir, options = {}) {
+export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   const results = { files: 0 };
 
   // Generate AGENTS.md with Copilot-specific paths and renamed skills
-  const agentsMd = generateAgentsMd(frameworkRoot, {
+  const agentsMd = generateAgentsMd(claudeRoot, attaRoot, {
     skillPrefix: '/',
     agentBasePath: '.github/atta/agents',
     skillRenames: SKILL_RENAMES,
@@ -42,9 +42,9 @@ export function install(frameworkRoot, targetDir, options = {}) {
   }
 
   // Copy skills to .github/skills/ (renaming conflicting ones)
-  const skillsDir = join(frameworkRoot, 'skills');
+  const skillsDir = join(claudeRoot, 'skills');
   if (existsSync(skillsDir)) {
-    const skills = listSkills(frameworkRoot);
+    const skills = listSkills(claudeRoot);
     const githubSkillsDir = join(targetDir, '.github', 'skills');
 
     for (const skill of skills) {
@@ -86,7 +86,7 @@ export function install(frameworkRoot, targetDir, options = {}) {
 
   // Copy agent definitions to .github/atta/agents/ (avoids .github/agents/ namespace conflict)
   const agentCount = copyAgentFiles(
-    frameworkRoot,
+    claudeRoot,
     join(targetDir, '.github', 'atta', 'agents'),
     options
   );
@@ -98,8 +98,12 @@ export function install(frameworkRoot, targetDir, options = {}) {
     );
   }
 
-  // Copy bootstrap to .atta/bootstrap/ (shared assets for /atta skill)
-  const bootstrapCount = copyBootstrap(frameworkRoot, targetDir, options);
+  // Copy shared content to .atta/ (knowledge, scripts, docs, metadata, context)
+  const sharedCount = copySharedContent(attaRoot, targetDir, options);
+  results.files += sharedCount;
+
+  // Copy bootstrap to .atta/bootstrap/
+  const bootstrapCount = copyBootstrap(attaRoot, targetDir, options);
   results.files += bootstrapCount;
 
   // Copy .github/copilot-instructions.md (instruction file)

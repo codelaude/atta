@@ -5,19 +5,20 @@ import { readVersion } from '../lib/fs-utils.js';
 
 /**
  * Generate AGENTS.md content from framework source.
- * Used by Copilot, Codex, Cursor, and Aider adapters.
+ * Used by all adapters (Claude Code, Copilot, Codex, Gemini).
  *
- * @param {string} frameworkRoot - Path to canonical .claude/ source
+ * @param {string} claudeRoot - Path to .claude/ source (skills, agents)
+ * @param {string} attaRoot - Path to .atta/ source (metadata with version)
  * @param {object} [options] - Adapter-specific options
  * @param {string} [options.skillPrefix='/'] - Prefix for skill invocation (e.g., '/' or '$')
  * @param {string} [options.agentBasePath='.claude/agents'] - Base path for agent files in output
  * @param {Object<string,string>} [options.skillRenames={}] - Map of original→renamed skill names for conflict avoidance
  */
-export function generateAgentsMd(frameworkRoot, options = {}) {
+export function generateAgentsMd(claudeRoot, attaRoot, options = {}) {
   const { skillPrefix = '/', agentBasePath = '.claude/agents', skillRenames = {} } = options;
-  const skills = listSkills(frameworkRoot);
-  const agents = listAgents(frameworkRoot, agentBasePath);
-  const version = readVersion(frameworkRoot);
+  const skills = listSkills(claudeRoot);
+  const agents = listAgents(claudeRoot, agentBasePath);
+  const version = readVersion(attaRoot);
 
   const lines = [];
 
@@ -108,11 +109,11 @@ export function generateAgentsMd(frameworkRoot, options = {}) {
 
 /**
  * List agent definitions from framework source.
- * @param {string} frameworkRoot - Path to canonical .claude/ source
+ * @param {string} claudeRoot - Path to .claude/ source (agents live here)
  * @param {string} agentBasePath - Base path prefix for agent files in output
  */
-function listAgents(frameworkRoot, agentBasePath = '.claude/agents') {
-  const agentsDir = join(frameworkRoot, 'agents');
+function listAgents(claudeRoot, agentBasePath = '.claude/agents') {
+  const agentsDir = join(claudeRoot, 'agents');
   if (!existsSync(agentsDir)) return [];
 
   const agents = [];

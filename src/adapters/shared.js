@@ -1,22 +1,22 @@
 import { existsSync, mkdirSync, cpSync, readdirSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, dirname } from 'node:path';
 import pc from 'picocolors';
 
 /**
- * Shared utilities for non-Claude-Code adapters (Copilot, Codex, Gemini).
+ * Shared utilities for all adapters.
  */
 
 /**
  * Copy agent definition .md files from framework source to target directory.
  * Copies core agents, coordinators, and specialists.
  *
- * @param {string} frameworkRoot - Path to canonical .claude/ source
+ * @param {string} claudeRoot - Path to .claude/ source (agents live here)
  * @param {string} destAgentsDir - Target directory for agent files
  * @param {object} [options] - Options (quiet: boolean)
  * @returns {number} Number of files copied
  */
-export function copyAgentFiles(frameworkRoot, destAgentsDir, options = {}) {
-  const srcAgentsDir = join(frameworkRoot, 'agents');
+export function copyAgentFiles(claudeRoot, destAgentsDir, options = {}) {
+  const srcAgentsDir = join(claudeRoot, 'agents');
   if (!existsSync(srcAgentsDir)) return 0;
 
   let count = 0;
@@ -83,13 +83,13 @@ export function copyAgentFiles(frameworkRoot, destAgentsDir, options = {}) {
  * This makes detection YAML, agent templates, and mappings available
  * to the /atta skill regardless of which AI tool runs it.
  *
- * @param {string} frameworkRoot - Path to canonical .claude/ source
+ * @param {string} attaRoot - Path to .atta/ source (bootstrap lives here)
  * @param {string} targetDir - Project root where .atta/bootstrap/ will be created
  * @param {object} [options] - Options (quiet: boolean)
  * @returns {number} Number of files copied
  */
-export function copyBootstrap(frameworkRoot, targetDir, options = {}) {
-  const srcBootstrap = join(frameworkRoot, 'bootstrap');
+export function copyBootstrap(attaRoot, targetDir, options = {}) {
+  const srcBootstrap = join(attaRoot, 'bootstrap');
   if (!existsSync(srcBootstrap)) return 0;
 
   const destBootstrap = join(targetDir, '.atta', 'bootstrap');
@@ -108,6 +108,69 @@ export function copyBootstrap(frameworkRoot, targetDir, options = {}) {
   }
 
   return count;
+}
+
+/** Shared directories to copy from .atta/ source to .atta/ in the target */
+const SHARED_DIRS = [
+  'knowledge',
+  'scripts',
+  'docs',
+  '.metadata',
+  '.context',
+];
+
+/** Individual shared files to copy */
+const SHARED_FILES = [
+  '.sessions/schema.json',
+  '.sessions/README.md',
+  '.sessions/TRACKING_GUIDE.md',
+  '.sessions/SKILL_TEMPLATE.md',
+  '.sessions/INTEGRATION_EXAMPLE.md',
+];
+
+/**
+ * Copy shared (tool-agnostic) content from .atta/ source to .atta/ in the target project.
+ * Copies knowledge, scripts, docs, metadata, context, and session schema.
+ *
+ * @param {string} attaRoot - Path to .atta/ source
+ * @param {string} targetDir - Project root where .atta/ will be populated
+ * @param {object} [options] - Options (quiet: boolean)
+ * @returns {number} Number of files copied
+ */
+export function copySharedContent(attaRoot, targetDir, options = {}) {
+  const destAttaDir = join(targetDir, '.atta');
+  let totalCount = 0;
+
+  for (const dir of SHARED_DIRS) {
+    const src = join(attaRoot, dir);
+    const dest = join(destAttaDir, dir);
+    if (!existsSync(src)) continue;
+
+    mkdirSync(dest, { recursive: true });
+    cpSync(src, dest, { recursive: true });
+    const count = countFiles(dest);
+    totalCount += count;
+
+    if (!options.quiet) {
+      console.log(`  ${pc.green('✓')} .atta/${dir}/ (${count} files)`);
+    }
+  }
+
+  for (const file of SHARED_FILES) {
+    const src = join(attaRoot, file);
+    if (!existsSync(src)) continue;
+
+    const dest = join(destAttaDir, file);
+    mkdirSync(dirname(dest), { recursive: true });
+    cpSync(src, dest);
+    totalCount++;
+  }
+
+  if (!options.quiet && SHARED_FILES.length > 0) {
+    console.log(`  ${pc.green('✓')} .atta/.sessions/ (schema + templates)`);
+  }
+
+  return totalCount;
 }
 
 /**

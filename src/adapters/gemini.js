@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import pc from 'picocolors';
 import { listSkills } from './claude-code.js';
 import { generateAgentsMd } from './agents-md.js';
-import { copyAgentFiles, copyBootstrap } from './shared.js';
+import { copyAgentFiles, copyBootstrap, copySharedContent } from './shared.js';
 
 /**
  * Gemini CLI adapter — generates GEMINI.md, .gemini/commands/, and .gemini/agents/.
@@ -17,11 +17,11 @@ import { copyAgentFiles, copyBootstrap } from './shared.js';
  * Note: Gemini extensions are global-only (~/.gemini/extensions/),
  * so we don't generate gemini-extension.json at the project level.
  */
-export function install(frameworkRoot, targetDir, options = {}) {
+export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   const results = { files: 0 };
 
   // Generate GEMINI.md (same content as AGENTS.md, adapted for Gemini context)
-  const geminiMd = generateGeminiMd(frameworkRoot);
+  const geminiMd = generateGeminiMd(claudeRoot, attaRoot);
   writeFileSync(join(targetDir, 'GEMINI.md'), geminiMd);
   results.files++;
 
@@ -30,9 +30,9 @@ export function install(frameworkRoot, targetDir, options = {}) {
   }
 
   // Convert skills to TOML commands at .gemini/commands/
-  const skillsDir = join(frameworkRoot, 'skills');
+  const skillsDir = join(claudeRoot, 'skills');
   if (existsSync(skillsDir)) {
-    const skills = listSkills(frameworkRoot);
+    const skills = listSkills(claudeRoot);
     const commandsDir = join(targetDir, '.gemini', 'commands');
     mkdirSync(commandsDir, { recursive: true });
 
@@ -54,7 +54,7 @@ export function install(frameworkRoot, targetDir, options = {}) {
 
   // Copy agent definitions to .gemini/agents/
   const agentCount = copyAgentFiles(
-    frameworkRoot,
+    claudeRoot,
     join(targetDir, '.gemini', 'agents'),
     options
   );
@@ -66,8 +66,12 @@ export function install(frameworkRoot, targetDir, options = {}) {
     );
   }
 
-  // Copy bootstrap to .atta/bootstrap/ (shared assets for /atta skill)
-  const bootstrapCount = copyBootstrap(frameworkRoot, targetDir, options);
+  // Copy shared content to .atta/ (knowledge, scripts, docs, metadata, context)
+  const sharedCount = copySharedContent(attaRoot, targetDir, options);
+  results.files += sharedCount;
+
+  // Copy bootstrap to .atta/bootstrap/
+  const bootstrapCount = copyBootstrap(attaRoot, targetDir, options);
   results.files += bootstrapCount;
 
   return results;
@@ -108,9 +112,9 @@ function skillToToml(skill, skillFile) {
  * Generate GEMINI.md — context file for Gemini CLI.
  * Based on AGENTS.md content with Gemini-specific framing and paths.
  */
-function generateGeminiMd(frameworkRoot) {
+function generateGeminiMd(claudeRoot, attaRoot) {
   // Reuse the AGENTS.md generator with Gemini-specific paths
-  const agentsMd = generateAgentsMd(frameworkRoot, {
+  const agentsMd = generateAgentsMd(claudeRoot, attaRoot, {
     skillPrefix: '/',
     agentBasePath: '.gemini/agents',
   });

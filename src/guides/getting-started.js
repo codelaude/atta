@@ -134,7 +134,7 @@ export function generateGettingStarted(adapter, answers) {
     );
   }
   lines.push('');
-  lines.push('Edit anytime: `.claude/knowledge/project/developer-profile.md`');
+  lines.push('Edit anytime: `.atta/knowledge/project/developer-profile.md`');
   lines.push('');
 
   lines.push('Key settings:');

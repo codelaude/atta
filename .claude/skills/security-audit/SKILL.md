@@ -85,6 +85,12 @@ Apply these automated security checks to all files in scope:
 | Auth | No rate limiting | Login/register endpoints without throttling |
 | All | JWT in localStorage | Auth tokens stored in browser storage |
 | All | HTTP URLs (not HTTPS) | Insecure transport for API calls |
+| All | `JSON.parse()` / `pickle.load()` / `deserialize()` with user input | Unsafe deserialization |
+| All | `fetch()` / `axios()` / `http.get()` with user-controlled URLs | SSRF |
+| All | File operations after checks without locks | Race conditions / TOCTOU |
+| All | XML parsing without disabling external entities | XXE |
+| Auth | Missing password hashing, plaintext comparison | Broken Authentication |
+| Routes/API | Missing authorization middleware/guards | Broken Access Control |
 
 #### MEDIUM Checks (Fix in Sprint)
 
@@ -96,6 +102,8 @@ Apply these automated security checks to all files in scope:
 | All | Sensitive data in URLs | Passwords, tokens in query parameters |
 | All | Missing error boundaries | Unhandled exceptions that crash the process |
 | All | Unverified dependencies | No lock file or SRI for CDN resources |
+| All | `catch` blocks without logging | Insufficient Logging |
+| All | Security events without audit trail | Missing security event logging |
 
 **If `--quick` flag:** Only run CRITICAL checks, skip HIGH and MEDIUM.
 
@@ -225,8 +233,8 @@ password\s*=\s*"[^"]+"|password\s*=\s*'[^']+'
 ## Integration
 
 After `/security-audit`:
-- Run `/review` for full code review (includes security findings)
-- Run `/preflight` for complete pre-PR validation
+- Run `/review` for code quality review (framework patterns, performance, bug/logic)
+- Run `/preflight` for complete pre-PR validation (includes this scan automatically)
 - Use `/agent security-specialist` for interactive security guidance
 
 ---

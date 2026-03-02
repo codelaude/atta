@@ -19,13 +19,13 @@ The framework source files are stored in `.atta/.sessions/`:
 ### Generated Session Files (`{claudeDir}/.sessions/`)
 Session files are generated at runtime in your working directory:
 ```
-.atta/.sessions/
+{claudeDir}/.sessions/
 ├── session-2026-02-16-143000.json  # Generated session files
 └── session-2026-02-16-154530.json
 ```
 
 **Important**:
-- **Framework files** (docs, schema, scripts) live in `.claude/` and are committed
+- **Framework files** (docs, schema, scripts) live in `.atta/` and are committed
 - **Generated session files** live in `{claudeDir}/.sessions/` where `{claudeDir}` is determined by your settings
 - By default, `{claudeDir}` is `.claude/` (can be customized in settings.json)
 

@@ -19,7 +19,7 @@ You are running **project initialization** — interactive setup that configures
 Determine which AI tool is running this skill by checking which directories exist in the project root. This controls where you read bootstrap assets from and where you write generated files.
 
 **Detect adapter:**
-1. If `.atta/bootstrap/` exists → **Claude Code** (native)
+1. If `.claude/skills/` exists → **Claude Code** (native)
 2. Else if `.atta/bootstrap/` exists → **Non-Claude adapter** (Copilot, Codex, or Gemini)
 3. If neither exists → Warn the user: "Bootstrap assets not found. Run `npx atta-dev init --adapter <tool>` first to install the framework, then re-run /atta."
 
@@ -27,10 +27,10 @@ Determine which AI tool is running this skill by checking which directories exis
 
 | Path variable | Claude Code | Copilot (`.github/skills/`) | Codex (`.agents/skills/`) | Gemini (`.gemini/commands/`) |
 |---------------|-------------|---------------------------|-------------------------|---------------------------|
-| `{bootstrapDir}` | `.claude/bootstrap` | `.atta/bootstrap` | `.atta/bootstrap` | `.atta/bootstrap` |
-| `{knowledgeDir}` | `.claude/knowledge` | `.claude/knowledge` | `.claude/knowledge` | `.claude/knowledge` |
+| `{bootstrapDir}` | `.atta/bootstrap` | `.atta/bootstrap` | `.atta/bootstrap` | `.atta/bootstrap` |
+| `{knowledgeDir}` | `.atta/knowledge` | `.atta/knowledge` | `.atta/knowledge` | `.atta/knowledge` |
 | `{agentsDir}` | `.claude/agents` | `.github/atta/agents` | `.agents/agents` | `.gemini/agents` |
-| `{metadataDir}` | `.claude/.metadata` | `.claude/.metadata` | `.claude/.metadata` | `.claude/.metadata` |
+| `{metadataDir}` | `.atta/.metadata` | `.atta/.metadata` | `.atta/.metadata` | `.atta/.metadata` |
 
 **Sub-detect non-Claude adapter** (if `.atta/bootstrap/` was found):
 - If `.github/skills/` exists → Copilot → agents go to `.github/atta/agents/`

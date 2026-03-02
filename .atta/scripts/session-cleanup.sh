@@ -3,20 +3,18 @@
 # Session Cleanup Script
 # Keeps only the 10 most recent session files
 # Usage:
-#   .atta/scripts/session-cleanup.sh                    # Auto-detect (.atta/)
-#   .atta/scripts/session-cleanup.sh /path/to/attaDir   # Explicit attaDir
+#   .atta/scripts/session-cleanup.sh                         # Auto-detect (.atta/.sessions)
+#   .atta/scripts/session-cleanup.sh /path/to/sessionsRoot   # Explicit sessions root (e.g. .claude)
 
 set -euo pipefail
 
 # Load shared utilities
 source "$(dirname "${BASH_SOURCE[0]}")/lib/_common.sh"
 
-# Determine Atta directory (allow override via argument)
-ATTA_DIR="${1:-}"
-resolve_atta_dir
-validate_atta_dir
-
-SESSIONS_DIR="$ATTA_DIR/.sessions"
+# sessionsRoot: directory containing .sessions/ (default: .atta)
+# Sessions stay in {claudeDir} on Claude Code — pass $REAL_CLAUDE_DIR from the hook.
+SESSIONS_ROOT="${1:-.atta}"
+SESSIONS_DIR="$SESSIONS_ROOT/.sessions"
 MAX_SESSIONS=10
 
 # Check if sessions directory exists

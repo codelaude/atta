@@ -3,20 +3,24 @@
 # Recent Work Context Generator
 # Reads last 5 session files and produces .context/recent.md
 # Usage:
-#   .atta/scripts/generate-context.sh                    # Auto-detect (.atta/)
-#   .atta/scripts/generate-context.sh /path/to/attaDir   # Explicit attaDir
+#   .atta/scripts/generate-context.sh                                    # Auto-detect (.atta/)
+#   .atta/scripts/generate-context.sh <sessionsRoot> [attaRoot]          # Explicit roots
+#     sessionsRoot: directory containing .sessions/ (e.g. .claude on Claude Code)
+#     attaRoot:     directory containing .context/ and .metadata/ (default: .atta)
 
 set -euo pipefail
 
 # Load shared utilities
 source "$(dirname "${BASH_SOURCE[0]}")/lib/_common.sh"
 
-# Determine Atta directory (allow override via argument)
-ATTA_DIR="${1:-}"
+# sessionsRoot: where session JSON files live (may differ from attaRoot on Claude Code)
+SESSIONS_ROOT="${1:-.atta}"
+# attaRoot: where .context/ and .metadata/ live (always .atta in v2.8+)
+ATTA_DIR="${2:-}"
 resolve_atta_dir
 validate_atta_dir
 
-SESSIONS_DIR="$ATTA_DIR/.sessions"
+SESSIONS_DIR="$SESSIONS_ROOT/.sessions"
 CONTEXT_DIR="$ATTA_DIR/.context"
 OUTPUT_FILE="$CONTEXT_DIR/recent.md"
 MAX_RECENT=5

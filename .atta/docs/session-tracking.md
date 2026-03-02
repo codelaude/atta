@@ -165,7 +165,7 @@ Note: Disabling session tracking will prevent pattern detection features from wo
 
 ### Generated Files (Local, Gitignored)
 
-> **Note**: When `{claudeDir}` is set to a custom path (e.g., a separate workspace directory), session JSON files are written there — separate from the framework docs above. When using the default (`{claudeDir}` = `.claude`), session files co-exist alongside framework docs in `.atta/.sessions/`. The `.gitignore` pattern `*.json` in `.sessions/` ensures generated session files are not committed.
+> **Note**: Session JSON files are always written to `{claudeDir}/.sessions/` — separate from the framework docs in `.atta/.sessions/`. By default `{claudeDir}` = `.claude`, so sessions land in `.claude/.sessions/`. The `.gitignore` pattern `*.json` in `.sessions/` ensures generated session files are not committed.
 
 ```
 {claudeDir}/.sessions/

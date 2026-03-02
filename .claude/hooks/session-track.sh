@@ -132,9 +132,11 @@ with open(path, 'w') as f:
 PYEOF
 
     # Run cleanup and context generation
-    SCRIPTS="$REAL_CWD/.claude/scripts"
+    # session-cleanup: pass claudeDir as sessionsRoot (sessions live in {claudeDir}/.sessions/)
+    # generate-context: pass claudeDir as sessionsRoot, .atta as attaRoot (context in .atta/.context/)
+    SCRIPTS="$REAL_CWD/.atta/scripts"
     [ -f "$SCRIPTS/session-cleanup.sh" ] && bash "$SCRIPTS/session-cleanup.sh" "$REAL_CLAUDE_DIR" 2>/dev/null || true
-    [ -f "$SCRIPTS/generate-context.sh" ] && bash "$SCRIPTS/generate-context.sh" "$REAL_CLAUDE_DIR" 2>/dev/null || true
+    [ -f "$SCRIPTS/generate-context.sh" ] && bash "$SCRIPTS/generate-context.sh" "$REAL_CLAUDE_DIR" "$REAL_CWD/.atta" 2>/dev/null || true
     ;;
 esac
 

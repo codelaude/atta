@@ -109,7 +109,7 @@ async function runInstall(targetDir, adapterName, dryRun, answers) {
   const isUpdate = existsSync(claudeDir) || existsSync(attaDir);
 
   // Detect pre-v2.8 layout (shared content in .claude/ instead of .atta/)
-  const needsMigration = existsSync(join(claudeDir, 'knowledge')) && !existsSync(attaDir);
+  const needsMigration = existsSync(join(claudeDir, 'knowledge')) && !existsSync(join(attaDir, 'knowledge'));
 
   if (isUpdate) {
     if (needsMigration) {

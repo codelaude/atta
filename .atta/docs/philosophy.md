@@ -87,7 +87,7 @@ The system gets better because the context gets better — and the context is yo
 
 ### Why Static Files Over Dynamic Generation?
 
-**Context persistence.** Files in `.claude/` are:
+**Context persistence.** Files in `.claude/` and `.atta/` are:
 - ✅ Version controlled
 - ✅ Reviewable in PRs
 - ✅ Shared across team members
@@ -148,7 +148,7 @@ Agents suggest, don't dictate:
 
 ## Portability Philosophy
 
-The `.claude/` folder is the single source of truth. Design goal: **other tools should be able to read it directly.**
+The `.claude/` and `.atta/` directories together are the source of truth. Design goal: **the knowledge base should be portable across tools.**
 
 ### Cross-Tool Compatibility
 

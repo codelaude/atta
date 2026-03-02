@@ -29,19 +29,21 @@ Claude Code is the primary adapter with complete framework support.
 ### What Gets Installed
 ```
 project/
-├── .claude/                      # Full framework
+├── .claude/                      # Claude Code-specific files
 │   ├── agents/                   # Core + generated agents
+│   ├── hooks/                    # Session tracking hook
+│   ├── skills/*/SKILL.md         # Skill definitions
+│   └── settings.local.json       # Hook config + permissions
+├── .atta/                        # Tool-agnostic shared content
 │   ├── bootstrap/                # Tech detection + templates
 │   ├── docs/
-│   ├── hooks/                    # Session tracking
 │   ├── knowledge/
 │   ├── scripts/
-│   ├── skills/*/SKILL.md
 │   ├── .context/
-│   └── .metadata/
+│   ├── .metadata/
+│   └── .sessions/                # Schema + developer templates
 ├── .claude-plugin/plugin.json    # Plugin manifest
-├── CLAUDE.md                     # Instructions
-└── .claude/settings.local.json   # Hook config + permissions
+└── CLAUDE.md                     # Instructions
 ```
 
 ### Discovery Mechanism
@@ -343,6 +345,75 @@ Use !{shell command} to execute commands (requires user confirmation).
 ### Gemini-Specific
 - Extensions cannot auto-approve tool calls or set yolo mode
 - Configuration changes require CLI session restart
+
+---
+
+## Directory Layout (v2.8+)
+
+Atta uses a **dual-root** layout: tool-specific files go to `.claude/`, everything else goes to `.atta/`.
+
+### Why Two Directories?
+
+| Directory | Purpose | Who uses it |
+|-----------|---------|-------------|
+| `.claude/` | Claude Code discovery (agents, skills, hooks) | Claude Code only |
+| `.atta/` | Tool-agnostic shared content (knowledge, scripts, docs, bootstrap) | All adapters |
+
+The split exists because Claude Code discovers agents from `.claude/agents/` and skills from `.claude/skills/`. Other tools (Copilot, Codex, Gemini) install agents and skills to their own paths (`.github/atta/agents/`, `.agents/`, `.gemini/`) but all share the same `.atta/` for bootstrap assets, knowledge, and scripts.
+
+### What to Commit vs Gitignore
+
+**Commit** — framework content installed by `npx atta init`:
+```
+.claude/agents/           # Agent definitions
+.claude/hooks/            # Session tracking hook
+.claude/skills/           # Skill definitions
+.atta/bootstrap/          # Detection YAML, templates, mappings
+.atta/docs/               # Framework documentation
+.atta/knowledge/          # Pattern files, project context, directives
+.atta/scripts/            # Utility scripts
+.atta/.metadata/          # Version and file manifest
+.atta/.sessions/          # Schema, integration docs (not runtime JSON)
+```
+
+**Gitignore** — runtime-generated files:
+```
+.claude/.sessions/        # Runtime session JSON files (ephemeral)
+.atta/.context/           # Auto-generated recent.md (rebuilt on each run)
+.atta/.context/corrections.jsonl   # Pattern detection log
+.atta/.context/patterns-learned.json
+```
+
+The framework's own `.gitignore` includes these patterns automatically.
+
+### CI Environments
+
+Most Atta features work in CI without Claude Code running:
+
+| Feature | Works in CI? | Notes |
+|---------|:---:|-------|
+| Skills (as static markdown) | ✅ | Readable by any tool or human |
+| Agent definitions | ✅ | Readable by any tool or human |
+| Pattern files | ✅ | Checked in, always available |
+| Session tracking | ❌ | Requires Claude Code hooks |
+| Context generation (`recent.md`) | ❌ | Generated at runtime by hooks |
+| Pattern detection logging | ❌ | Requires hook execution |
+
+**Implication**: Skills that call `.atta/scripts/generate-context.sh` or `.atta/scripts/pattern-log.sh` will silently skip those steps in non-Claude-Code environments. Skill execution continues — only the tracking side-effects are skipped.
+
+### .gitignore Recommendations
+
+Add to your project's `.gitignore`:
+
+```
+# Atta runtime files (auto-generated, not committed)
+.claude/.sessions/
+.atta/.context/recent.md
+.atta/.context/corrections.jsonl
+.atta/.context/patterns-learned.json
+```
+
+The `.atta/.sessions/` directory contains **framework docs** (schema, templates) and **is committed**. Only the runtime JSON files in `.claude/.sessions/` (or `{claudeDir}/.sessions/`) are excluded.
 
 ---
 

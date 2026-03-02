@@ -52,7 +52,7 @@ Copilot, Codex, and Gemini adapters do not support hooks. Session tracking is sk
 
 ## Cleanup
 
-The hook auto-runs `session-cleanup.sh` (keeps 10 most recent sessions) and `generate-context.sh` (refreshes `{claudeDir}/.context/recent.md`) on session finalization.
+The hook auto-runs `session-cleanup.sh` (keeps 10 most recent sessions) and `generate-context.sh` (refreshes `.atta/.context/recent.md`) on session finalization.
 
 ## Manual Session Tracking (if hooks unavailable)
 

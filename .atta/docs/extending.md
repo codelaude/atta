@@ -175,7 +175,7 @@ custom_api_mcp:
 ## File Structure Reference
 
 ```
-.claude/
+.atta/
 ├── bootstrap/
 │   ├── detection/
 │   │   ├── frontend-detectors.yaml   # Add frontend framework detection here

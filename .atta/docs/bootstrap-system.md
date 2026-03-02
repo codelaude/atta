@@ -67,12 +67,11 @@ The core innovation in v2.x is **dynamic agent generation**. Instead of hardcodi
 
 **For a Vue + Django + PostgreSQL project:**
 ```
-.claude/
-agents/coordinators/
+.claude/agents/coordinators/
   ├── fe-team-lead.md          (coordinates Vue + TypeScript + SCSS)
   └── be-team-lead.md          (coordinates Python + Django + PostgreSQL)
 
-agents/specialists/
+.claude/agents/specialists/
   ├── vue.md                   (from framework-specialist template)
   ├── typescript.md            (from language-specialist template)
   ├── scss.md                  (from styling-specialist template)
@@ -84,14 +83,14 @@ agents/specialists/
   ├── jest.md                  (from testing-specialist template, FE)
   └── pytest.md                (from testing-specialist template, BE)
 
-knowledge/patterns/
+.atta/knowledge/patterns/
   ├── vue-patterns.md          (Composition API, reactivity, component structure)
   ├── python-patterns.md       (PEP 8, type hints, error handling)
   ├── django-patterns.md       (ORM, views, templates, DRF)
   ├── security-patterns.md     (OWASP Top 10 (2025), secrets, injection defenses)
   └── postgresql-patterns.md   (Query optimization, indexing, transactions)
 
-knowledge/project/
+.atta/knowledge/project/
   └── mcp-config.json          (Documentation MCP: Vue + Django docs,
                                 Database MCP: PostgreSQL connection,
                                 Browser MCP: accessibility testing)
@@ -99,11 +98,11 @@ knowledge/project/
 
 **For a React + Express + MongoDB project:**
 ```
-agents/coordinators/
+.claude/agents/coordinators/
   ├── fe-team-lead.md          (coordinates React + TypeScript + Tailwind)
   └── be-team-lead.md          (coordinates Node.js + Express + MongoDB)
 
-agents/specialists/
+.claude/agents/specialists/
   ├── react.md
   ├── typescript.md
   ├── tailwind.md
@@ -113,7 +112,7 @@ agents/specialists/
   ├── mongodb.md
   └── jest.md                  (handles Vitest/Jest, from testing-specialist template)
 
-knowledge/patterns/
+.atta/knowledge/patterns/
   ├── react-patterns.md        (Hooks, Context, component composition)
   ├── express-patterns.md      (Middleware, routing, error handling)
   ├── security-patterns.md     (OWASP checks, secrets management, API hardening)

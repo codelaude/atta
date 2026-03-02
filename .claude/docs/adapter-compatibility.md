@@ -129,7 +129,7 @@ The SKILL.md files are copied with updated frontmatter `name:` fields. The AGENT
 ### Limitations
 - No session tracking (no hook support)
 - No pattern detection or learning
-- No developer profile propagation
+- No runtime profile re-propagation (generation-time injection works via `/atta`; re-run `/atta --rescan` to re-apply after profile changes)
 
 ### SKILL.md Frontmatter
 
@@ -315,13 +315,13 @@ Use !{shell command} to execute commands (requires user confirmation).
 | Skill commands | `/name` | `/name` | `$name` | `/name` |
 | Session tracking | Yes | — | — | — |
 | Pattern detection | Yes | — | — | — |
-| Developer profile | Yes | — | — | — |
+| Developer profile | Yes | Gen-time | Gen-time | Gen-time |
 | Context generation | Yes | — | — | — |
 | Implicit skill match | — | Yes | Yes | — |
 | Custom instructions | CLAUDE.md | Multi-source | Multi-level | Hierarchical |
 | Update system | Yes | — | — | — |
 
-**Legend**: Yes = supported, — = not available
+**Legend**: Yes = full support, Gen-time = generation-time only (via `/atta`), — = not available
 
 ---
 

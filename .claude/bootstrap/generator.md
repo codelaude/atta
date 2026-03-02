@@ -241,12 +241,12 @@ Currently: `prompt-engineer` (context enrichment specialist for `/optimize`).
 
 ### Agent Generation Queue
 
-Build the complete list of agents to generate:
+Build the complete list of agents to generate (all items are `{ id, mapping }` objects):
 ```javascript
 generation_queue = [
   ...coordinators_to_generate,
   ...specialists_from_mappings,
-  ...utility_agents,
+  // utility agents already pushed in the loop above
   ...universal_agents_if_missing
 ]
 ```

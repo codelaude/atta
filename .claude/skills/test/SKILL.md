@@ -20,7 +20,7 @@ You are running the project's test suite with intelligent framework detection.
 
 ## Step 1: Detect Test Framework
 
-Read `.claude/knowledge/project/project-context.md` for the detected test framework and commands.
+Read `.atta/knowledge/project/project-context.md` for the detected test framework and commands.
 
 If project-context.md is unavailable or doesn't specify test commands, auto-detect by checking:
 

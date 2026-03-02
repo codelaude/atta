@@ -48,7 +48,7 @@ If `--rephrase` is used, also check the recent conversation context — the user
 
 Read these files to build the enrichment context:
 
-1. **`.claude/knowledge/project/project-context.md`** (required)
+1. **`.atta/knowledge/project/project-context.md`** (required)
    - Tech stack, key paths, build commands, git workflow
    - Architectural patterns (if `## Architectural Patterns` section exists)
    - Preferences (if `## Preferences` section exists)
@@ -57,7 +57,7 @@ Read these files to build the enrichment context:
    - Determine which patterns apply from the prompt content (e.g., a React task → read `patterns/react-patterns.md`)
    - Read at most 2 pattern files — distill to key rules, don't dump full contents
 
-3. **`.claude/knowledge/project/developer-profile.md`** (optional)
+3. **`.atta/knowledge/project/developer-profile.md`** (optional)
    - If it exists and has checked preferences, extract response style and code preferences
 
 If `project-context.md` does not exist, inform the user: "No project context found. Run `/atta` first to detect your tech stack and generate project context."

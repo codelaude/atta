@@ -55,11 +55,31 @@ if len(data['skills']) < 3:
 " 2>/dev/null || ERRORS=$((ERRORS + 1))
 fi
 
+# Check .atta/ shared content exists
+if [ ! -d "$TMPDIR/.atta/bootstrap" ]; then
+  echo "FAIL: .atta/bootstrap/ directory missing"
+  ERRORS=$((ERRORS + 1))
+elif [ ! -f "$TMPDIR/.atta/bootstrap/generator.md" ]; then
+  echo "FAIL: .atta/bootstrap/generator.md missing"
+  ERRORS=$((ERRORS + 1))
+fi
+
+if [ ! -d "$TMPDIR/.atta/knowledge" ]; then
+  echo "FAIL: .atta/knowledge/ directory missing"
+  ERRORS=$((ERRORS + 1))
+fi
+
+if [ ! -d "$TMPDIR/.atta/scripts" ]; then
+  echo "FAIL: .atta/scripts/ directory missing"
+  ERRORS=$((ERRORS + 1))
+fi
+
 # Count total files
-FILE_COUNT=$(find "$TMPDIR/.claude" -type f 2>/dev/null | wc -l | tr -d ' ')
+CLAUDE_COUNT=$(find "$TMPDIR/.claude" -type f 2>/dev/null | wc -l | tr -d ' ')
+ATTA_COUNT=$(find "$TMPDIR/.atta" -type f 2>/dev/null | wc -l | tr -d ' ')
 
 if [ $ERRORS -eq 0 ]; then
-  echo "PASS: Claude adapter output structure correct ($FILE_COUNT files in .claude/)"
+  echo "PASS: Claude adapter output structure correct ($CLAUDE_COUNT files in .claude/, $ATTA_COUNT files in .atta/)"
   exit 0
 else
   echo "FAIL: $ERRORS errors found"

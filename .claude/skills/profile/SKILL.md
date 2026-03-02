@@ -31,7 +31,7 @@ You are now acting as the **Profile Manager** — responsible for viewing, updat
 
 ### Step 1: Read Profile
 
-Read `.claude/knowledge/project/developer-profile.md`.
+Read `.atta/knowledge/project/developer-profile.md`.
 
 If the file does not exist or contains only the unfilled template (no `[x]` checkboxes), show:
 
@@ -152,7 +152,7 @@ Options:
 
 ### Step 4: Write Profile
 
-Read the current `.claude/knowledge/project/developer-profile.md` template.
+Read the current `.atta/knowledge/project/developer-profile.md` template.
 
 Update the checkboxes based on the user's answers:
 - Set `[x]` for selected options, `[ ]` for unselected
@@ -162,7 +162,7 @@ Update the checkboxes based on the user's answers:
 - Map Q4 → "Code Ownership" section
 - Map Q5 → "Error Handling" section
 
-Write the updated file back to `.claude/knowledge/project/developer-profile.md`.
+Write the updated file back to `.atta/knowledge/project/developer-profile.md`.
 
 > Preserve all other sections unchanged. Only update the 5 sections corresponding to the questions asked.
 
@@ -184,7 +184,7 @@ Profile updated with core preferences. Now applying to your project...
 
 ### Step 3c: Detect Already-Configured Sections
 
-Read `.claude/knowledge/project/developer-profile.md`. For each section below, check if it's already configured. **Skip any section that's already configured.**
+Read `.atta/knowledge/project/developer-profile.md`. For each section below, check if it's already configured. **Skip any section that's already configured.**
 
 A section is "configured" if:
 - It has at least one `[x]` checkbox, OR
@@ -284,7 +284,7 @@ If the user provides preferences, update the Naming Conventions section in `deve
 
 ### Step 3g: Write Profile Updates
 
-Read the current `.claude/knowledge/project/developer-profile.md`.
+Read the current `.atta/knowledge/project/developer-profile.md`.
 
 Update only the sections corresponding to the questions asked in this --complete run:
 - Map C1 → "Exception Cases" section
@@ -310,7 +310,7 @@ Profile completed! All sections configured. Now applying to your project...
 
 ### Step 5: Parse Profile
 
-Read `.claude/knowledge/project/developer-profile.md`.
+Read `.atta/knowledge/project/developer-profile.md`.
 
 If the file does not exist or has no checked items:
 
@@ -338,7 +338,7 @@ Extract the checked preferences into structured data:
 
 ### Step 6: Update project-context.md Preferences Section
 
-Read `.claude/knowledge/project/project-context.md`.
+Read `.atta/knowledge/project/project-context.md`.
 
 Write or replace a `## Preferences` section at the end of the file. The section must be 3-5 lines — distilled, not verbose.
 
@@ -410,12 +410,12 @@ Report what was propagated:
 ### Profile File Not Found
 
 ```markdown
-Developer profile not found at `.claude/knowledge/project/developer-profile.md`.
+Developer profile not found at `.atta/knowledge/project/developer-profile.md`.
 
 Recovery options:
 1. Run `/profile --update` to create one interactively
 2. Run `npx atta-dev init` to set up the full project (includes profile)
-3. Copy the template manually from `.claude/knowledge/project/developer-profile.md`
+3. Copy the template manually from `.atta/knowledge/project/developer-profile.md`
 ```
 
 ### project-context.md Not Found

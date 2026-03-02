@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
 # Pattern Correction Logger
-# Appends a correction event to {claudeDir}/.context/corrections.jsonl
+# Appends a correction event to .atta/.context/corrections.jsonl
 # Usage:
-#   .claude/scripts/pattern-log.sh {claudeDir} '{"category":"correction","pattern":"key","description":"...","context":{},"source":"manual"}'
-#   .claude/scripts/pattern-log.sh              '{"category":"correction","pattern":"key","description":"...","context":{},"source":"manual"}'
-#   .claude/scripts/pattern-log.sh {claudeDir} << 'PAYLOAD'
+#   .atta/scripts/pattern-log.sh {attaDir} '{"category":"correction","pattern":"key","description":"...","context":{},"source":"manual"}'
+#   .atta/scripts/pattern-log.sh            '{"category":"correction","pattern":"key","description":"...","context":{},"source":"manual"}'
+#   .atta/scripts/pattern-log.sh {attaDir} << 'PAYLOAD'
 #   {"category":"correction","pattern":"key","description":"...","context":{},"source":"manual"}
 #   PAYLOAD
 #
@@ -19,36 +19,36 @@ set -euo pipefail
 # Load shared utilities
 source "$(dirname "${BASH_SOURCE[0]}")/lib/_common.sh"
 
-# Determine Claude directory and JSON payload
+# Determine Atta directory and JSON payload
 # Supports three calling conventions:
-#   pattern-log.sh <claudeDir> '<json>'       # both as arguments
-#   pattern-log.sh '<json>'                   # payload only, auto-detect claudeDir
-#   pattern-log.sh <claudeDir> <<< '<json>'   # payload via stdin (safe for untrusted text)
+#   pattern-log.sh <attaDir> '<json>'       # both as arguments
+#   pattern-log.sh '<json>'                 # payload only, auto-detect attaDir
+#   pattern-log.sh <attaDir> <<< '<json>'   # payload via stdin (safe for untrusted text)
 if [ $# -ge 2 ]; then
-  CLAUDE_DIR="$1"
+  ATTA_DIR="$1"
   JSON_PAYLOAD="$2"
 elif [ $# -eq 1 ]; then
-  # Check if stdin has data (heredoc/pipe) — if so, $1 is claudeDir
+  # Check if stdin has data (heredoc/pipe) — if so, $1 is attaDir
   if [ ! -t 0 ]; then
-    CLAUDE_DIR="$1"
+    ATTA_DIR="$1"
     JSON_PAYLOAD="$(cat)"
   else
     JSON_PAYLOAD="$1"
-    CLAUDE_DIR=""
+    ATTA_DIR=""
   fi
 elif [ $# -eq 0 ] && [ ! -t 0 ]; then
-  CLAUDE_DIR=""
+  ATTA_DIR=""
   JSON_PAYLOAD="$(cat)"
 else
-  echo "Usage: pattern-log.sh [claudeDir] '{json-payload}'" >&2
-  echo "       pattern-log.sh <claudeDir> <<< '{json-payload}'" >&2
+  echo "Usage: pattern-log.sh [attaDir] '{json-payload}'" >&2
+  echo "       pattern-log.sh <attaDir> <<< '{json-payload}'" >&2
   exit 1
 fi
 
-resolve_claude_dir
-validate_claude_dir
+resolve_atta_dir
+validate_atta_dir
 
-CONTEXT_DIR="$CLAUDE_DIR/.context"
+CONTEXT_DIR="$ATTA_DIR/.context"
 CORRECTIONS_FILE="$CONTEXT_DIR/corrections.jsonl"
 
 # Require python3 for safe JSON handling

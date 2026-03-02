@@ -26,4 +26,4 @@ description: {{DESCRIPTION}}
 
 ## Adding New Templates
 
-Create a `.template.md` file here and add a corresponding mapping in `.claude/bootstrap/mappings/skill-mappings.yaml`.
+Create a `.template.md` file here and add a corresponding mapping in `.atta/bootstrap/mappings/skill-mappings.yaml`.

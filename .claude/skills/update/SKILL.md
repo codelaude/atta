@@ -30,7 +30,7 @@ Never manually copy a new `.claude/` folder over your existing one.
 ### Mode Selection
 
 - Default: auto-selects from metadata:
-  - `upgrade` when `.claude/.metadata/file-manifest.json` exists
+  - `upgrade` when `.atta/.metadata/file-manifest.json` exists
   - `migration-bootstrap` when it is missing
 - Override: `--mode upgrade|migration|migration-bootstrap`
 
@@ -52,7 +52,7 @@ Never manually copy a new `.claude/` folder over your existing one.
 1. `--from` path provided for check/pull, must contain `.metadata/version`
 2. Optional `--mode` override is valid
 3. Clean working directory (no uncommitted `.claude/` changes)
-4. `.claude/.metadata/framework-version` used for comparison (created by `/atta`)
+4. `.atta/.metadata/framework-version` used for comparison (created by `/atta`)
 
 ---
 
@@ -92,8 +92,8 @@ When user runs `/update check`:
 ```
 
 Read versions from:
-- `.claude/.metadata/version` — current version
-- `.claude/.metadata/framework-version` — last applied framework version
+- `.atta/.metadata/version` — current version
+- `.atta/.metadata/framework-version` — last applied framework version
 - `$SOURCE_CLAUDE_DIR/.metadata/version` — incoming version
 
 ### 1.2. Report
@@ -115,7 +115,7 @@ If already up to date: `You're on the latest framework version ({{CURRENT_VERSIO
 
 ### 2.1. Classify and Compare
 
-- Read `.claude/.metadata/file-manifest.json` for file hashes and categories
+- Read `.atta/.metadata/file-manifest.json` for file hashes and categories
 - For Tier 1: compare hashes, list changed files
 - For Tier 2: detect customizations, show diff, recommend merge strategy
 - Tier 3: list as preserved

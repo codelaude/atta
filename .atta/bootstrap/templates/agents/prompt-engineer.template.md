@@ -24,9 +24,9 @@
 
 Read these files to build enrichment context (in order of priority):
 
-1. `.claude/knowledge/project/project-context.md` — tech stack, paths, build commands, architectural patterns, preferences
-2. `.claude/knowledge/patterns/*.md` — framework patterns and conventions (only the relevant ones for the task)
-3. `.claude/knowledge/project/developer-profile.md` — user's working style and preferences (if available)
+1. `.atta/knowledge/project/project-context.md` — tech stack, paths, build commands, architectural patterns, preferences
+2. `.atta/knowledge/patterns/*.md` — framework patterns and conventions (only the relevant ones for the task)
+3. `.atta/knowledge/project/developer-profile.md` — user's working style and preferences (if available)
 
 ## Enrichment Strategy
 
@@ -86,7 +86,7 @@ The enriched prompt should follow this structure:
 
 ## Knowledge Base
 
-- `.claude/knowledge/patterns/{{PATTERN_FILE}}`
+- `.atta/knowledge/patterns/{{PATTERN_FILE}}`
 
 ## Escalation
 

@@ -157,11 +157,11 @@ When specialists disagree:
 
 ## Knowledge Base
 
-- **Primary**: Pattern files in `.claude/knowledge/patterns/`
+- **Primary**: Pattern files in `.atta/knowledge/patterns/`
 {{#each PATTERN_FILES}}
-  - `.claude/knowledge/patterns/{{this}}`
+  - `.atta/knowledge/patterns/{{this}}`
 {{/each}}
-- **Project Context**: `.claude/knowledge/project/project-context.md`
+- **Project Context**: `.atta/knowledge/project/project-context.md`
 - **Web Resources**: Framework and styling documentation (via specialists)
 - **Accessibility**: WAI-ARIA APG, WCAG guidelines (via accessibility specialist)
 

@@ -19,7 +19,7 @@ You are running **project initialization** — interactive setup that configures
 Determine which AI tool is running this skill by checking which directories exist in the project root. This controls where you read bootstrap assets from and where you write generated files.
 
 **Detect adapter:**
-1. If `.claude/bootstrap/` exists → **Claude Code** (native)
+1. If `.atta/bootstrap/` exists → **Claude Code** (native)
 2. Else if `.atta/bootstrap/` exists → **Non-Claude adapter** (Copilot, Codex, or Gemini)
 3. If neither exists → Warn the user: "Bootstrap assets not found. Run `npx atta-dev init --adapter <tool>` first to install the framework, then re-run /atta."
 
@@ -37,7 +37,7 @@ Determine which AI tool is running this skill by checking which directories exis
 - Else if `.agents/skills/` exists → Codex → agents go to `.agents/agents/`
 - Else if `.gemini/commands/` exists → Gemini → agents go to `.gemini/agents/`
 
-**Use `{bootstrapDir}`, `{knowledgeDir}`, `{agentsDir}`, and `{metadataDir}` for ALL paths below.** When this document says `.claude/bootstrap/...`, read it as `{bootstrapDir}/...`. When it says `.claude/knowledge/...`, read it as `{knowledgeDir}/...`. When it says `.claude/agents/...`, read it as `{agentsDir}/...`. When it says `.claude/.metadata/...`, read it as `{metadataDir}/...`.
+**Use `{bootstrapDir}`, `{knowledgeDir}`, `{agentsDir}`, and `{metadataDir}` for ALL paths below.** When this document says `.atta/bootstrap/...`, read it as `{bootstrapDir}/...`. When it says `.atta/knowledge/...`, read it as `{knowledgeDir}/...`. When it says `.claude/agents/...`, read it as `{agentsDir}/...`. When it says `.atta/.metadata/...`, read it as `{metadataDir}/...`.
 
 ---
 
@@ -79,7 +79,7 @@ Ask if user wants MCP (Model Context Protocol) servers. Describe briefly: live d
 2. If < 18 and nvm available: list Node 18+ versions, let user pick.
 3. If no Node 18+: offer to skip MCPs, user can install and rerun `/atta`.
 
-**MCP Recommendations:** Read `.claude/bootstrap/mappings/mcp-mappings.yaml` for stack-specific recommendations. Present with multiSelect AskUserQuestion:
+**MCP Recommendations:** Read `.atta/bootstrap/mappings/mcp-mappings.yaml` for stack-specific recommendations. Present with multiSelect AskUserQuestion:
 - **Context7** (always recommended) — live, version-specific docs. Requires API key (free tier).
 - **Database MCP** (if database detected) — schema inspection, query validation. Needs connection string.
 - **Browser MCP** (if frontend detected) — E2E testing, accessibility.
@@ -274,7 +274,7 @@ Present detected stack to user: project root, command directory, package manager
 
 ### project-context.md
 
-Write `.claude/knowledge/project/project-context.md`:
+Write `.atta/knowledge/project/project-context.md`:
 
 ```markdown
 # Project Context
@@ -332,7 +332,7 @@ Each pattern file: key rules from existing code, anti-patterns, conventions, doc
 **If a PR template was detected in the PR Template Detection step (Phase 2):**
 
 1. Read the detected template's full content
-2. Overwrite `.claude/knowledge/templates/pr-template.md` with a mapped version that:
+2. Overwrite `.atta/knowledge/templates/pr-template.md` with a mapped version that:
    - Keeps the standard Atta frontmatter (`applyTo`, `description`)
    - Keeps the Atta file structure (Header, Suggested Commit Message, PR Title, PR Description)
    - Adds a **"Project PR Template"** section containing the original template verbatim in a code block (use a longer fence like ```````` or `~~~~` if the template itself contains triple backticks)
@@ -343,7 +343,7 @@ Each pattern file: key rules from existing code, anti-patterns, conventions, doc
 
 ### Pre-Fill Developer Profile
 
-If convention detection (Phase 2) produced results, update `.claude/knowledge/project/developer-profile.md`:
+If convention detection (Phase 2) produced results, update `.atta/knowledge/project/developer-profile.md`:
 
 **Naming Conventions section** — Replace the placeholder values with detected conventions:
 
@@ -388,7 +388,7 @@ Write all to `.claude/agents/INDEX.md` with auto-generated header and timestamp.
 
 ## Phase 6: Configure MCP Servers
 
-If user selected MCPs, write `.claude/knowledge/project/mcp-config.json`:
+If user selected MCPs, write `.atta/knowledge/project/mcp-config.json`:
 
 ```json
 {
@@ -414,7 +414,7 @@ For agents with MCP access, add an "MCP Capabilities" section to their generated
 
 ## Phase 7: Generate Manifest
 
-Write `.claude/.metadata/generated-manifest.json` tracking: version (`{{FRAMEWORK_VERSION}}`), timestamp, project root, detected stack array, and all generated files (agents with templates, patterns, config). Also list configured MCP servers.
+Write `.atta/.metadata/generated-manifest.json` tracking: version (`{{FRAMEWORK_VERSION}}`), timestamp, project root, detected stack array, and all generated files (agents with templates, patterns, config). Also list configured MCP servers.
 
 Update `.metadata/last-init` with current timestamp.
 
@@ -422,7 +422,7 @@ Update `.metadata/last-init` with current timestamp.
 
 ## Phase 8: Create File Manifest
 
-Write `.claude/.metadata/file-manifest.json` for the update system. Minimal skeleton:
+Write `.atta/.metadata/file-manifest.json` for the update system. Minimal skeleton:
 
 ```json
 {
@@ -452,7 +452,7 @@ Populate `files` with one entry per generated/framework file. For `"generated"` 
 
 > **PR template override:** If a custom `pr-template.md` was generated in Phase 4 (mapped to project's existing PR template), classify `knowledge/templates/pr-template.md` as `tier_3_never_touch` instead of `tier_1_safe_replace` — it contains project-specific mapping that must not be overwritten by framework updates.
 
-Also write `.claude/.metadata/framework-version` (`{{FRAMEWORK_VERSION}}`) and `.claude/.metadata/update-history.json` with initial setup entry.
+Also write `.atta/.metadata/framework-version` (`{{FRAMEWORK_VERSION}}`) and `.atta/.metadata/update-history.json` with initial setup entry.
 
 ---
 
@@ -470,7 +470,7 @@ Display initialization summary: files created/updated, active agents table, quic
 - Re-check for PR templates (if one is now present or changed, regenerate `pr-template.md` mapping)
 - Update pattern files with new findings
 - Preserve manual edits (only update auto-generated sections)
-- **Apply developer profile**: If `.claude/knowledge/project/developer-profile.md` exists and has checked items, run the `/profile --apply` logic (Steps 5-6 from profile/SKILL.md) — parse the profile, write/replace the `## Preferences` section in `project-context.md`. This ensures profile preferences stay in sync after regeneration without requiring a separate `/profile --apply` call.
+- **Apply developer profile**: If `.atta/knowledge/project/developer-profile.md` exists and has checked items, run the `/profile --apply` logic (Steps 5-6 from profile/SKILL.md) — parse the profile, write/replace the `## Preferences` section in `project-context.md`. This ensures profile preferences stay in sync after regeneration without requiring a separate `/profile --apply` call.
 - **Update detection sources**: Record current mtimes of all detection source files (package.json, lock files, config files) in `generated-manifest.json` `detection_sources` field. This resets the staleness baseline so `generate-context.sh` won't warn until files change again.
 - Report what changed (include architectural patterns, profile propagation status, and staleness reset in the report)
 

@@ -375,7 +375,7 @@ After all template substitution is complete, append a `## Developer Preferences`
 
 **Step 1: Parse profile**
 
-Read `.claude/knowledge/project/developer-profile.md`. If the file doesn't exist or has no `[x]` checkboxes, skip profile injection entirely.
+Read `.atta/knowledge/project/developer-profile.md`. If the file doesn't exist or has no `[x]` checkboxes, skip profile injection entirely.
 
 Extract checked preferences:
 

@@ -6,7 +6,7 @@ The entire bootstrap system is configuration-driven. **No code changes required*
 
 ### 1. Add Detection Rule
 
-Add to the appropriate file in `.claude/bootstrap/detection/`:
+Add to the appropriate file in `.atta/bootstrap/detection/`:
 - `frontend-detectors.yaml`
 - `backend-detectors.yaml`
 - `database-detectors.yaml`
@@ -34,7 +34,7 @@ remix:
 
 ### 2. Add Agent Mapping
 
-Add to `.claude/bootstrap/mappings/agent-mappings.yaml`:
+Add to `.atta/bootstrap/mappings/agent-mappings.yaml`:
 
 ```yaml
 remix:
@@ -65,7 +65,7 @@ remix:
 
 ### 3. Create Pattern Template (Optional)
 
-Create `.claude/bootstrap/templates/patterns/remix-patterns.template.md`:
+Create `.atta/bootstrap/templates/patterns/remix-patterns.template.md`:
 
 ```markdown
 # Remix Patterns
@@ -133,7 +133,7 @@ That's it! The new technology will be:
 
 ## Adding Custom MCP Servers
 
-Add to `.claude/bootstrap/mappings/mcp-mappings.yaml`:
+Add to `.atta/bootstrap/mappings/mcp-mappings.yaml`:
 
 ```yaml
 custom_api_mcp:

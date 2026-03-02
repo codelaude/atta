@@ -54,15 +54,15 @@ When multiple specialists needed, coordinate through {{TEAM_LEAD}}.
 
 ## Knowledge Base
 
-- **Primary**: Pattern files in `.claude/knowledge/patterns/` (when available)
+- **Primary**: Pattern files in `.atta/knowledge/patterns/` (when available)
   {{#if PATTERN_FILE}}
-  - Specifically: `.claude/knowledge/patterns/{{PATTERN_FILE}}`
+  - Specifically: `.atta/knowledge/patterns/{{PATTERN_FILE}}`
   {{/if}}
 - **Web Resources**:
 {{#each DOCUMENTATION_URLS}}
   - {{this}}
 {{/each}}
-- **Project Context**: `.claude/knowledge/project/project-context.md`
+- **Project Context**: `.atta/knowledge/project/project-context.md`
 
 {{#if HAS_MCP_ACCESS}}
 ## MCP Capabilities

@@ -5,10 +5,10 @@ Tracks skill invocations and agent usage across sessions to enable future featur
 
 ## Structure
 
-### Framework Files (`.claude/.sessions/`)
-The framework source files are stored in `.claude/.sessions/`:
+### Framework Files (`.atta/.sessions/`)
+The framework source files are stored in `.atta/.sessions/`:
 ```
-.claude/.sessions/
+.atta/.sessions/
 ├── README.md                    # This file (framework documentation)
 ├── schema.json                  # JSON Schema definition (framework)
 ├── TRACKING_GUIDE.md            # Developer integration guide (framework)
@@ -19,7 +19,7 @@ The framework source files are stored in `.claude/.sessions/`:
 ### Generated Session Files (`{claudeDir}/.sessions/`)
 Session files are generated at runtime in your working directory:
 ```
-.claude/.sessions/
+.atta/.sessions/
 ├── session-2026-02-16-143000.json  # Generated session files
 └── session-2026-02-16-154530.json
 ```

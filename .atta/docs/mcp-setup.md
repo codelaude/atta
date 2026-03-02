@@ -9,7 +9,7 @@ The bootstrap system automates MCP configuration during `/atta`:
 1. **Detects your needs** during `/atta` interview
 2. **Checks Node.js version** (MCP servers require Node.js 18+)
 3. **Recommends servers** based on detected stack
-4. **Generates config**: `.claude/knowledge/project/mcp-config.json` with proper paths for nvm users
+4. **Generates config**: `.atta/knowledge/project/mcp-config.json` with proper paths for nvm users
 5. **Updates agents**: Adds "MCP Capabilities" sections to relevant specialists
 
 ## Recommended MCP Servers

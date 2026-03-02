@@ -271,5 +271,5 @@ Security specialist or patterns not available.
 Recovery options:
 1. Run `/atta` to generate security specialist
 2. Continue with built-in OWASP checks (default patterns in this skill)
-3. Create security patterns manually at `.claude/knowledge/patterns/security-patterns.md`
+3. Create security patterns manually at `.atta/knowledge/patterns/security-patterns.md`
 ```

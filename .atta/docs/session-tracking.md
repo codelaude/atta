@@ -151,21 +151,21 @@ Note: Disabling session tracking will prevent pattern detection features from wo
 .claude/hooks/
 └── session-track.sh         # Hook script (lifecycle management)
 
-.claude/.sessions/
+.atta/.sessions/
 ├── README.md                # Technical overview
 ├── schema.json              # JSON Schema definition
 ├── TRACKING_GUIDE.md        # Developer integration guide
 ├── SKILL_TEMPLATE.md        # Integration template
 └── INTEGRATION_EXAMPLE.md   # Before/after example
 
-.claude/scripts/
+.atta/scripts/
 ├── session-cleanup.sh       # Automatic cleanup utility
 └── generate-context.sh      # Context regeneration
 ```
 
 ### Generated Files (Local, Gitignored)
 
-> **Note**: When `{claudeDir}` is set to a custom path (e.g., a separate workspace directory), session JSON files are written there — separate from the framework docs above. When using the default (`{claudeDir}` = `.claude`), session files co-exist alongside framework docs in `.claude/.sessions/`. The `.gitignore` pattern `*.json` in `.sessions/` ensures generated session files are not committed.
+> **Note**: When `{claudeDir}` is set to a custom path (e.g., a separate workspace directory), session JSON files are written there — separate from the framework docs above. When using the default (`{claudeDir}` = `.claude`), session files co-exist alongside framework docs in `.atta/.sessions/`. The `.gitignore` pattern `*.json` in `.sessions/` ensures generated session files are not committed.
 
 ```
 {claudeDir}/.sessions/
@@ -194,7 +194,7 @@ A: No. Hook-based tracking runs externally with <10ms overhead. Skills have zero
 A: No problem! Session tracking is non-critical. Skills will continue working. New sessions will be created as you use skills.
 
 **Q: Can I change the retention policy?**
-A: Yes. Edit `MAX_SESSIONS=10` in `.claude/scripts/session-cleanup.sh` to keep more or fewer sessions.
+A: Yes. Edit `MAX_SESSIONS=10` in `.atta/scripts/session-cleanup.sh` to keep more or fewer sessions.
 
 **Q: Does this work with Copilot/Codex/Gemini?**
 A: No. Session tracking requires Claude Code hooks. Other tools skip tracking entirely.

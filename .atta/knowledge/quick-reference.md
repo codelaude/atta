@@ -8,7 +8,7 @@ format: decision_tree
 
 > **Purpose:** Fast lookups for common decisions and anti-patterns.
 > **Setup:** This file will be populated by `/atta` based on your detected tech stack,  or you can add project-specific rules manually.
-> **Note:** Tech-specific patterns (Vue, React, Django, etc.) belong in `.claude/knowledge/patterns/[tech]-patterns.md`
+> **Note:** Tech-specific patterns (Vue, React, Django, etc.) belong in `.atta/knowledge/patterns/[tech]-patterns.md`
 
 ---
 
@@ -158,7 +158,7 @@ _This section will be populated by `/atta` based on your stack._
 
 ## Integration with Pattern Files
 
-**Pattern files** (`.claude/knowledge/patterns/[tech]-patterns.md`) contain:
+**Pattern files** (`.atta/knowledge/patterns/[tech]-patterns.md`) contain:
 - Language/framework-specific best practices
 - Detailed code examples
 - Anti-patterns with fixes

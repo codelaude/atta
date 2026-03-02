@@ -17,7 +17,7 @@ rm -rf .claude_staging
 
 `/update` automatically chooses the right mode:
 - **Upgrade mode** (default) when update tracking metadata exists
-- **Migration-bootstrap mode** when `.claude/.metadata/file-manifest.json` is missing
+- **Migration-bootstrap mode** when `.atta/.metadata/file-manifest.json` is missing
 - **Migration mode** for structural transitions only when explicitly requested with `--mode migration`
 
 All your customizations (pattern files, agent tweaks, project context) are preserved.

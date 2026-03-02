@@ -3,20 +3,20 @@
 # Session Cleanup Script
 # Keeps only the 10 most recent session files
 # Usage:
-#   .claude/scripts/session-cleanup.sh                    # Auto-detect from settings
-#   .claude/scripts/session-cleanup.sh /path/to/claudeDir  # Explicit claudeDir
+#   .atta/scripts/session-cleanup.sh                    # Auto-detect (.atta/)
+#   .atta/scripts/session-cleanup.sh /path/to/attaDir   # Explicit attaDir
 
 set -euo pipefail
 
 # Load shared utilities
 source "$(dirname "${BASH_SOURCE[0]}")/lib/_common.sh"
 
-# Determine Claude directory (allow override via argument)
-CLAUDE_DIR="${1:-}"
-resolve_claude_dir
-validate_claude_dir
+# Determine Atta directory (allow override via argument)
+ATTA_DIR="${1:-}"
+resolve_atta_dir
+validate_atta_dir
 
-SESSIONS_DIR="$CLAUDE_DIR/.sessions"
+SESSIONS_DIR="$ATTA_DIR/.sessions"
 MAX_SESSIONS=10
 
 # Check if sessions directory exists

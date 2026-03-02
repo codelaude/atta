@@ -3,20 +3,20 @@
 # Pattern Analysis Script
 # Reads corrections.jsonl and rebuilds patterns-learned.json
 # Usage:
-#   .claude/scripts/pattern-analyze.sh                    # Auto-detect from settings
-#   .claude/scripts/pattern-analyze.sh /path/to/claudeDir  # Explicit claudeDir
+#   .atta/scripts/pattern-analyze.sh                    # Auto-detect (.atta/)
+#   .atta/scripts/pattern-analyze.sh /path/to/attaDir   # Explicit attaDir
 
 set -euo pipefail
 
 # Load shared utilities
 source "$(dirname "${BASH_SOURCE[0]}")/lib/_common.sh"
 
-# Determine Claude directory (allow override via argument)
-CLAUDE_DIR="${1:-}"
-resolve_claude_dir
-validate_claude_dir
+# Determine Atta directory (allow override via argument)
+ATTA_DIR="${1:-}"
+resolve_atta_dir
+validate_atta_dir
 
-CONTEXT_DIR="$CLAUDE_DIR/.context"
+CONTEXT_DIR="$ATTA_DIR/.context"
 CORRECTIONS_FILE="$CONTEXT_DIR/corrections.jsonl"
 OUTPUT_FILE="$CONTEXT_DIR/patterns-learned.json"
 AGENT_FILE="$CONTEXT_DIR/agent-learning.json"
@@ -184,14 +184,14 @@ for pattern_key in sorted(groups.keys()):
 
     # Map domain to likely pattern file
     domain_to_file = {
-        'language': '.claude/knowledge/patterns/%s-patterns.md' % primary_domain,
-        'framework': '.claude/knowledge/patterns/framework-patterns.md',
-        'styling': '.claude/knowledge/patterns/styling-patterns.md',
-        'security': '.claude/knowledge/patterns/security-patterns.md',
-        'testing': '.claude/knowledge/patterns/testing-patterns.md',
-        'accessibility': '.claude/knowledge/patterns/accessibility-patterns.md',
+        'language': '.atta/knowledge/patterns/%s-patterns.md' % primary_domain,
+        'framework': '.atta/knowledge/patterns/framework-patterns.md',
+        'styling': '.atta/knowledge/patterns/styling-patterns.md',
+        'security': '.atta/knowledge/patterns/security-patterns.md',
+        'testing': '.atta/knowledge/patterns/testing-patterns.md',
+        'accessibility': '.atta/knowledge/patterns/accessibility-patterns.md',
     }
-    target_file = domain_to_file.get(primary_domain, '.claude/knowledge/patterns/%s-patterns.md' % primary_domain)
+    target_file = domain_to_file.get(primary_domain, '.atta/knowledge/patterns/%s-patterns.md' % primary_domain)
 
     pattern_summary = {
         'pattern': pattern_key,

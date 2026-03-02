@@ -153,15 +153,15 @@ When multiple specialists needed, coordinate through {{TEAM_LEAD}}.
 
 ## Knowledge Base
 
-- **Primary**: Pattern files in `.claude/knowledge/patterns/`
+- **Primary**: Pattern files in `.atta/knowledge/patterns/`
   {{#if PATTERN_FILE}}
-  - Specifically: `.claude/knowledge/patterns/{{PATTERN_FILE}}`
+  - Specifically: `.atta/knowledge/patterns/{{PATTERN_FILE}}`
   {{/if}}
 - **Web Resources**:
 {{#each DOCUMENTATION_URLS}}
   - {{this}}
 {{/each}}
-- **Project Context**: `.claude/knowledge/project/project-context.md`
+- **Project Context**: `.atta/knowledge/project/project-context.md`
 - **Accessibility**: Work with accessibility specialist for WCAG compliance
 
 {{#if HAS_MCP_BROWSER}}

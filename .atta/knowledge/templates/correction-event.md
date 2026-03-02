@@ -105,7 +105,7 @@ This design keeps `corrections.jsonl` strictly append-only — no read-modify-wr
 
 ## Aggregation
 
-Correction events are aggregated by `.claude/scripts/pattern-analyze.sh` into:
+Correction events are aggregated by `.atta/scripts/pattern-analyze.sh` into:
 - `{claudeDir}/.context/patterns-learned.json` — pattern aggregation (grouped by pattern key)
 - `{claudeDir}/.context/agent-learning.json` — per-agent learning profiles (grouped by agentId)
 

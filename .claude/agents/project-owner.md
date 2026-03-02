@@ -11,7 +11,7 @@
 
 ## Context Sources
 
-- `.claude/knowledge/project/developer-profile.md` — collaboration/response style prefs (optional)
+- `.atta/knowledge/project/developer-profile.md` — collaboration/response style prefs (optional)
 - `{claudeDir}/.context/recent.md` — only read when user requests session continuity
 
 ## Constraints

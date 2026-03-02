@@ -51,7 +51,7 @@ If no ticket ID is found, note "No ticket ID detected" and continue.
 
 ### Step 3: Validate Acceptance Criteria
 
-Check if ACC files exist in `.claude/knowledge/accs/` or `{claudeDir}/knowledge/accs/`.
+Check if ACC files exist in `.atta/knowledge/accs/` or `{claudeDir}/knowledge/accs/`.
 
 If ACCs exist for the current feature:
 - Read the relevant ACC file
@@ -63,7 +63,7 @@ If no ACC files exist, skip this step silently.
 
 ### Step 4: Generate PR Description
 
-Ensure `{claudeDir}/knowledge/PR/` exists (create if needed). Write the PR file to `{claudeDir}/knowledge/PR/PR-{branch-slug}.md` following the full structure in `.claude/knowledge/templates/pr-template.md` (Header, Suggested Commit Message, PR Title, PR Description).
+Ensure `{claudeDir}/knowledge/PR/` exists (create if needed). Write the PR file to `{claudeDir}/knowledge/PR/PR-{branch-slug}.md` following the full structure in `.atta/knowledge/templates/pr-template.md` (Header, Suggested Commit Message, PR Title, PR Description).
 
 `branch-slug` is the branch name with `/` replaced by `-` (e.g., `feature/ABC-123` → `feature-ABC-123`).
 

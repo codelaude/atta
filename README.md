@@ -4,7 +4,7 @@
   <em>Named after the leafcutter ant genus, where colonies of specialists build together.</em>
 </p>
 
-A multi-agent system for AI-assisted development that guides, reviews, and validates your work — instead of writing code for you. Supports any tech stack: Vue, React, Angular, Python/Django, Java/Spring Boot, Go, Rust, and [100+ more](.claude/docs/bootstrap-system.md).
+A multi-agent system for AI-assisted development that guides, reviews, and validates your work — instead of writing code for you. Supports any tech stack: Vue, React, Angular, Python/Django, Java/Spring Boot, Go, Rust, and [100+ more](.atta/docs/bootstrap-system.md).
 
 ## Requirements
 
@@ -80,7 +80,7 @@ The interactive setup interviews you about your project, auto-detects your tech 
 - **Not unpredictable.** Every agent has hard constraints on what it does *and refuses to do*. A developer profile sets your collaboration style and priorities. The system learns from corrections, but nothing changes without your approval.
 - **Not a one-shot tool.** Day one, you get the bare minimum — tech detection, agents, pattern files. Over time, corrections accumulate, directives grow, agents adapt to your feedback. Session 50 is dramatically better than session 1 — because the context is *yours*.
 
-See [Design Philosophy](.claude/docs/philosophy.md) for the full story on how the system grows with you.
+See [Design Philosophy](.atta/docs/philosophy.md) for the full story on how the system grows with you.
 
 ## How It Works
 
@@ -130,24 +130,24 @@ Start here, then dive deeper:
 
 | Doc | What you'll learn |
 |-----|-------------------|
-| **[Bootstrap System](/.claude/docs/bootstrap-system.md)** | How tech detection and agent generation works |
-| **[Multi-Agent Collaboration](/.claude/docs/collaboration.md)** | How `/collaborate` works — modes, conflict detection, finding schema |
-| **[MCP Setup Guide](/.claude/docs/mcp-setup.md)** | Configure Model Context Protocol servers |
-| **[Session Tracking](/.claude/docs/session-tracking.md)** | What's tracked, privacy, retention policy |
-| **[Developer Profile](/.claude/docs/profile.md)** | How `/profile` works — modes, preferences, propagation |
-| **[Prompt Optimizer](/.claude/docs/optimize.md)** | How `/optimize` works — cross-tool context enrichment |
-| **[Extending the System](/.claude/docs/extending.md)** | Add new technologies and custom agents via YAML |
-| **[Updating](/.claude/docs/updating.md)** | How to update without losing customizations |
-| **[Token Usage & Cost](/.claude/docs/token-usage.md)** | Estimated tokens and cost per skill |
-| **[Design Philosophy](/.claude/docs/philosophy.md)** | Why this exists, core principles, how the system grows |
-| **[Changelog](/.claude/docs/changelog.md)** | Full version history |
+| **[Bootstrap System](/.atta/docs/bootstrap-system.md)** | How tech detection and agent generation works |
+| **[Multi-Agent Collaboration](/.atta/docs/collaboration.md)** | How `/collaborate` works — modes, conflict detection, finding schema |
+| **[MCP Setup Guide](/.atta/docs/mcp-setup.md)** | Configure Model Context Protocol servers |
+| **[Session Tracking](/.atta/docs/session-tracking.md)** | What's tracked, privacy, retention policy |
+| **[Developer Profile](/.atta/docs/profile.md)** | How `/profile` works — modes, preferences, propagation |
+| **[Prompt Optimizer](/.atta/docs/optimize.md)** | How `/optimize` works — cross-tool context enrichment |
+| **[Extending the System](/.atta/docs/extending.md)** | Add new technologies and custom agents via YAML |
+| **[Updating](/.atta/docs/updating.md)** | How to update without losing customizations |
+| **[Token Usage & Cost](/.atta/docs/token-usage.md)** | Estimated tokens and cost per skill |
+| **[Design Philosophy](/.atta/docs/philosophy.md)** | Why this exists, core principles, how the system grows |
+| **[Changelog](/.atta/docs/changelog.md)** | Full version history |
 
 ## Framework Contributor Checks
 
-When changing framework source under `.claude/`, run:
+When changing framework source, run:
 
 ```bash
-bash .claude/scripts/validate-framework.sh
+bash .atta/scripts/validate-framework.sh
 ```
 
 This validates bootstrap YAML syntax, security-critical documentation patterns, and `git diff --check` hygiene in one pass.

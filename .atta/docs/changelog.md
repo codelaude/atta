@@ -4,6 +4,21 @@ Full version history for the Atta framework.
 
 ---
 
+## v2.8 (2026-03-02) — .atta/ Shared Directory
+
+Tool-agnostic shared content architecture. Non-discovered files (knowledge, bootstrap, scripts, docs, metadata, context, sessions) move from `.claude/` to `.atta/`, while discovery-required files (skills, agents, hooks) stay in each tool's native directory.
+
+- **Directory restructure**: Shared content moved to `.atta/` — knowledge, bootstrap, scripts, docs, .metadata, .context, .sessions. Discovery-required content stays in `.claude/skills/`, `.claude/agents/`, `.claude/hooks/`
+- **Dual-root architecture**: All JS adapters updated to `install(claudeRoot, attaRoot, targetDir, options)`. `shared.js` `copySharedContent()` copies `.atta/` dirs to target. Each adapter only copies discovery-required files to its own directory
+- **Shell script updates**: All 6 scripts (`_common.sh`, `generate-context.sh`, `pattern-log.sh`, `pattern-analyze.sh`, `session-cleanup.sh`, `validate-framework.sh`) use new `resolve_atta_dir()` / `validate_atta_dir()` for shared content paths
+- **Path migration**: ~70 stale `.claude/` shared-content references updated to `.atta/` across 40+ files (skills, agents, bootstrap templates, docs). `.claude/agents/` and `.claude/skills/` references preserved
+- **Migration detection**: `init.js` detects pre-v2.8 layout (`.claude/knowledge/` exists, `.atta/knowledge/` doesn't) and auto-migrates
+- **Adapter smoke tests**: All 4 adapters verified (Claude Code, Copilot, Codex, Gemini) with correct split layout. Claude adapter test now checks both `.claude/` and `.atta/` structure
+- **Settings permissions**: Updated for `.atta/scripts/*`, `.atta/.context/**`, `.atta/knowledge/**`
+- **Package structure**: `package.json` `files` array, `.gitignore`, `.npmignore` updated for `.atta/` content
+
+---
+
 ## v2.7 — Developer Profile + Prompt Optimizer
 
 Developer profile system, convention detection, and smarter context generation.
@@ -14,7 +29,7 @@ Developer profile system, convention detection, and smarter context generation.
 - **`/atta` convention detection**: Phase 2 auto-detects naming conventions and documentation style from project code, pre-fills profile sections
 - **`/atta --rescan` profile integration**: Rescan now automatically runs `/profile --apply` logic — re-propagates preferences to `project-context.md` as part of regeneration
 - **CLI init profile pre-fill**: `npx atta-dev init` asks 5 core preference questions during setup and generates a pre-filled `developer-profile.md`
-- **Profile documentation**: New `.claude/docs/profile.md` user-facing guide
+- **Profile documentation**: New `.atta/docs/profile.md` user-facing guide
 - **Tutorial updated**: Step 1 mentions `/profile` for personalization; quick reference card includes `/profile`
 - **Architectural pattern extraction**: `/atta` Phase 2 now detects project structure (feature-sliced, layered, MVC, clean architecture, hexagonal), component organization (atomic design, co-located), routing (file-based, centralized), API layer, and state management patterns. Results written to `## Architectural Patterns` section in `project-context.md` (max 10 lines)
 - **New detection file**: `bootstrap/detection/architectural-detectors.yaml` — 15 structural detectors across 5 categories
@@ -24,7 +39,7 @@ Developer profile system, convention detection, and smarter context generation.
 - **`/optimize` skill**: Prompt optimization and cross-tool context enrichment. Two modes: same-session (rephrase/restructure prompts for better results in the current conversation, with `--rephrase` flag) and cross-tool (`--target` for handoff to Codex, Copilot, ChatGPT, Gemini). Injects tech stack, conventions, architectural patterns, and preferences
 - **Prompt engineer agent**: New `prompt-engineer` agent template — always generated during `/atta`, specializes in context injection and cross-tool prompt adaptation
 - **Prompt patterns**: New `knowledge/patterns/prompt-patterns.md` — enrichment principles, common patterns (stack declaration, convention injection, architecture context), anti-patterns, and target tool characteristics
-- **Optimize documentation**: New `.claude/docs/optimize.md` user-facing guide
+- **Optimize documentation**: New `.atta/docs/optimize.md` user-facing guide
 - **17 skills** (up from 15): `/profile` and `/optimize` added
 
 ---
@@ -58,7 +73,7 @@ E2E testing detection and specialist agents, PR template awareness, and a new `/
 
 Code deduplication, script performance, docs refresh, `/ship` skill, and pre-publish fixes.
 
-- **Code deduplication**: Extracted `readVersion()` + `countFiles()` to shared `src/lib/fs-utils.js`, extracted `extract_claude_dir()` to shared `.claude/scripts/lib/_common.sh` — eliminated ~120 lines of duplication
+- **Code deduplication**: Extracted `readVersion()` + `countFiles()` to shared `src/lib/fs-utils.js`, extracted `extract_claude_dir()` to shared `.atta/scripts/lib/_common.sh` — eliminated ~120 lines of duplication
 - **Script performance**: Rewrote `pattern-analyze.sh` with single-pass accumulation (6→1 event passes, 11→5 sorts)
 - **`/ship` skill**: New completion workflow — runs tests, validates ACCs, generates PR description from template, captures learnings. Suggested by `/preflight` on all-pass.
 - **PR workflow**: PR descriptions now written to `{claudeDir}/knowledge/PR/` (previously `knowledge/sessions/`), new `pr-template.md` with standardized 4-section format
@@ -202,7 +217,7 @@ Security hardening, community files, and npm packaging improvements from 3-way c
 
 ---
 
-## By the Numbers (v2.7)
+## By the Numbers (v2.8)
 
 - **100+ Technology Detectors** across frontend, backend, databases, security tools, architecture
 - **11 Universal Agent Templates** that generate project-specific specialists (+ E2E, prompt engineer)

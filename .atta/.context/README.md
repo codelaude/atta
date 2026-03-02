@@ -36,6 +36,6 @@ This directory holds auto-generated context files that help agents understand re
 
 ## Related
 
-- Session schema: `.claude/.sessions/schema.json`
-- Session tracking guide: `.claude/.sessions/TRACKING_GUIDE.md`
-- Context generation script: `.claude/scripts/generate-context.sh`
+- Session schema: `.atta/.sessions/schema.json`
+- Session tracking guide: `.atta/.sessions/TRACKING_GUIDE.md`
+- Context generation script: `.atta/scripts/generate-context.sh`

@@ -3,21 +3,21 @@
 # Recent Work Context Generator
 # Reads last 5 session files and produces .context/recent.md
 # Usage:
-#   .claude/scripts/generate-context.sh                    # Auto-detect from settings
-#   .claude/scripts/generate-context.sh /path/to/claudeDir  # Explicit claudeDir
+#   .atta/scripts/generate-context.sh                    # Auto-detect (.atta/)
+#   .atta/scripts/generate-context.sh /path/to/attaDir   # Explicit attaDir
 
 set -euo pipefail
 
 # Load shared utilities
 source "$(dirname "${BASH_SOURCE[0]}")/lib/_common.sh"
 
-# Determine Claude directory (allow override via argument)
-CLAUDE_DIR="${1:-}"
-resolve_claude_dir
-validate_claude_dir
+# Determine Atta directory (allow override via argument)
+ATTA_DIR="${1:-}"
+resolve_atta_dir
+validate_atta_dir
 
-SESSIONS_DIR="$CLAUDE_DIR/.sessions"
-CONTEXT_DIR="$CLAUDE_DIR/.context"
+SESSIONS_DIR="$ATTA_DIR/.sessions"
+CONTEXT_DIR="$ATTA_DIR/.context"
 OUTPUT_FILE="$CONTEXT_DIR/recent.md"
 MAX_RECENT=5
 
@@ -52,7 +52,7 @@ fi
 # Generate recent.md — single Python subprocess handles sessions + patterns + staleness
 # (no shell interpolation of filenames into Python source)
 PATTERNS_FILE="$CONTEXT_DIR/patterns-learned.json"
-MANIFEST_FILE="$CLAUDE_DIR/.metadata/generated-manifest.json"
+MANIFEST_FILE="$ATTA_DIR/.metadata/generated-manifest.json"
 python3 -c "
 import json, glob, os, sys
 from datetime import datetime, timezone
@@ -155,7 +155,7 @@ if os.path.isfile(manifest_file):
         sources = manifest.get('detection_sources', {})
         generated_at = manifest.get('generated_at', '')
         if sources and generated_at:
-            # Find project root — manifest is at .claude/.metadata/generated-manifest.json
+            # Find project root — manifest is at .atta/.metadata/generated-manifest.json
             # Project root is two levels up from manifest directory
             manifest_dir = os.path.dirname(manifest_file)
             claude_root = os.path.dirname(manifest_dir)

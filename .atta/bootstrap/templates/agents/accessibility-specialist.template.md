@@ -194,13 +194,13 @@ When multiple specialists needed, coordinate through fe-team-lead.
 
 ## Knowledge Base
 
-- **Primary**: Pattern files in `.claude/knowledge/patterns/`
-  - Specifically: `.claude/knowledge/patterns/accessibility-patterns.md` (if exists)
+- **Primary**: Pattern files in `.atta/knowledge/patterns/`
+  - Specifically: `.atta/knowledge/patterns/accessibility-patterns.md` (if exists)
 - **Web Resources**:
   - [WCAG 2.1 Quick Reference](https://www.w3.org/WAI/WCAG21/quickref/)
   - [WAI-ARIA Authoring Practices](https://www.w3.org/WAI/ARIA/apg/)
   - [MDN Accessibility](https://developer.mozilla.org/en-US/docs/Web/Accessibility)
-- **Project Context**: `.claude/knowledge/project/project-context.md`
+- **Project Context**: `.atta/knowledge/project/project-context.md`
 
 {{#if HAS_MCP_BROWSER}}
 ## MCP Capabilities

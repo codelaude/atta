@@ -34,10 +34,10 @@ Manually capture a correction or anti-pattern.
 2. Generate normalized key: lowercase, hyphens, verb-first for preferences, noun-first for anti-patterns
 3. Log and analyze:
 ```bash
-bash .claude/scripts/pattern-log.sh {claudeDir} << 'PAYLOAD'
+bash .atta/scripts/pattern-log.sh {claudeDir} << 'PAYLOAD'
 {"category":"<category>","pattern":"<key>","description":"<description>","context":{},"source":"manual","skill":"patterns"}
 PAYLOAD
-bash .claude/scripts/pattern-analyze.sh {claudeDir}
+bash .atta/scripts/pattern-analyze.sh {claudeDir}
 ```
 4. Read `{claudeDir}/.context/patterns-learned.json` and report count, threshold status, promotion readiness.
 
@@ -48,7 +48,7 @@ bash .claude/scripts/pattern-analyze.sh {claudeDir}
 Full analysis of correction history and session patterns.
 
 1. Read `{claudeDir}/.context/corrections.jsonl`
-2. Run `bash .claude/scripts/pattern-analyze.sh {claudeDir}`
+2. Run `bash .atta/scripts/pattern-analyze.sh {claudeDir}`
 3. Read `{claudeDir}/.context/patterns-learned.json`
 4. Analyze command sequences: read last 20 session files from `{claudeDir}/.sessions/`, extract `skill.name`, find recurring 2-3 skill sequences via sliding window
 5. Output tables: Corrections (pattern/count/status/last seen), Anti-Patterns (pattern/count/status/domain), Command Sequences (sequence/occurrences), Summary (totals + promotion readiness)
@@ -86,7 +86,7 @@ Interactive promotion of a pattern to a directive or pattern file.
    - **Pattern file**: Read target file, find/create section, propose anti-pattern row, show diff
    - **Dismiss**: Skip
 4. Record promotion to `{claudeDir}/.context/promoted-patterns.json` via inline Python (append to `promotions` array with pattern, timestamp, target)
-5. Run `bash .claude/scripts/pattern-analyze.sh {claudeDir}`
+5. Run `bash .atta/scripts/pattern-analyze.sh {claudeDir}`
 6. Confirm: `Promoted <key> → [directive / pattern file / both].`
 
 ---
@@ -160,5 +160,5 @@ Pattern <key> not found. Available ready patterns: [list]. Use /patterns learn f
 
 ```markdown
 Pattern detection scripts not found. Run npx atta-dev init . to reinstall, or verify
-.claude/scripts/pattern-log.sh and .claude/scripts/pattern-analyze.sh exist.
+.atta/scripts/pattern-log.sh and .atta/scripts/pattern-analyze.sh exist.
 ```

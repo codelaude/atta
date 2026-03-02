@@ -15,7 +15,7 @@ Atta supports four adapters. Each installs a different file structure optimized 
 | **Skill invocation** | `/skill-name` | `/skill-name` | `$skill-name` | `/command-name` |
 | **Skill format** | Markdown + YAML frontmatter | Markdown + YAML frontmatter | Markdown + YAML frontmatter | TOML (description + prompt) |
 | **Agent definitions** | `.claude/agents/*.md` | `.github/atta/agents/*.md` | `.agents/agents/*.md` | `.gemini/agents/*.md` |
-| **Bootstrap assets** | `.claude/bootstrap/` | `.atta/bootstrap/` | `.atta/bootstrap/` | `.atta/bootstrap/` |
+| **Bootstrap assets** | `.atta/bootstrap/` | `.atta/bootstrap/` | `.atta/bootstrap/` | `.atta/bootstrap/` |
 | **Agent generation** | Full (`/atta` bootstrap) | `/atta` with adapter detection | `/atta` with adapter detection | `/atta` with adapter detection |
 | **Session tracking** | Yes (hooks) | No | No | No |
 | **Project-scoped** | Yes | Yes | Yes | Commands yes, extensions no |
@@ -328,7 +328,7 @@ Use !{shell command} to execute commands (requires user confirmation).
 ## Known Issues & Workarounds
 
 ### Cross-Adapter
-- Skills that reference `.claude/scripts/` (pattern logging, context generation) won't work outside Claude Code
+- Skills that reference `.atta/scripts/` (pattern logging, context generation) won't work outside Claude Code
 - The `/agent` skill searches multiple adapter paths — it will find definitions regardless of which adapter was used
 
 ### Copilot-Specific

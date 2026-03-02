@@ -203,7 +203,7 @@ Final session file:
 
 **Run cleanup:**
 ```bash
-.claude/scripts/session-cleanup.sh
+.atta/scripts/session-cleanup.sh
 ```
 
 ---

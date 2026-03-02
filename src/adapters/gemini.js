@@ -91,7 +91,7 @@ function skillToToml(skill, skillFile) {
   // Only need to escape literal triple-quotes and backslashes
   const escapedBody = body
     .replace(/\\/g, '\\\\')
-    .replace(/"""/g, '\\"""');
+    .replace(/"""/g, '\\"\\"\\"');
 
   const desc = (skill.description || `Run the ${skill.name} skill`)
     .replace(/\\/g, '\\\\')

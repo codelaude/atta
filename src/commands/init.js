@@ -281,7 +281,11 @@ function migrateToAtta(targetDir) {
     if (!existsSync(src)) continue;
     const dest = join(attaDir, dir);
     mkdirSync(dest, { recursive: true });
-    cpSync(src, dest, { recursive: true });
+    try {
+      cpSync(src, dest, { recursive: true });
+    } catch (err) {
+      throw new Error(`Migration failed: could not copy ${dir}/ to .atta/ — original preserved. ${err.message}`);
+    }
     rmSync(src, { recursive: true });
   }
 }

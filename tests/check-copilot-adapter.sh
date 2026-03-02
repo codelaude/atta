@@ -7,28 +7,28 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-TMPDIR=$(mktemp -d)
-trap "rm -rf $TMPDIR" EXIT
+WORK_DIR=$(mktemp -d)
+trap 'rm -rf "$WORK_DIR"' EXIT
 
 # Run adapter (non-interactive)
-node "$REPO_ROOT/bin/atta.js" init --directory "$TMPDIR" --adapter copilot --yes > /dev/null 2>&1
+node "$REPO_ROOT/bin/atta.js" init --directory "$WORK_DIR" --adapter copilot --yes > /dev/null 2>&1
 
 ERRORS=0
 
 # Check AGENTS.md exists and is non-empty
-if [ ! -s "$TMPDIR/AGENTS.md" ]; then
+if [ ! -s "$WORK_DIR/AGENTS.md" ]; then
   echo "FAIL: AGENTS.md missing or empty"
   ERRORS=$((ERRORS + 1))
 fi
 
 # Check copilot-instructions.md exists
-if [ ! -s "$TMPDIR/.github/copilot-instructions.md" ]; then
+if [ ! -s "$WORK_DIR/.github/copilot-instructions.md" ]; then
   echo "FAIL: .github/copilot-instructions.md missing or empty"
   ERRORS=$((ERRORS + 1))
 fi
 
 # Check at least one skill directory exists
-SKILL_COUNT=$(find "$TMPDIR/.github/skills" -name "SKILL.md" 2>/dev/null | wc -l | tr -d ' ')
+SKILL_COUNT=$(find "$WORK_DIR/.github/skills" -name "SKILL.md" 2>/dev/null | wc -l | tr -d ' ')
 if [ "$SKILL_COUNT" -eq 0 ]; then
   echo "FAIL: No SKILL.md files in .github/skills/"
   ERRORS=$((ERRORS + 1))
@@ -44,26 +44,26 @@ while IFS= read -r -d '' skill; do
     echo "FAIL: $skill missing 'description:' frontmatter"
     ERRORS=$((ERRORS + 1))
   fi
-done < <(find "$TMPDIR/.github/skills" -name "SKILL.md" -print0 2>/dev/null)
+done < <(find "$WORK_DIR/.github/skills" -name "SKILL.md" -print0 2>/dev/null)
 
 # Check agent definitions exist in .github/atta/agents/
-AGENT_COUNT=$(find "$TMPDIR/.github/atta/agents" -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
+AGENT_COUNT=$(find "$WORK_DIR/.github/atta/agents" -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
 if [ "$AGENT_COUNT" -eq 0 ]; then
   echo "FAIL: No agent definitions in .github/atta/agents/"
   ERRORS=$((ERRORS + 1))
 fi
 
 # Check .atta/bootstrap/ exists with detection files
-if [ ! -d "$TMPDIR/.atta/bootstrap" ]; then
+if [ ! -d "$WORK_DIR/.atta/bootstrap" ]; then
   echo "FAIL: .atta/bootstrap/ directory missing"
   ERRORS=$((ERRORS + 1))
-elif [ ! -f "$TMPDIR/.atta/bootstrap/generator.md" ]; then
+elif [ ! -f "$WORK_DIR/.atta/bootstrap/generator.md" ]; then
   echo "FAIL: .atta/bootstrap/generator.md missing"
   ERRORS=$((ERRORS + 1))
 fi
 
 # Check GETTING-STARTED.md exists
-if [ ! -s "$TMPDIR/GETTING-STARTED.md" ]; then
+if [ ! -s "$WORK_DIR/GETTING-STARTED.md" ]; then
   echo "FAIL: GETTING-STARTED.md missing or empty"
   ERRORS=$((ERRORS + 1))
 fi

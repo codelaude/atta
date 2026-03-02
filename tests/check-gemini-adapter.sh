@@ -8,8 +8,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-TMPDIR=$(mktemp -d)
-trap "rm -rf $TMPDIR" EXIT
+WORK_DIR=$(mktemp -d)
+trap 'rm -rf "$WORK_DIR"' EXIT
 
 # Check TOML parser availability
 python3 -c "
@@ -23,25 +23,25 @@ except ImportError:
 }
 
 # Run adapter (non-interactive)
-node "$REPO_ROOT/bin/atta.js" init --directory "$TMPDIR" --adapter gemini --yes > /dev/null 2>&1
+node "$REPO_ROOT/bin/atta.js" init --directory "$WORK_DIR" --adapter gemini --yes > /dev/null 2>&1
 
 ERRORS=0
 
 # Check GEMINI.md exists and is non-empty
-if [ ! -s "$TMPDIR/GEMINI.md" ]; then
+if [ ! -s "$WORK_DIR/GEMINI.md" ]; then
   echo "FAIL: GEMINI.md missing or empty"
   ERRORS=$((ERRORS + 1))
 fi
 
 # Check GETTING-STARTED.md exists
-if [ ! -s "$TMPDIR/GETTING-STARTED.md" ]; then
+if [ ! -s "$WORK_DIR/GETTING-STARTED.md" ]; then
   echo "FAIL: GETTING-STARTED.md missing or empty"
   ERRORS=$((ERRORS + 1))
 fi
 
 # Check TOML commands exist, parse correctly, and have required fields
 TOML_COUNT=0
-if [ -d "$TMPDIR/.gemini/commands" ]; then
+if [ -d "$WORK_DIR/.gemini/commands" ]; then
   while IFS= read -r -d '' toml; do
     TOML_COUNT=$((TOML_COUNT + 1))
     # Parse TOML and validate required fields
@@ -77,7 +77,7 @@ PYEOF
       echo "FAIL: TOML parse/validation failed for $toml"
       ERRORS=$((ERRORS + 1))
     }
-  done < <(find "$TMPDIR/.gemini/commands" -name "*.toml" -print0 2>/dev/null)
+  done < <(find "$WORK_DIR/.gemini/commands" -name "*.toml" -print0 2>/dev/null)
 fi
 
 if [ "$TOML_COUNT" -eq 0 ]; then
@@ -86,17 +86,17 @@ if [ "$TOML_COUNT" -eq 0 ]; then
 fi
 
 # Check agent definitions exist in .gemini/agents/
-AGENT_COUNT=$(find "$TMPDIR/.gemini/agents" -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
+AGENT_COUNT=$(find "$WORK_DIR/.gemini/agents" -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
 if [ "$AGENT_COUNT" -eq 0 ]; then
   echo "FAIL: No agent definitions in .gemini/agents/"
   ERRORS=$((ERRORS + 1))
 fi
 
 # Check .atta/bootstrap/ exists with detection files
-if [ ! -d "$TMPDIR/.atta/bootstrap" ]; then
+if [ ! -d "$WORK_DIR/.atta/bootstrap" ]; then
   echo "FAIL: .atta/bootstrap/ directory missing"
   ERRORS=$((ERRORS + 1))
-elif [ ! -f "$TMPDIR/.atta/bootstrap/generator.md" ]; then
+elif [ ! -f "$WORK_DIR/.atta/bootstrap/generator.md" ]; then
   echo "FAIL: .atta/bootstrap/generator.md missing"
   ERRORS=$((ERRORS + 1))
 fi

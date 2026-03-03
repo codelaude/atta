@@ -22,6 +22,7 @@ export async function runSetupPrompts(options = {}) {
             { value: 'copilot', label: 'Copilot CLI' },
             { value: 'codex', label: 'Codex CLI' },
             { value: 'gemini', label: 'Gemini CLI' },
+            { value: 'cursor', label: 'Cursor' },
           ],
         }));
 

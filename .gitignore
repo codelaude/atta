@@ -17,5 +17,6 @@ package-lock.json
 # Development workspace (includes PLAN.md and ROADMAP files)
 CLAUDE.md
 .claude_dev/
+.atta_dev/
 dev/
 .env.claude

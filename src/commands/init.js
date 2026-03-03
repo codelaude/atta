@@ -7,6 +7,7 @@ import { install as installClaude } from '../adapters/claude-code.js';
 import { install as installCopilot } from '../adapters/copilot.js';
 import { install as installCodex } from '../adapters/codex.js';
 import { install as installGemini } from '../adapters/gemini.js';
+import { install as installCursor } from '../adapters/cursor.js';
 import { runSetupPrompts, generateProfile } from '../prompts/setup.js';
 import { generateGettingStarted } from '../guides/getting-started.js';
 import { printBanner } from '../banner.js';
@@ -56,6 +57,15 @@ const ADAPTERS = {
       `Open your project in Gemini CLI`,
       `Use ${pc.cyan('/review')} or ${pc.cyan('/preflight')} as slash commands`,
       `See ${pc.cyan('GEMINI.md')} for agent context`,
+    ],
+  },
+  cursor: {
+    install: installCursor,
+    label: 'Cursor',
+    nextSteps: [
+      `Open your project in Cursor`,
+      `@-mention skills in chat: ${pc.cyan('@atta-review')}, ${pc.cyan('@atta-preflight')}`,
+      `See ${pc.cyan('AGENTS.md')} for the full agent registry`,
     ],
   },
 };
@@ -173,6 +183,7 @@ async function runInstall(targetDir, adapterName, dryRun, answers) {
         join(targetDir, '.github', 'skills', 'tutorial'),     // Copilot
         join(targetDir, '.agents', 'skills', 'tutorial'),     // Codex
         join(targetDir, '.gemini', 'commands', 'tutorial.toml'), // Gemini
+        join(targetDir, '.cursor', 'rules', 'atta-tutorial.mdc'), // Cursor
       ];
       for (const tutorialPath of tutorialPaths) {
         if (existsSync(tutorialPath)) {
@@ -198,23 +209,36 @@ async function runInstall(targetDir, adapterName, dryRun, answers) {
 }
 
 function printWelcome(adapterName, adapter, answers) {
-  const prefix = adapterName === 'codex' ? '$' : '/';
-  const agent = adapterName === 'copilot' ? 'atta-agent' : 'agent';
-  const review = adapterName === 'copilot' ? 'atta-review' : 'review';
-
   console.log(pc.bold(pc.green('Setup complete!')));
   console.log('');
 
   // Quick reference
   console.log(pc.bold('Quick Reference'));
   console.log(pc.dim('─'.repeat(40)));
-  console.log(`  ${pc.cyan(`${prefix}atta`)}          Set up agents for your stack`);
-  console.log(`  ${pc.cyan(`${prefix}${review}`)}        Code review against conventions`);
-  console.log(`  ${pc.cyan(`${prefix}preflight`)}     Full pre-PR validation`);
-  console.log(`  ${pc.cyan(`${prefix}${agent} <id>`)}    Invoke any agent directly`);
 
-  if (answers?.includeTutorial !== false) {
-    console.log(`  ${pc.cyan(`${prefix}tutorial`)}      5-minute interactive walkthrough`);
+  if (adapterName === 'cursor') {
+    // Cursor uses @-mention invocation, not slash commands
+    console.log(`  ${pc.cyan('atta.mdc')}             Framework context (auto-applied)`);
+    console.log(`  ${pc.cyan('@atta-atta')}           Set up agents for your stack`);
+    console.log(`  ${pc.cyan('@atta-review')}         Code review against conventions`);
+    console.log(`  ${pc.cyan('@atta-preflight')}      Full pre-PR validation`);
+    console.log(`  ${pc.cyan('@atta-agent')} <id>     Invoke any agent directly`);
+    if (answers?.includeTutorial !== false) {
+      console.log(`  ${pc.cyan('@atta-tutorial')}       5-minute interactive walkthrough`);
+    }
+  } else {
+    const prefix = adapterName === 'codex' ? '$' : '/';
+    const agent = adapterName === 'copilot' ? 'atta-agent' : 'agent';
+    const review = adapterName === 'copilot' ? 'atta-review' : 'review';
+
+    console.log(`  ${pc.cyan(`${prefix}atta`)}          Set up agents for your stack`);
+    console.log(`  ${pc.cyan(`${prefix}${review}`)}        Code review against conventions`);
+    console.log(`  ${pc.cyan(`${prefix}preflight`)}     Full pre-PR validation`);
+    console.log(`  ${pc.cyan(`${prefix}${agent} <id>`)}    Invoke any agent directly`);
+
+    if (answers?.includeTutorial !== false) {
+      console.log(`  ${pc.cyan(`${prefix}tutorial`)}      5-minute interactive walkthrough`);
+    }
   }
 
   console.log(pc.dim('─'.repeat(40)));

@@ -4,10 +4,11 @@ Full version history for the Atta framework.
 
 ---
 
-## v2.8 (2026-03-02) — .atta/ Shared Directory
+## v2.8.0 (2026-03-03) — .atta/ Architecture + Auto-Fix + Cursor Adapter
 
-Tool-agnostic shared content architecture. Non-discovered files (knowledge, bootstrap, scripts, docs, metadata, context, sessions) move from `.claude/` to `.atta/`, while discovery-required files (skills, agents, hooks) stay in each tool's native directory.
+Tool-agnostic shared content architecture, iterative preflight auto-fix loop, and a fifth adapter for Cursor.
 
+**`.atta/` Shared Directory**
 - **Directory restructure**: Shared content moved to `.atta/` — knowledge, bootstrap, scripts, docs, .metadata, .context, .sessions. Discovery-required content stays in `.claude/skills/`, `.claude/agents/`, `.claude/hooks/`
 - **Dual-root architecture**: All JS adapters updated to `install(claudeRoot, attaRoot, targetDir, options)`. `shared.js` `copySharedContent()` copies `.atta/` dirs to target. Each adapter only copies discovery-required files to its own directory
 - **Shell script updates**: All 6 scripts (`_common.sh`, `generate-context.sh`, `pattern-log.sh`, `pattern-analyze.sh`, `session-cleanup.sh`, `validate-framework.sh`) use new `resolve_atta_dir()` / `validate_atta_dir()` for shared content paths
@@ -16,6 +17,18 @@ Tool-agnostic shared content architecture. Non-discovered files (knowledge, boot
 - **Adapter smoke tests**: All 4 adapters verified (Claude Code, Copilot, Codex, Gemini) with correct split layout. Claude adapter test now checks both `.claude/` and `.atta/` structure
 - **Settings permissions**: Updated for `.atta/scripts/*`, `.atta/.context/**`, `.atta/knowledge/**`
 - **Package structure**: `package.json` `files` array, `.gitignore`, `.npmignore` updated for `.atta/` content
+
+**`/preflight --auto-fix`**
+- Iterative fix loop: runs checks, applies fixes one at a time, re-runs until all pass or max iterations (3) reached
+- Smart iteration: tracks attempted fixes, does not retry failed approaches
+- User confirms each fix before it's applied — never auto-commits, never auto-pushes
+- Presents a clean diff summary if checks still fail after 3 iterations
+
+**Cursor Adapter (5th adapter)**
+- New `src/adapters/cursor.js` — installs to `.cursor/rules/` in MDC format (`.mdc` files)
+- Covers CLAUDE.md equivalent (`atta-framework.mdc`), skills index, agents index, and project context
+- `atta init --adapter cursor` entry point
+- Dry-run validated against Cursor rules discovery path
 
 ---
 

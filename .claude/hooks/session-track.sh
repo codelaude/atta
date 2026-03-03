@@ -133,10 +133,25 @@ PYEOF
 
     # Run cleanup and context generation
     # session-cleanup: pass claudeDir as sessionsRoot (sessions live in {claudeDir}/.sessions/)
-    # generate-context: pass claudeDir as sessionsRoot, .atta as attaRoot (context in .atta/.context/)
+    # generate-context: pass claudeDir as sessionsRoot, attaRoot as context target
     SCRIPTS="$REAL_CWD/.atta/scripts"
     [ -f "$SCRIPTS/session-cleanup.sh" ] && bash "$SCRIPTS/session-cleanup.sh" "$REAL_CLAUDE_DIR" 2>/dev/null || true
-    [ -f "$SCRIPTS/generate-context.sh" ] && bash "$SCRIPTS/generate-context.sh" "$REAL_CLAUDE_DIR" "$REAL_CWD/.atta" 2>/dev/null || true
+
+    # Resolve attaRoot from .env.claude (dev mode may use .atta_dev instead of .atta)
+    ATTA_DIR=""
+    if [ -f "$CWD/.env.claude" ]; then
+      ATTA_WS=$(grep -E '^ATTA_WORKSPACE_DIR=' "$CWD/.env.claude" 2>/dev/null | head -1 | cut -d= -f2 | xargs)
+      [ -n "$ATTA_WS" ] && ATTA_DIR="$CWD/$ATTA_WS"
+    fi
+    [ -z "$ATTA_DIR" ] && ATTA_DIR="$REAL_CWD/.atta"
+    REAL_ATTA_DIR=$(python3 -c "import os,sys; print(os.path.realpath(sys.argv[1]))" "$ATTA_DIR" 2>/dev/null) || REAL_ATTA_DIR="$ATTA_DIR"
+    # Path containment: atta dir must be physically under cwd (prevent ../ traversal)
+    case "$REAL_ATTA_DIR" in
+      "$REAL_CWD"/*) ;;
+      *) REAL_ATTA_DIR="$REAL_CWD/.atta" ;;
+    esac
+
+    [ -f "$SCRIPTS/generate-context.sh" ] && bash "$SCRIPTS/generate-context.sh" "$REAL_CLAUDE_DIR" "$REAL_ATTA_DIR" 2>/dev/null || true
     ;;
 esac
 

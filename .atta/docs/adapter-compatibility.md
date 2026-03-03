@@ -2,23 +2,23 @@
 
 > How Atta works across different AI development tools.
 
-Atta supports four adapters. Each installs a different file structure optimized for the target tool's discovery mechanism.
+Atta supports five adapters. Each installs a different file structure optimized for the target tool's discovery mechanism.
 
 ---
 
 ## Quick Reference
 
-| Aspect | Claude Code | Copilot CLI | Codex CLI | Gemini CLI |
-|--------|-------------|-------------|-----------|------------|
-| **Instruction file** | `CLAUDE.md` | `AGENTS.md` + `.github/copilot-instructions.md` | `AGENTS.md` (multi-level) | `GEMINI.md` (hierarchical) |
-| **Skill location** | `.claude/skills/*/SKILL.md` | `.github/skills/*/SKILL.md` | `.agents/skills/*/SKILL.md` | `.gemini/commands/*.toml` |
-| **Skill invocation** | `/skill-name` | `/skill-name` | `$skill-name` | `/command-name` |
-| **Skill format** | Markdown + YAML frontmatter | Markdown + YAML frontmatter | Markdown + YAML frontmatter | TOML (description + prompt) |
-| **Agent definitions** | `.claude/agents/*.md` | `.github/atta/agents/*.md` | `.agents/agents/*.md` | `.gemini/agents/*.md` |
-| **Bootstrap assets** | `.atta/bootstrap/` | `.atta/bootstrap/` | `.atta/bootstrap/` | `.atta/bootstrap/` |
-| **Agent generation** | Full (`/atta` bootstrap) | `/atta` with adapter detection | `/atta` with adapter detection | `/atta` with adapter detection |
-| **Session tracking** | Yes (hooks) | No | No | No |
-| **Project-scoped** | Yes | Yes | Yes | Commands yes, extensions no |
+| Aspect | Claude Code | Copilot CLI | Codex CLI | Gemini CLI | Cursor |
+|--------|-------------|-------------|-----------|------------|--------|
+| **Instruction file** | `CLAUDE.md` | `AGENTS.md` + `.github/copilot-instructions.md` | `AGENTS.md` (multi-level) | `GEMINI.md` (hierarchical) | `AGENTS.md` |
+| **Skill location** | `.claude/skills/*/SKILL.md` | `.github/skills/*/SKILL.md` | `.agents/skills/*/SKILL.md` | `.gemini/commands/*.toml` | `.cursor/rules/atta-*.mdc` |
+| **Skill invocation** | `/skill-name` | `/skill-name` | `$skill-name` | `/command-name` | `@atta-skill-name` |
+| **Skill format** | Markdown + YAML frontmatter | Markdown + YAML frontmatter | Markdown + YAML frontmatter | TOML (description + prompt) | MDC (Markdown + YAML frontmatter) |
+| **Agent definitions** | `.claude/agents/*.md` | `.github/atta/agents/*.md` | `.agents/agents/*.md` | `.gemini/agents/*.md` | `.cursor/agents/*.md` |
+| **Bootstrap assets** | `.atta/bootstrap/` | `.atta/bootstrap/` | `.atta/bootstrap/` | `.atta/bootstrap/` | `.atta/bootstrap/` |
+| **Agent generation** | Full (`/atta` bootstrap) | `/atta` with adapter detection | `/atta` with adapter detection | `/atta` with adapter detection | `@atta-atta` with adapter detection |
+| **Session tracking** | Yes (hooks) | No | No | No | No |
+| **Project-scoped** | Yes | Yes | Yes | Commands yes, extensions no | Yes |
 
 ---
 
@@ -305,23 +305,110 @@ Use !{shell command} to execute commands (requires user confirmation).
 
 ---
 
+## Cursor
+
+### What Gets Installed
+```
+project/
+├── .atta/bootstrap/              # Shared bootstrap assets (detection, templates, mappings)
+├── .cursor/
+│   ├── rules/
+│   │   ├── atta.mdc              # Always-applied framework context (alwaysApply: true)
+│   │   └── atta-*.mdc            # Individual skill rules (alwaysApply: false)
+│   └── agents/*.md               # Agent definitions
+├── AGENTS.md                     # Agent registry (supported natively by Cursor)
+└── GETTING-STARTED.md
+```
+
+### Discovery Mechanism
+
+**Instructions** (AGENTS.md):
+Cursor supports `AGENTS.md` at the project root as a native instruction file. It is loaded automatically into the model context.
+
+**Rules** (`.cursor/rules/*.mdc`):
+| Activation | Frontmatter | Behavior |
+|-----------|------------|----------|
+| Always | `alwaysApply: true` | Injected into every conversation |
+| Intelligent | `alwaysApply: false` + `description` | Cursor applies when relevant |
+| File-scoped | `alwaysApply: false` + `globs` | Applied when matching files are open |
+| Manual | `alwaysApply: false` | User @-mentions the rule name in chat |
+
+Atta generates:
+- `atta.mdc` — always-applied framework overview
+- `atta-{name}.mdc` — individual skills (intelligent + manual @-mention)
+
+**Note**: `.cursorrules` is the legacy format (deprecated). Atta uses `.cursor/rules/*.mdc`.
+
+### Skill Invocation
+
+Cursor has no custom slash command system. Skills are invoked by @-mentioning the rule file in chat:
+
+```
+@atta-review      Code review against conventions
+@atta-preflight   Full pre-PR validation
+@atta-atta        Set up agents for your stack
+@atta-test        Run and analyze tests
+```
+
+Cursor may also apply skills intelligently based on the `description` field without explicit @-mention.
+
+### Skill → MDC Conversion
+
+Skills are converted from SKILL.md to `.mdc` format:
+
+```markdown
+---
+description: One-line description from frontmatter
+globs:
+alwaysApply: false
+---
+
+Full SKILL.md body content here.
+```
+
+### What Works
+- AGENTS.md loaded as project context
+- `atta.mdc` always applied for framework awareness
+- Skills available as @-mentionable rules in `.cursor/rules/`
+- Agent definitions available at `.cursor/agents/`
+- Intelligent skill application via description matching
+- `@atta-atta` bootstrap generates agents for detected stack
+
+### Limitations
+- No session tracking (no hook support)
+- No pattern detection or learning
+- No runtime profile re-propagation (generation-time via `@atta-atta`; rerun to re-apply after profile changes)
+- No slash command invocation — @-mention or intelligent application only
+- Cannot validate without live Cursor environment (dry-run only, see smoke tests)
+
+### SKILL.md Frontmatter
+
+```yaml
+---
+name: review
+description: Comprehensive code review with automated pattern checks.
+---
+```
+
+---
+
 ## Feature Comparison Matrix
 
-| Feature | Claude Code | Copilot | Codex | Gemini |
-|---------|:-----------:|:-------:|:-----:|:------:|
-| Tech stack detection | Yes | Yes | Yes | Yes |
-| Agent generation | Yes | Yes | Yes | Yes |
-| Agent definitions | Yes | Yes | Yes | Yes |
-| `/agent` invocation | Yes | Yes | Yes | Yes |
-| Skill execution | Yes | Yes | Yes | Yes |
-| Skill commands | `/name` | `/name` | `$name` | `/name` |
-| Session tracking | Yes | — | — | — |
-| Pattern detection | Yes | — | — | — |
-| Developer profile | Yes | Gen-time | Gen-time | Gen-time |
-| Context generation | Yes | — | — | — |
-| Implicit skill match | — | Yes | Yes | — |
-| Custom instructions | CLAUDE.md | Multi-source | Multi-level | Hierarchical |
-| Update system | Yes | — | — | — |
+| Feature | Claude Code | Copilot | Codex | Gemini | Cursor |
+|---------|:-----------:|:-------:|:-----:|:------:|:------:|
+| Tech stack detection | Yes | Yes | Yes | Yes | Yes |
+| Agent generation | Yes | Yes | Yes | Yes | Yes |
+| Agent definitions | Yes | Yes | Yes | Yes | Yes |
+| Agent invocation | Yes | Yes | Yes | Yes | Via AGENTS.md |
+| Skill execution | Yes | Yes | Yes | Yes | Yes |
+| Skill commands | `/name` | `/name` | `$name` | `/name` | `@atta-name` |
+| Session tracking | Yes | — | — | — | — |
+| Pattern detection | Yes | — | — | — | — |
+| Developer profile | Yes | Gen-time | Gen-time | Gen-time | Gen-time |
+| Context generation | Yes | — | — | — | — |
+| Implicit skill match | — | Yes | Yes | — | Yes (via description) |
+| Custom instructions | CLAUDE.md | Multi-source | Multi-level | Hierarchical | AGENTS.md |
+| Update system | Yes | — | — | — | — |
 
 **Legend**: Yes = full support, Gen-time = generation-time only (via `/atta`), — = not available
 
@@ -345,6 +432,12 @@ Use !{shell command} to execute commands (requires user confirmation).
 ### Gemini-Specific
 - Extensions cannot auto-approve tool calls or set yolo mode
 - Configuration changes require CLI session restart
+
+### Cursor-Specific
+- No slash command invocation — users must @-mention rules or rely on intelligent application
+- `.cursorrules` (legacy root file) is deprecated; Atta uses `.cursor/rules/*.mdc` only
+- Cursor does not auto-discover `.cursor/agents/` — agents are referenced from AGENTS.md
+- Cannot be smoke-tested without a live Cursor license and IDE environment
 
 ---
 
@@ -417,5 +510,5 @@ The `.atta/.sessions/` directory contains **framework docs** (schema, templates)
 
 ---
 
-*Last updated: 2026-03-01. Based on tool documentation, dry-run testing, and live smoke tests.*
-*Validated against: Copilot CLI GA (Feb 2026), Codex CLI, Gemini CLI. See temp-*/SMOKE-TEST.md for detailed results.*
+*Last updated: 2026-03-03. Based on tool documentation, dry-run testing, and live smoke tests.*
+*Validated against: Copilot CLI GA (Feb 2026), Codex CLI, Gemini CLI. Cursor: documentation-only (dry-run). See temp-*/SMOKE-TEST.md for detailed results.*

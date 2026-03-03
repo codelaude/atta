@@ -114,7 +114,7 @@ Template for the file-manifest.json structure.
 
 ## Version History
 
-- **2.8.0** (2026-03-02): .atta/ Shared Directory — tool-agnostic shared content architecture, dual-root adapters, shell script ATTA_DIR resolution, ~70 path migrations, migration detection, all 4 adapters verified
+- **2.8.0** (2026-03-03): .atta/ Architecture + Auto-Fix + Cursor Adapter — tool-agnostic shared content architecture, dual-root adapters, shell script ATTA_DIR resolution, ~70 path migrations, migration detection, all 5 adapters verified, `/preflight --auto-fix` iterative fix loop, Cursor adapter (5th adapter, `.cursor/rules/` MDC format)
 - **2.7.0**: Developer Profile + Prompt Optimizer — `/profile` skill (two-layer propagation), architectural pattern extraction, staleness detection, `/optimize` skill (cross-tool context enrichment), adapter smoke test fixes (bootstrap copy, adapter detection in `/atta`)
 - **2.6.1**: Preflight Gap Closure — security deduplication, performance + bug/logic review dimensions, OWASP expansion, dev publish skill
 - **2.6.0**: Enhanced Testing — PR template detection in `/atta`, E2E testing detection (5 frameworks), E2E specialist agent + patterns, `/test` skill with `--e2e`/`--coverage`/`--watch`

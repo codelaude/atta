@@ -11,7 +11,8 @@ A multi-agent system for AI-assisted development that guides, reviews, and valid
 - **Node.js** >= 18.0.0
 - **Unix/macOS** (or WSL on Windows) — shell scripts require bash
 - **python3** — used by framework scripts for JSON processing
-- One of: Claude Code, GitHub Copilot CLI, OpenAI Codex CLI, or Google Gemini CLI
+- One of: Claude Code, GitHub Copilot CLI, OpenAI Codex CLI, Google Gemini CLI, or Cursor
+- For CI review: GitHub Actions + an AI provider secret (optional, via `--adapter github-action` — supports Anthropic, AWS Bedrock, GCP Vertex, OpenAI, Azure OpenAI, and Ollama)
 
 ## Quick Start
 
@@ -140,6 +141,7 @@ Start here, then dive deeper:
 | **[Updating](/.atta/docs/updating.md)** | How to update without losing customizations |
 | **[Token Usage & Cost](/.atta/docs/token-usage.md)** | Estimated tokens and cost per skill |
 | **[Design Philosophy](/.atta/docs/philosophy.md)** | Why this exists, core principles, how the system grows |
+| **[CI Review](/.atta/docs/ci-review.md)** | GitHub Action CI adapter — setup, multi-provider auth, suppression workflow |
 | **[Changelog](/.atta/docs/changelog.md)** | Full version history |
 
 ## Framework Contributor Checks

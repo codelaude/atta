@@ -57,8 +57,10 @@ Read these files to build the enrichment context:
    - Determine which patterns apply from the prompt content (e.g., a React task → read `patterns/react-patterns.md`)
    - Read at most 2 pattern files — distill to key rules, don't dump full contents
 
-3. **`.atta/knowledge/project/developer-profile.md`** (optional)
-   - If it exists and has checked preferences, extract response style and code preferences
+3. **`.atta/knowledge/project/developer-profile.md`** (optional, personal — gitignored)
+   - If it exists and has checked preferences, extract response style and personal code preferences
+4. **`.atta/knowledge/project/project-profile.md`** (optional, team — committed)
+   - If it exists and has checked preferences, extract review priorities and team conventions
 
 If `project-context.md` does not exist, inform the user: "No project context found. Run `/atta` first to detect your tech stack and generate project context."
 

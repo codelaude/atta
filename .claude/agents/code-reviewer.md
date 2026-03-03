@@ -11,7 +11,8 @@
 
 ## Context Sources
 
-- `.atta/knowledge/project/developer-profile.md` — review priorities and response style (optional)
+- `.atta/knowledge/project/project-profile.md` — review priorities and team conventions (optional, committed)
+- `.atta/knowledge/project/developer-profile.md` — personal response style (optional, gitignored)
 - `.atta/knowledge/patterns/` + `quick-reference.md` — project patterns
 
 ## Review Checklist

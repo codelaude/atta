@@ -2,7 +2,7 @@
 
 > How Atta works across different AI development tools.
 
-Atta supports five adapters. Each installs a different file structure optimized for the target tool's discovery mechanism.
+Atta supports six adapters. Five install interactive AI tool configurations; one generates a CI review workflow for GitHub Actions.
 
 ---
 
@@ -20,6 +20,8 @@ Atta supports five adapters. Each installs a different file structure optimized 
 | **Session tracking** | Yes (hooks) | No | No | No | No |
 | **Project-scoped** | Yes | Yes | Yes | Commands yes, extensions no | Yes |
 
+**Note**: The `github-action` adapter is a CI adapter — it generates a GitHub Actions workflow rather than configuring an interactive AI tool. It is designed to be layered on top of any primary adapter (`claude-code`, `copilot`, etc.).
+
 ---
 
 ## Claude Code (Full Support)
@@ -36,7 +38,6 @@ project/
 │   └── settings.local.json       # Hook config + permissions
 ├── .atta/                        # Tool-agnostic shared content
 │   ├── bootstrap/                # Tech detection + templates
-│   ├── docs/
 │   ├── knowledge/
 │   ├── scripts/
 │   ├── .context/
@@ -392,6 +393,59 @@ description: Comprehensive code review with automated pattern checks.
 
 ---
 
+## GitHub Action (CI Adapter)
+
+A CI-only adapter that adds context-aware PR review to GitHub workflows. Not an interactive AI tool adapter — install this on top of an existing primary adapter.
+
+```bash
+atta init --adapter github-action
+```
+
+### What Gets Installed
+
+```
+project/
+├── .atta/knowledge/ci-suppressions.md   # False positive suppression list
+└── .github/workflows/atta-review.yml    # CI review workflow
+# Docs: https://github.com/nicholasgasior/atta-dev/blob/main/.atta/docs/ci-review.md
+```
+
+### How It Works
+
+The generated workflow runs on every PR. Before reviewing, it reads the project's own knowledge files:
+
+1. `.atta/knowledge/project/project-context.md` — tech stack and architecture
+2. `.atta/knowledge/project/project-profile.md` — team conventions and review priorities
+3. `.atta/knowledge/patterns/*.md` — technology-specific conventions
+4. `.atta/knowledge/ci-suppressions.md` — confirmed false positives to skip
+
+This gives the CI reviewer the same context as your local agents — resulting in stack-scoped security checks and convention-aware findings instead of generic prompts.
+
+### Design Constraints
+
+- **Read-only CI**: the action never writes to `.atta/` — all learning happens locally via `/patterns`, then committed normally
+- **Human-gated suppressions**: every suppression lands in a PR diff for human approval before merging to main
+- **Knowledge files as source of truth**: context is committed to the repo, not embedded in the YAML workflow
+- **User-configured structure**: runner, permissions, and action version are user-controlled; Atta owns the `prompt:` section
+
+### Suppression Workflow
+
+1. CI flags an issue on a PR
+2. Author verifies it's a false positive (using their local AI tool)
+3. Author adds it to `.atta/knowledge/ci-suppressions.md` in the PR branch
+4. Human reviewer approves or rejects the suppression in the PR diff
+5. On merge, suppressions land on `main` — all future PRs benefit
+6. Over time, use `/patterns promote` to replace raw suppressions with understood patterns
+
+### Limitations
+
+- Requires an AI provider secret in repository settings (e.g. `ANTHROPIC_API_KEY` for the default Anthropic path; see `--auth-backend` for Bedrock/Vertex/Foundry and `--provider` for OpenAI/Azure/Ollama)
+- Default path uses `anthropics/claude-code-action@v1` — pin to a SHA for production stability
+- Review quality depends on `.atta/knowledge/` completeness (run `/atta` first for best results)
+- Not a replacement for local review — best used as a first-pass safety net
+
+---
+
 ## Feature Comparison Matrix
 
 | Feature | Claude Code | Copilot | Codex | Gemini | Cursor |
@@ -458,26 +512,33 @@ The split exists because Claude Code discovers agents from `.claude/agents/` and
 
 **Commit** — framework content installed by `npx atta init`:
 ```
-.claude/agents/           # Agent definitions
-.claude/hooks/            # Session tracking hook
-.claude/skills/           # Skill definitions
-.atta/bootstrap/          # Detection YAML, templates, mappings
-.atta/docs/               # Framework documentation
-.atta/knowledge/          # Pattern files, project context, directives
-.atta/scripts/            # Utility scripts
-.atta/.metadata/          # Version and file manifest
-.atta/.sessions/          # Schema, integration docs (not runtime JSON)
+.claude/agents/                              # Agent definitions
+.claude/hooks/                               # Session tracking hook
+.claude/skills/                              # Skill definitions
+.atta/bootstrap/                             # Detection YAML, templates, mappings
+.atta/knowledge/                             # Pattern files, project context, conventions
+# .atta/docs/ is NOT installed — read docs at github.com/nicholasgasior/atta-dev
+.atta/knowledge/project/project-context.md  # Tech stack (populated by /atta)
+.atta/knowledge/project/project-profile.md  # Team conventions (populated by /profile)
+.atta/knowledge/ci-suppressions.md          # CI false-positive list (human-reviewed)
+.atta/scripts/                               # Utility scripts
+.atta/.metadata/                             # Version and file manifest
+.atta/.sessions/                             # Schema, integration docs (not runtime JSON)
 ```
 
-**Gitignore** — runtime-generated files:
+**Gitignore** — runtime-generated or personal files:
 ```
-.claude/.sessions/        # Runtime session JSON files (ephemeral)
-.atta/.context/           # Auto-generated recent.md (rebuilt on each run)
-.atta/.context/corrections.jsonl   # Pattern detection log
+# Runtime files (auto-generated, ephemeral)
+.claude/.sessions/
+.atta/.context/recent.md
+.atta/.context/corrections.jsonl
 .atta/.context/patterns-learned.json
+
+# Personal AI preferences (per-developer, not team-shared)
+.atta/knowledge/project/developer-profile.md
 ```
 
-The framework's own `.gitignore` includes these patterns automatically.
+The `.atta/knowledge/project/developer-profile.md` file stores personal AI collaboration preferences (response style, working approach). It is gitignored by default — each developer maintains their own copy locally. Team-shared conventions belong in `project-profile.md`.
 
 ### CI Environments
 
@@ -499,14 +560,19 @@ Most Atta features work in CI without Claude Code running:
 Add to your project's `.gitignore`:
 
 ```
-# Atta runtime files (auto-generated, not committed)
+# Atta runtime files (auto-generated, ephemeral)
 .claude/.sessions/
 .atta/.context/recent.md
 .atta/.context/corrections.jsonl
 .atta/.context/patterns-learned.json
+
+# Personal AI preferences (each developer maintains their own copy)
+.atta/knowledge/project/developer-profile.md
 ```
 
 The `.atta/.sessions/` directory contains **framework docs** (schema, templates) and **is committed**. Only the runtime JSON files in `.claude/.sessions/` (or `{claudeDir}/.sessions/`) are excluded.
+
+`project-profile.md` (team conventions) is **committed**. `developer-profile.md` (personal style) is **gitignored**.
 
 ---
 

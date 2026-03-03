@@ -375,20 +375,24 @@ After all template substitution is complete, append a `## Developer Preferences`
 
 **Step 1: Parse profile**
 
-Read `.atta/knowledge/project/developer-profile.md`. If the file doesn't exist or has no `[x]` checkboxes, skip profile injection entirely.
+Read both profile files:
+- `.atta/knowledge/project/developer-profile.md` (personal, may not exist if gitignored)
+- `.atta/knowledge/project/project-profile.md` (team conventions)
 
-Extract checked preferences:
+If neither file exists or has `[x]` checkboxes, skip profile injection entirely.
 
-| Profile Section | Extract | Example Value |
-|----------------|---------|---------------|
-| AI Collaboration Approach | Single selection | `guidance-first` / `implementation-first` / `balanced` |
-| Response Style | Single selection | `concise` / `detailed` / `questions-first` / `direct` |
-| Code Ownership | Single selection | `review-ready` / `learning-focused` / `time-sensitive` |
-| Error Handling | Single selection | `defensive` / `fast-fail` / `user-friendly` / `developer-friendly` |
-| Code Review Priorities | Multi-select | `correctness, security, readability` |
-| Testing Approach | Single selection | `TDD` / `test-after` / `critical-paths` / `high-coverage` |
-| Code Examples | Single selection | `minimal` / `complete` / `reference-existing` / `pseudocode` |
-| Documentation | Single selection | `inline-comments` / `jsdoc` / `readme-per-module` / `minimal` |
+Extract checked preferences (sourced from whichever file contains each section):
+
+| Profile Section | Source file | Extract | Example Value |
+|----------------|-------------|---------|---------------|
+| AI Collaboration Approach | `developer-profile.md` | Single selection | `guidance-first` / `implementation-first` / `balanced` |
+| Response Style | `developer-profile.md` | Single selection | `concise` / `detailed` / `questions-first` / `direct` |
+| Code Ownership | `developer-profile.md` | Single selection | `review-ready` / `learning-focused` / `time-sensitive` |
+| Code Examples | `developer-profile.md` | Single selection | `minimal` / `complete` / `reference-existing` / `pseudocode` |
+| Error Handling | `project-profile.md` | Single selection | `defensive` / `fast-fail` / `user-friendly` / `developer-friendly` |
+| Code Review Priorities | `project-profile.md` | Multi-select | `correctness, security, readability` |
+| Testing Approach | `project-profile.md` | Single selection | `TDD` / `test-after` / `critical-paths` / `high-coverage` |
+| Documentation | `project-profile.md` | Single selection | `inline-comments` / `jsdoc` / `readme-per-module` / `minimal` |
 
 **Step 2: Build the section**
 

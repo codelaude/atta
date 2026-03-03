@@ -1,13 +1,15 @@
-# Developer Profile & Working Preferences
+# Developer Profile & Personal Preferences
 
-> **Purpose:** This file helps AI assistants understand your working style and preferences.
-> **Setup:** Customize this template during `/atta` or edit it anytime to reflect your preferences.
+> **Purpose:** Your personal AI collaboration style. Helps AI assistants adapt to how you work.
+> **Gitignored** — personal to you, not shared with the team or CI.
+> **Team conventions** (review priorities, naming, error handling) go in `project-profile.md` (committed).
+> **Setup:** Customize during `/atta` or edit anytime.
 
 ---
 
-## Working Style
+## AI Collaboration Approach
 
-### AI Collaboration Approach
+### Working Style
 - [ ] **Guidance-first**: Prefer questions and hints over direct implementation
 - [ ] **Implementation-first**: Prefer direct code suggestions
 - [ ] **Balanced**: Depends on task complexity and time constraints
@@ -48,32 +50,7 @@ _When is it OK for AI to write code directly without guidance?_
 
 ---
 
-## Workflow Preferences
-
-### PR (Pull Request) Workflow
-- [ ] Generate PR descriptions as markdown code blocks
-- [ ] Include pre-validation checklist in PR
-- [ ] Auto-run tests before PR creation
-- [ ] Keep PRs minimal (small, focused changes)
-
-### Testing Approach
-- [ ] TDD (tests first, then implementation)
-- [ ] Test-after (implement, then test)
-- [ ] Critical paths only
-- [ ] High coverage preferred (80%+)
-
-### Code Review Priorities
-_What should AI focus on during code review?_
-- [ ] Correctness and bugs
-- [ ] Performance and optimization
-- [ ] Readability and maintainability
-- [ ] Security vulnerabilities
-- [ ] Accessibility compliance
-- [ ] Test coverage
-
----
-
-## Learning & Guidance Approach
+## Learning & Guidance
 
 ### When Stuck on Implementation
 1. [ ] Ask clarifying questions about what's been tried
@@ -84,7 +61,6 @@ _What should AI focus on during code review?_
 6. [ ] If deadline-critical, offer full implementation with explanation
 
 ### Preferred Learning Resources
-_Where should AI point you for more information?_
 - [ ] Project's own pattern files (`.atta/knowledge/patterns/`)
 - [ ] Official documentation (framework/language docs)
 - [ ] Internal examples (existing code in this project)
@@ -92,36 +68,6 @@ _Where should AI point you for more information?_
 
 ---
 
-## Tech Stack Preferences
+## Personal Notes
 
-### Documentation
-- [ ] Inline comments for complex logic
-- [ ] JSDoc/docstrings for all public APIs
-- [ ] README files for each major module
-- [ ] Minimal comments (code should be self-documenting)
-
-### Error Handling
-- [ ] Defensive (validate all inputs, fail gracefully)
-- [ ] Fast-fail (throw early, catch at boundaries)
-- [ ] User-friendly (show user-facing error messages)
-- [ ] Developer-friendly (detailed errors in console/logs)
-
-### Naming Conventions
-_Any project-specific naming preferences?_
-- Functions: `[camelCase / snake_case / PascalCase]`
-- Variables: `[camelCase / snake_case]`
-- Constants: `[UPPER_SNAKE_CASE / camelCase]`
-- Interfaces/Types: `[IInterface / Interface / TInterface]`
-- CSS Classes: `[kebab-case / camelCase / BEM]`
-
----
-
-## Customization Notes
-
-_Add any additional preferences, constraints, or working style notes here._
-
-**Example:**
-- "Always use async/await, never callbacks"
-- "Prefer functional programming over OOP"
-- "Mobile-first approach for all UI work"
-- "Accessibility is non-negotiable (WCAG AA minimum)"
+_Additional personal preferences for AI collaboration._

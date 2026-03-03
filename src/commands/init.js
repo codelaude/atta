@@ -1,4 +1,4 @@
-import { existsSync, writeFileSync, renameSync, mkdirSync, rmSync, cpSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, renameSync, mkdirSync, rmSync, cpSync } from 'node:fs';
 import { resolve, join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as p from '@clack/prompts';
@@ -8,6 +8,7 @@ import { install as installCopilot } from '../adapters/copilot.js';
 import { install as installCodex } from '../adapters/codex.js';
 import { install as installGemini } from '../adapters/gemini.js';
 import { install as installCursor } from '../adapters/cursor.js';
+import { install as installGithubAction } from '../adapters/github-action.js';
 import { runSetupPrompts, generateProfile } from '../prompts/setup.js';
 import { generateGettingStarted } from '../guides/getting-started.js';
 import { printBanner } from '../banner.js';
@@ -68,11 +69,19 @@ const ADAPTERS = {
       `See ${pc.cyan('AGENTS.md')} for the full agent registry`,
     ],
   },
+  'github-action': {
+    install: installGithubAction,
+    label: 'GitHub Action',
+    // nextSteps built dynamically in printWelcome based on provider/authBackend
+    nextSteps: [],
+  },
 };
 
 export async function init(options) {
   const targetDir = resolve(options.directory);
   const dryRun = options.dryRun;
+  const authBackend = options.authBackend || 'anthropic';
+  const provider = options.provider || 'anthropic';
 
   // Verify framework source exists
   if (!existsSync(CLAUDE_ROOT) || !existsSync(ATTA_ROOT)) {
@@ -93,17 +102,17 @@ export async function init(options) {
   // Non-interactive mode (--yes flag)
   if (options.yes) {
     printBanner();
-    return runInstall(targetDir, options.adapter || 'claude-code', dryRun, null);
+    return runInstall(targetDir, options.adapter || 'claude-code', dryRun, null, { authBackend, provider });
   }
 
   // Interactive setup — only pass adapter if explicitly provided via --adapter flag
   const answers = await runSetupPrompts({ adapter: options.adapter || null });
 
   // Run installation with chosen adapter
-  await runInstall(targetDir, answers.adapter, dryRun, answers);
+  await runInstall(targetDir, answers.adapter, dryRun, answers, { authBackend, provider });
 }
 
-async function runInstall(targetDir, adapterName, dryRun, answers) {
+async function runInstall(targetDir, adapterName, dryRun, answers, adapterOptions = {}) {
   // Validate adapter
   const adapter = ADAPTERS[adapterName];
   if (!adapter) {
@@ -156,7 +165,7 @@ async function runInstall(targetDir, adapterName, dryRun, answers) {
     }
 
     // Run the adapter
-    results = adapter.install(CLAUDE_ROOT, ATTA_ROOT, targetDir, { quiet: true });
+    results = adapter.install(CLAUDE_ROOT, ATTA_ROOT, targetDir, { quiet: true, ...adapterOptions });
 
     // Pre-fill developer profile if we have answers
     if (answers) {
@@ -167,6 +176,9 @@ async function runInstall(targetDir, adapterName, dryRun, answers) {
       writeFileSync(profilePath + '.tmp', profileContent);
       renameSync(profilePath + '.tmp', profilePath);
       results.files++;
+
+      // Ensure developer-profile.md is gitignored (it's personal, not for the repo)
+      ensureGitignored(targetDir, '.atta/knowledge/project/developer-profile.md');
     }
 
     // Generate GETTING-STARTED.md
@@ -205,10 +217,10 @@ async function runInstall(targetDir, adapterName, dryRun, answers) {
 
   // Print welcome summary
   console.log('');
-  printWelcome(adapterName, adapter, answers);
+  printWelcome(adapterName, adapter, answers, adapterOptions);
 }
 
-function printWelcome(adapterName, adapter, answers) {
+function printWelcome(adapterName, adapter, answers, adapterOptions = {}) {
   console.log(pc.bold(pc.green('Setup complete!')));
   console.log('');
 
@@ -216,7 +228,11 @@ function printWelcome(adapterName, adapter, answers) {
   console.log(pc.bold('Quick Reference'));
   console.log(pc.dim('─'.repeat(40)));
 
-  if (adapterName === 'cursor') {
+  if (adapterName === 'github-action') {
+    // GitHub Action: automated CI, no interactive commands
+    console.log(`  ${pc.cyan('.github/workflows/atta-review.yml')}   Auto-runs on every PR`);
+    console.log(`  ${pc.cyan('.atta/knowledge/ci-suppressions.md')}  False positive management`);
+  } else if (adapterName === 'cursor') {
     // Cursor uses @-mention invocation, not slash commands
     console.log(`  ${pc.cyan('atta.mdc')}             Framework context (auto-applied)`);
     console.log(`  ${pc.cyan('@atta-atta')}           Set up agents for your stack`);
@@ -246,15 +262,20 @@ function printWelcome(adapterName, adapter, answers) {
   if (answers) {
     console.log('');
     console.log(
-      pc.dim('Your preferences were saved to .atta/knowledge/project/developer-profile.md')
+      pc.dim('Your preferences were saved to .atta/knowledge/project/developer-profile.md (personal, gitignored)')
     );
-    console.log(pc.dim('Edit it anytime to refine how agents work with you.'));
+    console.log(pc.dim('Team conventions: .atta/knowledge/project/project-profile.md (committed)'));
+    console.log(pc.dim('Edit both anytime to refine how agents and CI work with you.'));
   }
+
+  const nextSteps = adapterName === 'github-action'
+    ? buildGithubActionNextSteps(adapterOptions)
+    : adapter.nextSteps;
 
   console.log('');
   console.log(pc.bold('Next steps:'));
-  for (let i = 0; i < adapter.nextSteps.length; i++) {
-    console.log(`  ${i + 1}. ${adapter.nextSteps[i]}`);
+  for (let i = 0; i < nextSteps.length; i++) {
+    console.log(`  ${i + 1}. ${nextSteps[i]}`);
   }
 
   console.log('');
@@ -263,6 +284,27 @@ function printWelcome(adapterName, adapter, answers) {
   );
 
   p.outro('Happy coding!');
+}
+
+function buildGithubActionNextSteps({ provider = 'anthropic', authBackend = 'anthropic' } = {}) {
+  const isLLMAction = ['openai', 'azure', 'ollama'].includes(provider);
+
+  const secretStep = {
+    anthropic: `Add ${pc.cyan('ANTHROPIC_API_KEY')} to your repository secrets`,
+    bedrock: `Add ${pc.cyan('AWS_ACCESS_KEY_ID')} + ${pc.cyan('AWS_SECRET_ACCESS_KEY')} to repository secrets`,
+    vertex: `Add ${pc.cyan('GCP_PROJECT_ID')} to repository secrets and configure Workload Identity`,
+    foundry: `Add ${pc.cyan('AZURE_ENDPOINT')} to repository secrets and configure Azure AI Foundry`,
+    openai: `Add ${pc.cyan('OPENAI_API_KEY')} to your repository secrets`,
+    azure: `Add ${pc.cyan('AZURE_OPENAI_API_KEY')} to repository secrets and update the ${pc.cyan('base_url')} in the workflow`,
+    ollama: `Ensure Ollama is accessible from your GitHub Actions runner (self-hosted runner recommended)`,
+  }[isLLMAction ? provider : authBackend];
+
+  return [
+    secretStep,
+    `Commit ${pc.cyan('.github/workflows/atta-review.yml')} — CI review runs automatically on PRs`,
+    `Run ${pc.cyan('/atta')} first to detect conventions (improves review quality)`,
+    `See ${pc.cyan('https://github.com/nicholasgasior/atta-dev/blob/main/.atta/docs/ci-review.md')} for suppression workflow`,
+  ];
 }
 
 function listFrameworkFiles() {
@@ -286,6 +328,21 @@ function listFrameworkFiles() {
     const count = countFiles(src);
     console.log(`  ${dir}/ (${count} files)`);
   }
+}
+
+/**
+ * Ensure a path is present in the project's .gitignore.
+ * Creates .gitignore if it doesn't exist. No-ops if the entry is already there.
+ */
+function ensureGitignored(targetDir, entry) {
+  const gitignorePath = join(targetDir, '.gitignore');
+  const existing = existsSync(gitignorePath) ? readFileSync(gitignorePath, 'utf-8') : '';
+  const lines = existing.split('\n');
+  if (lines.some((l) => l.trim() === entry)) return;
+  const updated = existing.endsWith('\n') || existing === ''
+    ? existing + entry + '\n'
+    : existing + '\n' + entry + '\n';
+  writeFileSync(gitignorePath, updated);
 }
 
 /**

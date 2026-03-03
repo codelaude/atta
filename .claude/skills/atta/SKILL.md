@@ -341,9 +341,9 @@ Each pattern file: key rules from existing code, anti-patterns, conventions, doc
 
 **If no PR template was detected:** Do nothing — the default `pr-template.md` shipped with the framework is already in place.
 
-### Pre-Fill Developer Profile
+### Pre-Fill Project Profile
 
-If convention detection (Phase 2) produced results, update `.atta/knowledge/project/developer-profile.md`:
+If convention detection (Phase 2) produced results, update `.atta/knowledge/project/project-profile.md`:
 
 **Naming Conventions section** — Replace the placeholder values with detected conventions:
 
@@ -470,7 +470,7 @@ Display initialization summary: files created/updated, active agents table, quic
 - Re-check for PR templates (if one is now present or changed, regenerate `pr-template.md` mapping)
 - Update pattern files with new findings
 - Preserve manual edits (only update auto-generated sections)
-- **Apply developer profile**: If `.atta/knowledge/project/developer-profile.md` exists and has checked items, run the `/profile --apply` logic (Steps 5-6 from profile/SKILL.md) — parse the profile, write/replace the `## Preferences` section in `project-context.md`. This ensures profile preferences stay in sync after regeneration without requiring a separate `/profile --apply` call.
+- **Apply developer profile**: If either `.atta/knowledge/project/developer-profile.md` or `.atta/knowledge/project/project-profile.md` exists and has checked items, run the `/profile --apply` logic (Steps 5-6 from profile/SKILL.md) — parse both profiles, write/replace the `## Preferences` section in `project-context.md`. This ensures profile preferences stay in sync after regeneration without requiring a separate `/profile --apply` call.
 - **Update detection sources**: Record current mtimes of all detection source files (package.json, lock files, config files) in `generated-manifest.json` `detection_sources` field. This resets the staleness baseline so `generate-context.sh` won't warn until files change again.
 - Report what changed (include architectural patterns, profile propagation status, and staleness reset in the report)
 

@@ -1,5 +1,5 @@
-import { existsSync, mkdirSync, cpSync, readdirSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { existsSync, mkdirSync, cpSync, lstatSync, readdirSync } from 'node:fs';
+import { join, dirname, relative } from 'node:path';
 import pc from 'picocolors';
 
 /**
@@ -110,13 +110,25 @@ export function copyBootstrap(attaRoot, targetDir, options = {}) {
   return count;
 }
 
+/**
+ * Knowledge files owned by the user — never overwritten on re-run.
+ * Paths are relative to .atta/knowledge/.
+ * Framework files in the same directory (README, prompt-patterns) are always updated.
+ */
+const USER_OWNED_KNOWLEDGE_FILES = new Set([
+  'project/project-context.md',
+  'project/project-profile.md',
+  'project/developer-profile.md',
+]);
+
 /** Shared directories to copy from .atta/ source to .atta/ in the target */
 const SHARED_DIRS = [
   'knowledge',
   'scripts',
-  'docs',
   '.metadata',
   '.context',
+  // Note: 'docs' intentionally excluded — Atta meta-docs don't ship to user projects.
+  // Users can read them at https://github.com/nicholasgasior/atta-dev
 ];
 
 /** Individual shared files to copy */
@@ -147,7 +159,21 @@ export function copySharedContent(attaRoot, targetDir, options = {}) {
     if (!existsSync(src)) continue;
 
     mkdirSync(dest, { recursive: true });
-    cpSync(src, dest, { recursive: true });
+
+    if (dir === 'knowledge') {
+      // Preserve user-owned knowledge files (project-context.md, developer-profile.md)
+      // that may have been customized after the initial install.
+      cpSync(src, dest, {
+        recursive: true,
+        filter: (srcPath, destPath) => {
+          if (lstatSync(srcPath).isDirectory()) return true;
+          const rel = relative(src, srcPath);
+          return USER_OWNED_KNOWLEDGE_FILES.has(rel) ? !existsSync(destPath) : true;
+        },
+      });
+    } else {
+      cpSync(src, dest, { recursive: true });
+    }
     const count = countFiles(dest);
     totalCount += count;
 

@@ -4,9 +4,9 @@ Full version history for the Atta framework.
 
 ---
 
-## v2.8.0 (2026-03-03) — .atta/ Architecture + Auto-Fix + Cursor Adapter
+## v2.8.0 (2026-03-03) — .atta/ Architecture + Auto-Fix + Cursor + CI Review Adapter
 
-Tool-agnostic shared content architecture, iterative preflight auto-fix loop, and a fifth adapter for Cursor.
+Tool-agnostic shared content architecture, iterative preflight auto-fix loop, a fifth adapter for Cursor, and a sixth adapter for CI-aware GitHub Actions code review.
 
 **`.atta/` Shared Directory**
 - **Directory restructure**: Shared content moved to `.atta/` — knowledge, bootstrap, scripts, docs, .metadata, .context, .sessions. Discovery-required content stays in `.claude/skills/`, `.claude/agents/`, `.claude/hooks/`
@@ -29,6 +29,16 @@ Tool-agnostic shared content architecture, iterative preflight auto-fix loop, an
 - Covers CLAUDE.md equivalent (`atta-framework.mdc`), skills index, agents index, and project context
 - `atta init --adapter cursor` entry point
 - Dry-run validated against Cursor rules discovery path
+
+**CI Review Adapter — GitHub Action (6th adapter)**
+- New `src/adapters/github-action.js` — generates `.github/workflows/atta-review.yml`
+- Context-aware PR review: the generated workflow reads `.atta/knowledge/` files (project-context, project-profile, pattern files, ci-suppressions) before reviewing, scoping findings to the actual tech stack and conventions
+- Stack-scoped OWASP: prompt instructs the CI model to determine relevant security checks from project-context.md — skips irrelevant categories (e.g. XXE for REST-only APIs, CSRF for CLI tools)
+- Convention injection: project-profile and pattern files teach the CI model what to flag and what to skip — no generic false positives
+- Suppression workflow: `.atta/knowledge/ci-suppressions.md` tracks confirmed false positives; every suppression lands in a PR diff for human review before merging
+- Read-only CI: the action never writes to `.atta/` — all learning stays local via `/patterns`, committed normally
+- `atta init --adapter github-action` entry point
+- New `.atta/docs/ci-review.md` — setup, customization, and suppression workflow guide
 
 ---
 

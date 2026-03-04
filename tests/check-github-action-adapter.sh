@@ -180,6 +180,10 @@ if (workflow.includes('claude-code-action')) {
   console.error('FAIL: openai workflow should not reference claude-code-action');
   failed++;
 }
+if (workflow.includes('@latest')) {
+  console.error('FAIL: openai workflow should not use @latest — pin to commit SHA');
+  failed++;
+}
 // Prompt body should still be present
 if (!workflow.includes('.atta/project/project-context.md')) {
   console.error('FAIL: openai workflow missing project-context.md reference in prompt');

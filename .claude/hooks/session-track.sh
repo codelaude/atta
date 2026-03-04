@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Session tracking hook for Claude Code
 # Auto-creates/finalizes session JSON on skill start/end
 #
@@ -35,7 +35,7 @@ CWD=$(extract cwd)
 # --- Resolve claude dir (with canonicalization for path safety) ---
 CLAUDE_DIR=""
 if [ -f "$CWD/.env.claude" ]; then
-  WS=$(grep -E '^CLAUDE_WORKSPACE_DIR=' "$CWD/.env.claude" 2>/dev/null | head -1 | cut -d= -f2 | xargs)
+  WS=$(grep -E '^CLAUDE_WORKSPACE_DIR=' "$CWD/.env.claude" 2>/dev/null | head -1 | cut -d= -f2 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
   [ -n "$WS" ] && CLAUDE_DIR="$CWD/$WS"
 fi
 [ -z "$CLAUDE_DIR" ] && CLAUDE_DIR="$CWD/.claude"
@@ -140,7 +140,7 @@ PYEOF
     # Resolve attaRoot from .env.claude (dev mode may use .atta_dev instead of .atta)
     ATTA_DIR=""
     if [ -f "$CWD/.env.claude" ]; then
-      ATTA_WS=$(grep -E '^ATTA_WORKSPACE_DIR=' "$CWD/.env.claude" 2>/dev/null | head -1 | cut -d= -f2 | xargs)
+      ATTA_WS=$(grep -E '^ATTA_WORKSPACE_DIR=' "$CWD/.env.claude" 2>/dev/null | head -1 | cut -d= -f2 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
       [ -n "$ATTA_WS" ] && ATTA_DIR="$CWD/$ATTA_WS"
     fi
     [ -z "$ATTA_DIR" ] && ATTA_DIR="$REAL_CWD/.atta"

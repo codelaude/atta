@@ -198,7 +198,8 @@ export function copySharedContent(attaRoot, targetDir, options = {}) {
 }
 
 /**
- * Recursively count files in a directory.
+ * Recursively count visible files in a directory (skips dotfiles like .gitignore, .gitkeep).
+ * Used for user-facing install summaries. See also fs-utils.js countFiles() which counts all files.
  */
 function countFiles(dir) {
   let count = 0;

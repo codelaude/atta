@@ -77,11 +77,25 @@ const ADAPTERS = {
   },
 };
 
+const VALID_PROVIDERS = ['anthropic', 'openai', 'azure', 'ollama'];
+const VALID_AUTH_BACKENDS = ['anthropic', 'bedrock', 'vertex', 'foundry'];
+
 export async function init(options) {
   const targetDir = resolve(options.directory);
   const dryRun = options.dryRun;
   const authBackend = options.authBackend || 'anthropic';
   const provider = options.provider || 'anthropic';
+
+  // Validate provider and auth-backend values
+  if (!VALID_PROVIDERS.includes(provider)) {
+    console.error(pc.red(`Error: Invalid provider "${provider}". Valid: ${VALID_PROVIDERS.join(', ')}`));
+    process.exit(1);
+  }
+  // auth-backend only applies to Anthropic provider (Bedrock/Vertex/Foundry are Anthropic auth variants)
+  if (provider === 'anthropic' && !VALID_AUTH_BACKENDS.includes(authBackend)) {
+    console.error(pc.red(`Error: Invalid auth-backend "${authBackend}". Valid: ${VALID_AUTH_BACKENDS.join(', ')}`));
+    process.exit(1);
+  }
 
   // Verify framework source exists
   if (!existsSync(CLAUDE_ROOT) || !existsSync(ATTA_ROOT)) {
@@ -313,7 +327,7 @@ function listFrameworkFiles() {
   // Tool-specific (from .claude/)
   const CLAUDE_DIRS = ['agents', 'hooks', 'skills'];
   // Shared (from .atta/)
-  const ATTA_DIRS = ['bootstrap', 'docs', 'knowledge', 'project', 'scripts', '.context', '.metadata'];
+  const ATTA_DIRS = ['bootstrap', 'knowledge', 'project', 'scripts', '.context', '.metadata'];
 
   console.log(pc.dim('.claude/ (tool-specific):'));
   for (const dir of CLAUDE_DIRS) {
@@ -334,8 +348,8 @@ function listFrameworkFiles() {
 
 /**
  * Write the Atta gitignore block if not already present.
- * Gitignores runtime/personal content (.context/, .sessions/, knowledge/, .claude/).
- * Team-shared files live in .atta/project/ and are committed by default.
+ * Gitignores runtime/personal content (.context/, .sessions/, personal profile, .claude/).
+ * Team-shared files (patterns, suppressions, project/) are committed by default.
  * .claude/ is personal — each dev runs init and generates agents for their own role/tool.
  * Uses a sentinel comment for idempotency.
  */
@@ -343,14 +357,34 @@ function ensureAttaGitignored(targetDir) {
   const gitignorePath = join(targetDir, '.gitignore');
   const existing = existsSync(gitignorePath) ? readFileSync(gitignorePath, 'utf-8') : '';
   const SENTINEL = '# Atta — runtime & personal';
-  if (existing.includes(SENTINEL)) return;
+
+  if (existing.includes(SENTINEL)) {
+    // Upgrade path: old installs had `.atta/knowledge/` which blocks CI suppressions.
+    // Line-based: replace first bare rule with specific file, remove any duplicates.
+    // Idempotent — safe to run even when developer-profile.md line already exists.
+    let hasProfile = existing.includes('.atta/knowledge/developer-profile.md');
+    let changed = false;
+    const updated = existing.split('\n').map((line) => {
+      const trimmed = line.trim();
+      if (trimmed === '.atta/knowledge/' || trimmed === '.atta/knowledge') {
+        changed = true;
+        if (hasProfile) return null; // already have specific rule, drop leftover
+        hasProfile = true; // first occurrence becomes the specific rule
+        return line.replace(/\.atta\/knowledge\/?/, '.atta/knowledge/developer-profile.md');
+      }
+      return line;
+    }).filter((line) => line !== null).join('\n');
+    if (changed) writeFileSync(gitignorePath, updated);
+    return;
+  }
+
   const block = [
     '',
     '# Atta — runtime & personal',
     '.atta/.context/',
     '.atta/.sessions/',
     '.atta/.metadata/generated-manifest.json',
-    '.atta/knowledge/',
+    '.atta/knowledge/developer-profile.md',
     '.claude/',
     '.claude-plugin/',
   ].join('\n');
@@ -369,6 +403,8 @@ function migrateToAtta(targetDir) {
 
   mkdirSync(attaDir, { recursive: true });
 
+  // Phase 1: Copy all directories first (originals preserved until all copies succeed)
+  const copied = [];
   for (const dir of SHARED_DIRS) {
     const src = join(claudeDir, dir);
     if (!existsSync(src)) continue;
@@ -376,9 +412,28 @@ function migrateToAtta(targetDir) {
     mkdirSync(dest, { recursive: true });
     try {
       cpSync(src, dest, { recursive: true });
+      copied.push(dir);
     } catch (err) {
-      throw new Error(`Migration failed: could not copy ${dir}/ to .atta/ — original preserved. ${err.message}`);
+      throw new Error(
+        `Migration failed: could not copy ${dir}/ to .atta/ — all originals preserved in .claude/. ${err.message}`
+      );
     }
-    rmSync(src, { recursive: true });
+  }
+
+  // Phase 2: Remove originals only after all copies succeeded
+  const failedDeletes = [];
+  for (const dir of copied) {
+    try {
+      rmSync(join(claudeDir, dir), { recursive: true });
+    } catch {
+      failedDeletes.push(dir);
+    }
+  }
+  if (failedDeletes.length > 0) {
+    // Non-fatal: data is safely in .atta/, old copies just couldn't be cleaned up
+    console.warn(
+      `Warning: migration copied successfully but could not remove old directories: ${failedDeletes.join(', ')}. ` +
+        'You can safely delete them from .claude/ manually.'
+    );
   }
 }

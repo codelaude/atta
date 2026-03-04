@@ -8,6 +8,7 @@ export function generateGettingStarted(adapter, answers) {
     codex: 'Codex CLI',
     gemini: 'Gemini CLI',
     cursor: 'Cursor',
+    'github-action': 'GitHub Action',
   }[adapter] || 'your AI tool';
 
   // Codex uses $ prefix, Cursor uses @atta- prefix, all others use /
@@ -80,12 +81,17 @@ export function generateGettingStarted(adapter, answers) {
     lines.push(
       'This auto-detects your tech stack and generates specialist agents tailored to your project. Skills are in `.cursor/rules/` as `.mdc` files — @-mention any skill in chat (e.g., `@atta-review`, `@atta-preflight`) or Cursor applies them automatically based on context. Agents are in `.cursor/agents/`.'
     );
+  } else if (adapter === 'github-action') {
+    lines.push('The CI review workflow is installed at `.github/workflows/atta-review.yml`.');
+    lines.push('It runs automatically on every pull request, reviewing changed files against your project conventions.');
+    lines.push('');
+    lines.push('To improve review quality, run `/atta` locally first (with any AI tool) to detect your tech stack and generate convention files.');
   }
 
   lines.push('');
 
-  // Step 2: Tutorial
-  if (!answers || answers.includeTutorial !== false) {
+  // Step 2: Tutorial (not applicable for CI-only adapters)
+  if (adapter !== 'github-action' && (!answers || answers.includeTutorial !== false)) {
     lines.push('## 2. Take the Tutorial (5 min)');
     lines.push('');
     lines.push('```');
@@ -102,35 +108,56 @@ export function generateGettingStarted(adapter, answers) {
     lines.push('');
   }
 
-  // Quick Reference
-  lines.push(answers?.includeTutorial === false ? '## 2. Quick Reference' : '## 3. Quick Reference');
-  lines.push('');
-  lines.push('### Daily Workflow');
-  lines.push('');
-  lines.push('| Command | What it does |');
-  lines.push('|---------|-------------|');
-  lines.push(`| \`${p}${agent} project-owner\` | Route any task to the right specialist |`);
-  lines.push(`| \`${p}team-lead [task]\` | Decompose a feature into specialist tracks |`);
-  lines.push(`| \`${p}${agent} rubber-duck\` | Think through a problem with guided questions |`);
-  lines.push('');
+  // Quick Reference — CI adapters get a different section
+  if (adapter === 'github-action') {
+    lines.push('## 2. How CI Review Works');
+    lines.push('');
+    lines.push('| File | Purpose |');
+    lines.push('|------|---------|');
+    lines.push('| `.github/workflows/atta-review.yml` | Workflow that triggers on PRs |');
+    lines.push('| `.atta/project/project-context.md` | Project conventions the reviewer reads |');
+    lines.push('| `.atta/project/project-profile.md` | Team review priorities |');
+    lines.push('| `.atta/knowledge/ci-suppressions.md` | False positive management |');
+    lines.push('| `.atta/knowledge/patterns/` | Project-specific review rules |');
+    lines.push('');
+    lines.push('### Suppression Workflow');
+    lines.push('');
+    lines.push('1. CI flags issues on your PR');
+    lines.push('2. Triage locally with your AI tool — verify real vs false positive');
+    lines.push('3. Add false positives to `.atta/knowledge/ci-suppressions.md`');
+    lines.push('4. Commit on the PR branch — reviewer sees the change');
+    lines.push('5. On merge, all future PRs benefit from the suppression');
+    lines.push('');
+  } else {
+    lines.push(answers?.includeTutorial === false ? '## 2. Quick Reference' : '## 3. Quick Reference');
+    lines.push('');
+    lines.push('### Daily Workflow');
+    lines.push('');
+    lines.push('| Command | What it does |');
+    lines.push('|---------|-------------|');
+    lines.push(`| \`${p}${agent} project-owner\` | Route any task to the right specialist |`);
+    lines.push(`| \`${p}team-lead [task]\` | Decompose a feature into specialist tracks |`);
+    lines.push(`| \`${p}${agent} rubber-duck\` | Think through a problem with guided questions |`);
+    lines.push('');
 
-  lines.push('### Code Quality');
-  lines.push('');
-  lines.push('| Command | What it does |');
-  lines.push('|---------|-------------|');
-  lines.push(`| \`${p}lint [file]\` | Fast pattern check |`);
-  lines.push(`| \`${p}${review}\` | Deep code review against conventions |`);
-  lines.push(`| \`${p}security-audit\` | OWASP Top 10 vulnerability scan |`);
-  lines.push(`| \`${p}preflight\` | Full pre-PR validation (lint + review + security + tests) |`);
-  lines.push('');
+    lines.push('### Code Quality');
+    lines.push('');
+    lines.push('| Command | What it does |');
+    lines.push('|---------|-------------|');
+    lines.push(`| \`${p}lint [file]\` | Fast pattern check |`);
+    lines.push(`| \`${p}${review}\` | Deep code review against conventions |`);
+    lines.push(`| \`${p}security-audit\` | OWASP Top 10 vulnerability scan |`);
+    lines.push(`| \`${p}preflight\` | Full pre-PR validation (lint + review + security + tests) |`);
+    lines.push('');
 
-  lines.push('### Knowledge & Memory');
-  lines.push('');
-  lines.push('| Command | What it does |');
-  lines.push('|---------|-------------|');
-  lines.push(`| \`${p}librarian\` | Capture rules and preferences across sessions |`);
-  lines.push(`| \`${p}collaborate\` | Multi-agent review (2-4 specialists in parallel) |`);
-  lines.push('');
+    lines.push('### Knowledge & Memory');
+    lines.push('');
+    lines.push('| Command | What it does |');
+    lines.push('|---------|-------------|');
+    lines.push(`| \`${p}librarian\` | Capture rules and preferences across sessions |`);
+    lines.push(`| \`${p}collaborate\` | Multi-agent review (2-4 specialists in parallel) |`);
+    lines.push('');
+  }
 
   // Your Preferences
   lines.push('## Your Preferences');

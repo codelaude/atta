@@ -18,6 +18,9 @@ dev/
 # GitHub community files (not needed in npm package)
 .github/
 
+# Build artifacts
+*.tgz
+
 # IDE and OS
 .DS_Store
 .vscode/

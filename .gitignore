@@ -2,6 +2,7 @@
 .mcp.json
 node_modules/
 package-lock.json
+*.tgz
 
 # Generated context files (keep README, ignore generated content)
 .atta/.context/recent.md

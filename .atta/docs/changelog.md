@@ -75,7 +75,7 @@ Security deduplication, expanded review dimensions, and a dev-only publish skill
 - **Expanded review dimensions**: `/review` Step 4 gains Performance (8 checks) and Bug & Logic Review (8 checks) sections. Review output now includes per-finding severity (CRITICAL/HIGH/MEDIUM/LOW).
 - **OWASP coverage expansion**: `/security-audit` gains 7 missing categories — unsafe deserialization, SSRF, TOCTOU race conditions, XXE, broken authentication, broken access control, insufficient logging.
 - **Cross-reference cleanup**: Integration sections across all 3 skills updated to reflect new responsibility lanes.
-- **Dev publish skill**: `.claude_dev/skills/publish/SKILL.md` — guided post-merge release workflow (tag, GitHub release, npm publish). Dev-only, not shipped to users.
+- **Dev publish skill**: Guided post-merge release workflow (tag, GitHub release, npm publish). Dev-only, lives in the dev workspace, not shipped to users.
 
 ---
 

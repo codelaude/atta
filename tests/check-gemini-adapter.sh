@@ -86,7 +86,11 @@ if [ "$TOML_COUNT" -eq 0 ]; then
 fi
 
 # Check agent definitions exist in .gemini/agents/
-AGENT_COUNT=$(find "$WORK_DIR/.gemini/agents" -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
+if [ -d "$WORK_DIR/.gemini/agents" ]; then
+  AGENT_COUNT=$(find "$WORK_DIR/.gemini/agents" -name "*.md" | wc -l | tr -d ' ')
+else
+  AGENT_COUNT=0
+fi
 if [ "$AGENT_COUNT" -eq 0 ]; then
   echo "FAIL: No agent definitions in .gemini/agents/"
   ERRORS=$((ERRORS + 1))

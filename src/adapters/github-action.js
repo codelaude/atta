@@ -288,7 +288,7 @@ jobs:
           fetch-depth: 0
 
       - name: Context-Aware Code Review
-        uses: appleboy/LLM-action@v1.3.1
+        uses: appleboy/LLM-action@26e6c6aad79241353e4e0960b3d693f48f1c1bcd # v1.3.1
         with:
           model: "${model}"
 ${apiKeyRef}

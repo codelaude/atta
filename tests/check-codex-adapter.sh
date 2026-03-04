@@ -41,7 +41,11 @@ while IFS= read -r -d '' skill; do
 done < <(find "$WORK_DIR/.agents/skills" -name "SKILL.md" -print0 2>/dev/null)
 
 # Check agent definitions exist in .agents/agents/
-AGENT_COUNT=$(find "$WORK_DIR/.agents/agents" -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
+if [ -d "$WORK_DIR/.agents/agents" ]; then
+  AGENT_COUNT=$(find "$WORK_DIR/.agents/agents" -name "*.md" | wc -l | tr -d ' ')
+else
+  AGENT_COUNT=0
+fi
 if [ "$AGENT_COUNT" -eq 0 ]; then
   echo "FAIL: No agent definitions in .agents/agents/"
   ERRORS=$((ERRORS + 1))

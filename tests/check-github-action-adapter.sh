@@ -43,7 +43,12 @@ for (const [path, label] of checks) {
 
 // Verify workflow contains key content (default: anthropic/v1 path)
 import { readFileSync } from 'node:fs';
-const workflow = readFileSync(join(targetDir, '.github', 'workflows', 'atta-review.yml'), 'utf-8');
+const workflowPath = join(targetDir, '.github', 'workflows', 'atta-review.yml');
+if (!existsSync(workflowPath)) {
+  console.error('FAIL: workflow file not generated at ' + workflowPath);
+  process.exit(1);
+}
+const workflow = readFileSync(workflowPath, 'utf-8');
 const contentChecks = [
   ['claude-code-action@v1', 'action v1 reference'],
   ['prompt:', 'prompt field'],
@@ -153,8 +158,8 @@ if (!workflow.includes('appleboy/LLM-action')) {
   console.error('FAIL: openai workflow should use appleboy/LLM-action');
   failed++;
 }
-if (workflow.includes('appleboy/LLM-action@latest')) {
-  console.error('FAIL: openai workflow uses @latest (should be pinned to a specific version)');
+if (!workflow.includes('appleboy/LLM-action@26e6c6aad79241353e4e0960b3d693f48f1c1bcd')) {
+  console.error('FAIL: openai workflow should pin appleboy/LLM-action to commit SHA 26e6c6aa (v1.3.1)');
   failed++;
 }
 if (!workflow.includes('OPENAI_API_KEY')) {

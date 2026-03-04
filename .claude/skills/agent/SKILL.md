@@ -22,7 +22,7 @@ Follow these steps:
    - `.gemini/agents/coordinators/{agent-id}.md` (Gemini coordinators)
    - `.gemini/agents/specialists/{agent-id}.md` (Gemini specialists)
 3. **Load knowledge base**: Read any pattern files referenced by the agent from `.atta/knowledge/`
-3b. **Load learning profile**: Read `{claudeDir}/.context/agent-learning.json` (if it exists). If the file contains an entry for the requested agent ID, inject it into the agent context as follows:
+3b. **Load learning profile**: Read `{attaDir}/.context/agent-learning.json` (if it exists). If the file contains an entry for the requested agent ID, inject it into the agent context as follows:
    ```
    ## Your Learning Profile
    Based on {totalEvents} tracked interactions (acceptance rate: {acceptanceRate}%):

@@ -160,12 +160,12 @@ Categorize each finding by severity: **CRITICAL** / **HIGH** / **MEDIUM** / **LO
 For each **CRITICAL** or **HIGH** finding, log to the pattern detection system:
 
 ```bash
-bash .atta/scripts/pattern-log.sh {claudeDir} << 'PAYLOAD'
+bash .atta/scripts/pattern-log.sh {attaDir} << 'PAYLOAD'
 {"category":"anti-pattern","pattern":"<slugified-check-name>","description":"<finding-description>","context":{"file":"<file:line>","domain":"<domain>","agent":"code-reviewer"},"source":"skill-annotation","skill":"review","agentId":"code-reviewer"}
 PAYLOAD
 ```
 
-After logging all findings, run: `bash .atta/scripts/pattern-analyze.sh {claudeDir}`
+After logging all findings, run: `bash .atta/scripts/pattern-analyze.sh {attaDir}`
 
 > Skip if no CRITICAL/HIGH findings or if `pattern-log.sh` is not available.
 

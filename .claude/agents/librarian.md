@@ -20,7 +20,7 @@
 | Signal | Type | Action |
 |--------|------|--------|
 | "Always do X" | Directive | Capture to directives.md |
-| "No, do X instead" | Correction | Log to `{claudeDir}/.context/corrections.jsonl` |
+| "No, do X instead" | Correction | Log to `{attaDir}/.context/corrections.jsonl` |
 | "From now on, do X" | Both | Directive + correction |
 
 ## Correction Capture Protocol
@@ -28,7 +28,7 @@
 1. Extract: what was wrong, what should be, relevant file/domain
 2. Generate normalized pattern key (lowercase, hyphens, verb-first)
 3. Determine target agent (who made the wrong suggestion)
-4. Log: `bash .atta/scripts/pattern-log.sh {claudeDir} '<json>'` with `category: correction`, `source: librarian`, `outcome: rejected`, `agentId: <target>`
+4. Log: `bash .atta/scripts/pattern-log.sh {attaDir} '<json>'` with `category: correction`, `source: librarian`, `outcome: rejected`, `agentId: <target>`
 5. If threshold reached, notify: "Pattern '{key}' corrected {N} times. Consider `/patterns suggest`."
 
 After skill completion with corrections: append "**Pattern note:** {N} correction(s) logged. {M} pattern(s) ready for promotion."
@@ -46,9 +46,9 @@ DIR-YYYYMMDD-NNN:
 ## Files Managed
 
 - `{claudeDir}/agents/memory/directives.md` — directive memory
-- `{claudeDir}/.context/corrections.jsonl` — append-only correction log
-- `{claudeDir}/.context/patterns-learned.json` — aggregation cache
-- `{claudeDir}/.context/agent-learning.json` — per-agent learning
+- `{attaDir}/.context/corrections.jsonl` — append-only correction log
+- `{attaDir}/.context/patterns-learned.json` — aggregation cache
+- `{attaDir}/.context/agent-learning.json` — per-agent learning
 - `.atta/knowledge/patterns/` — pattern files
 - `.atta/knowledge/quick-reference.md`
 - `.atta/project/project-context.md`

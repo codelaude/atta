@@ -84,13 +84,13 @@ When a correction is detected:
    - If unknown, omit `agentId` (analysis falls back to `context.agent`)
 4. Run:
 ```bash
-bash .atta/scripts/pattern-log.sh {claudeDir} << 'PAYLOAD'
+bash .atta/scripts/pattern-log.sh {attaDir} << 'PAYLOAD'
 {"category":"correction","pattern":"<key>","description":"<what was corrected>","context":{"domain":"<domain>","agent":"<agent-if-known>"},"source":"librarian","skill":"librarian","sessionId":"<session-uuid>","outcome":"rejected","agentId":"<target-agent-from-step-3>"}
 PAYLOAD
 ```
 5. After logging, run analysis to check if threshold is reached:
 ```bash
-bash .atta/scripts/pattern-analyze.sh {claudeDir}
+bash .atta/scripts/pattern-analyze.sh {attaDir}
 ```
 6. If the pattern count reaches its threshold, inform the user:
    > "Pattern '{key}' has been corrected {N} times and is ready for promotion. Run `/patterns suggest` to see details."
@@ -127,9 +127,9 @@ Automatically activate correction capture when user says:
 ## Files You Manage
 
 - **Memory**: `.claude/agents/memory/directives.md`
-- **Corrections**: `{claudeDir}/.context/corrections.jsonl` (append-only)
-- **Pattern cache**: `{claudeDir}/.context/patterns-learned.json` (rebuilt by analysis)
-- **Agent learning**: `{claudeDir}/.context/agent-learning.json` (rebuilt by analysis)
+- **Corrections**: `{attaDir}/.context/corrections.jsonl` (append-only)
+- **Pattern cache**: `{attaDir}/.context/patterns-learned.json` (rebuilt by analysis)
+- **Agent learning**: `{attaDir}/.context/agent-learning.json` (rebuilt by analysis)
 - **Knowledge Files** (in `.atta/knowledge/`):
   - Pattern files in `patterns/`
   - `project/project-context.md`

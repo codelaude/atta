@@ -102,7 +102,7 @@ For each agent, spawn a Task tool subagent (`run_in_background: true`):
 1. Read the agent definition file
 2. Read relevant pattern files from `.atta/knowledge/patterns/`
 3. Read `.atta/knowledge/templates/collaboration-finding.md` for the finding schema
-4. Read `{claudeDir}/.context/agent-learning.json` — extract this agent's learning profile if available
+4. Read `{attaDir}/.context/agent-learning.json` — extract this agent's learning profile if available
 5. Construct prompt and spawn
 
 ### Subagent Prompt Template
@@ -193,12 +193,12 @@ If `--quick`: filter out MEDIUM/LOW/INFO findings from all sections.
 
 For each CRITICAL/HIGH consensus finding, log via `pattern-log.sh`:
 ```bash
-bash .atta/scripts/pattern-log.sh {claudeDir} << 'PAYLOAD'
+bash .atta/scripts/pattern-log.sh {attaDir} << 'PAYLOAD'
 {"category":"anti-pattern","pattern":"<slug>","description":"<desc>","context":{"file":"<file:line>","domain":"<domain>","agent":"<agent>"},"source":"skill-annotation","skill":"collaborate","agentId":"<agent>"}
 PAYLOAD
 ```
 
-Then run: `bash .atta/scripts/pattern-analyze.sh {claudeDir}`
+Then run: `bash .atta/scripts/pattern-analyze.sh {attaDir}`
 
 ---
 

@@ -106,7 +106,7 @@ fi
 
 ATTA_REPO_ROOT="$REPO_ROOT" ATTA_WORK_DIR2="$WORK_DIR2" node --input-type=module <<'NODEEOF3'
 import { install } from './src/adapters/github-action.js';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const claudeRoot = process.env.ATTA_REPO_ROOT + '/.claude';
@@ -115,7 +115,12 @@ const targetDir  = process.env.ATTA_WORK_DIR2;
 
 install(claudeRoot, attaRoot, targetDir, { quiet: true, authBackend: 'bedrock' });
 
-const workflow = readFileSync(join(targetDir, '.github', 'workflows', 'atta-review.yml'), 'utf-8');
+const workflowPath = join(targetDir, '.github', 'workflows', 'atta-review.yml');
+if (!existsSync(workflowPath)) {
+  console.error('FAIL: bedrock workflow file not generated at ' + workflowPath);
+  process.exit(1);
+}
+const workflow = readFileSync(workflowPath, 'utf-8');
 let failed = 0;
 
 if (!workflow.includes('use_bedrock')) {
@@ -142,7 +147,7 @@ NODEEOF3
 
 ATTA_REPO_ROOT="$REPO_ROOT" ATTA_WORK_DIR3="$WORK_DIR3" node --input-type=module <<'NODEEOF4'
 import { install } from './src/adapters/github-action.js';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const claudeRoot = process.env.ATTA_REPO_ROOT + '/.claude';
@@ -151,7 +156,12 @@ const targetDir  = process.env.ATTA_WORK_DIR3;
 
 install(claudeRoot, attaRoot, targetDir, { quiet: true, provider: 'openai' });
 
-const workflow = readFileSync(join(targetDir, '.github', 'workflows', 'atta-review.yml'), 'utf-8');
+const workflowPath = join(targetDir, '.github', 'workflows', 'atta-review.yml');
+if (!existsSync(workflowPath)) {
+  console.error('FAIL: openai workflow file not generated at ' + workflowPath);
+  process.exit(1);
+}
+const workflow = readFileSync(workflowPath, 'utf-8');
 let failed = 0;
 
 if (!workflow.includes('appleboy/LLM-action')) {

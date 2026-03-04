@@ -15,14 +15,14 @@ trap 'rm -rf "$WORK_DIR" "$WORK_DIR2" "$WORK_DIR3"' EXIT
 cd "$REPO_ROOT"
 
 # Run adapter install directly via Node
-node --input-type=module <<EOF
+ATTA_REPO_ROOT="$REPO_ROOT" ATTA_WORK_DIR="$WORK_DIR" node --input-type=module <<'NODEEOF'
 import { install } from './src/adapters/github-action.js';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 
-const claudeRoot = '${REPO_ROOT}/.claude';
-const attaRoot   = '${REPO_ROOT}/.atta';
-const targetDir  = '${WORK_DIR}';
+const claudeRoot = process.env.ATTA_REPO_ROOT + '/.claude';
+const attaRoot   = process.env.ATTA_REPO_ROOT + '/.atta';
+const targetDir  = process.env.ATTA_WORK_DIR;
 
 const results = install(claudeRoot, attaRoot, targetDir, { quiet: true });
 
@@ -76,19 +76,19 @@ if (failed === 0) {
 } else {
   process.exit(1);
 }
-EOF
+NODEEOF
 
 # Idempotency check: write sentinel content to ci-suppressions.md, re-run, verify not overwritten
 SENTINEL="# sentinel-do-not-overwrite"
 echo "$SENTINEL" >> "$WORK_DIR/.atta/knowledge/ci-suppressions.md"
 
-node --input-type=module <<EOF2
+ATTA_REPO_ROOT="$REPO_ROOT" ATTA_WORK_DIR="$WORK_DIR" node --input-type=module <<'NODEEOF2'
 import { install } from './src/adapters/github-action.js';
-const claudeRoot = '${REPO_ROOT}/.claude';
-const attaRoot   = '${REPO_ROOT}/.atta';
-const targetDir  = '${WORK_DIR}';
+const claudeRoot = process.env.ATTA_REPO_ROOT + '/.claude';
+const attaRoot   = process.env.ATTA_REPO_ROOT + '/.atta';
+const targetDir  = process.env.ATTA_WORK_DIR;
 install(claudeRoot, attaRoot, targetDir, { quiet: true });
-EOF2
+NODEEOF2
 
 if grep -qF "$SENTINEL" "$WORK_DIR/.atta/knowledge/ci-suppressions.md"; then
   echo "PASS: ci-suppressions.md preserved on re-run (not overwritten)"
@@ -99,14 +99,14 @@ fi
 
 # Auth backend check: verify bedrock variant generates correct fields
 
-node --input-type=module <<EOF3
+ATTA_REPO_ROOT="$REPO_ROOT" ATTA_WORK_DIR2="$WORK_DIR2" node --input-type=module <<'NODEEOF3'
 import { install } from './src/adapters/github-action.js';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-const claudeRoot = '${REPO_ROOT}/.claude';
-const attaRoot   = '${REPO_ROOT}/.atta';
-const targetDir  = '${WORK_DIR2}';
+const claudeRoot = process.env.ATTA_REPO_ROOT + '/.claude';
+const attaRoot   = process.env.ATTA_REPO_ROOT + '/.atta';
+const targetDir  = process.env.ATTA_WORK_DIR2;
 
 install(claudeRoot, attaRoot, targetDir, { quiet: true, authBackend: 'bedrock' });
 
@@ -131,18 +131,18 @@ if (failed === 0) {
 } else {
   process.exit(1);
 }
-EOF3
+NODEEOF3
 
-# Provider check: verify openai variant uses appleboy/LLM-action
+# Provider check: verify openai variant uses appleboy/LLM-action (pinned, not @latest)
 
-node --input-type=module <<EOF4
+ATTA_REPO_ROOT="$REPO_ROOT" ATTA_WORK_DIR3="$WORK_DIR3" node --input-type=module <<'NODEEOF4'
 import { install } from './src/adapters/github-action.js';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-const claudeRoot = '${REPO_ROOT}/.claude';
-const attaRoot   = '${REPO_ROOT}/.atta';
-const targetDir  = '${WORK_DIR3}';
+const claudeRoot = process.env.ATTA_REPO_ROOT + '/.claude';
+const attaRoot   = process.env.ATTA_REPO_ROOT + '/.atta';
+const targetDir  = process.env.ATTA_WORK_DIR3;
 
 install(claudeRoot, attaRoot, targetDir, { quiet: true, provider: 'openai' });
 
@@ -151,6 +151,10 @@ let failed = 0;
 
 if (!workflow.includes('appleboy/LLM-action')) {
   console.error('FAIL: openai workflow should use appleboy/LLM-action');
+  failed++;
+}
+if (workflow.includes('appleboy/LLM-action@latest')) {
+  console.error('FAIL: openai workflow uses @latest (should be pinned to a specific version)');
   failed++;
 }
 if (!workflow.includes('OPENAI_API_KEY')) {
@@ -172,4 +176,4 @@ if (failed === 0) {
 } else {
   process.exit(1);
 }
-EOF4
+NODEEOF4

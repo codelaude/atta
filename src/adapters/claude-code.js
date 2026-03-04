@@ -69,8 +69,10 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
           'Edit(./.atta/.context/**)',
           // Agent memory (directives, learnings)
           'Edit(./.claude/agents/memory/**)',
-          // Knowledge capture (patterns, project context)
+          // Knowledge capture (patterns, developer profile)
           'Edit(./.atta/knowledge/**)',
+          // Project files (team-shared: project-context, project-profile)
+          'Edit(./.atta/project/**)',
         ],
       },
       hooks: {

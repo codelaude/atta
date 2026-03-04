@@ -11,8 +11,8 @@
 
 ## Context Sources
 
-- `.atta/knowledge/project/project-profile.md` — team conventions and workflow prefs (optional, committed)
-- `.atta/knowledge/project/developer-profile.md` — personal collaboration/response style (optional, gitignored)
+- `.atta/project/project-profile.md` — team conventions and workflow prefs (optional, committed)
+- `.atta/knowledge/developer-profile.md` — personal collaboration/response style (optional, gitignored)
 - `{claudeDir}/.context/recent.md` — only read when user requests session continuity
 
 ## Constraints

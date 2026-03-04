@@ -34,8 +34,8 @@ You are now acting as the **Profile Manager** — responsible for viewing, updat
 ### Step 1: Read Profile
 
 Read both profile files:
-- `.atta/knowledge/project/developer-profile.md` — personal AI collaboration prefs (gitignored)
-- `.atta/knowledge/project/project-profile.md` — team conventions and review priorities (committed)
+- `.atta/knowledge/developer-profile.md` — personal AI collaboration prefs (gitignored)
+- `.atta/project/project-profile.md` — team conventions and review priorities (committed)
 
 If neither file has any `[x]` checkboxes, show:
 
@@ -188,7 +188,7 @@ Profile updated with core preferences. Now applying to your project...
 
 ### Step 3c: Detect Already-Configured Sections
 
-Read `.atta/knowledge/project/developer-profile.md`. For each section below, check if it's already configured. **Skip any section that's already configured.**
+Read `.atta/knowledge/developer-profile.md`. For each section below, check if it's already configured. **Skip any section that's already configured.**
 
 A section is "configured" if:
 - It has at least one `[x]` checkbox, OR
@@ -318,8 +318,8 @@ Profile completed! All sections configured. Now applying to your project...
 ### Step 5: Parse Profile
 
 Read both profile files:
-- `.atta/knowledge/project/developer-profile.md` — personal prefs (may not exist if gitignored and not yet created)
-- `.atta/knowledge/project/project-profile.md` — team conventions
+- `.atta/knowledge/developer-profile.md` — personal prefs (may not exist if gitignored and not yet created)
+- `.atta/project/project-profile.md` — team conventions
 
 If neither file has any checked items:
 
@@ -347,7 +347,7 @@ Extract the checked preferences into structured data:
 
 ### Step 6: Update project-context.md Preferences Section
 
-Read `.atta/knowledge/project/project-context.md`.
+Read `.atta/project/project-context.md`.
 
 Write or replace a `## Preferences` section at the end of the file. The section must be 3-5 lines — distilled, not verbose.
 
@@ -421,7 +421,7 @@ Report what was propagated:
 ### Step CI-1: Read Existing State
 
 Read both files (if they exist) to pre-fill answers where possible:
-- `.atta/knowledge/project/project-profile.md`
+- `.atta/project/project-profile.md`
 - `.github/workflows/atta-review.yml`
 
 Inform the user:
@@ -540,7 +540,7 @@ Options:
 
 ### Step CI-4: Write `project-profile.md`
 
-Update `.atta/knowledge/project/project-profile.md` with the answers from Step CI-3:
+Update `.atta/project/project-profile.md` with the answers from Step CI-3:
 
 - Map CI-P1 → "Code Review Priorities" section (set `[x]` for selected, `[ ]` for unselected)
 - Map CI-P2 → "Testing Approach" section
@@ -594,13 +594,13 @@ Show a final summary of what changed and what to commit:
 
 **Commit to the repo** (shared with the whole team):
 ```bash
-git add .atta/knowledge/project/project-profile.md
+git add .atta/project/project-profile.md
 git add .github/workflows/atta-review.yml    # if regenerated
 git commit -m "ci: configure Atta review workflow + project profile"
 ```
 
 **Do NOT commit** (personal, gitignored):
-- `.atta/knowledge/project/developer-profile.md` — your personal AI collaboration preferences
+- `.atta/knowledge/developer-profile.md` — your personal AI collaboration preferences
 
 ### Setup checklist
 - [ ] Add the required secret to GitHub: `Settings → Secrets → Actions`
@@ -620,8 +620,8 @@ git commit -m "ci: configure Atta review workflow + project profile"
 
 ```markdown
 Profile files not found:
-- Personal: `.atta/knowledge/project/developer-profile.md` (gitignored — create locally)
-- Team: `.atta/knowledge/project/project-profile.md` (committed — may need to run `/atta` or `npx atta-dev init`)
+- Personal: `.atta/knowledge/developer-profile.md` (gitignored — create locally)
+- Team: `.atta/project/project-profile.md` (committed — may need to run `/atta` or `npx atta-dev init`)
 
 Recovery options:
 1. Run `/profile --update` to create both interactively

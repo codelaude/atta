@@ -51,4 +51,4 @@ DIR-YYYYMMDD-NNN:
 - `{claudeDir}/.context/agent-learning.json` — per-agent learning
 - `.atta/knowledge/patterns/` — pattern files
 - `.atta/knowledge/quick-reference.md`
-- `.atta/knowledge/project/project-context.md`
+- `.atta/project/project-context.md`

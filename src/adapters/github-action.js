@@ -83,8 +83,8 @@ function buildPromptBody() {
 
             IMPORTANT: Before reviewing any code, read these project knowledge files:
 
-            1. \`.atta/knowledge/project/project-context.md\` — tech stack and architecture
-            2. \`.atta/knowledge/project/project-profile.md\` — team conventions and review priorities (if exists)
+            1. \`.atta/project/project-context.md\` — tech stack and architecture
+            2. \`.atta/project/project-profile.md\` — team conventions and review priorities (if exists)
             3. All \`*.md\` files in \`.atta/knowledge/patterns/\` — technology-specific conventions
             4. \`.atta/knowledge/ci-suppressions.md\` — known false positives (skip these)
 

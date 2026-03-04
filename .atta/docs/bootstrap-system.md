@@ -90,7 +90,7 @@ The core innovation in v2.x is **dynamic agent generation**. Instead of hardcodi
   ├── security-patterns.md     (OWASP Top 10 (2025), secrets, injection defenses)
   └── postgresql-patterns.md   (Query optimization, indexing, transactions)
 
-.atta/knowledge/project/
+.atta/project/
   └── mcp-config.json          (Documentation MCP: Vue + Django docs,
                                 Database MCP: PostgreSQL connection,
                                 Browser MCP: accessibility testing)

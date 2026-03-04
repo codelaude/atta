@@ -70,7 +70,7 @@ Tracks all files in `.claude/` and their source (framework/generated/user).
         "source": "generated",
         "regenerate_on_init": true
       },
-      "knowledge/project/project-context.md": {
+      "project/project-context.md": {
         "source": "user",
         "protected": true,
         "never_touch": true

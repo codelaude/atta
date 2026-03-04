@@ -43,6 +43,7 @@
     ".atta/bootstrap/",
     ".atta/docs/",
     ".atta/knowledge/",
+    ".atta/project/",
     ".atta/scripts/lib/_common.sh",
     ".atta/scripts/session-cleanup.sh",
     ".atta/scripts/generate-context.sh",

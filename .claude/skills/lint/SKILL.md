@@ -128,7 +128,7 @@ Pattern knowledge files are missing or incomplete.
 Recovery options:
 1. Run `/atta` (or `/atta --rescan`) to regenerate pattern files
 2. Continue with core lint checks only (critical rules)
-3. Add missing project context in `.atta/knowledge/project/project-context.md`
+3. Add missing project context in `.atta/project/project-context.md`
 ```
 
 ---

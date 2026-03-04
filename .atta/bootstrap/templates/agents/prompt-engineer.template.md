@@ -24,9 +24,9 @@
 
 Read these files to build enrichment context (in order of priority):
 
-1. `.atta/knowledge/project/project-context.md` — tech stack, paths, build commands, architectural patterns, preferences
+1. `.atta/project/project-context.md` — tech stack, paths, build commands, architectural patterns, preferences
 2. `.atta/knowledge/patterns/*.md` — framework patterns and conventions (only the relevant ones for the task)
-3. `.atta/knowledge/project/developer-profile.md` — user's working style and preferences (if available)
+3. `.atta/knowledge/developer-profile.md` — user's working style and preferences (if available)
 
 ## Enrichment Strategy
 

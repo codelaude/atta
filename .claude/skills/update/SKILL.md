@@ -68,7 +68,7 @@ Files: `agents/project-owner.md`, `agents/librarian.md`, `agents/rubber-duck.md`
 
 ### Tier 3: Never Touch (pure user content)
 
-Patterns: `agents/memory/**/*`, `knowledge/project/**/*`, `knowledge/accs/**/*`, `agents-config.json`, `settings.local.json`, `.metadata/file-manifest.json`, `.metadata/framework-version`, `.metadata/update-history.json`
+Patterns: `agents/memory/**/*`, `project/**/*`, `knowledge/accs/**/*`, `agents-config.json`, `settings.local.json`, `.metadata/file-manifest.json`, `.metadata/framework-version`, `.metadata/update-history.json`
 
 Backup directories (`.claude-backup-*`) are created as siblings outside `.claude/`.
 

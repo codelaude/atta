@@ -161,7 +161,7 @@ When multiple specialists needed, coordinate through {{TEAM_LEAD}}.
 {{#each DOCUMENTATION_URLS}}
   - {{this}}
 {{/each}}
-- **Project Context**: `.atta/knowledge/project/project-context.md`
+- **Project Context**: `.atta/project/project-context.md`
 - **Accessibility**: Work with accessibility specialist for WCAG compliance
 
 {{#if HAS_MCP_BROWSER}}

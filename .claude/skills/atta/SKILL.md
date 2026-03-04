@@ -274,7 +274,7 @@ Present detected stack to user: project root, command directory, package manager
 
 ### project-context.md
 
-Write `.atta/knowledge/project/project-context.md`:
+Write `.atta/project/project-context.md`:
 
 ```markdown
 # Project Context
@@ -343,7 +343,7 @@ Each pattern file: key rules from existing code, anti-patterns, conventions, doc
 
 ### Pre-Fill Project Profile
 
-If convention detection (Phase 2) produced results, update `.atta/knowledge/project/project-profile.md`:
+If convention detection (Phase 2) produced results, update `.atta/project/project-profile.md`:
 
 **Naming Conventions section** — Replace the placeholder values with detected conventions:
 
@@ -388,7 +388,7 @@ Write all to `.claude/agents/INDEX.md` with auto-generated header and timestamp.
 
 ## Phase 6: Configure MCP Servers
 
-If user selected MCPs, write `.atta/knowledge/project/mcp-config.json`:
+If user selected MCPs, write `.atta/project/mcp-config.json`:
 
 ```json
 {
@@ -442,7 +442,7 @@ Write `.atta/.metadata/file-manifest.json` for the update system. Minimal skelet
   "classification": {
     "tier_1_safe_replace": ["bootstrap/**", "docs/**", "skills/*/SKILL.md", "knowledge/templates/**"],
     "tier_2_merge_required": ["agents/project-owner.md", "agents/librarian.md", "agents/code-reviewer.md", "agents/business-analyst.md", "agents/qa-validator.md", "agents/pr-manager.md", "agents/rubber-duck.md"],
-    "tier_3_never_touch": ["agents/memory/**", "knowledge/project/**", "knowledge/accs/**", "agents-config.json", "settings.local.json", ".metadata/file-manifest.json", ".metadata/framework-version", ".metadata/update-history.json"],
+    "tier_3_never_touch": ["agents/memory/**", "project/**", "knowledge/accs/**", "agents-config.json", "settings.local.json", ".metadata/file-manifest.json", ".metadata/framework-version", ".metadata/update-history.json"],
     "generated_optional": ["agents/coordinators/**", "agents/specialists/**", "knowledge/patterns/**", "agents/INDEX.md"]
   }
 }
@@ -470,7 +470,7 @@ Display initialization summary: files created/updated, active agents table, quic
 - Re-check for PR templates (if one is now present or changed, regenerate `pr-template.md` mapping)
 - Update pattern files with new findings
 - Preserve manual edits (only update auto-generated sections)
-- **Apply developer profile**: If either `.atta/knowledge/project/developer-profile.md` or `.atta/knowledge/project/project-profile.md` exists and has checked items, run the `/profile --apply` logic (Steps 5-6 from profile/SKILL.md) — parse both profiles, write/replace the `## Preferences` section in `project-context.md`. This ensures profile preferences stay in sync after regeneration without requiring a separate `/profile --apply` call.
+- **Apply developer profile**: If either `.atta/knowledge/developer-profile.md` or `.atta/project/project-profile.md` exists and has checked items, run the `/profile --apply` logic (Steps 5-6 from profile/SKILL.md) — parse both profiles, write/replace the `## Preferences` section in `project-context.md`. This ensures profile preferences stay in sync after regeneration without requiring a separate `/profile --apply` call.
 - **Update detection sources**: Record current mtimes of all detection source files (package.json, lock files, config files) in `generated-manifest.json` `detection_sources` field. This resets the staleness baseline so `generate-context.sh` won't warn until files change again.
 - Report what changed (include architectural patterns, profile propagation status, and staleness reset in the report)
 

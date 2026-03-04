@@ -145,8 +145,8 @@ export function generateGettingStarted(adapter, answers) {
     );
   }
   lines.push('');
-  lines.push('Personal prefs (gitignored): `.atta/knowledge/project/developer-profile.md`');
-  lines.push('Team conventions (committed): `.atta/knowledge/project/project-profile.md`');
+  lines.push('Personal prefs (gitignored): `.atta/knowledge/developer-profile.md`');
+  lines.push('Team conventions (committed): `.atta/project/project-profile.md`');
   lines.push('');
 
   lines.push('Key settings:');

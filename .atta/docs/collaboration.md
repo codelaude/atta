@@ -231,7 +231,7 @@ The normalized finding schema (markdown tables) is the portable contract:
 ### Referenced Files
 ```
 .claude/agents/INDEX.md                                  # Agent registry (for discovery)
-.atta/knowledge/project/project-context.md             # Tech stack context (for routing)
+.atta/project/project-context.md             # Tech stack context (for routing)
 .claude/agents/specialists/*.md                          # Specialist definitions (read per agent)
 .atta/knowledge/patterns/*.md                          # Pattern files (passed to agents)
 ```

@@ -110,7 +110,7 @@ When multiple specialists needed, coordinate through {{TEAM_LEAD}}.
 {{#if STYLE_GUIDE_URL}}
 - **Style Guide**: {{STYLE_GUIDE_URL}}
 {{/if}}
-- **Project Context**: `.atta/knowledge/project/project-context.md`
+- **Project Context**: `.atta/project/project-context.md`
 
 {{#if HAS_MCP_ACCESS}}
 ## MCP Capabilities

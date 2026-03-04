@@ -48,7 +48,7 @@ const contentChecks = [
   ['claude-code-action@v1', 'action v1 reference'],
   ['prompt:', 'prompt field'],
   ['anthropic_api_key:', 'API key reference'],
-  ['.atta/knowledge/project/project-context.md', 'project-context.md reference'],
+  ['.atta/project/project-context.md', 'project-context.md reference'],
   ['.atta/knowledge/ci-suppressions.md', 'suppressions reference'],
   ['pull_request:', 'PR trigger'],
   ['ready_for_review', 'ready_for_review trigger'],
@@ -166,7 +166,7 @@ if (workflow.includes('claude-code-action')) {
   failed++;
 }
 // Prompt body should still be present
-if (!workflow.includes('.atta/knowledge/project/project-context.md')) {
+if (!workflow.includes('.atta/project/project-context.md')) {
   console.error('FAIL: openai workflow missing project-context.md reference in prompt');
   failed++;
 }

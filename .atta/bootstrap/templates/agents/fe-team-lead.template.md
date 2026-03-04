@@ -161,7 +161,7 @@ When specialists disagree:
 {{#each PATTERN_FILES}}
   - `.atta/knowledge/patterns/{{this}}`
 {{/each}}
-- **Project Context**: `.atta/knowledge/project/project-context.md`
+- **Project Context**: `.atta/project/project-context.md`
 - **Web Resources**: Framework and styling documentation (via specialists)
 - **Accessibility**: WAI-ARIA APG, WCAG guidelines (via accessibility specialist)
 

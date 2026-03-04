@@ -111,19 +111,18 @@ export function copyBootstrap(attaRoot, targetDir, options = {}) {
 }
 
 /**
- * Knowledge files owned by the user — never overwritten on re-run.
- * Paths are relative to .atta/knowledge/.
- * Framework files in the same directory (README, prompt-patterns) are always updated.
+ * User-owned files per shared directory — never overwritten on re-run.
+ * Paths are relative to their respective directory inside .atta/.
  */
-const USER_OWNED_KNOWLEDGE_FILES = new Set([
-  'project/project-context.md',
-  'project/project-profile.md',
-  'project/developer-profile.md',
-]);
+const USER_OWNED_FILES = {
+  knowledge: new Set(['developer-profile.md']),
+  project: new Set(['project-context.md', 'project-profile.md']),
+};
 
 /** Shared directories to copy from .atta/ source to .atta/ in the target */
 const SHARED_DIRS = [
   'knowledge',
+  'project',
   'scripts',
   '.metadata',
   '.context',
@@ -160,15 +159,14 @@ export function copySharedContent(attaRoot, targetDir, options = {}) {
 
     mkdirSync(dest, { recursive: true });
 
-    if (dir === 'knowledge') {
-      // Preserve user-owned knowledge files (project-context.md, developer-profile.md)
-      // that may have been customized after the initial install.
+    if (USER_OWNED_FILES[dir]) {
+      // Preserve user-owned files that may have been customized after initial install.
       cpSync(src, dest, {
         recursive: true,
         filter: (srcPath, destPath) => {
           if (lstatSync(srcPath).isDirectory()) return true;
           const rel = relative(src, srcPath);
-          return USER_OWNED_KNOWLEDGE_FILES.has(rel) ? !existsSync(destPath) : true;
+          return USER_OWNED_FILES[dir].has(rel) ? !existsSync(destPath) : true;
         },
       });
     } else {

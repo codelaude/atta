@@ -13,8 +13,8 @@ own knowledge files before reviewing — so it knows your tech stack, convention
 and which security checks actually apply.
 
 **What the CI reviewer reads:**
-- `.atta/knowledge/project/project-context.md` — tech stack and architecture
-- `.atta/knowledge/project/project-profile.md` — team conventions and review priorities
+- `.atta/project/project-context.md` — tech stack and architecture
+- `.atta/project/project-profile.md` — team conventions and review priorities
 - `.atta/knowledge/patterns/*.md` — technology-specific conventions
 - `.atta/knowledge/ci-suppressions.md` — known false positives to skip
 

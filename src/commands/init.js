@@ -167,18 +167,19 @@ async function runInstall(targetDir, adapterName, dryRun, answers, adapterOption
     // Run the adapter
     results = adapter.install(CLAUDE_ROOT, ATTA_ROOT, targetDir, { quiet: true, ...adapterOptions });
 
+    // Gitignore runtime & personal content; keep only team-shared files
+    ensureAttaGitignored(targetDir);
+
     // Pre-fill developer profile if we have answers
     if (answers) {
       const profileContent = generateProfile(answers);
-      const profileDir = join(attaDir, 'knowledge', 'project');
+      const profileDir = join(attaDir, 'knowledge');
       mkdirSync(profileDir, { recursive: true });
       const profilePath = join(profileDir, 'developer-profile.md');
       writeFileSync(profilePath + '.tmp', profileContent);
       renameSync(profilePath + '.tmp', profilePath);
       results.files++;
 
-      // Ensure developer-profile.md is gitignored (it's personal, not for the repo)
-      ensureGitignored(targetDir, '.atta/knowledge/project/developer-profile.md');
     }
 
     // Generate GETTING-STARTED.md
@@ -262,9 +263,10 @@ function printWelcome(adapterName, adapter, answers, adapterOptions = {}) {
   if (answers) {
     console.log('');
     console.log(
-      pc.dim('Your preferences were saved to .atta/knowledge/project/developer-profile.md (personal, gitignored)')
+      pc.dim('Your preferences were saved to .atta/knowledge/developer-profile.md (personal, gitignored)')
     );
-    console.log(pc.dim('Team conventions: .atta/knowledge/project/project-profile.md (committed)'));
+    console.log(pc.dim('Team conventions: .atta/project/project-profile.md (committed)'));
+    console.log(pc.dim('Runtime content (.context/, .sessions/) is gitignored automatically.'));
     console.log(pc.dim('Edit both anytime to refine how agents and CI work with you.'));
   }
 
@@ -311,7 +313,7 @@ function listFrameworkFiles() {
   // Tool-specific (from .claude/)
   const CLAUDE_DIRS = ['agents', 'hooks', 'skills'];
   // Shared (from .atta/)
-  const ATTA_DIRS = ['bootstrap', 'docs', 'knowledge', 'scripts', '.context', '.metadata'];
+  const ATTA_DIRS = ['bootstrap', 'docs', 'knowledge', 'project', 'scripts', '.context', '.metadata'];
 
   console.log(pc.dim('.claude/ (tool-specific):'));
   for (const dir of CLAUDE_DIRS) {
@@ -331,18 +333,28 @@ function listFrameworkFiles() {
 }
 
 /**
- * Ensure a path is present in the project's .gitignore.
- * Creates .gitignore if it doesn't exist. No-ops if the entry is already there.
+ * Write the Atta gitignore block if not already present.
+ * Gitignores runtime/personal content (.context/, .sessions/, knowledge/, .claude/).
+ * Team-shared files live in .atta/project/ and are committed by default.
+ * .claude/ is personal — each dev runs init and generates agents for their own role/tool.
+ * Uses a sentinel comment for idempotency.
  */
-function ensureGitignored(targetDir, entry) {
+function ensureAttaGitignored(targetDir) {
   const gitignorePath = join(targetDir, '.gitignore');
   const existing = existsSync(gitignorePath) ? readFileSync(gitignorePath, 'utf-8') : '';
-  const lines = existing.split('\n');
-  if (lines.some((l) => l.trim() === entry)) return;
-  const updated = existing.endsWith('\n') || existing === ''
-    ? existing + entry + '\n'
-    : existing + '\n' + entry + '\n';
-  writeFileSync(gitignorePath, updated);
+  const SENTINEL = '# Atta — runtime & personal';
+  if (existing.includes(SENTINEL)) return;
+  const block = [
+    '',
+    '# Atta — runtime & personal',
+    '.atta/.context/',
+    '.atta/.sessions/',
+    '.atta/.metadata/generated-manifest.json',
+    '.atta/knowledge/',
+    '.claude/',
+    '.claude-plugin/',
+  ].join('\n');
+  writeFileSync(gitignorePath, existing.trimEnd() + block + '\n');
 }
 
 /**

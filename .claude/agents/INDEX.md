@@ -120,7 +120,7 @@ If you're not using the `/atta` system and want to manually configure agents:
 - **Skills** (slash commands): `.claude/skills/`
 - **Knowledge base**: `.atta/knowledge/`
 - **Pattern files**: `.atta/knowledge/patterns/`
-- **Project context**: `.atta/knowledge/project/project-context.md`
+- **Project context**: `.atta/project/project-context.md`
 
 ---
 

@@ -414,8 +414,8 @@ project/
 
 The generated workflow runs on every PR. Before reviewing, it reads the project's own knowledge files:
 
-1. `.atta/knowledge/project/project-context.md` — tech stack and architecture
-2. `.atta/knowledge/project/project-profile.md` — team conventions and review priorities
+1. `.atta/project/project-context.md` — tech stack and architecture
+2. `.atta/project/project-profile.md` — team conventions and review priorities
 3. `.atta/knowledge/patterns/*.md` — technology-specific conventions
 4. `.atta/knowledge/ci-suppressions.md` — confirmed false positives to skip
 
@@ -518,8 +518,8 @@ The split exists because Claude Code discovers agents from `.claude/agents/` and
 .atta/bootstrap/                             # Detection YAML, templates, mappings
 .atta/knowledge/                             # Pattern files, project context, conventions
 # .atta/docs/ is NOT installed — read docs at github.com/nicholasgasior/atta-dev
-.atta/knowledge/project/project-context.md  # Tech stack (populated by /atta)
-.atta/knowledge/project/project-profile.md  # Team conventions (populated by /profile)
+.atta/project/project-context.md  # Tech stack (populated by /atta)
+.atta/project/project-profile.md  # Team conventions (populated by /profile)
 .atta/knowledge/ci-suppressions.md          # CI false-positive list (human-reviewed)
 .atta/scripts/                               # Utility scripts
 .atta/.metadata/                             # Version and file manifest
@@ -535,10 +535,10 @@ The split exists because Claude Code discovers agents from `.claude/agents/` and
 .atta/.context/patterns-learned.json
 
 # Personal AI preferences (per-developer, not team-shared)
-.atta/knowledge/project/developer-profile.md
+.atta/knowledge/developer-profile.md
 ```
 
-The `.atta/knowledge/project/developer-profile.md` file stores personal AI collaboration preferences (response style, working approach). It is gitignored by default — each developer maintains their own copy locally. Team-shared conventions belong in `project-profile.md`.
+The `.atta/knowledge/developer-profile.md` file stores personal AI collaboration preferences (response style, working approach). It is gitignored by default — each developer maintains their own copy locally. Team-shared conventions belong in `project-profile.md`.
 
 ### CI Environments
 
@@ -567,7 +567,7 @@ Add to your project's `.gitignore`:
 .atta/.context/patterns-learned.json
 
 # Personal AI preferences (each developer maintains their own copy)
-.atta/knowledge/project/developer-profile.md
+.atta/knowledge/developer-profile.md
 ```
 
 The `.atta/.sessions/` directory contains **framework docs** (schema, templates) and **is committed**. Only the runtime JSON files in `.claude/.sessions/` (or `{claudeDir}/.sessions/`) are excluded.

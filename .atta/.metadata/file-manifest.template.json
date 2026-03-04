@@ -226,11 +226,11 @@
       "never_touch": true,
       "description": "User directives and memory"
     },
-    "knowledge/project/": {
+    "project/": {
       "source": "user",
       "protected": true,
       "never_touch": true,
-      "description": "Project-specific context and documentation"
+      "description": "Project-specific context and documentation (team-shared, committed)"
     },
     "knowledge/accs/": {
       "source": "user",
@@ -269,7 +269,7 @@
     ],
     "tier_3_never_touch": [
       "agents/memory/**/*",
-      "knowledge/project/**/*",
+      "project/**/*",
       "knowledge/accs/**/*",
       "agents-config.json",
       "settings.local.json",

@@ -376,8 +376,8 @@ After all template substitution is complete, append a `## Developer Preferences`
 **Step 1: Parse profile**
 
 Read both profile files:
-- `.atta/knowledge/project/developer-profile.md` (personal, may not exist if gitignored)
-- `.atta/knowledge/project/project-profile.md` (team conventions)
+- `.atta/knowledge/developer-profile.md` (personal, may not exist if gitignored)
+- `.atta/project/project-profile.md` (team conventions)
 
 If neither file exists or has `[x]` checkboxes, skip profile injection entirely.
 
@@ -393,6 +393,8 @@ Extract checked preferences (sourced from whichever file contains each section):
 | Code Review Priorities | `project-profile.md` | Multi-select | `correctness, security, readability` |
 | Testing Approach | `project-profile.md` | Single selection | `TDD` / `test-after` / `critical-paths` / `high-coverage` |
 | Documentation | `project-profile.md` | Single selection | `inline-comments` / `jsdoc` / `readme-per-module` / `minimal` |
+
+
 
 **Step 2: Build the section**
 
@@ -618,7 +620,7 @@ Write `.metadata/generated-manifest.json`:
     ],
     "skills": [],
     "config": [
-      "knowledge/project/mcp-config.json",
+      "project/mcp-config.json",
       "agents/INDEX.md"
     ]
   },
@@ -739,7 +741,7 @@ The `/atta` skill should:
    mcp_recommendations = generate_mcp_recommendations(detected)
    user_selections = prompt_user_for_mcp_choices(mcp_recommendations)
    mcp_config = generate_mcp_config(user_selections)
-   write_file('knowledge/project/mcp-config.json', mcp_config)
+   write_file('project/mcp-config.json', mcp_config)
    ```
 
 7. **Phase 7 - Manifest**:

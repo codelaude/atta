@@ -5,7 +5,7 @@ import { readVersion } from '../lib/fs-utils.js';
 
 /**
  * Generate AGENTS.md content from framework source.
- * Used by all adapters (Claude Code, Copilot, Codex, Gemini).
+ * Used by all adapters (Claude Code, Copilot, Codex, Gemini, Cursor).
  *
  * @param {string} claudeRoot - Path to .claude/ source (skills, agents)
  * @param {string} attaRoot - Path to .atta/ source (metadata with version)

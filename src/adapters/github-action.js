@@ -7,8 +7,8 @@ import { copySharedContent, copyBootstrap } from './shared.js';
  * GitHub Action adapter — generates `.github/workflows/atta-review.yml`.
  *
  * Adds context-aware CI code review to any project. The generated workflow
- * reads the project's own knowledge files (.atta/knowledge/) to scope the
- * review to the actual tech stack and conventions — no generic prompts.
+ * reads project context files (.atta/project/) and pattern files (.atta/knowledge/patterns/)
+ * to scope the review to the actual tech stack and conventions — no generic prompts.
  *
  * Design constraints (from PLAN.md):
  * - CI action is read-only: never writes to .atta/
@@ -25,7 +25,7 @@ import { copySharedContent, copyBootstrap } from './shared.js';
  *                 'openai'|'azure'|'ollama' use appleboy/LLM-action (OpenAI-compatible endpoint)
  *
  * To update the prompt after conventions change: re-run `atta init --adapter github-action`
- * (the workflow always reads the latest .atta/knowledge/ files, so this is rarely needed).
+ * (the workflow always reads the latest .atta/project/ and .atta/knowledge/patterns/ files, so this is rarely needed).
  */
 export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   const results = { files: 0 };

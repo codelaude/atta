@@ -232,7 +232,7 @@ ${promptBody}${authEnv}
  * For Claude, use the default (anthropic/bedrock/vertex/foundry) path above.
  */
 function buildWorkflowLLMAction({ provider = 'openai' } = {}) {
-  let setupComment, apiKeyRef, baseUrl, model;
+  let setupComment, apiKeyRef, model;
 
   switch (provider) {
     case 'azure':

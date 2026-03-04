@@ -7,10 +7,11 @@ export function generateGettingStarted(adapter, answers) {
     copilot: 'Copilot CLI',
     codex: 'Codex CLI',
     gemini: 'Gemini CLI',
+    cursor: 'Cursor',
   }[adapter] || 'your AI tool';
 
-  // Codex uses $ prefix for skills, all others use /
-  const p = adapter === 'codex' ? '$' : '/';
+  // Codex uses $ prefix, Cursor uses @atta- prefix, all others use /
+  const p = adapter === 'codex' ? '$' : adapter === 'cursor' ? '@atta-' : '/';
 
   // Copilot renames skills that conflict with built-in commands
   const agent = adapter === 'copilot' ? 'atta-agent' : 'agent';
@@ -68,6 +69,16 @@ export function generateGettingStarted(adapter, answers) {
     lines.push('');
     lines.push(
       'This auto-detects your tech stack and generates specialist agents tailored to your project. `GEMINI.md` provides context and TOML commands in `.gemini/commands/` register as slash commands (e.g., `/review`, `/preflight`).'
+    );
+  } else if (adapter === 'cursor') {
+    lines.push('Open your project in Cursor and type in chat:');
+    lines.push('');
+    lines.push('```');
+    lines.push('@atta-atta');
+    lines.push('```');
+    lines.push('');
+    lines.push(
+      'This auto-detects your tech stack and generates specialist agents tailored to your project. Skills are in `.cursor/rules/` as `.mdc` files — @-mention any skill in chat (e.g., `@atta-review`, `@atta-preflight`) or Cursor applies them automatically based on context. Agents are in `.cursor/agents/`.'
     );
   }
 

@@ -142,7 +142,7 @@ const SHARED_FILES = [
 
 /**
  * Copy shared (tool-agnostic) content from .atta/ source to .atta/ in the target project.
- * Copies knowledge, scripts, docs, metadata, context, and session schema.
+ * Copies knowledge, scripts, metadata, context, and session schema. Does not copy docs.
  *
  * @param {string} attaRoot - Path to .atta/ source
  * @param {string} targetDir - Project root where .atta/ will be populated

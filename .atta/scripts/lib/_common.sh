@@ -24,7 +24,7 @@ except (FileNotFoundError, json.JSONDecodeError):
 # Auto-detect CLAUDE_DIR from settings files.
 # Sets the CLAUDE_DIR variable. Skips if CLAUDE_DIR is already non-empty.
 resolve_claude_dir() {
-  if [ -n "$CLAUDE_DIR" ]; then
+  if [ -n "${CLAUDE_DIR:-}" ]; then
     return
   fi
 
@@ -67,7 +67,7 @@ validate_claude_dir() {
 # In production, .atta/ is always the shared content directory.
 # In dev mode, pass the workspace path explicitly via argument or env var.
 resolve_atta_dir() {
-  if [ -n "$ATTA_DIR" ]; then
+  if [ -n "${ATTA_DIR:-}" ]; then
     return
   fi
   ATTA_DIR=".atta"

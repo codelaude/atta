@@ -131,12 +131,6 @@ with open(path, 'w') as f:
     f.write('\n')
 PYEOF
 
-    # Run cleanup and context generation
-    # session-cleanup: pass claudeDir as sessionsRoot (sessions live in {claudeDir}/.sessions/)
-    # generate-context: pass claudeDir as sessionsRoot, attaRoot as context target
-    SCRIPTS="$REAL_CWD/.atta/scripts"
-    [ -f "$SCRIPTS/session-cleanup.sh" ] && bash "$SCRIPTS/session-cleanup.sh" "$REAL_CLAUDE_DIR" 2>/dev/null || true
-
     # Resolve attaRoot from .env.claude (dev mode may use .atta_dev instead of .atta)
     ATTA_DIR=""
     if [ -f "$CWD/.env.claude" ]; then
@@ -151,6 +145,10 @@ PYEOF
       *) REAL_ATTA_DIR="$REAL_CWD/.atta" ;;
     esac
 
+    # Run cleanup and context generation
+    # Scripts live in attaRoot (respects ATTA_WORKSPACE_DIR for dev mode)
+    SCRIPTS="$REAL_ATTA_DIR/scripts"
+    [ -f "$SCRIPTS/session-cleanup.sh" ] && bash "$SCRIPTS/session-cleanup.sh" "$REAL_CLAUDE_DIR" 2>/dev/null || true
     [ -f "$SCRIPTS/generate-context.sh" ] && bash "$SCRIPTS/generate-context.sh" "$REAL_CLAUDE_DIR" "$REAL_ATTA_DIR" 2>/dev/null || true
     ;;
 esac

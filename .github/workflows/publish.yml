@@ -4,14 +4,21 @@ on:
   push:
     branches: [main]
 
+concurrency:
+  group: publish-npm
+  cancel-in-progress: false
+
+permissions:
+  id-token: write
+  contents: write
+
 jobs:
   publish:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      id-token: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-tags: true
 
       - uses: actions/setup-node@v4
         with:
@@ -35,16 +42,16 @@ jobs:
         if: steps.version.outputs.skip == 'false'
         run: npm install
 
-      - name: Publish with provenance
+      - name: Publish
         if: steps.version.outputs.skip == 'false'
-        run: npm publish --provenance
+        run: npm publish
 
       - name: Create Git tag
         if: steps.version.outputs.skip == 'false'
         run: |
           TAG="v${{ steps.version.outputs.version }}"
-          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
-            echo "Tag $TAG already exists, skipping."
+          if git ls-remote --tags origin "refs/tags/$TAG" | grep -q .; then
+            echo "Tag $TAG already exists on remote, skipping."
           else
             git tag "$TAG"
             git push origin "$TAG"

@@ -8,13 +8,12 @@ concurrency:
   group: publish-npm
   cancel-in-progress: false
 
-permissions:
-  id-token: write
-  contents: write
-
 jobs:
   publish:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -45,6 +44,10 @@ jobs:
       - name: Install dependencies
         if: steps.version.outputs.skip == 'false'
         run: npm install
+
+      - name: Run tests
+        if: steps.version.outputs.skip == 'false'
+        run: bash tests/check-all.sh
 
       - name: Publish with provenance
         if: steps.version.outputs.skip == 'false'

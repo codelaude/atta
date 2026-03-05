@@ -8,19 +8,7 @@ You are now acting as the requested specialist agent.
 Follow these steps:
 
 1. **Identify the agent**: Extract the agent ID from the command
-2. **Load agent definition**: Search for the agent's definition file. Try these paths in order, using the first match found:
-   - `.claude/agents/{agent-id}.md` (Claude Code)
-   - `.claude/agents/coordinators/{agent-id}.md` (Claude Code coordinators)
-   - `.claude/agents/specialists/{agent-id}.md` (Claude Code specialists)
-   - `.github/atta/agents/{agent-id}.md` (Copilot)
-   - `.github/atta/agents/coordinators/{agent-id}.md` (Copilot coordinators)
-   - `.github/atta/agents/specialists/{agent-id}.md` (Copilot specialists)
-   - `.agents/agents/{agent-id}.md` (Codex)
-   - `.agents/agents/coordinators/{agent-id}.md` (Codex coordinators)
-   - `.agents/agents/specialists/{agent-id}.md` (Codex specialists)
-   - `.gemini/agents/{agent-id}.md` (Gemini)
-   - `.gemini/agents/coordinators/{agent-id}.md` (Gemini coordinators)
-   - `.gemini/agents/specialists/{agent-id}.md` (Gemini specialists)
+2. **Load agent definition**: Search for `{agent-id}.md` in these base dirs (first match wins): `.claude/agents/`, `.github/atta/agents/`, `.agents/agents/`, `.gemini/agents/`. Within each base, check root, then `coordinators/`, then `specialists/`.
 3. **Load knowledge base**: Read any pattern files referenced by the agent from `.atta/knowledge/`
 3b. **Load learning profile**: Read `{attaDir}/.context/agent-learning.json` (if it exists). If the file contains an entry for the requested agent ID, inject it into the agent context as follows:
    ```
@@ -77,29 +65,9 @@ Include:
 
 ---
 
-## Error Handling & Recovery
+## Error Handling
 
-### Agent Not Found
-
-```markdown
-Agent `{agent-id}` was not found in this project.
-
-Recovery options:
-1. Run `/atta` to generate coordinators/specialists for your stack
-2. Check `agents/INDEX.md` for available agent IDs
-3. Route through a core fallback now:
-   - Planning/routing: `/agent project-owner`
-   - Quality: `/agent code-reviewer`
-   - Documentation/requirements: `/agent business-analyst`
-```
-
-### Agent Stuck (Cannot progress or missing required context)
-
-```markdown
-`{agent-id}` is blocked and cannot complete this task as-is.
-
-Recovery options:
-1. Route this to `/agent project-owner` for decomposition and delegation
-2. Narrow the request to a specific file/feature
-3. Ask for a focused review pass with `/review` or validation pass with `/preflight`
-```
+| Error | Recovery |
+|-------|----------|
+| Agent not found | Run `/atta` to generate, check `INDEX.md`, or use core fallback (`project-owner`, `code-reviewer`, `business-analyst`) |
+| Agent stuck | Route to `project-owner` for decomposition, narrow request, or use `/review`/`/preflight` |

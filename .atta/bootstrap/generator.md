@@ -13,7 +13,7 @@
 
 ## Overview
 
-The bootstrap system transforms the `.claude/` framework from a static, Vue/AEM-focused setup into an adaptive system that generates appropriate agents for ANY tech stack.
+The bootstrap system transforms the `.claude/` framework into an adaptive system that generates appropriate agents for ANY tech stack.
 
 **Architecture**:
 ```

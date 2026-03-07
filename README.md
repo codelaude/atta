@@ -1,10 +1,10 @@
 <p align="center">
-  <img src="atta.svg" alt="Atta" width="400">
+  <img src="https://raw.githubusercontent.com/codelaude/atta/main/atta.svg" alt="Atta" width="400">
   <br>
   <em>Named after the leafcutter ant genus, where colonies of specialists build together.</em>
 </p>
 
-A multi-agent system for AI-assisted development that guides, reviews, and validates your work — instead of writing code for you. Supports any tech stack: Vue, React, Angular, Python/Django, Java/Spring Boot, Go, Rust, and [100+ more](.atta/docs/bootstrap-system.md).
+A multi-agent system for AI-assisted development that guides, reviews, and validates your work — instead of writing code for you. Supports any tech stack: Vue, React, Angular, Python/Django, Java/Spring Boot, Go, Rust, and [100+ more](https://github.com/codelaude/atta/blob/main/.atta/docs/bootstrap-system.md).
 
 ## Requirements
 
@@ -81,7 +81,7 @@ The interactive setup interviews you about your project, auto-detects your tech 
 - **Not unpredictable.** Every agent has hard constraints on what it does *and refuses to do*. A developer profile sets your collaboration style and priorities. The system learns from corrections, but nothing changes without your approval.
 - **Not a one-shot tool.** Day one, you get the bare minimum — tech detection, agents, pattern files. Over time, corrections accumulate, directives grow, agents adapt to your feedback. Session 50 is dramatically better than session 1 — because the context is *yours*.
 
-See [Design Philosophy](.atta/docs/philosophy.md) for the full story on how the system grows with you.
+See [Design Philosophy](https://github.com/codelaude/atta/blob/main/.atta/docs/philosophy.md) for the full story on how the system grows with you.
 
 ## How It Works
 
@@ -131,18 +131,18 @@ Start here, then dive deeper:
 
 | Doc | What you'll learn |
 |-----|-------------------|
-| **[Bootstrap System](/.atta/docs/bootstrap-system.md)** | How tech detection and agent generation works |
-| **[Multi-Agent Collaboration](/.atta/docs/collaboration.md)** | How `/collaborate` works — modes, conflict detection, finding schema |
-| **[MCP Setup Guide](/.atta/docs/mcp-setup.md)** | Configure Model Context Protocol servers |
-| **[Session Tracking](/.atta/docs/session-tracking.md)** | What's tracked, privacy, retention policy |
-| **[Developer Profile](/.atta/docs/profile.md)** | How `/profile` works — modes, preferences, propagation |
-| **[Prompt Optimizer](/.atta/docs/optimize.md)** | How `/optimize` works — cross-tool context enrichment |
-| **[Extending the System](/.atta/docs/extending.md)** | Add new technologies and custom agents via YAML |
-| **[Updating](/.atta/docs/updating.md)** | How to update without losing customizations |
-| **[Token Usage & Cost](/.atta/docs/token-usage.md)** | Estimated tokens and cost per skill |
-| **[Design Philosophy](/.atta/docs/philosophy.md)** | Why this exists, core principles, how the system grows |
-| **[CI Review](/.atta/docs/ci-review.md)** | GitHub Action CI adapter — setup, multi-provider auth, suppression workflow |
-| **[Changelog](/.atta/docs/changelog.md)** | Full version history |
+| **[Bootstrap System](https://github.com/codelaude/atta/blob/main/.atta/docs/bootstrap-system.md)** | How tech detection and agent generation works |
+| **[Multi-Agent Collaboration](https://github.com/codelaude/atta/blob/main/.atta/docs/collaboration.md)** | How `/collaborate` works — modes, conflict detection, finding schema |
+| **[MCP Setup Guide](https://github.com/codelaude/atta/blob/main/.atta/docs/mcp-setup.md)** | Configure Model Context Protocol servers |
+| **[Session Tracking](https://github.com/codelaude/atta/blob/main/.atta/docs/session-tracking.md)** | What's tracked, privacy, retention policy |
+| **[Developer Profile](https://github.com/codelaude/atta/blob/main/.atta/docs/profile.md)** | How `/profile` works — modes, preferences, propagation |
+| **[Prompt Optimizer](https://github.com/codelaude/atta/blob/main/.atta/docs/optimize.md)** | How `/optimize` works — cross-tool context enrichment |
+| **[Extending the System](https://github.com/codelaude/atta/blob/main/.atta/docs/extending.md)** | Add new technologies and custom agents via YAML |
+| **[Updating](https://github.com/codelaude/atta/blob/main/.atta/docs/updating.md)** | How to update without losing customizations |
+| **[Token Usage & Cost](https://github.com/codelaude/atta/blob/main/.atta/docs/token-usage.md)** | Estimated tokens and cost per skill |
+| **[Design Philosophy](https://github.com/codelaude/atta/blob/main/.atta/docs/philosophy.md)** | Why this exists, core principles, how the system grows |
+| **[CI Review](https://github.com/codelaude/atta/blob/main/.atta/docs/ci-review.md)** | GitHub Action CI adapter — setup, multi-provider auth, suppression workflow |
+| **[Changelog](https://github.com/codelaude/atta/blob/main/.atta/docs/changelog.md)** | Full version history |
 
 ## Framework Contributor Checks
 

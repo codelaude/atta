@@ -189,13 +189,16 @@ custom_api_mcp:
 │   │   └── skill-mappings.yaml       # Add custom skill mappings here
 │   └── templates/
 │       ├── agents/                   # Universal agent templates
+│       │   ├── _common.md                        # Shared partial (constraints, knowledge base, etc.)
 │       │   ├── framework-specialist.template.md
 │       │   ├── language-specialist.template.md
 │       │   ├── database-specialist.template.md
 │       │   ├── styling-specialist.template.md
 │       │   ├── testing-specialist.template.md
+│       │   ├── e2e-testing-specialist.template.md
 │       │   ├── security-specialist.template.md
 │       │   ├── accessibility-specialist.template.md
+│       │   ├── prompt-engineer.template.md
 │       │   ├── fe-team-lead.template.md
 │       │   └── be-team-lead.template.md
 │       └── patterns/                 # Tech-specific pattern templates (optional)

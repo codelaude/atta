@@ -23,6 +23,10 @@ You are now running the **ship** completion workflow. This finalizes work for PR
 
 ## Execution Steps
 
+### Step 0: Load Scoped Directives
+
+Read `.claude/agents/memory/directives-pr.md` if it exists (skip silently if absent). Apply any directives found as additional shipping/PR constraints.
+
 ### Step 1: Run Tests
 
 ```bash

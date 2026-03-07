@@ -52,6 +52,15 @@ Tool-agnostic shared content architecture, developer profile system, prompt opti
 - `atta init --adapter cursor` entry point
 - Dry-run validated against Cursor rules discovery path
 
+**Token Diet — Scoped Directives + Template Compression**
+- **Scoped directive loading**: `/agent` now loads per-agent directive files (`directives-{agent-id}.md`) and category-scoped directive bundles (e.g. `directives-testing.md`, `directives-style.md`, `directives-pr.md`) alongside agent definitions — directives only enter context when their agent/skill runs
+- **Librarian scoped routing**: Librarian routes new directives to category-scoped files (`directives-code-reviewer.md`, `directives-testing.md`, `directives-style.md`, etc.) based on `applies_to` field
+- **Skill directive loading**: `/review`, `/collaborate`, `/test`, `/preflight`, `/lint`, `/ship`, `/librarian` each load only their relevant scoped directive files
+- **Migration + promotion flow**: `/librarian --migrate` re-classifies existing flat directives into scoped files (interactive). `/patterns promote --directives` merges 8+ scoped directives into agent `## Project Rules` sections
+- **Update safety**: Scoped directive files classified as Tier 3 (never touch). `## Project Rules` sections in agent definitions preserved during `/update` (Tier 2 merge)
+- **Template compression**: Agent templates compressed via `_common.md` shared partial + language tightening — 2033 → 1435 lines (29% reduction). Shared sections: constraints, key rules, anti-patterns, knowledge base, delegates footer, MCP structure, escalation
+- **`/atta` template generation**: Phase 4 now reads `_common.md` partial and resolves `{{> common.SECTION}}` references when generating agents from templates
+
 **CI Review Adapter — GitHub Action (6th adapter)**
 - New `src/adapters/github-action.js` — generates `.github/workflows/atta-review.yml`
 - Context-aware PR review: the generated workflow reads `.atta/knowledge/` files (project-context, project-profile, pattern files, ci-suppressions) before reviewing, scoping findings to the actual tech stack and conventions
@@ -240,7 +249,7 @@ Security hardening, community files, and npm packaging improvements from 3-way c
 ## By the Numbers (v2.7)
 
 - **100+ Technology Detectors** across frontend, backend, databases, security tools, architecture
-- **11 Universal Agent Templates** that generate project-specific specialists (+ E2E, prompt engineer)
+- **11 Universal Agent Templates** with `_common.md` shared partial that generate project-specific specialists (+ E2E, prompt engineer)
 - **6 Detection Rule Files** covering frontend, backend, databases, tools, security, and architecture
 - **21+ Pattern File Templates** for different tech stacks (+ E2E testing, prompt patterns)
 - **17 Skills** (slash commands), `/patterns` with 7 subcommands, `/test` with 3 flags

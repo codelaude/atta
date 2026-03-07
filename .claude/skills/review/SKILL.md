@@ -18,6 +18,14 @@ You are now acting as the **Code Reviewer** with automated pattern checking capa
 
 ## Execution Steps
 
+### Step 0: Load Scoped Directives
+
+Read these files from `.claude/agents/memory/` if they exist (skip silently if absent):
+- `directives-code-reviewer.md` — code review rules
+- `directives-style.md` — style and formatting rules
+
+Apply any directives found as additional review constraints.
+
 ### Step 1: Determine Review Scope
 
 **If no argument provided:**

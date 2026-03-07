@@ -22,7 +22,7 @@ You are running the **update** skill to manage framework updates for the `.claud
 ### Source Acquisition (Required for check/pull)
 
 ```bash
-git clone --depth 1 <framework-repo-url> .claude_staging
+git clone --depth 1 https://github.com/codelaude/atta.git .claude_staging
 ```
 
 Never manually copy a new `.claude/` folder over your existing one.
@@ -136,10 +136,12 @@ Copy new versions from framework, update hashes in manifest, log updates.
 **Strategy A — No Customizations:** Simply replace with new version.
 
 **Strategy B — Customizations Detected:**
-1. Extract user customizations (personality names, added rules, modified sections)
+1. Extract user customizations (personality names, added rules, modified sections, `## Project Rules` sections)
 2. Apply framework update (get new template)
 3. Reapply customizations (merge back in)
 4. Show diff and ask for approval
+
+> **`## Project Rules` sections** are user-owned content promoted from scoped directives via `/patterns promote --directives`. They must be extracted before update and reapplied after, same as personality names and added rules. Never overwrite or remove them.
 
 **Strategy C — Interactive Mode (`--interactive`):**
 Show side-by-side diff for each file. User chooses: (a) accept + reapply, (b) keep yours, (c) manual edit.
@@ -174,7 +176,12 @@ Read `.metadata/update-history.json` and display each entry: from → to version
 
 ## Smart Merge Algorithm
 
-For Tier 2 files: detect user customizations → get new framework template → reapply customizations (YAML frontmatter, special sections, or 3-way merge) → validate → show diff.
+For Tier 2 files: detect user customizations → get new framework template → reapply customizations (YAML frontmatter, special sections, `## Project Rules`, or 3-way merge) → validate → show diff.
+
+User-owned sections in Tier 2 agent files (extract before update, reapply after):
+- Personality names (custom agent names)
+- Added rules within existing sections
+- `## Project Rules` — promoted directives from `/patterns promote --directives`
 
 ---
 

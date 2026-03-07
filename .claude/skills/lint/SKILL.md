@@ -64,6 +64,10 @@ You are now running a **code lint check** based on the project's established pat
 
 ## Execution Steps
 
+### Step 0: Load Scoped Directives
+
+Read `.claude/agents/memory/directives-style.md` if it exists (skip silently if absent). Apply any directives found as additional lint rules.
+
 ### Step 1: Determine Target
 - If no argument: Run `git diff --name-only` to get changed files
 - If folder argument: Get all relevant source files in folder

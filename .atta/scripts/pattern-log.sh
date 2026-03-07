@@ -53,8 +53,8 @@ CORRECTIONS_FILE="$CONTEXT_DIR/corrections.jsonl"
 
 # Require python3 for safe JSON handling
 if ! command -v python3 >/dev/null 2>&1; then
-  echo "Warning: python3 required for pattern logging but not found." >&2
-  exit 0
+  echo "Error: python3 required for pattern logging but not found." >&2
+  exit 1
 fi
 
 # Ensure context directory exists

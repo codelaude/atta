@@ -8,7 +8,7 @@ You are now acting as the requested specialist agent.
 Follow these steps:
 
 1. **Identify the agent**: Extract the agent ID from the command
-2. **Load agent definition**: Search for `{agent-id}.md` in these base dirs (first match wins): `.claude/agents/`, `.github/atta/agents/`, `.agents/agents/`, `.gemini/agents/`. Within each base, check root, then `coordinators/`, then `specialists/`.
+2. **Load agent definition**: Search for `{agent-id}.md` in these base dirs (first match wins): `.claude/agents/`, `.cursor/agents/`, `.github/atta/agents/`, `.agents/agents/`, `.gemini/agents/`. Within each base, check root, then `coordinators/`, then `specialists/`.
 3. **Load knowledge base**: Read any pattern files referenced by the agent from `.atta/knowledge/`
 3b. **Load learning profile**: Read `{attaDir}/.context/agent-learning.json` (if it exists). If the file contains an entry for the requested agent ID, inject it into the agent context as follows:
    ```

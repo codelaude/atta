@@ -102,7 +102,8 @@ function skillToMdc(skill, skillFile) {
 
   const lines = [];
   lines.push('---');
-  lines.push(`description: ${desc}`);
+  const safeDesc = /[:#\[\]{}>|*&!%@`]/.test(desc) ? `"${desc.replace(/"/g, '\\"')}"` : desc;
+  lines.push(`description: ${safeDesc}`);
   lines.push('globs: ');
   lines.push('alwaysApply: false');
   lines.push('---');

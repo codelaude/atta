@@ -77,7 +77,7 @@ When multiple specialists needed, coordinate through {{TEAM_LEAD}}.
 {{#if HAS_MCP_BROWSER}}
 ## MCP Capabilities
 
-Browser MCP access for {{MCP_BROWSER_PURPOSE}}.
+Browser MCP access for browsing and inspecting web pages relevant to the task.
 
 - Run headless browser
 - Capture screenshots
@@ -90,3 +90,9 @@ Browser MCP access for {{MCP_BROWSER_PURPOSE}}.
 ## common.escalation
 
 Escalate to {{TEAM_LEAD}} when:
+- Cross-domain coordination needed
+- Breaking changes to shared APIs
+- Security implications detected
+- Architectural decisions beyond specialist scope
+
+---

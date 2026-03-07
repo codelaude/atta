@@ -51,18 +51,26 @@
 ## Decomposition Patterns
 
 ### New API Endpoint
-1. **Parallel**: {{#if LANGUAGE_SPECIALIST}}{{LANGUAGE_SPECIALIST}} (core logic){{/if}}{{#if DATABASE_SPECIALIST}}, {{DATABASE_SPECIALIST}} (data layer){{/if}}{{#if API_SPECIALIST}}, {{API_SPECIALIST}} (API contract){{/if}}
-2. **Sequential**: {{#if TESTING_SPECIALIST}}{{TESTING_SPECIALIST}} (tests){{/if}} → code-reviewer (review)
+1. **Parallel**:
+   {{#if LANGUAGE_SPECIALIST}}- {{LANGUAGE_SPECIALIST}} (core logic){{/if}}
+   {{#if DATABASE_SPECIALIST}}- {{DATABASE_SPECIALIST}} (data layer){{/if}}
+   {{#if API_SPECIALIST}}- {{API_SPECIALIST}} (API contract){{/if}}
+2. **Sequential**: {{#if TESTING_SPECIALIST}}{{TESTING_SPECIALIST}} (tests) → {{/if}}code-reviewer (review)
 
 ### Data Model Change
-1. **Sequential**: {{#if DATABASE_SPECIALIST}}{{DATABASE_SPECIALIST}} (schema + migration){{/if}} → {{#if ORM_SPECIALIST}}{{ORM_SPECIALIST}}/{{LANGUAGE_SPECIALIST}} (ORM models){{/if}} → {{#if FRAMEWORK_SPECIALIST}}{{FRAMEWORK_SPECIALIST}} (update endpoints){{/if}}
-2. **Finally**: {{#if TESTING_SPECIALIST}}{{TESTING_SPECIALIST}} (update tests){{/if}} → code-reviewer (migration safety)
+1. **Sequential**:
+   {{#if DATABASE_SPECIALIST}}- {{DATABASE_SPECIALIST}} (schema + migration){{/if}}
+   {{#if ORM_SPECIALIST}}- {{ORM_SPECIALIST}}/{{LANGUAGE_SPECIALIST}} (ORM models){{/if}}
+   {{#if FRAMEWORK_SPECIALIST}}- {{FRAMEWORK_SPECIALIST}} (update endpoints){{/if}}
+2. **Finally**: {{#if TESTING_SPECIALIST}}{{TESTING_SPECIALIST}} (update tests) → {{/if}}code-reviewer (migration safety)
 
 ### Bug Fix
 - Single specialist if isolated, multiple if cross-domain. Always validate with tests.
 
 ### Performance
-1. **Investigate** (parallel): {{#if DATABASE_SPECIALIST}}{{DATABASE_SPECIALIST}} (queries){{/if}}{{#if LANGUAGE_SPECIALIST}}, {{LANGUAGE_SPECIALIST}} (code efficiency){{/if}}
+1. **Investigate** (parallel):
+   {{#if DATABASE_SPECIALIST}}- {{DATABASE_SPECIALIST}} (queries){{/if}}
+   {{#if LANGUAGE_SPECIALIST}}- {{LANGUAGE_SPECIALIST}} (code efficiency){{/if}}
 2. **Implement** → relevant specialist(s)
 3. **Validate** → measure before/after
 

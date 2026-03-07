@@ -54,21 +54,35 @@
 ## Decomposition Patterns
 
 ### New Component
-1. **Parallel**: {{#if FRAMEWORK_SPECIALIST}}{{FRAMEWORK_SPECIALIST}} (structure/logic){{/if}}{{#if STYLING_SPECIALIST}}, {{STYLING_SPECIALIST}} (styles/responsive){{/if}}{{#if TYPE_SPECIALIST}}, {{TYPE_SPECIALIST}} (types){{/if}}
+1. **Parallel**:
+   {{#if FRAMEWORK_SPECIALIST}}- {{FRAMEWORK_SPECIALIST}} (structure/logic){{/if}}
+   {{#if STYLING_SPECIALIST}}- {{STYLING_SPECIALIST}} (styles/responsive){{/if}}
+   {{#if TYPE_SPECIALIST}}- {{TYPE_SPECIALIST}} (types){{/if}}
 2. **Sequential**: accessibility (WCAG/ARIA){{#if TESTING_SPECIALIST}} → {{TESTING_SPECIALIST}} (tests){{/if}} → code-reviewer (review)
 
 ### Complex Form
-1. **Parallel**: {{#if FRAMEWORK_SPECIALIST}}{{FRAMEWORK_SPECIALIST}} (state/validation){{/if}}{{#if STYLING_SPECIALIST}}, {{STYLING_SPECIALIST}} (layout/errors){{/if}}, accessibility (keyboard, labels, errors)
+1. **Parallel**:
+   {{#if FRAMEWORK_SPECIALIST}}- {{FRAMEWORK_SPECIALIST}} (state/validation){{/if}}
+   {{#if STYLING_SPECIALIST}}- {{STYLING_SPECIALIST}} (layout/errors){{/if}}
+   - accessibility (keyboard, labels, errors)
 2. **Sequential**: {{#if TYPE_SPECIALIST}}{{TYPE_SPECIALIST}} (validation types){{/if}}{{#if TESTING_SPECIALIST}} → {{TESTING_SPECIALIST}} (interaction tests){{/if}}
 
 ### State Management
-1. **Sequential**: {{#if STATE_SPECIALIST}}{{STATE_SPECIALIST}} (store design){{/if}} → {{#if FRAMEWORK_SPECIALIST}}{{FRAMEWORK_SPECIALIST}} (integration){{/if}} → {{#if TYPE_SPECIALIST}}{{TYPE_SPECIALIST}} (state types){{/if}} → {{#if TESTING_SPECIALIST}}{{TESTING_SPECIALIST}} (store tests){{/if}}
+1. **Sequential**:
+   {{#if STATE_SPECIALIST}}- {{STATE_SPECIALIST}} (store design){{/if}}
+   {{#if FRAMEWORK_SPECIALIST}}- {{FRAMEWORK_SPECIALIST}} (integration){{/if}}
+   {{#if TYPE_SPECIALIST}}- {{TYPE_SPECIALIST}} (state types){{/if}}
+   {{#if TESTING_SPECIALIST}}- {{TESTING_SPECIALIST}} (store tests){{/if}}
 
 ### Bug Fix
 - Single specialist if isolated, multiple if cross-domain. Always validate with tests.
 
 ### Accessibility Remediation
-1. accessibility (audit) → 2. Parallel fixes: {{#if FRAMEWORK_SPECIALIST}}{{FRAMEWORK_SPECIALIST}} (semantic HTML){{/if}}{{#if STYLING_SPECIALIST}}, {{STYLING_SPECIALIST}} (contrast, indicators){{/if}} → 3. accessibility (verify)
+1. accessibility (audit)
+2. **Parallel fixes**:
+   {{#if FRAMEWORK_SPECIALIST}}- {{FRAMEWORK_SPECIALIST}} (semantic HTML){{/if}}
+   {{#if STYLING_SPECIALIST}}- {{STYLING_SPECIALIST}} (contrast, indicators){{/if}}
+3. accessibility (verify)
 
 ## Cross-Team Coordination
 

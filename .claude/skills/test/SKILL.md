@@ -18,6 +18,10 @@ You are running the project's test suite with intelligent framework detection.
 
 ---
 
+## Step 0: Load Scoped Directives
+
+Read `.claude/agents/memory/directives-testing.md` if it exists (skip silently if absent). Apply any directives found as additional testing constraints.
+
 ## Step 1: Detect Test Framework
 
 Read `.atta/project/project-context.md` for the detected test framework and commands.

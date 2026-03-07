@@ -72,6 +72,14 @@ Proposed fix: Add null guard on line 88?
 
 ## Execution Steps
 
+### Step 0: Load Scoped Directives
+
+Read these files from `.claude/agents/memory/` if they exist (skip silently if absent):
+- `directives-testing.md` — testing rules
+- `directives-code-reviewer.md` — code review rules
+
+Apply any directives found as additional constraints for the preflight checks.
+
 ### Step 1: Gather Changed Files
 
 ```bash

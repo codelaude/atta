@@ -21,7 +21,7 @@ You are running **migrate** as a compatibility alias.
 ## Source Acquisition (for transition operations)
 
 ```bash
-git clone --depth 1 <framework-repo-url> .claude_staging
+git clone --depth 1 https://github.com/codelaude/atta-prime.git .claude_staging
 ```
 
 This should provide `./.claude_staging/.claude` as the incoming source path.

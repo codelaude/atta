@@ -16,8 +16,10 @@ The core innovation in v2.x is **dynamic agent generation**. Instead of hardcodi
    - Selects pattern file templates
    - Recommends MCP servers
 
-3. **Generation (9 Templates)**
+3. **Generation (11 Templates + Shared Partial)**
+   - Reads `_common.md` shared partial (constraints, knowledge base, escalation, etc.)
    - Loads universal templates (framework-specialist, language-specialist, etc.)
+   - Resolves `{{> common.SECTION}}` partial references from `_common.md`
    - Substitutes variables ({{FRAMEWORK_NAME}}, {{RULES}}, {{ANTI_PATTERNS}})
    - Writes generated agents to `agents/specialists/`
    - Creates pattern files with tech-specific best practices
@@ -121,26 +123,31 @@ The core innovation in v2.x is **dynamic agent generation**. Instead of hardcodi
 
 ## Template System
 
-Templates use simple variable substitution:
+Templates use variable substitution and shared partials:
 
 ```markdown
 # Agent: {{FRAMEWORK_NAME}} ({{FRAMEWORK_TYPE}} Framework Specialist)
 
+## Constraints
+
+{{> common.specialist_constraints}}
+
 ## Key Rules
-{{#each RULES}}
-- {{this}}
-{{/each}}
+
+{{> common.key_rules}}
 
 ## Anti-Patterns to Flag
-| I See | I Do | Severity |
-{{#each ANTI_PATTERNS}}
-| {{pattern}} | {{fix}} | {{severity}} |
-{{/each}}
+
+{{> common.anti_patterns}}
 
 ## Delegates To
 - **Styling** → {{STYLING_SPECIALIST}}
 - **Testing** → {{TESTING_SPECIALIST}}
+
+{{> common.delegates_footer}}
 ```
+
+Shared sections live in `_common.md` — constraints, key rules, anti-patterns, knowledge base, delegates footer, MCP structure, and escalation. This avoids duplicating ~600 lines across 11 templates.
 
 Variables come from detection + mappings:
 ```yaml

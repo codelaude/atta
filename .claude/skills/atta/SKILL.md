@@ -198,6 +198,14 @@ If convention detection produced results, update `.atta/project/project-profile.
 
 > Only pre-fill sections without existing `[x]` checkboxes. Never overwrite user selections.
 
+### Agent Generation from Templates
+
+When generating specialists and coordinators from `{bootstrapDir}/templates/agents/`:
+1. Read `_common.md` first — it defines shared partial sections.
+2. Read the specific `.template.md` file for the agent being generated.
+3. Where a template uses `{{> common.SECTION}}`, substitute the matching section from `_common.md`, resolving all `{{TEAM_LEAD}}` and other placeholders as usual.
+4. Fill remaining Handlebars-style placeholders with detected stack values.
+
 ### BE Team Lead
 
 - **FE only:** No be-team-lead. Project-owner handles backend-adjacent questions.

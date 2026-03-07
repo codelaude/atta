@@ -72,22 +72,47 @@ If none ready: report total tracked count and suggest `/patterns learn`.
 
 ## Promote Subcommand
 
-Interactive promotion of a pattern to a directive or pattern file.
+Interactive promotion of a pattern to a directive or pattern file, or promotion of scoped directives into agent definitions.
 
 ```
-/patterns promote use-nullish-coalescing
+/patterns promote use-nullish-coalescing    # Promote a pattern to directive/pattern file
 /patterns promote ts-any-type
+/patterns promote --directives              # Check scoped directive files for promotion to agent definitions
 ```
+
+### Pattern Promotion (default)
 
 1. Read `{attaDir}/.context/patterns-learned.json`, find matching key (or list available)
 2. Present options: (A) directive, (B) pattern file, (C) both, (D) dismiss
 3. Execute:
-   - **Directive**: Format `DIR-YYYYMMDD-NNN` with `source: pattern_detection`, append to `.claude/agents/memory/directives.md`
+   - **Directive**: Format `DIR-YYYYMMDD-NNN` with `source: pattern_detection`, append to the appropriate scoped file (use routing table from librarian step 2b) or root `directives.md`
    - **Pattern file**: Read target file, find/create section, propose anti-pattern row, show diff
    - **Dismiss**: Skip
 4. Record promotion to `{attaDir}/.context/promoted-patterns.json` via inline Python (append to `promotions` array with pattern, timestamp, target)
 5. Run `bash .atta/scripts/pattern-analyze.sh {attaDir}`
 6. Confirm: `Promoted <key> → [directive / pattern file / both].`
+
+### Directive-to-Agent Promotion (`--directives`)
+
+When scoped directive files accumulate 8+ directives, promote them into the agent's `.md` definition under a `## Project Rules` section.
+
+1. Scan `.claude/agents/memory/directives-*.md` files
+2. Count directives in each (identified by `DIR-YYYYMMDD-NNN` headers)
+3. For files with 8+ directives, propose promotion:
+   ```
+   directives-code-reviewer.md has 12 directives → promote to code-reviewer.md ## Project Rules?
+   directives-testing.md has 5 directives → below threshold (8), skipping
+   ```
+4. For each file above threshold, present the merge proposal:
+   - Show the directives that would move
+   - Show the target agent `.md` file and where `## Project Rules` would be inserted (after the last existing section, before any `---` footer)
+5. On approval:
+   - Read the target agent `.md` file
+   - Append `## Project Rules` section containing the directives (preserve DIR format)
+   - **Keep the scoped file intact** — do NOT remove promoted directives from it. Scoped files are shared across multiple skills (e.g., `directives-code-reviewer.md` is loaded by `/review`, `/collaborate`, `/preflight`). Removing directives would break other consumers.
+6. Report: `Promoted {N} directives from {file} → {agent}.md ## Project Rules (scoped file preserved)`
+
+**Threshold**: 8 directives (consistent with pattern system thresholds)
 
 ---
 

@@ -20,6 +20,10 @@ You are orchestrating a **multi-agent collaboration** session.
 
 ---
 
+## Step 0: Load Scoped Directives
+
+Read `.claude/agents/memory/directives-code-reviewer.md` if it exists (skip silently if absent). Apply any directives found as additional review constraints for all participating agents.
+
 ## Step 1: Parse Command and Determine Mode
 
 **Flags:**

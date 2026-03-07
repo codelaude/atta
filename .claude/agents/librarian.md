@@ -43,9 +43,33 @@ DIR-YYYYMMDD-NNN:
   source: user_directive | lesson_learned | conflict_resolution | pattern_detection
 ```
 
+## Scoped Directive Routing
+
+Route directives to scoped files based on `applies_to`. This reduces session-start context — only universal rules load at startup; scoped rules load on demand when their agent or skill runs.
+
+**Routing table:**
+
+| `applies_to` value | Target file |
+|---------------------|-------------|
+| `code-reviewer` (or review/collaborate scope) | `directives-code-reviewer.md` |
+| `librarian` | `directives-librarian.md` |
+| Testing agents (`qa-validator`, `testing-specialist`, `e2e-testing-specialist`) | `directives-testing.md` |
+| Style/formatting agents (`styling-specialist`) or lint scope | `directives-style.md` |
+| PR/shipping agents (`pr-manager`) or ship scope | `directives-pr.md` |
+| Multiple agents across categories, or `All agents` | `directives.md` (root — universal) |
+
+**Rules:**
+1. Single agent with a clear category → route to that category's scoped file
+2. Multiple agents within the same category → route to the shared category file
+3. Cross-cutting or universal → route to root `directives.md`
+4. When in doubt, route to root — it's always loaded at session start
+
+All scoped files live in the same `memory/` directory as root `directives.md`.
+
 ## Files Managed
 
-- `{claudeDir}/agents/memory/directives.md` — directive memory
+- `{claudeDir}/agents/memory/directives.md` — universal directive memory (loaded at session start)
+- `{claudeDir}/agents/memory/directives-*.md` — scoped directive files (loaded on demand by `/agent` and skills)
 - `{attaDir}/.context/corrections.jsonl` — append-only correction log
 - `{attaDir}/.context/patterns-learned.json` — aggregation cache
 - `{attaDir}/.context/agent-learning.json` — per-agent learning

@@ -15,7 +15,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib/_common.sh"
 
 # sessionsRoot: where session JSON files live (may differ from attaRoot on Claude Code)
 SESSIONS_ROOT="${1:-.atta}"
-# attaRoot: where .context/ and .metadata/ live (always .atta in v2.8+)
+# attaRoot: where .context/ and .metadata/ live (always .atta in v2.7+)
 ATTA_DIR="${2:-}"
 resolve_atta_dir
 validate_atta_dir

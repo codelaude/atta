@@ -495,7 +495,7 @@ This gives the CI reviewer the same context as your local agents — resulting i
 
 ---
 
-## Directory Layout (v2.8+)
+## Directory Layout (v2.7+)
 
 Atta uses a **dual-root** layout: tool-specific files go to `.claude/`, everything else goes to `.atta/`.
 

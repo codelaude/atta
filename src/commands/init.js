@@ -141,13 +141,13 @@ async function runInstall(targetDir, adapterName, dryRun, answers, adapterOption
   const attaDir = join(targetDir, '.atta');
   const isUpdate = existsSync(claudeDir) || existsSync(attaDir);
 
-  // Detect pre-v2.8 layout (shared content in .claude/ instead of .atta/)
+  // Detect pre-v2.7 layout (shared content in .claude/ instead of .atta/)
   const needsMigration = existsSync(join(claudeDir, 'knowledge')) && !existsSync(join(attaDir, 'knowledge'));
 
   if (isUpdate) {
     if (needsMigration) {
       p.log.warn(
-        'Pre-v2.8 installation detected — migrating shared content to .atta/.\n' +
+        'Pre-v2.7 installation detected — migrating shared content to .atta/.\n' +
           pc.dim('User-generated content will be preserved and moved to .atta/.')
       );
     } else {
@@ -173,7 +173,7 @@ async function runInstall(targetDir, adapterName, dryRun, answers, adapterOption
 
   let results;
   try {
-    // Migrate pre-v2.8 layout if needed (move shared content from .claude/ to .atta/)
+    // Migrate pre-v2.7 layout if needed (move shared content from .claude/ to .atta/)
     if (needsMigration) {
       migrateToAtta(targetDir);
     }
@@ -392,7 +392,7 @@ function ensureAttaGitignored(targetDir) {
 }
 
 /**
- * Migrate pre-v2.8 installation: move shared content from .claude/ to .atta/.
+ * Migrate pre-v2.7 installation: move shared content from .claude/ to .atta/.
  * Preserves user-generated content (custom patterns, profiles, corrections).
  */
 function migrateToAtta(targetDir) {

@@ -4,16 +4,38 @@ Full version history for the Atta framework.
 
 ---
 
-## v2.8.0 (2026-03-03) — .atta/ Architecture + Auto-Fix + Cursor + CI Review Adapter
+## v2.7.0 (2026-03-03) — .atta/ Architecture + Developer Profile + Cursor + CI Review Adapter
 
-Tool-agnostic shared content architecture, iterative preflight auto-fix loop, a fifth adapter for Cursor, and a sixth adapter for CI-aware GitHub Actions code review.
+Tool-agnostic shared content architecture, developer profile system, prompt optimization, iterative preflight auto-fix loop, a fifth adapter for Cursor, and a sixth adapter for CI-aware GitHub Actions code review.
+
+**Developer Profile + Prompt Optimizer**
+- **`/profile` skill**: View, update, and apply developer preferences — collaboration style, response format, review priorities, error handling, testing approach, and more. Four modes: view (default), `--update` (5 core questions), `--complete` (extended preferences), `--apply` (re-propagate without changes)
+- **Two-layer profile propagation**: Runtime layer writes distilled `## Preferences` section to `project-context.md` (all agents pick up automatically). Generation-time layer injects `## Developer Preferences` into each generated agent during `/atta` (zero runtime cost)
+- **Profile injection in generator**: Centralized in `generator.md` Phase 4 — extracts 8 profile fields, builds section, appends to all generated agents. No template changes needed when profile fields evolve
+- **`/atta` convention detection**: Phase 2 auto-detects naming conventions and documentation style from project code, pre-fills profile sections
+- **`/atta --rescan` profile integration**: Rescan now automatically runs `/profile --apply` logic — re-propagates preferences to `project-context.md` as part of regeneration
+- **CLI init profile pre-fill**: `npx atta-dev init` asks 5 core preference questions during setup and generates a pre-filled `developer-profile.md`
+- **Profile documentation**: New `.atta/docs/profile.md` user-facing guide
+- **Tutorial updated**: Step 1 mentions `/profile` for personalization; quick reference card includes `/profile`
+- **`/optimize` skill**: Prompt optimization and cross-tool context enrichment. Two modes: same-session (rephrase/restructure prompts for better results in the current conversation, with `--rephrase` flag) and cross-tool (`--target` for handoff to Codex, Copilot, ChatGPT, Gemini). Injects tech stack, conventions, architectural patterns, and preferences
+- **Prompt engineer agent**: New `prompt-engineer` agent template — always generated during `/atta`, specializes in context injection and cross-tool prompt adaptation
+- **Prompt patterns**: New `knowledge/patterns/prompt-patterns.md` — enrichment principles, common patterns (stack declaration, convention injection, architecture context), anti-patterns, and target tool characteristics
+- **Optimize documentation**: New `.atta/docs/optimize.md` user-facing guide
+- **17 skills** (up from 15): `/profile` and `/optimize` added
+
+**Architectural Pattern Extraction + Staleness Detection**
+- **Architectural pattern extraction**: `/atta` Phase 2 now detects project structure (feature-sliced, layered, MVC, clean architecture, hexagonal), component organization (atomic design, co-located), routing (file-based, centralized), API layer, and state management patterns. Results written to `## Architectural Patterns` section in `project-context.md` (max 10 lines)
+- **New detection file**: `bootstrap/detection/architectural-detectors.yaml` — 15 structural detectors across 5 categories
+- **Staleness detection**: `generate-context.sh` compares current file mtimes against the detection snapshot recorded in `generated-manifest.json`. When `package.json`, lock files, or config files change after `/atta`, a `## Context Staleness` warning appears in `.context/recent.md` with the list of changed files and a prompt to run `/atta --rescan`
+- **Detection sources in manifest**: `generated-manifest.json` Phase 7 now records `detection_sources` — ISO 8601 timestamps of all files that influenced detection, enabling lightweight staleness comparison
+- **`--rescan` enhancements**: Re-detects architectural patterns, resets staleness baseline after regeneration
 
 **`.atta/` Shared Directory**
 - **Directory restructure**: Shared content moved to `.atta/` — knowledge, bootstrap, scripts, docs, .metadata, .context, .sessions. Discovery-required content stays in `.claude/skills/`, `.claude/agents/`, `.claude/hooks/`
 - **Dual-root architecture**: All JS adapters updated to `install(claudeRoot, attaRoot, targetDir, options)`. `shared.js` `copySharedContent()` copies `.atta/` dirs to target. Each adapter only copies discovery-required files to its own directory
 - **Shell script updates**: All 6 scripts (`_common.sh`, `generate-context.sh`, `pattern-log.sh`, `pattern-analyze.sh`, `session-cleanup.sh`, `validate-framework.sh`) use new `resolve_atta_dir()` / `validate_atta_dir()` for shared content paths
 - **Path migration**: ~70 stale `.claude/` shared-content references updated to `.atta/` across 40+ files (skills, agents, bootstrap templates, docs). `.claude/agents/` and `.claude/skills/` references preserved
-- **Migration detection**: `init.js` detects pre-v2.8 layout (`.claude/knowledge/` exists, `.atta/knowledge/` doesn't) and auto-migrates
+- **Migration detection**: `init.js` detects pre-v2.7 layout (`.claude/knowledge/` exists, `.atta/knowledge/` doesn't) and auto-migrates
 - **Adapter smoke tests**: All 4 adapters verified (Claude Code, Copilot, Codex, Gemini) with correct split layout. Claude adapter test now checks both `.claude/` and `.atta/` structure
 - **Settings permissions**: Updated for `.atta/scripts/*`, `.atta/.context/**`, `.atta/knowledge/**`
 - **Package structure**: `package.json` `files` array, `.gitignore`, `.npmignore` updated for `.atta/` content
@@ -39,31 +61,6 @@ Tool-agnostic shared content architecture, iterative preflight auto-fix loop, a 
 - Read-only CI: the action never writes to `.atta/` — all learning stays local via `/patterns`, committed normally
 - `atta init --adapter github-action` entry point
 - New `.atta/docs/ci-review.md` — setup, customization, and suppression workflow guide
-
----
-
-## v2.7 — Developer Profile + Prompt Optimizer
-
-Developer profile system, convention detection, and smarter context generation.
-
-- **`/profile` skill**: View, update, and apply developer preferences — collaboration style, response format, review priorities, error handling, testing approach, and more. Four modes: view (default), `--update` (5 core questions), `--complete` (extended preferences), `--apply` (re-propagate without changes)
-- **Two-layer profile propagation**: Runtime layer writes distilled `## Preferences` section to `project-context.md` (all agents pick up automatically). Generation-time layer injects `## Developer Preferences` into each generated agent during `/atta` (zero runtime cost)
-- **Profile injection in generator**: Centralized in `generator.md` Phase 4 — extracts 8 profile fields, builds section, appends to all generated agents. No template changes needed when profile fields evolve
-- **`/atta` convention detection**: Phase 2 auto-detects naming conventions and documentation style from project code, pre-fills profile sections
-- **`/atta --rescan` profile integration**: Rescan now automatically runs `/profile --apply` logic — re-propagates preferences to `project-context.md` as part of regeneration
-- **CLI init profile pre-fill**: `npx atta-dev init` asks 5 core preference questions during setup and generates a pre-filled `developer-profile.md`
-- **Profile documentation**: New `.atta/docs/profile.md` user-facing guide
-- **Tutorial updated**: Step 1 mentions `/profile` for personalization; quick reference card includes `/profile`
-- **Architectural pattern extraction**: `/atta` Phase 2 now detects project structure (feature-sliced, layered, MVC, clean architecture, hexagonal), component organization (atomic design, co-located), routing (file-based, centralized), API layer, and state management patterns. Results written to `## Architectural Patterns` section in `project-context.md` (max 10 lines)
-- **New detection file**: `bootstrap/detection/architectural-detectors.yaml` — 15 structural detectors across 5 categories
-- **Staleness detection**: `generate-context.sh` compares current file mtimes against the detection snapshot recorded in `generated-manifest.json`. When `package.json`, lock files, or config files change after `/atta`, a `## Context Staleness` warning appears in `.context/recent.md` with the list of changed files and a prompt to run `/atta --rescan`
-- **Detection sources in manifest**: `generated-manifest.json` Phase 7 now records `detection_sources` — ISO 8601 timestamps of all files that influenced detection, enabling lightweight staleness comparison
-- **`--rescan` enhancements**: Re-detects architectural patterns, resets staleness baseline after regeneration
-- **`/optimize` skill**: Prompt optimization and cross-tool context enrichment. Two modes: same-session (rephrase/restructure prompts for better results in the current conversation, with `--rephrase` flag) and cross-tool (`--target` for handoff to Codex, Copilot, ChatGPT, Gemini). Injects tech stack, conventions, architectural patterns, and preferences
-- **Prompt engineer agent**: New `prompt-engineer` agent template — always generated during `/atta`, specializes in context injection and cross-tool prompt adaptation
-- **Prompt patterns**: New `knowledge/patterns/prompt-patterns.md` — enrichment principles, common patterns (stack declaration, convention injection, architecture context), anti-patterns, and target tool characteristics
-- **Optimize documentation**: New `.atta/docs/optimize.md` user-facing guide
-- **17 skills** (up from 15): `/profile` and `/optimize` added
 
 ---
 
@@ -240,7 +237,7 @@ Security hardening, community files, and npm packaging improvements from 3-way c
 
 ---
 
-## By the Numbers (v2.8)
+## By the Numbers (v2.7)
 
 - **100+ Technology Detectors** across frontend, backend, databases, security tools, architecture
 - **11 Universal Agent Templates** that generate project-specific specialists (+ E2E, prompt engineer)

@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import pc from 'picocolors';
 import { listSkills } from './claude-code.js';
 import { generateAgentsMd } from './agents-md.js';
-import { copyAgentFiles, copyBootstrap, copySharedContent } from './shared.js';
+import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, createMemoryDirectory } from './shared.js';
 
 /**
  * Cursor adapter — generates AGENTS.md, .cursor/rules/*.mdc, and .cursor/agents/.
@@ -78,6 +78,10 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
     );
   }
 
+  // Create memory directory with directives placeholder
+  createMemoryDirectory(join(targetDir, '.cursor', 'agents'), options);
+  results.files++;
+
   // Copy shared content to .atta/ (knowledge, scripts, docs, metadata, context)
   const sharedCount = copySharedContent(attaRoot, targetDir, options);
   results.files += sharedCount;
@@ -95,16 +99,42 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
  * Skills are not auto-applied — users @-mention them or Cursor applies
  * intelligently based on the description field.
  */
+/** Rewrite config for Cursor — @atta- mentions, .cursor/ paths */
+const CURSOR_REWRITE_CONFIG = {
+  agentsPath: '.cursor/agents',
+  memoryPath: '.cursor/agents/memory',
+  commandMap: {
+    review: '@atta-review',
+    agent: '@atta-agent',
+    atta: '@atta-atta',
+    preflight: '@atta-preflight',
+    lint: '@atta-lint',
+    test: '@atta-test',
+    collaborate: '@atta-collaborate',
+    'team-lead': '@atta-team-lead',
+    librarian: '@atta-librarian',
+    patterns: '@atta-patterns',
+    profile: '@atta-profile',
+    'security-audit': '@atta-security-audit',
+    ship: '@atta-ship',
+    tutorial: '@atta-tutorial',
+    optimize: '@atta-optimize',
+    update: '@atta-update',
+    migrate: '@atta-migrate',
+  },
+};
+
 function skillToMdc(skill, skillFile) {
   const content = readFileSync(skillFile, 'utf-8');
-  const body = content.replace(/^---\n[\s\S]*?\n---\n*/, '').trim();
+  const rawBody = content.replace(/^---\n[\s\S]*?\n---\n*/, '').trim();
+  const body = rewriteSkillBody(rawBody, CURSOR_REWRITE_CONFIG);
   const desc = skill.description || `Run the ${skill.name} skill`;
 
   const lines = [];
   lines.push('---');
   const safeDesc = /[:#\[\]{}>|*&!%@`]/.test(desc) ? `"${desc.replace(/"/g, '\\"')}"` : desc;
   lines.push(`description: ${safeDesc}`);
-  lines.push('globs: ');
+  lines.push('globs: []');
   lines.push('alwaysApply: false');
   lines.push('---');
   lines.push('');
@@ -126,7 +156,7 @@ function buildMainMdc(skills) {
 
   return `---
 description: Atta AI development team framework — agent routing and core conventions
-globs:
+globs: []
 alwaysApply: true
 ---
 

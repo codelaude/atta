@@ -15,6 +15,14 @@ You are now acting as the **Profile Manager** — responsible for viewing, updat
 /profile --ci-review       # Architect: configure CI provider + project-profile for CI-aware review
 ```
 
+## File Ownership
+
+| Mode | Writes to | Never writes |
+|------|-----------|--------------|
+| `--update`, `--complete` | `developer-profile.md` (personal, gitignored) | `project-profile.md` |
+| `--ci-review` | `project-profile.md` (team, committed) | `developer-profile.md` |
+| `--apply` | `project-context.md` (reads both profiles) | Neither profile |
+
 ---
 
 ## Execution Steps
@@ -78,21 +86,14 @@ Parse the profile and display a formatted summary. Extract only the checked (`[x
 
 > Only show sections that have at least one checked item. Omit empty sections entirely.
 
-After the summary, show actions based on what's configured:
-
-If extended sections (Exception Cases, Output Format, Code Examples, Testing, Documentation) have no checked items:
+After the summary, show actions:
 
 ```markdown
 ---
-**Actions:** `/profile --update` to change core preferences | `/profile --complete` to configure all sections | `/profile --apply` to propagate to agents
+**Actions:** `/profile --update` to change core | `/profile --complete` to configure remaining sections | `/profile --apply` to propagate
 ```
 
-If all sections are configured:
-
-```markdown
----
-**Actions:** `/profile --update` to change core preferences | `/profile --apply` to propagate to agents
-```
+> Omit `--complete` from actions if all sections are already configured.
 
 Stop here.
 
@@ -166,8 +167,6 @@ Update checkboxes based on the user's answers — written to **`developer-profil
 
 Read the file, set `[x]` for selected options and `[ ]` for unselected, then write back.
 
-> **`project-profile.md` is never touched by `--update`.** Team conventions (committed, shared) are set by the lead engineer via `/profile --ci-review`.
->
 > Preserve all other sections unchanged. Only update the 5 sections corresponding to the questions asked.
 
 Confirm to the user:
@@ -188,28 +187,9 @@ Profile updated with core preferences. Now applying to your project...
 
 ### Step 3c: Detect Already-Configured Sections
 
-Read `.atta/knowledge/developer-profile.md`. For each section below, check if it's already configured. **Skip any section that's already configured.**
+Read `.atta/knowledge/developer-profile.md`. **Skip any section that already has `[x]` checkboxes** (or for Naming Conventions: placeholder values replaced with detected values by `/atta`).
 
-A section is "configured" if:
-- It has at least one `[x]` checkbox, OR
-- For Naming Conventions: the placeholder values (e.g., `[camelCase / snake_case / PascalCase]`) have been replaced with a single value (e.g., `camelCase`) — meaning `/atta` auto-detected them
-
-Sections owned by `--update` (always skip in --complete):
-- AI Collaboration Approach
-- Response Style
-- Code Review Priorities
-- Code Ownership
-- Error Handling
-
-Sections owned by `--complete`:
-- Exception Cases
-- Output Format
-- Code Examples
-- Testing Approach
-- Documentation
-- Naming Conventions
-
-> **Note**: All sections above live in `developer-profile.md` (personal, gitignored). `project-profile.md` is owned exclusively by `/profile --ci-review` — never read for skip-detection here, never written to by `--update` or `--complete`.
+`--complete` owns: Exception Cases, Output Format, Code Examples, Testing Approach, Documentation, Naming Conventions. Always skip the 5 sections owned by `--update`.
 
 > If all sections are already configured, inform the user and jump to [Apply Mode](#apply-mode).
 
@@ -277,16 +257,9 @@ Options:
 
 ### Step 3f: Round 3 — Naming Conventions (Free-Text)
 
-Ask the user as a single conversational question (not AskUserQuestion — this is free-text):
+Ask conversationally (not AskUserQuestion): naming preferences for functions, constants, CSS classes (camelCase/snake_case/PascalCase/UPPER_SNAKE_CASE/kebab-case/BEM). "Skip" leaves defaults.
 
-> **Naming conventions** — Do you have preferences for naming? For example:
-> - Functions: `camelCase`, `snake_case`, or `PascalCase`?
-> - Constants: `UPPER_SNAKE_CASE` or `camelCase`?
-> - CSS classes: `kebab-case`, `camelCase`, or `BEM`?
->
-> Type your preferences, or say "skip" to leave defaults.
-
-If the user provides preferences, update the Naming Conventions section in `developer-profile.md` with their answers. If "skip", leave the section unchanged.
+If the user provides specific naming preferences, update the Naming Conventions section in `developer-profile.md` with those answers; if they say "skip" or provide no preferences, leave that section unchanged.
 
 ### Step 3g: Write Profile Updates
 
@@ -299,8 +272,6 @@ Write all sections to **`developer-profile.md`** only (personal, gitignored):
 - Map C5 → "Documentation" section
 - Map Round 3 → "Naming Conventions" section
 
-> **`project-profile.md` is never touched by `--complete`.** Team conventions are set by the lead engineer via `/profile --ci-review`.
->
 > Preserve all other sections unchanged — especially those set by `--update`.
 
 Confirm to the user:
@@ -363,7 +334,7 @@ Format (3-5 lines — only include lines where data exists):
 - **AI direct-write OK**: [exceptionCases list, or omit line if none]
 ```
 
-Example (core only — after `--update`):
+Example:
 
 ```markdown
 ## Preferences
@@ -371,46 +342,19 @@ Example (core only — after `--update`):
 - **Style**: Balanced collaboration, concise responses
 - **Reviews**: Focus on correctness, security, readability
 - **Approach**: Review-ready code ownership, fast-fail error handling
+- **Workflow**: TDD testing, minimal docs, markdown + diffs output  ← only after --complete
+- **AI direct-write OK**: tests, configs                           ← only after --complete
 ```
 
-Example (full — after `--complete`):
+> Only include lines where data exists. Replace existing `## Preferences` section entirely. If `project-context.md` doesn't exist, create it with just this section.
 
-```markdown
-## Preferences
+### Step 7: Agent Propagation
 
-- **Style**: Balanced collaboration, concise responses
-- **Reviews**: Focus on correctness, security, readability
-- **Approach**: Review-ready code ownership, fast-fail error handling
-- **Workflow**: TDD testing, minimal docs, markdown + diffs output
-- **AI direct-write OK**: tests, configs
-```
+Preferences propagate via two layers:
+1. **Runtime** (immediate): `project-context.md` `## Preferences` section — all agents pick it up automatically.
+2. **Generation-time** (next `/atta --rescan`): `/atta` reads both profiles and injects a `## Developer Preferences` section into each generated agent file (centralized in `generator.md` Phase 4).
 
-> If a `## Preferences` section already exists, replace it entirely. If project-context.md doesn't exist, create it with just this section.
-
-### Step 7: Agent Template Propagation
-
-Profile preferences propagate to agents through two layers:
-
-1. **Runtime** (immediate): The `## Preferences` section written to `project-context.md` in Step 6. All agents that read `project-context.md` pick up preferences automatically — no file changes needed.
-
-2. **Generation-time** (on next `/atta` run): During agent generation, `/atta` reads both `developer-profile.md` (personal style) and `project-profile.md` (team conventions) and appends a `## Developer Preferences` section to each generated agent file. This is centralized in `generator.md` Phase 4 "Profile Injection" — not in individual templates. The section includes response style, collaboration approach, review priorities, and other preferences extracted from the profile.
-
-> **Tip**: If the user has changed profile preferences and wants generated agents to reflect them, suggest running `/atta --rescan` to regenerate agents with the updated profile variables.
-
-Report what was propagated:
-
-```markdown
-## Profile Applied
-
-**Preferences written to** `project-context.md`:
-- Style: [collaboration] collaboration, [responseStyle] responses
-- Reviews: [priorities]
-- Approach: [ownership], [errorHandling]
-
-**Agent propagation**:
-- **Runtime**: All agents that read `project-context.md` will pick up your preferences automatically.
-- **Generation-time**: Run `/atta --rescan` to regenerate agents with profile-specific behavior baked in.
-```
+Report: show the preferences written to `project-context.md` and suggest `/atta --rescan` to bake preferences into generated agents.
 
 ---
 
@@ -424,17 +368,7 @@ Read both files (if they exist) to pre-fill answers where possible:
 - `.atta/project/project-profile.md`
 - `.github/workflows/atta-review.yml`
 
-Inform the user:
-
-```markdown
-## CI Review Setup
-
-This will configure two things:
-1. **CI provider** — which action and auth method to use for the GitHub Action
-2. **Project profile** — team conventions that shape what the CI reviewer checks
-
-Changes here affect the whole team (committed files). Personal preferences use `/profile --update` instead.
-```
+Inform the user: "CI Review Setup — configures CI provider (action + auth) and project-profile (team conventions). Changes affect the whole team (committed files)."
 
 ### Step CI-2: Ask CI Configuration Questions
 
@@ -482,54 +416,21 @@ Options:
 
 Ask the following. **Skip any section that already has a `[x]` in `project-profile.md`.**
 
-**Question CI-P1 — Review Priorities (page 1 of 2)** (multi-select)
+**Question CI-P1 — Review Priorities** (multi-select, paginated)
 
-> What should the CI code reviewer focus on? (select all that apply)
+Same 6 options as Q3 above, but paginated (max 4 per AskUserQuestion):
+- Page 1: Correctness and bugs, Security vulnerabilities, Readability and maintainability, "More priorities →"
+- Page 2 (if needed): Performance, Accessibility, Test coverage, "← Done"
 
-Options:
-- Correctness and bugs
-- Security vulnerabilities
-- Readability and maintainability
-- More priorities → — Performance, Accessibility, Test coverage
+Accumulate selections from both pages.
 
-If "More priorities →" is selected, immediately ask **CI-P1 page 2** and accumulate selections from both pages:
+**Question CI-P2 — Testing Approach** — Same options as C4 above.
 
-> Any of these too? (select all that apply)
-
-Options:
-- Performance
-- Accessibility
-- Test coverage
-- ← Done — no more needed
-
-**Question CI-P2 — Testing Approach**
-
-> What's the team's preferred testing strategy?
-
-Options:
-- **TDD** — tests first, then implementation
-- **Test-after** — implement, then write tests
-- **Critical paths only** — test what matters most
-- **High coverage** — aim for 80%+ coverage
-
-**Question CI-P3 — Error Handling**
-
-> How should code handle errors?
-
-Options:
-- **Defensive** — validate all inputs, fail gracefully
-- **Fast-fail** — throw early, catch at boundaries
-- **User-friendly** — prioritize user-facing error messages
-- **Developer-friendly** — detailed errors in console/logs
+**Question CI-P3 — Error Handling** — Same options as Q5 above.
 
 **Question CI-P4 — Naming Conventions** (free-text, conversational — not AskUserQuestion)
 
-> **Naming conventions** — Any team standards? For example:
-> - Functions: `camelCase`, `snake_case`, or `PascalCase`?
-> - Constants: `UPPER_SNAKE_CASE` or `camelCase`?
-> - CSS classes: `kebab-case`, `camelCase`, or `BEM`?
->
-> Type your conventions, or say "skip" to leave defaults.
+> Any team naming standards? (functions: camelCase/snake_case/PascalCase, constants: UPPER_SNAKE_CASE/camelCase, CSS: kebab-case/camelCase/BEM) — Type conventions or "skip".
 
 **Question CI-P5 — Tech Stack Non-Negotiables** (free-text, conversational)
 
@@ -552,7 +453,7 @@ Update `.atta/project/project-profile.md` with the answers from Step CI-3:
 
 ### Step CI-5: Offer to Regenerate `atta-review.yml`
 
-Map CI-Q1 and CI-Q2 answers to the correct CLI command:
+Map CI-Q1 answer to the CLI command:
 
 | Provider | Command |
 |----------|---------|
@@ -563,83 +464,24 @@ Map CI-Q1 and CI-Q2 answers to the correct CLI command:
 | Azure OpenAI | `atta init --adapter github-action --provider azure` |
 | Ollama | `atta init --adapter github-action --provider ollama` |
 
-If runner OS is `self-hosted`, note that the user will need to edit `runs-on:` in the generated YAML manually (it's a post-generation config change).
+If `self-hosted` runner: note user must edit `runs-on:` manually in the generated YAML.
 
-Ask the user (conversational, not AskUserQuestion):
-
-> **Regenerate `atta-review.yml`?**
->
-> Run this command to generate the workflow with your selected provider:
-> ```
-> [computed command from table above]
-> ```
-> Type `yes` to generate now, or `no` to run it yourself later.
-
-If yes: tell the user to run the command in their terminal (do not execute it for them — it modifies the filesystem and should be user-initiated). Show the exact command again clearly.
-
-If no: show the command for later reference.
+Ask conversationally: show the computed command, ask "yes" to generate now or "no" for later. Do not execute it — tell the user to run it themselves.
 
 ### Step CI-6: Summary
 
-Show a final summary of what changed and what to commit:
-
-```markdown
-## CI Review Configuration Complete
-
-### What changed
-- **`project-profile.md`** updated with team conventions (review priorities, testing, error handling, naming)
-- **Provider selected**: [provider name] → [computed CLI command]
-
-### Next steps
-
-**Commit to the repo** (shared with the whole team):
-```bash
-git add .atta/project/project-profile.md
-git add .github/workflows/atta-review.yml    # if regenerated
-git commit -m "ci: configure Atta review workflow + project profile"
-```
-
-**Do NOT commit** (personal, gitignored):
-- `.atta/knowledge/developer-profile.md` — your personal AI collaboration preferences
-
-### Setup checklist
-- [ ] Add the required secret to GitHub: `Settings → Secrets → Actions`
-  - Anthropic direct / Bedrock / Vertex → `ANTHROPIC_API_KEY` (or IAM role — see generated YAML comment)
-  - OpenAI → `OPENAI_API_KEY`
-  - Azure → `AZURE_OPENAI_API_KEY`
-  - Ollama → no secret needed (self-hosted)
-- [ ] Run `/atta` first if you haven't — it populates `project-context.md` and pattern files that significantly improve review quality
-- [ ] Commit and push to trigger the first CI review on a test PR
-```
+Show what changed and next steps:
+- `project-profile.md` updated with team conventions
+- Provider selected: [name] → [CLI command]
+- Commit: `git add .atta/project/project-profile.md .github/workflows/atta-review.yml`
+- Setup checklist: add required secret to GitHub (`ANTHROPIC_API_KEY` / `OPENAI_API_KEY` / `AZURE_OPENAI_API_KEY` depending on provider; Ollama needs none), run `/atta` if not done, push to trigger first CI review
 
 ---
 
-## Error Handling & Recovery
+## Error Handling
 
-### Profile File Not Found
-
-```markdown
-Profile files not found:
-- Personal: `.atta/knowledge/developer-profile.md` (gitignored — create locally)
-- Team: `.atta/project/project-profile.md` (committed — may need to run `/atta` or `npx atta-dev init`)
-
-Recovery options:
-1. Run `/profile --update` to create both interactively
-2. Run `npx atta-dev init` to set up the full project (includes both profiles)
-```
-
-### project-context.md Not Found
-
-Create a minimal `project-context.md` with just the Preferences section. Inform the user:
-
-```markdown
-Created `project-context.md` with your preferences. Run `/atta` to populate the full project context (tech stack, structure, etc.).
-```
-
-### Profile Has No Checked Items
-
-```markdown
-Your profile exists but has no preferences selected.
-
-Run `/profile --update` to set your preferences interactively.
-```
+| Error | Recovery |
+|-------|----------|
+| Profile files not found | Suggest `/profile --update` or `npx atta-dev init` |
+| `project-context.md` not found | Create minimal file with just `## Preferences`, suggest `/atta` for full setup |
+| Profile has no checked items | Suggest `/profile --update` |

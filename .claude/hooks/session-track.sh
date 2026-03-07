@@ -38,7 +38,12 @@ if [ -f "$CWD/.env.claude" ]; then
   WS=$(grep -E '^CLAUDE_WORKSPACE_DIR=' "$CWD/.env.claude" 2>/dev/null | head -1 | cut -d= -f2 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
   [ -n "$WS" ] && CLAUDE_DIR="$CWD/$WS"
 fi
-[ -z "$CLAUDE_DIR" ] && CLAUDE_DIR="$CWD/.claude"
+# Fallback: no .env.claude — verify CWD is an Atta project root, not a subdirectory.
+# Without this guard, monorepo subdirs get spurious .claude/.sessions/ created.
+if [ -z "$CLAUDE_DIR" ]; then
+  [ -d "$CWD/.claude/agents" ] || [ -d "$CWD/.atta" ] || exit 0
+  CLAUDE_DIR="$CWD/.claude"
+fi
 
 # Canonicalize both paths to prevent ../ traversal bypass
 # Use python3 os.path.realpath() for both — consistent, no side effects before validation

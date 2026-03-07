@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import pc from 'picocolors';
 import { listSkills } from './claude-code.js';
 import { generateAgentsMd } from './agents-md.js';
-import { copyAgentFiles, copyBootstrap, copySharedContent } from './shared.js';
+import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, createMemoryDirectory } from './shared.js';
 
 /**
  * Gemini CLI adapter — generates GEMINI.md, .gemini/commands/, and .gemini/agents/.
@@ -66,6 +66,10 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
     );
   }
 
+  // Create memory directory with directives placeholder
+  createMemoryDirectory(join(targetDir, '.gemini', 'agents'), options);
+  results.files++;
+
   // Copy shared content to .atta/ (knowledge, scripts, docs, metadata, context)
   const sharedCount = copySharedContent(attaRoot, targetDir, options);
   results.files += sharedCount;
@@ -81,14 +85,22 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
  * Convert a SKILL.md file into a Gemini TOML command.
  * Extracts the prompt content from the SKILL.md body (after frontmatter).
  */
+/** Rewrite config for Gemini — resolves placeholders since TOML is static */
+const GEMINI_REWRITE_CONFIG = {
+  agentsPath: '.gemini/agents',
+  memoryPath: '.gemini/agents/memory',
+  commandMap: {},
+  resolveAttaPlaceholders: true,
+};
+
 function skillToToml(skill, skillFile) {
   const content = readFileSync(skillFile, 'utf-8');
 
-  // Extract body after frontmatter
-  const body = content.replace(/^---\n[\s\S]*?\n---\n*/, '').trim();
+  // Extract body after frontmatter and apply rewrite
+  const rawBody = content.replace(/^---\n[\s\S]*?\n---\n*/, '').trim();
+  const body = rewriteSkillBody(rawBody, GEMINI_REWRITE_CONFIG);
 
   // Escape for TOML multi-line string (triple quotes)
-  // Only need to escape literal triple-quotes and backslashes
   const escapedBody = body
     .replace(/\\/g, '\\\\')
     .replace(/"""/g, '\\"\\"\\"');

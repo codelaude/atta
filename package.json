@@ -41,7 +41,6 @@
     ".claude/hooks/",
     ".claude/skills/",
     ".atta/bootstrap/",
-    ".atta/docs/",
     ".atta/knowledge/",
     ".atta/project/",
     ".atta/scripts/lib/_common.sh",
@@ -56,8 +55,7 @@
     ".atta/.sessions/TRACKING_GUIDE.md",
     ".atta/.sessions/SKILL_TEMPLATE.md",
     ".atta/.sessions/INTEGRATION_EXAMPLE.md",
-    "README.md",
-    "atta.svg"
+    "README.md"
   ],
   "engines": {
     "node": ">=18.0.0"

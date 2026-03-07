@@ -90,36 +90,16 @@ Not all context is useful for every prompt. Select what to inject based on the t
 Apply mode-specific formatting:
 
 ### Same-Session (default / `--rephrase`)
-- Restructure the prompt with injected context so the user can paste it back into this conversation
-- If `--rephrase`: analyze what might have gone wrong with the original approach — suggest a different angle, more specific constraints, or a decomposed version of the task
-- Keep the enriched prompt in natural conversational tone (not overly structured)
-- The user will use the output as their next message in this session — it should read like a well-crafted prompt, not a template
+Natural conversational tone. If `--rephrase`: analyze what went wrong, suggest different angle or decomposition.
 
-### Codex
-- Structure as explicit instructions: "Create file X", "Modify function Y"
-- Include file paths relative to project root
-- Keep constraints as numbered rules
-- Codex has repo access — focus on what it can't infer (architecture decisions, conventions, preferences)
-
-### Copilot
-- Keep concise — Copilot has repository context
-- Focus on conventions and constraints it can't infer from code alone
-- Use a single paragraph context block + clear task statement
-
-### ChatGPT / Gemini
-- Self-contained — these tools have no project access
-- Include full tech stack, key patterns, and code examples if relevant
-- Structure with clear markdown sections
-- Mention language/framework versions explicitly
-
-### Claude (other instance)
-- Include project-context summary
-- Reference which pattern files are relevant (the other instance may have access)
-- Note the developer's style preferences
-
-### Generic (no target)
-- Produce a fully self-contained prompt
-- Use the default output structure (see Step 5)
+### Cross-Tool Formatting
+| Target | Key Adjustments |
+|--------|----------------|
+| Codex | Explicit instructions, file paths, numbered constraints. Has repo access — focus on conventions. |
+| Copilot | Concise. Has repo context — focus on what code can't convey. |
+| ChatGPT / Gemini | Self-contained. Full stack, versions, code examples. No project access. |
+| Claude | Include project-context summary + relevant pattern files + style prefs. |
+| Generic | Fully self-contained with default structure. |
 
 ---
 
@@ -141,42 +121,13 @@ Construct the enriched prompt following this structure (adapt section names for 
 [What the response should include — files to create/modify, format, scope.]
 ```
 
-**Guidelines:**
-- Context section: max 15 lines. Distill, don't dump.
-- Task section: preserve the user's original intent. Clarify ambiguity but don't change the goal.
-- Constraints section: only include rules directly relevant to the task. 3-8 constraints is typical.
-- Expected Output: infer from the task. If the user wants code, specify which files. If they want a design, say so.
+**Guidelines:** Context max 15 lines (distill, don't dump). Preserve user's intent. 3-8 constraints typical. Infer expected output from task.
 
 ---
 
-## Step 6: Present Output
+## Step 6: Present & Refine
 
-Display the enriched prompt in a fenced code block so the user can copy it:
-
-````
-```
-[enriched prompt here]
-```
-````
-
-Then add a brief summary:
-
-**For same-session mode:**
-> **Optimized prompt** — injected [what was added]. Copy the prompt above and use it as your next message, or ask me to run it directly.
-
-**For cross-tool mode:**
-> **Enriched for [target tool]** — injected [what was added: tech stack, React patterns, architectural context, etc.]. Copy the prompt above and paste it into [target tool].
-
----
-
-## Step 7: Offer Refinement
-
-After presenting, ask if the user wants to:
-- Adjust the level of detail (more/less context)
-- Change the target tool
-- Add specific constraints or patterns
-
-If the user is satisfied, the skill is complete.
+Display enriched prompt in a fenced code block for easy copying. Add brief summary of what was injected and for which target. Offer to adjust detail level, change target, or add constraints.
 
 ---
 

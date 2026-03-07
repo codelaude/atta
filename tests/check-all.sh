@@ -2,7 +2,7 @@
 # check-all.sh — Run pre-launch checks
 # Usage: check-all.sh [--full]
 #   Default: 7 core checks (required for Tier 1 launch)
-#   --full:  6 core + 1 optional (Gemini, required for Full launch)
+#   --full:  7 core + 1 optional (Gemini, required for Full launch)
 
 set -uo pipefail
 

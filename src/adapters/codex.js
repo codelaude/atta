@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, cpSync, writeFileSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import pc from 'picocolors';
 import { listSkills } from './claude-code.js';
@@ -59,7 +59,6 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
       agentsPath: '.agents/agents',
       memoryPath: '.agents/agents/memory',
       commandMap: codexCommandMap,
-      commandPrefix: '$',
     };
 
     for (const skill of skills) {

@@ -206,8 +206,7 @@ export function copySharedContent(attaRoot, targetDir, options = {}) {
  * @param {string} config.agentsPath - Agent directory path (e.g., '.github/atta/agents', '.agents/agents')
  * @param {string} config.memoryPath - Memory directory path (e.g., '.github/atta/agents/memory')
  * @param {Object<string,string>} [config.commandMap] - Map of original→rewritten commands (e.g., { review: '/atta-review' })
- * @param {string} [config.commandPrefix='/'] - Prefix for skill invocation (e.g., '$', '@atta-', '/')
- * @param {boolean} [config.resolveAttaPlaceholders=false] - Resolve {attaDir}/{agentsDir}/{bootstrapDir} to literal paths
+ * @param {boolean} [config.resolveAttaPlaceholders=false] - Resolve {attaDir}/{agentsDir}/{bootstrapDir}/{metadataDir} to literal paths
  * @returns {string} Rewritten skill body
  */
 export function rewriteSkillBody(body, config) {
@@ -215,29 +214,27 @@ export function rewriteSkillBody(body, config) {
     agentsPath,
     memoryPath,
     commandMap = {},
-    commandPrefix = '/',
     resolveAttaPlaceholders = false,
   } = config;
 
   let result = body;
 
-  // 1. Replace .claude/agents/memory/ → adapter memory path
+  // 1. Replace .claude/agents/memory/ → adapter memory path (with and without trailing slash)
   result = result.replace(/\.claude\/agents\/memory\//g, `${memoryPath}/`);
+  result = result.replace(/\.claude\/agents\/memory(?=[`\s]|$)/g, memoryPath);
 
   // 2. Replace .claude/agents/ → adapter agents path (after memory, to avoid double-replace)
   result = result.replace(/\.claude\/agents\//g, `${agentsPath}/`);
+  result = result.replace(/\.claude\/agents(?=[`\s]|$)/g, agentsPath);
 
   // 3. Replace slash-command references: `/review`, `/agent`, etc.
-  //    Use word-boundary-aware replacement to avoid corrupting paths like `.claude/agents/`
-  //    Match patterns: `/command` at backtick boundary, space boundary, or start of line
+  //    Use capturing group for prefix instead of lookbehind (valid across all Node versions)
   for (const [original, replacement] of Object.entries(commandMap)) {
-    // Match `/original` when preceded by backtick, space, start-of-line, or open-paren
-    // and followed by backtick, space, end-of-line, close-paren, comma, or ` `
     const pattern = new RegExp(
-      '(?<=^|[`\\s(|])\\/' + escapeRegex(original) + '(?=[`\\s),.|]|$)',
+      '(^|[`\\s(|])\\/' + escapeRegex(original) + '(?=[`\\s),.|]|$)',
       'gm'
     );
-    result = result.replace(pattern, replacement);
+    result = result.replace(pattern, (_match, prefix) => (prefix || '') + replacement);
   }
 
   // 4. Replace AskUserQuestion with plain conversational pattern
@@ -274,6 +271,7 @@ export function rewriteSkillBody(body, config) {
     result = result.replace(/\{agentsDir\}/g, agentsPath);
     result = result.replace(/\{bootstrapDir\}/g, '.atta/bootstrap');
     result = result.replace(/\{knowledgeDir\}/g, '.atta/knowledge');
+    result = result.replace(/\{metadataDir\}/g, '.atta/.metadata');
   }
 
   return result;

@@ -122,7 +122,6 @@ const CURSOR_REWRITE_CONFIG = {
     update: '@atta-update',
     migrate: '@atta-migrate',
   },
-  commandPrefix: '@atta-',
 };
 
 function skillToMdc(skill, skillFile) {

@@ -90,7 +90,6 @@ const GEMINI_REWRITE_CONFIG = {
   agentsPath: '.gemini/agents',
   memoryPath: '.gemini/agents/memory',
   commandMap: {},
-  commandPrefix: '/',
   resolveAttaPlaceholders: true,
 };
 

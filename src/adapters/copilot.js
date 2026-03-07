@@ -63,7 +63,6 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
       agentsPath: '.github/atta/agents',
       memoryPath: '.github/atta/agents/memory',
       commandMap: copilotCommandMap,
-      commandPrefix: '/',
     };
 
     for (const skill of skills) {

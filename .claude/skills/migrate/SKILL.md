@@ -64,31 +64,9 @@ Continuing with `/update` execution...
 
 ## Error Handling
 
-### Missing `--from`
-
-```markdown
-⚠️ Missing source path
-
-Use:
-- `/migrate --from ./.claude_staging/.claude`
-- `/migrate --dry-run --from ./.claude_staging/.claude`
-```
-
-### Invalid Source Path
-
-```markdown
-⚠️ Invalid source path
-
-Expected file not found:
-`<path>/.metadata/version`
-
-Ensure `.claude_staging/.claude` exists and try again.
-```
-
-## Notes
-
-- Keep this alias for backward compatibility.
-- Prefer documenting `/update` in primary docs.
-- This alias can be deprecated after users transition.
+| Error | Recovery |
+|-------|----------|
+| Missing `--from` | Show correct usage with `--from ./.claude_staging/.claude` |
+| Invalid source path | Check `<path>/.metadata/version` exists |
 
 _Compatibility alias — `/migrate` forwards to `/update` Migration mode_

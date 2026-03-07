@@ -206,7 +206,7 @@ export function copySharedContent(attaRoot, targetDir, options = {}) {
  * @param {string} config.agentsPath - Agent directory path (e.g., '.github/atta/agents', '.agents/agents')
  * @param {string} config.memoryPath - Memory directory path (e.g., '.github/atta/agents/memory')
  * @param {Object<string,string>} [config.commandMap] - Map of original→rewritten commands (e.g., { review: '/atta-review' })
- * @param {boolean} [config.resolveAttaPlaceholders=false] - Resolve {attaDir}/{agentsDir}/{bootstrapDir}/{metadataDir} to literal paths
+ * @param {boolean} [config.resolveAttaPlaceholders=false] - Resolve {attaDir}/{agentsDir}/{bootstrapDir}/{knowledgeDir}/{metadataDir} to literal paths
  * @returns {string} Rewritten skill body
  */
 export function rewriteSkillBody(body, config) {

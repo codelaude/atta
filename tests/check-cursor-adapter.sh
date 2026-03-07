@@ -30,7 +30,7 @@ if [ ! -s "$WORK_DIR/GETTING-STARTED.md" ]; then
 fi
 
 # Check .mdc rule files exist
-MDC_COUNT=$(find "$WORK_DIR/.cursor/rules" -name "*.mdc" 2>/dev/null | wc -l | tr -d ' ')
+MDC_COUNT=$(find "$WORK_DIR/.cursor/rules" -name "*.mdc" 2>/dev/null | wc -l | tr -d ' ' || echo 0)
 if [ "$MDC_COUNT" -eq 0 ]; then
   echo "FAIL: No .mdc files in .cursor/rules/"
   ERRORS=$((ERRORS + 1))
@@ -104,10 +104,10 @@ if [ "$TT_COUNT" -gt 0 ]; then
 fi
 
 # Check: zero .claude/agents/ path references (except atta-update which is inherently about .claude/)
-CLAUDE_PATH_COUNT=$({ grep -rl "\.claude/agents/" "$RULES_DIR" 2>/dev/null || true; } | { grep -v "atta-update" || true; } | wc -l | tr -d ' ')
+CLAUDE_PATH_COUNT=$({ grep -rl "\.claude/agents" "$RULES_DIR" 2>/dev/null || true; } | { grep -v "atta-update" || true; } | wc -l | tr -d ' ')
 if [ "$CLAUDE_PATH_COUNT" -gt 0 ]; then
-  echo "FAIL: $CLAUDE_PATH_COUNT rule files (non-update) still reference '.claude/agents/'"
-  { grep -rl "\.claude/agents/" "$RULES_DIR" 2>/dev/null || true; } | { grep -v "atta-update" || true; } | sed 's|.*/rules/||'
+  echo "FAIL: $CLAUDE_PATH_COUNT rule files (non-update) still reference '.claude/agents'"
+  { grep -rl "\.claude/agents" "$RULES_DIR" 2>/dev/null || true; } | { grep -v "atta-update" || true; } | sed 's|.*/rules/||'
   ERRORS=$((ERRORS + 1))
 fi
 

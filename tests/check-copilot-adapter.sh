@@ -110,10 +110,10 @@ if [ "$TT_COUNT" -gt 0 ]; then
 fi
 
 # Check: zero .claude/agents/ path references in installed skills (except update which is inherently about .claude/)
-CLAUDE_PATH_COUNT=$({ grep -rl "\.claude/agents/" "$SKILLS_DIR" 2>/dev/null || true; } | { grep -v "/atta-update/" || true; } | wc -l | tr -d ' ')
+CLAUDE_PATH_COUNT=$({ grep -rl "\.claude/agents" "$SKILLS_DIR" 2>/dev/null || true; } | { grep -v "/atta-update/" || true; } | wc -l | tr -d ' ')
 if [ "$CLAUDE_PATH_COUNT" -gt 0 ]; then
-  echo "FAIL: $CLAUDE_PATH_COUNT skill files (non-update) still reference '.claude/agents/'"
-  { grep -rl "\.claude/agents/" "$SKILLS_DIR" 2>/dev/null || true; } | { grep -v "/atta-update/" || true; } | sed 's|.*/skills/||'
+  echo "FAIL: $CLAUDE_PATH_COUNT skill files (non-update) still reference '.claude/agents'"
+  { grep -rl "\.claude/agents" "$SKILLS_DIR" 2>/dev/null || true; } | { grep -v "/atta-update/" || true; } | sed 's|.*/skills/||'
   ERRORS=$((ERRORS + 1))
 fi
 

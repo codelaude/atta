@@ -134,18 +134,18 @@ if [ "$TT_COUNT" -gt 0 ]; then
 fi
 
 # Check: zero .claude/agents/ path references (except update.toml which is inherently about .claude/)
-CLAUDE_PATH_COUNT=$({ grep -rl "\.claude/agents/" "$COMMANDS_DIR" 2>/dev/null || true; } | { grep -v "update.toml" || true; } | wc -l | tr -d ' ')
+CLAUDE_PATH_COUNT=$({ grep -rl "\.claude/agents" "$COMMANDS_DIR" 2>/dev/null || true; } | { grep -v "update.toml" || true; } | wc -l | tr -d ' ')
 if [ "$CLAUDE_PATH_COUNT" -gt 0 ]; then
-  echo "FAIL: $CLAUDE_PATH_COUNT command files (non-update) still reference '.claude/agents/'"
-  { grep -rl "\.claude/agents/" "$COMMANDS_DIR" 2>/dev/null || true; } | { grep -v "update.toml" || true; } | sed 's|.*/commands/||'
+  echo "FAIL: $CLAUDE_PATH_COUNT command files (non-update) still reference '.claude/agents'"
+  { grep -rl "\.claude/agents" "$COMMANDS_DIR" 2>/dev/null || true; } | { grep -v "update.toml" || true; } | sed 's|.*/commands/||'
   ERRORS=$((ERRORS + 1))
 fi
 
 # Check: zero unresolved {attaDir} placeholders in TOML commands
-PLACEHOLDER_COUNT=$({ grep -rl "{attaDir}\|{agentsDir}\|{bootstrapDir}" "$COMMANDS_DIR" 2>/dev/null || true; } | wc -l | tr -d ' ')
+PLACEHOLDER_COUNT=$({ grep -rl "{attaDir}\|{agentsDir}\|{bootstrapDir}\|{knowledgeDir}\|{metadataDir}" "$COMMANDS_DIR" 2>/dev/null || true; } | wc -l | tr -d ' ')
 if [ "$PLACEHOLDER_COUNT" -gt 0 ]; then
   echo "FAIL: $PLACEHOLDER_COUNT command files still contain unresolved placeholders"
-  { grep -rl "{attaDir}\|{agentsDir}\|{bootstrapDir}" "$COMMANDS_DIR" 2>/dev/null || true; } | sed 's|.*/commands/||'
+  { grep -rl "{attaDir}\|{agentsDir}\|{bootstrapDir}\|{knowledgeDir}\|{metadataDir}" "$COMMANDS_DIR" 2>/dev/null || true; } | sed 's|.*/commands/||'
   ERRORS=$((ERRORS + 1))
 fi
 

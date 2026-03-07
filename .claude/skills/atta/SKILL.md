@@ -71,7 +71,7 @@ Ask questions using AskUserQuestion (max 4 per call).
 
 Ask if user wants MCP servers (live docs, database access, browser testing, code intelligence). If no, skip to Phase 2.
 
-If yes: verify Node 18+ (check `node --version`, try nvm if needed, offer to skip if unavailable). Read `bootstrap/mappings/mcp-mappings.yaml` for stack-specific recommendations. Present multiSelect: Context7 (always), Database MCP (if DB detected), Browser MCP (if FE), Serena (optional). Gather required config per selection.
+If yes: verify Node 18+ (check `node --version`, try nvm if needed, offer to skip if unavailable). Read `.atta/bootstrap/mappings/mcp-mappings.yaml` for stack-specific recommendations. Present multiSelect: Context7 (always), Database MCP (if DB detected), Browser MCP (if FE), Serena (optional). Gather required config per selection.
 
 > **Security:** Use env variable references for credentials (`${VAR}`). Pin versions in production. Add `mcp-config.json` to `.gitignore` if it contains secrets.
 
@@ -83,7 +83,7 @@ Scan config files at confirmed project root.
 
 ### Tech Stack Detection
 
-Load detection rules from `bootstrap/detection/` YAML files:
+Load detection rules from `.atta/bootstrap/detection/` YAML files:
 - `frontend-detectors.yaml` — frameworks, styling, state management
 - `backend-detectors.yaml` — languages, frameworks, databases
 - `database-detectors.yaml` — database engines and ORMs

@@ -17,8 +17,8 @@ You are now acting as the **Profile Manager** — responsible for viewing, updat
 
 ## File Ownership
 
-| Mode | Writes to | Never touches |
-|------|-----------|---------------|
+| Mode | Writes to | Never writes |
+|------|-----------|--------------|
 | `--update`, `--complete` | `developer-profile.md` (personal, gitignored) | `project-profile.md` |
 | `--ci-review` | `project-profile.md` (team, committed) | `developer-profile.md` |
 | `--apply` | `project-context.md` (reads both profiles) | Neither profile |
@@ -259,7 +259,7 @@ Options:
 
 Ask conversationally (not AskUserQuestion): naming preferences for functions, constants, CSS classes (camelCase/snake_case/PascalCase/UPPER_SNAKE_CASE/kebab-case/BEM). "Skip" leaves defaults.
 
-Update Naming Conventions section in `developer-profile.md` with answers.
+If the user provides specific naming preferences, update the Naming Conventions section in `developer-profile.md` with those answers; if they say "skip" or provide no preferences, leave that section unchanged.
 
 ### Step 3g: Write Profile Updates
 

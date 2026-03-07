@@ -21,7 +21,7 @@ const CLAUDE_DIRS = ['agents', 'hooks', 'skills'];
  * generates settings and plugin manifest.
  *
  * @param {string} claudeRoot - Path to .claude/ source (agents, skills, hooks)
- * @param {string} attaRoot - Path to .atta/ source (knowledge, scripts, docs, metadata, context)
+ * @param {string} attaRoot - Path to .atta/ source (knowledge, project, scripts, metadata, context)
  * @param {string} targetDir - Project root
  * @param {object} [options]
  */

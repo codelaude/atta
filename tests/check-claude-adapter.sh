@@ -85,8 +85,8 @@ if [ ! -d "$WORK_DIR/.atta/scripts" ]; then
 fi
 
 # Count total files
-CLAUDE_COUNT=$(find "$WORK_DIR/.claude" -type f 2>/dev/null | wc -l | tr -d ' ')
-ATTA_COUNT=$(find "$WORK_DIR/.atta" -type f 2>/dev/null | wc -l | tr -d ' ')
+CLAUDE_COUNT=$(find "$WORK_DIR/.claude" -type f 2>/dev/null | wc -l | tr -d ' ' || echo 0)
+ATTA_COUNT=$(find "$WORK_DIR/.atta" -type f 2>/dev/null | wc -l | tr -d ' ' || echo 0)
 
 if [ $ERRORS -eq 0 ]; then
   echo "PASS: Claude adapter output structure correct ($CLAUDE_COUNT files in .claude/, $ATTA_COUNT files in .atta/)"

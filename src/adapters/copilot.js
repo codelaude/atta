@@ -186,7 +186,7 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
     console.log(`  ${pc.green('✓')} .github/instructions/ (3 instruction files)`);
   }
 
-  // Copy shared content to .atta/ (knowledge, scripts, docs, metadata, context)
+  // Copy shared content to .atta/ (knowledge, project, scripts, metadata, context)
   const sharedCount = copySharedContent(attaRoot, targetDir, options);
   results.files += sharedCount;
 

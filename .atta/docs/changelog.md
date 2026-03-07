@@ -53,7 +53,7 @@ Tool-agnostic shared content architecture, developer profile system, prompt opti
 - Dry-run validated against Cursor rules discovery path
 
 **Token Diet — Scoped Directives + Template Compression**
-- **Scoped directive loading**: `/agent` now loads `directives-{agent-id}.md` alongside agent definitions — directives only enter context when their agent/skill runs
+- **Scoped directive loading**: `/agent` now loads per-agent directive files (`directives-{agent-id}.md`) and category-scoped directive bundles (e.g. `directives-testing.md`, `directives-style.md`, `directives-pr.md`) alongside agent definitions — directives only enter context when their agent/skill runs
 - **Librarian scoped routing**: Librarian routes new directives to category-scoped files (`directives-code-reviewer.md`, `directives-testing.md`, `directives-style.md`, etc.) based on `applies_to` field
 - **Skill directive loading**: `/review`, `/collaborate`, `/test`, `/preflight`, `/lint`, `/ship`, `/librarian` each load only their relevant scoped directive files
 - **Migration + promotion flow**: `/librarian --migrate` re-classifies existing flat directives into scoped files (interactive). `/patterns promote --directives` merges 8+ scoped directives into agent `## Project Rules` sections

@@ -94,18 +94,20 @@ Interactive promotion of a pattern to a directive or pattern file, or promotion 
 
 ### Directive-to-Agent Promotion (`--directives`)
 
-When scoped directive files accumulate 8+ directives, promote them into the agent's `.md` definition under a `## Project Rules` section.
+When **agent-scoped** directive files accumulate 8+ directives, promote them into the matching agent's `.md` definition under a `## Project Rules` section.
 
 1. Scan `.claude/agents/memory/directives-*.md` files
-2. Count directives in each (identified by `DIR-YYYYMMDD-NNN` headers)
-3. For files with 8+ directives, propose promotion:
+2. Classify each file:
+   - **Agent-scoped**: filename matches `directives-<agent-id>.md` where `.claude/agents/<agent-id>.md` exists. These are eligible for promotion.
+   - **Category/shared**: any other `directives-*.md` file (e.g., `directives-testing.md`, `directives-style.md`). These are **never auto-promoted** — they remain shared across multiple skills. Promotion from these files must be handled manually per agent if desired.
+3. For each **agent-scoped** file, count directives (identified by `DIR-YYYYMMDD-NNN:` YAML blocks). For files with 8+ directives, propose promotion:
    ```
    directives-code-reviewer.md has 12 directives → promote to code-reviewer.md ## Project Rules?
-   directives-testing.md has 5 directives → below threshold (8), skipping
+   directives-testing.md → category-scoped, not eligible for auto-promotion
    ```
-4. For each file above threshold, present the merge proposal:
+4. For each eligible file above threshold, present the merge proposal:
    - Show the directives that would move
-   - Show the target agent `.md` file and where `## Project Rules` would be inserted (after the last existing section, before any `---` footer)
+   - Show the target agent `.md` file (derived as `directives-<agent-id>.md` → `.claude/agents/<agent-id>.md`) and where `## Project Rules` would be inserted (after the last existing section, before any `---` footer)
 5. On approval:
    - Read the target agent `.md` file
    - Append `## Project Rules` section containing the directives (preserve DIR format)

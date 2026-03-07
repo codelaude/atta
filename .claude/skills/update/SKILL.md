@@ -22,7 +22,7 @@ You are running the **update** skill to manage framework updates for the `.claud
 ### Source Acquisition (Required for check/pull)
 
 ```bash
-git clone --depth 1 https://github.com/codelaude/atta-prime.git .claude_staging
+git clone --depth 1 https://github.com/codelaude/atta.git .claude_staging
 ```
 
 Never manually copy a new `.claude/` folder over your existing one.

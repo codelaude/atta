@@ -1,8 +1,11 @@
 # Shared Specialist Sections
 
 > Reusable partial for agent templates. When a template references
-> `{{> common.SECTION}}`, substitute the matching section below,
-> replacing `{{TEAM_LEAD}}` and other placeholders as usual.
+> `{{> common.SECTION}}`, locate the matching `## common.SECTION` heading
+> below and substitute **only the section body** (the lines after that
+> heading and before the next `---` separator), replacing `{{TEAM_LEAD}}`
+> and other placeholders as usual. Do not include the `## common.*`
+> heading or the `---` delimiters in the inserted content.
 
 ---
 

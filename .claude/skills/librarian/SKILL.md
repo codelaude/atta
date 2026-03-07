@@ -163,7 +163,7 @@ When a project has accumulated many directives in root `directives.md` and wants
 ### Process
 
 1. Read `.claude/agents/memory/directives.md`
-2. Parse each directive block (identified by `DIR-YYYYMMDD-NNN` headers)
+2. Parse each directive block (YAML blocks keyed by `DIR-YYYYMMDD-NNN:`)
 3. For each directive, determine the target scoped file using the routing table in step 2b:
    - Check `applies_to` agents field
    - If universal or cross-cutting → **keep in root** `directives.md`

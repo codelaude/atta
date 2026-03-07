@@ -1,9 +1,9 @@
-import { existsSync, mkdirSync, cpSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, cpSync, writeFileSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import pc from 'picocolors';
 import { listSkills } from './claude-code.js';
 import { generateAgentsMd } from './agents-md.js';
-import { copyAgentFiles, copyBootstrap, copySharedContent } from './shared.js';
+import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, createMemoryDirectory } from './shared.js';
 
 /**
  * Codex CLI adapter — generates .agents/skills/, .agents/agents/, and AGENTS.md.
@@ -34,6 +34,34 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
     const skills = listSkills(claudeRoot);
     const agentsSkillsDir = join(targetDir, '.agents', 'skills');
 
+    // Codex uses $skill invocation — rewrite /command → $command
+    const codexCommandMap = {
+      review: '$review',
+      agent: '$agent',
+      atta: '$atta',
+      preflight: '$preflight',
+      lint: '$lint',
+      test: '$test',
+      collaborate: '$collaborate',
+      'team-lead': '$team-lead',
+      librarian: '$librarian',
+      patterns: '$patterns',
+      profile: '$profile',
+      'security-audit': '$security-audit',
+      ship: '$ship',
+      tutorial: '$tutorial',
+      optimize: '$optimize',
+      update: '$update',
+      migrate: '$migrate',
+    };
+
+    const rewriteConfig = {
+      agentsPath: '.agents/agents',
+      memoryPath: '.agents/agents/memory',
+      commandMap: codexCommandMap,
+      commandPrefix: '$',
+    };
+
     for (const skill of skills) {
       const src = join(skillsDir, skill.dirName, 'SKILL.md');
       const dest = join(agentsSkillsDir, skill.dirName, 'SKILL.md');
@@ -41,7 +69,18 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
       if (!existsSync(src)) continue;
 
       mkdirSync(join(agentsSkillsDir, skill.dirName), { recursive: true });
-      cpSync(src, dest);
+
+      // Rewrite body content for Codex compatibility
+      const content = readFileSync(src, 'utf-8');
+      const fmMatch = content.match(/^---\n[\s\S]*?\n---\n/);
+      if (fmMatch) {
+        const frontmatter = fmMatch[0];
+        const body = content.slice(frontmatter.length);
+        writeFileSync(dest, frontmatter + rewriteSkillBody(body, rewriteConfig));
+      } else {
+        writeFileSync(dest, rewriteSkillBody(content, rewriteConfig));
+      }
+
       results.files++;
     }
 
@@ -65,6 +104,10 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
       `  ${pc.green('✓')} .agents/agents/ (${agentCount} agent definitions)`
     );
   }
+
+  // Create memory directory with directives placeholder
+  createMemoryDirectory(join(targetDir, '.agents', 'agents'), options);
+  results.files++;
 
   // Copy shared content to .atta/ (knowledge, scripts, docs, metadata, context)
   const sharedCount = copySharedContent(attaRoot, targetDir, options);

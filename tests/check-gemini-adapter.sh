@@ -1,6 +1,6 @@
 #!/bin/bash
 # check-gemini-adapter.sh
-# Verifies Gemini adapter produces valid TOML commands, agents, and bootstrap
+# Verifies Gemini adapter produces valid TOML commands, agents, bootstrap, and content correctness
 # Requires: python3 (3.11+ for tomllib, or tomli fallback)
 
 set -euo pipefail
@@ -26,6 +26,8 @@ except ImportError:
 node "$REPO_ROOT/bin/atta.js" init --directory "$WORK_DIR" --adapter gemini --yes > /dev/null 2>&1
 
 ERRORS=0
+
+# --- Structure checks ---
 
 # Check GEMINI.md exists and is non-empty
 if [ ! -s "$WORK_DIR/GEMINI.md" ]; then
@@ -87,7 +89,7 @@ fi
 
 # Check agent definitions exist in .gemini/agents/
 if [ -d "$WORK_DIR/.gemini/agents" ]; then
-  AGENT_COUNT=$(find "$WORK_DIR/.gemini/agents" -name "*.md" | wc -l | tr -d ' ')
+  AGENT_COUNT=$(find "$WORK_DIR/.gemini/agents" -name "*.md" -not -path "*/memory/*" | wc -l | tr -d ' ')
 else
   AGENT_COUNT=0
 fi
@@ -105,8 +107,50 @@ elif [ ! -f "$WORK_DIR/.atta/bootstrap/generator.md" ]; then
   ERRORS=$((ERRORS + 1))
 fi
 
+# Check memory directory exists
+if [ ! -f "$WORK_DIR/.gemini/agents/memory/directives.md" ]; then
+  echo "FAIL: .gemini/agents/memory/directives.md missing"
+  ERRORS=$((ERRORS + 1))
+fi
+
+# --- Content contract checks (adapter hardening) ---
+
+COMMANDS_DIR="$WORK_DIR/.gemini/commands"
+
+# Check: zero AskUserQuestion in TOML commands
+AUQ_COUNT=$({ grep -rl "AskUserQuestion" "$COMMANDS_DIR" 2>/dev/null || true; } | wc -l | tr -d ' ')
+if [ "$AUQ_COUNT" -gt 0 ]; then
+  echo "FAIL: $AUQ_COUNT command files still contain 'AskUserQuestion'"
+  { grep -rl "AskUserQuestion" "$COMMANDS_DIR" 2>/dev/null || true; } | sed 's|.*/commands/||'
+  ERRORS=$((ERRORS + 1))
+fi
+
+# Check: zero 'Task tool' in TOML commands
+TT_COUNT=$({ grep -rl "Task tool" "$COMMANDS_DIR" 2>/dev/null || true; } | wc -l | tr -d ' ')
+if [ "$TT_COUNT" -gt 0 ]; then
+  echo "FAIL: $TT_COUNT command files still contain 'Task tool'"
+  { grep -rl "Task tool" "$COMMANDS_DIR" 2>/dev/null || true; } | sed 's|.*/commands/||'
+  ERRORS=$((ERRORS + 1))
+fi
+
+# Check: zero .claude/agents/ path references (except update.toml which is inherently about .claude/)
+CLAUDE_PATH_COUNT=$({ grep -rl "\.claude/agents/" "$COMMANDS_DIR" 2>/dev/null || true; } | { grep -v "update.toml" || true; } | wc -l | tr -d ' ')
+if [ "$CLAUDE_PATH_COUNT" -gt 0 ]; then
+  echo "FAIL: $CLAUDE_PATH_COUNT command files (non-update) still reference '.claude/agents/'"
+  { grep -rl "\.claude/agents/" "$COMMANDS_DIR" 2>/dev/null || true; } | { grep -v "update.toml" || true; } | sed 's|.*/commands/||'
+  ERRORS=$((ERRORS + 1))
+fi
+
+# Check: zero unresolved {attaDir} placeholders in TOML commands
+PLACEHOLDER_COUNT=$({ grep -rl "{attaDir}\|{agentsDir}\|{bootstrapDir}" "$COMMANDS_DIR" 2>/dev/null || true; } | wc -l | tr -d ' ')
+if [ "$PLACEHOLDER_COUNT" -gt 0 ]; then
+  echo "FAIL: $PLACEHOLDER_COUNT command files still contain unresolved placeholders"
+  { grep -rl "{attaDir}\|{agentsDir}\|{bootstrapDir}" "$COMMANDS_DIR" 2>/dev/null || true; } | sed 's|.*/commands/||'
+  ERRORS=$((ERRORS + 1))
+fi
+
 if [ $ERRORS -eq 0 ]; then
-  echo "PASS: Gemini adapter output valid ($TOML_COUNT TOML commands, $AGENT_COUNT agents, syntax-verified)"
+  echo "PASS: Gemini adapter — structure + content correct ($TOML_COUNT TOML commands, $AGENT_COUNT agents, zero Claude-isms)"
   exit 0
 else
   echo "FAIL: $ERRORS errors found"

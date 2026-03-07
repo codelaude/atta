@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, cpSync, lstatSync, readdirSync } from 'node:fs';
+import { existsSync, mkdirSync, cpSync, lstatSync, readdirSync, writeFileSync } from 'node:fs';
 import { join, dirname, relative } from 'node:path';
 import pc from 'picocolors';
 
@@ -195,6 +195,122 @@ export function copySharedContent(attaRoot, targetDir, options = {}) {
   }
 
   return totalCount;
+}
+
+/**
+ * Rewrite Claude Code-specific content in a skill body for non-Claude adapters.
+ * Applied at install time — source files are never modified.
+ *
+ * @param {string} body - Skill body text (after frontmatter removal)
+ * @param {object} config - Adapter-specific rewrite configuration
+ * @param {string} config.agentsPath - Agent directory path (e.g., '.github/atta/agents', '.agents/agents')
+ * @param {string} config.memoryPath - Memory directory path (e.g., '.github/atta/agents/memory')
+ * @param {Object<string,string>} [config.commandMap] - Map of original→rewritten commands (e.g., { review: '/atta-review' })
+ * @param {string} [config.commandPrefix='/'] - Prefix for skill invocation (e.g., '$', '@atta-', '/')
+ * @param {boolean} [config.resolveAttaPlaceholders=false] - Resolve {attaDir}/{agentsDir}/{bootstrapDir} to literal paths
+ * @returns {string} Rewritten skill body
+ */
+export function rewriteSkillBody(body, config) {
+  const {
+    agentsPath,
+    memoryPath,
+    commandMap = {},
+    commandPrefix = '/',
+    resolveAttaPlaceholders = false,
+  } = config;
+
+  let result = body;
+
+  // 1. Replace .claude/agents/memory/ → adapter memory path
+  result = result.replace(/\.claude\/agents\/memory\//g, `${memoryPath}/`);
+
+  // 2. Replace .claude/agents/ → adapter agents path (after memory, to avoid double-replace)
+  result = result.replace(/\.claude\/agents\//g, `${agentsPath}/`);
+
+  // 3. Replace slash-command references: `/review`, `/agent`, etc.
+  //    Use word-boundary-aware replacement to avoid corrupting paths like `.claude/agents/`
+  //    Match patterns: `/command` at backtick boundary, space boundary, or start of line
+  for (const [original, replacement] of Object.entries(commandMap)) {
+    // Match `/original` when preceded by backtick, space, start-of-line, or open-paren
+    // and followed by backtick, space, end-of-line, close-paren, comma, or ` `
+    const pattern = new RegExp(
+      '(?<=^|[`\\s(|])\\/' + escapeRegex(original) + '(?=[`\\s),.|]|$)',
+      'gm'
+    );
+    result = result.replace(pattern, replacement);
+  }
+
+  // 4. Replace AskUserQuestion with plain conversational pattern
+  result = result.replace(
+    /(?:Then )?[Uu]se AskUserQuestion[^.]*\./g,
+    'Ask the user in one short message.'
+  );
+  result = result.replace(
+    /Ask (?:questions )?using AskUserQuestion[^.]*\./g,
+    'Ask the user up to 3 short questions in one message.'
+  );
+  result = result.replace(
+    /AskUserQuestion(?:\s*\([^)]*\))?/g,
+    'a plain conversational question'
+  );
+
+  // 5. Replace Task tool / run_in_background references
+  result = result.replace(
+    /spawn a Task tool subagent[^.)]*\)?/g,
+    'run the specialist pass (sequentially if parallel execution is not supported)'
+  );
+  result = result.replace(
+    /Task tool/g,
+    'specialist execution'
+  );
+  result = result.replace(
+    /`?run_in_background:\s*true`?/g,
+    '(parallel if supported, otherwise sequential)'
+  );
+
+  // 6. Resolve {attaDir}, {agentsDir}, {bootstrapDir} placeholders (for Gemini TOML — static, no AI resolves them)
+  if (resolveAttaPlaceholders) {
+    result = result.replace(/\{attaDir\}/g, '.atta');
+    result = result.replace(/\{agentsDir\}/g, agentsPath);
+    result = result.replace(/\{bootstrapDir\}/g, '.atta/bootstrap');
+    result = result.replace(/\{knowledgeDir\}/g, '.atta/knowledge');
+  }
+
+  return result;
+}
+
+/** Escape special regex characters in a string */
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Create a memory directory with empty directives.md placeholder.
+ * Called by non-Claude adapters during install.
+ *
+ * @param {string} agentsDir - Target agents directory (e.g., join(targetDir, '.github', 'atta', 'agents'))
+ * @param {object} [options] - Options (quiet: boolean)
+ */
+export function createMemoryDirectory(agentsDir, options = {}) {
+  const memoryDir = join(agentsDir, 'memory');
+  mkdirSync(memoryDir, { recursive: true });
+
+  const directivesPath = join(memoryDir, 'directives.md');
+  if (!existsSync(directivesPath)) {
+    writeFileSync(directivesPath, [
+      '# Directives Memory',
+      '',
+      '> Captures user preferences, rules, and decisions across sessions.',
+      '> Updated by the Librarian agent.',
+      '',
+      '---',
+      '',
+    ].join('\n'));
+  }
+
+  if (!options.quiet) {
+    console.log(`  ${pc.green('✓')} ${relative(join(agentsDir, '..', '..'), memoryDir) || 'memory'}/ (directives placeholder)`);
+  }
 }
 
 /**

@@ -113,7 +113,7 @@ Hold results in memory as `conventions: { functions, variables, constants, inter
 
 ### Architectural Pattern Extraction
 
-Load rules from `bootstrap/detection/architectural-detectors.yaml`. For each category (structure, components, routes, api, state), check `directory_exists`, `file_patterns`, and `files` conditions (AND logic). Hold matched patterns in memory for Phase 4. Only include categories with a match.
+Load rules from `.atta/bootstrap/detection/architectural-detectors.yaml`. For each category (structure, components, routes, api, state), check `directory_exists`, `file_patterns`, and `files` conditions (AND logic). Hold matched patterns in memory for Phase 4. Only include categories with a match.
 
 ### PR Template Detection
 

@@ -371,7 +371,7 @@ After (auto-detected):
 - **FE only:** No be-team-lead. Project-owner handles backend-adjacent questions.
 - **FE+BE:** Generate be-team-lead from bootstrap template. Delegates to BE specialists, coordinates with fe-team-lead.
 
-Update `.claude/agents/INDEX.md` routing table.
+Update `{agentsDir}/INDEX.md` routing table.
 
 ---
 
@@ -382,7 +382,7 @@ Generate and display:
 2. **Hierarchy visualization**: Tree showing Project Owner → Team Leads → Specialists + Core agents
 3. **Routing rules table**: Task Pattern → Route To (based on detected stack)
 
-Write all to `.claude/agents/INDEX.md` with auto-generated header and timestamp.
+Write all to `{agentsDir}/INDEX.md` with auto-generated header and timestamp.
 
 ---
 

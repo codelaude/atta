@@ -201,12 +201,12 @@ If convention detection produced results, update `.atta/project/project-profile.
 ### Agent Generation from Templates
 
 When generating specialists and coordinators from `{bootstrapDir}/templates/agents/`:
-1. Read `_common.md` first — it defines shared partial sections.
-2. Read the specific `.template.md` file for the agent being generated.
-3. Where a template uses `{{> common.SECTION}}`, substitute only the body of the matching section from `_common.md`:
+1. Read `{bootstrapDir}/templates/agents/_common.md` first — it defines shared partial sections.
+2. Read the specific `{bootstrapDir}/templates/agents/<agent>.template.md` file for the agent being generated.
+3. Where a template uses `{{> common.SECTION}}`, substitute only the body of the matching section from `{bootstrapDir}/templates/agents/_common.md`:
    - In `_common.md`, each shared section starts at a `## common.SECTION` heading and ends at the next `---` separator.
    - When substituting, **do not** include the `## common.*` heading line or any `---` delimiters — insert only the inner markdown content.
-   - After insertion, resolve all `{{TEAM_LEAD}}` and other placeholders inside both the template and the inserted partials as usual.
+   - After insertion, resolve all `{{TEAM_LEAD}}` and other placeholders inside both the agent template and the inserted partials as usual.
 4. Fill any remaining Handlebars-style placeholders with detected stack values.
 
 ### BE Team Lead

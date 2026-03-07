@@ -27,5 +27,5 @@ What actually happened. Include error messages or screenshots if applicable.
 - **OS**: (e.g., macOS 15, Ubuntu 24.04)
 - **Node.js version**: (e.g., 22.x)
 - **AI tool**: (e.g., Claude Code, Copilot CLI, Codex CLI)
-- **Atta version**: (check `.claude/.metadata/version`)
+- **Atta version**: (check `.atta/.metadata/version`)
 - **Install method**: (npx atta-dev init / manual copy)

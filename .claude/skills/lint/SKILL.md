@@ -16,7 +16,7 @@ You are now running a **code lint check** based on the project's established pat
 ## What This Skill Does
 
 1. **Reads the target code** (file, folder, or recent git changes)
-2. **Applies pattern rules** from `.claude/knowledge/` pattern files
+2. **Applies pattern rules** from `.atta/knowledge/` pattern files
 3. **Reports violations** grouped by severity
 4. **Suggests fixes** for each issue found
 
@@ -63,6 +63,10 @@ You are now running a **code lint check** based on the project's established pat
 ---
 
 ## Execution Steps
+
+### Step 0: Load Scoped Directives
+
+Read `.claude/agents/memory/directives-style.md` if it exists (skip silently if absent). Apply any directives found as additional lint rules.
 
 ### Step 1: Determine Target
 - If no argument: Run `git diff --name-only` to get changed files
@@ -128,7 +132,7 @@ Pattern knowledge files are missing or incomplete.
 Recovery options:
 1. Run `/atta` (or `/atta --rescan`) to regenerate pattern files
 2. Continue with core lint checks only (critical rules)
-3. Add missing project context in `.claude/knowledge/project/project-context.md`
+3. Add missing project context in `.atta/project/project-context.md`
 ```
 
 ---

@@ -11,7 +11,7 @@ Run `/atta` in your project to automatically detect your tech stack and generate
 
 ## Templates
 
-Generated skills come from templates in `.claude/bootstrap/templates/skills/`.
+Generated skills come from templates in `.atta/bootstrap/templates/skills/`.
 
 ## Manual Creation
 

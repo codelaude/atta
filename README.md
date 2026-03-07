@@ -1,17 +1,18 @@
 <p align="center">
-  <img src="atta.svg" alt="Atta" width="400">
+  <img src="https://raw.githubusercontent.com/codelaude/atta/main/atta.svg" alt="Atta" width="400">
   <br>
   <em>Named after the leafcutter ant genus, where colonies of specialists build together.</em>
 </p>
 
-A multi-agent system for AI-assisted development that guides, reviews, and validates your work — instead of writing code for you. Supports any tech stack: Vue, React, Angular, Python/Django, Java/Spring Boot, Go, Rust, and [100+ more](.claude/docs/bootstrap-system.md).
+A multi-agent system for AI-assisted development that guides, reviews, and validates your work — instead of writing code for you. Supports any tech stack: Vue, React, Angular, Python/Django, Java/Spring Boot, Go, Rust, and [100+ more](https://github.com/codelaude/atta/blob/main/.atta/docs/bootstrap-system.md).
 
 ## Requirements
 
 - **Node.js** >= 18.0.0
 - **Unix/macOS** (or WSL on Windows) — shell scripts require bash
 - **python3** — used by framework scripts for JSON processing
-- One of: Claude Code, GitHub Copilot CLI, OpenAI Codex CLI, or Google Gemini CLI
+- One of: Claude Code, GitHub Copilot CLI, OpenAI Codex CLI, Google Gemini CLI, or Cursor
+- For CI review: GitHub Actions + an AI provider secret (optional, via `--adapter github-action` — supports Anthropic, AWS Bedrock, GCP Vertex, OpenAI, Azure OpenAI, and Ollama)
 
 ## Quick Start
 
@@ -64,6 +65,8 @@ The interactive setup interviews you about your project, auto-detects your tech 
 | `/security-audit` | OWASP Top 10 security scan — vulnerabilities, secrets, dependencies |
 | `/test` | Run tests with auto-detection — `--e2e`, `--coverage`, `--watch` flags |
 | `/lint` | Pattern-based checks against project rules |
+| `/profile` | View/update developer preferences — collaboration style, review priorities, response format |
+| `/optimize` | Optimize prompts for better results — rephrase in-session or enrich for cross-tool handoff |
 | `/preflight` | Full pre-PR pipeline: lint + security + test + review |
 | `/ship` | Completion workflow — tests, ACC validation, PR description, learnings |
 | `/tutorial` | Interactive 5-minute onboarding walkthrough |
@@ -78,7 +81,7 @@ The interactive setup interviews you about your project, auto-detects your tech 
 - **Not unpredictable.** Every agent has hard constraints on what it does *and refuses to do*. A developer profile sets your collaboration style and priorities. The system learns from corrections, but nothing changes without your approval.
 - **Not a one-shot tool.** Day one, you get the bare minimum — tech detection, agents, pattern files. Over time, corrections accumulate, directives grow, agents adapt to your feedback. Session 50 is dramatically better than session 1 — because the context is *yours*.
 
-See [Design Philosophy](.claude/docs/philosophy.md) for the full story on how the system grows with you.
+See [Design Philosophy](https://github.com/codelaude/atta/blob/main/.atta/docs/philosophy.md) for the full story on how the system grows with you.
 
 ## How It Works
 
@@ -113,10 +116,11 @@ Every agent has constraints — what it does **and what it doesn't do**. Constra
 
 ## Key Features
 
-- **Universal Bootstrap** — 100+ technologies detected. Generates project-specific agents and pattern files from YAML configuration.
+- **Universal Bootstrap** — 100+ technologies detected, plus architectural patterns (structure, components, routing, API, state). Generates project-specific agents and pattern files from YAML configuration. Staleness detection warns when project has drifted since last scan.
 - **Multi-Agent Collaboration** — `/collaborate` invokes 2-4 specialists in parallel with three-layer conflict detection.
 - **Security Built In** — OWASP Top 10 (2025), `/security-audit`, and security checks in `/review` and `/preflight`.
 - **MCP Integration** — Smart recommendations based on detected stack (docs, database, browser MCPs).
+- **Developer Profile** — Set your working preferences once; agents adapt to your collaboration style, review priorities, and response format.
 - **Guided Learning** — Rubber Duck teaches by asking questions. Librarian captures rules that persist across sessions.
 - **Pattern Detection** — Learns from corrections, tracks per-agent acceptance rates, promotes patterns with your approval.
 - **Safe Updates** — Smart merge preserves all customizations during framework updates.
@@ -127,22 +131,25 @@ Start here, then dive deeper:
 
 | Doc | What you'll learn |
 |-----|-------------------|
-| **[Bootstrap System](/.claude/docs/bootstrap-system.md)** | How tech detection and agent generation works |
-| **[Multi-Agent Collaboration](/.claude/docs/collaboration.md)** | How `/collaborate` works — modes, conflict detection, finding schema |
-| **[MCP Setup Guide](/.claude/docs/mcp-setup.md)** | Configure Model Context Protocol servers |
-| **[Session Tracking](/.claude/docs/session-tracking.md)** | What's tracked, privacy, retention policy |
-| **[Extending the System](/.claude/docs/extending.md)** | Add new technologies and custom agents via YAML |
-| **[Updating](/.claude/docs/updating.md)** | How to update without losing customizations |
-| **[Token Usage & Cost](/.claude/docs/token-usage.md)** | Estimated tokens and cost per skill |
-| **[Design Philosophy](/.claude/docs/philosophy.md)** | Why this exists, core principles, how the system grows |
-| **[Changelog](/.claude/docs/changelog.md)** | Full version history |
+| **[Bootstrap System](https://github.com/codelaude/atta/blob/main/.atta/docs/bootstrap-system.md)** | How tech detection and agent generation works |
+| **[Multi-Agent Collaboration](https://github.com/codelaude/atta/blob/main/.atta/docs/collaboration.md)** | How `/collaborate` works — modes, conflict detection, finding schema |
+| **[MCP Setup Guide](https://github.com/codelaude/atta/blob/main/.atta/docs/mcp-setup.md)** | Configure Model Context Protocol servers |
+| **[Session Tracking](https://github.com/codelaude/atta/blob/main/.atta/docs/session-tracking.md)** | What's tracked, privacy, retention policy |
+| **[Developer Profile](https://github.com/codelaude/atta/blob/main/.atta/docs/profile.md)** | How `/profile` works — modes, preferences, propagation |
+| **[Prompt Optimizer](https://github.com/codelaude/atta/blob/main/.atta/docs/optimize.md)** | How `/optimize` works — cross-tool context enrichment |
+| **[Extending the System](https://github.com/codelaude/atta/blob/main/.atta/docs/extending.md)** | Add new technologies and custom agents via YAML |
+| **[Updating](https://github.com/codelaude/atta/blob/main/.atta/docs/updating.md)** | How to update without losing customizations |
+| **[Token Usage & Cost](https://github.com/codelaude/atta/blob/main/.atta/docs/token-usage.md)** | Estimated tokens and cost per skill |
+| **[Design Philosophy](https://github.com/codelaude/atta/blob/main/.atta/docs/philosophy.md)** | Why this exists, core principles, how the system grows |
+| **[CI Review](https://github.com/codelaude/atta/blob/main/.atta/docs/ci-review.md)** | GitHub Action CI adapter — setup, multi-provider auth, suppression workflow |
+| **[Changelog](https://github.com/codelaude/atta/blob/main/.atta/docs/changelog.md)** | Full version history |
 
 ## Framework Contributor Checks
 
-When changing framework source under `.claude/`, run:
+When changing framework source, run:
 
 ```bash
-bash .claude/scripts/validate-framework.sh
+bash .atta/scripts/validate-framework.sh
 ```
 
 This validates bootstrap YAML syntax, security-critical documentation patterns, and `git diff --check` hygiene in one pass.

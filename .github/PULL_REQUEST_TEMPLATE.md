@@ -9,7 +9,7 @@ Brief description of the changes.
 
 ## Verification
 
-- [ ] `bash .claude/scripts/validate-framework.sh` passes
+- [ ] `bash .atta/scripts/validate-framework.sh` passes
 - [ ] `npm pack --dry-run` shows expected contents (if package structure changed)
 - [ ] Tested with target AI tool (Claude Code / Copilot / Codex / Gemini)
 

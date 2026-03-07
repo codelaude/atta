@@ -23,19 +23,24 @@ cd atta
 npm install
 
 # Verify everything works
-bash .claude/scripts/validate-framework.sh
+bash .atta/scripts/validate-framework.sh
 ```
 
 ## Project Structure
 
 ```
-.claude/          # Framework source (committed)
+.claude/          # Discovery-required content (committed)
   agents/         # Core agent definitions
+  skills/         # Skill definitions (slash commands)
+  hooks/          # Claude Code hooks
+.atta/            # Shared content (committed, tool-agnostic)
   bootstrap/      # Tech detection YAML + templates
   docs/           # Documentation
   knowledge/      # Knowledge templates and schemas
   scripts/        # Shell scripts (validation, session cleanup, pattern detection)
-  skills/         # Skill definitions (slash commands)
+  .metadata/      # Version and framework info
+  .context/       # Pattern detection data
+  .sessions/      # Session tracking schema
 src/              # npm package source (CLI, adapters, commands)
 bin/              # CLI entry point
 ```
@@ -66,7 +71,7 @@ bin/              # CLI entry point
 
 1. Create a feature branch from `main`
 2. Make your changes
-3. Run validation: `bash .claude/scripts/validate-framework.sh`
+3. Run validation: `bash .atta/scripts/validate-framework.sh`
 4. Run `npm pack --dry-run` to verify package contents if you changed `package.json` or file structure
 5. Submit a pull request
 

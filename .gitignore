@@ -2,9 +2,10 @@
 .mcp.json
 node_modules/
 package-lock.json
+*.tgz
 
 # Generated context files (keep README, ignore generated content)
-.claude/.context/recent.md
+.atta/.context/recent.md
 
 # User-specific settings (generated per-project by atta init)
 .claude/settings.local.json
@@ -17,5 +18,6 @@ package-lock.json
 # Development workspace (includes PLAN.md and ROADMAP files)
 CLAUDE.md
 .claude_dev/
+.atta_dev/
 dev/
 .env.claude

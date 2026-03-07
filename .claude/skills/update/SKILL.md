@@ -22,7 +22,7 @@ You are running the **update** skill to manage framework updates for the `.claud
 ### Source Acquisition (Required for check/pull)
 
 ```bash
-git clone --depth 1 <framework-repo-url> .claude_staging
+git clone --depth 1 https://github.com/codelaude/atta.git .claude_staging
 ```
 
 Never manually copy a new `.claude/` folder over your existing one.
@@ -30,7 +30,7 @@ Never manually copy a new `.claude/` folder over your existing one.
 ### Mode Selection
 
 - Default: auto-selects from metadata:
-  - `upgrade` when `.claude/.metadata/file-manifest.json` exists
+  - `upgrade` when `.atta/.metadata/file-manifest.json` exists
   - `migration-bootstrap` when it is missing
 - Override: `--mode upgrade|migration|migration-bootstrap`
 
@@ -52,7 +52,7 @@ Never manually copy a new `.claude/` folder over your existing one.
 1. `--from` path provided for check/pull, must contain `.metadata/version`
 2. Optional `--mode` override is valid
 3. Clean working directory (no uncommitted `.claude/` changes)
-4. `.claude/.metadata/framework-version` used for comparison (created by `/atta`)
+4. `.atta/.metadata/framework-version` used for comparison (created by `/atta`)
 
 ---
 
@@ -68,7 +68,7 @@ Files: `agents/project-owner.md`, `agents/librarian.md`, `agents/rubber-duck.md`
 
 ### Tier 3: Never Touch (pure user content)
 
-Patterns: `agents/memory/**/*`, `knowledge/project/**/*`, `knowledge/accs/**/*`, `agents-config.json`, `settings.local.json`, `.metadata/file-manifest.json`, `.metadata/framework-version`, `.metadata/update-history.json`
+Patterns: `agents/memory/**/*`, `project/**/*`, `knowledge/accs/**/*`, `agents-config.json`, `settings.local.json`, `.metadata/file-manifest.json`, `.metadata/framework-version`, `.metadata/update-history.json`
 
 Backup directories (`.claude-backup-*`) are created as siblings outside `.claude/`.
 
@@ -92,22 +92,13 @@ When user runs `/update check`:
 ```
 
 Read versions from:
-- `.claude/.metadata/version` — current version
-- `.claude/.metadata/framework-version` — last applied framework version
+- `.atta/.metadata/version` — current version
+- `.atta/.metadata/framework-version` — last applied framework version
 - `$SOURCE_CLAUDE_DIR/.metadata/version` — incoming version
 
 ### 1.2. Report
 
-```markdown
-## Framework Update Available
-**Current version**: {{CURRENT_VERSION}} | **Latest version**: {{NEW_VERSION}}
-### What's New in v{{NEW_VERSION}}
-- [Feature highlights from changelog]
-### Impact Analysis
-Run `/update pull --dry-run` to see what would change.
-```
-
-If already up to date: `You're on the latest framework version ({{CURRENT_VERSION}})`
+Show: current vs latest version, feature highlights from changelog, suggest `--dry-run`. If up to date, say so.
 
 ---
 
@@ -115,34 +106,14 @@ If already up to date: `You're on the latest framework version ({{CURRENT_VERSIO
 
 ### 2.1. Classify and Compare
 
-- Read `.claude/.metadata/file-manifest.json` for file hashes and categories
+- Read `.atta/.metadata/file-manifest.json` for file hashes and categories
 - For Tier 1: compare hashes, list changed files
 - For Tier 2: detect customizations, show diff, recommend merge strategy
 - Tier 3: list as preserved
 
 ### 2.2. Generate Report
 
-```markdown
-## Update Preview (Dry Run)
-### Tier 1: Safe Updates (will replace)
-[list of changed files with brief descriptions]
-**Total**: N files will be updated
-
-### Tier 2: Requires Merge (you customized these)
-[for each: framework changes, your customizations, merge strategy]
-**Total**: N files need review
-
-### Tier 3: Will Preserve (your content)
-[list of protected files]
-**Total**: N files protected
-
-### Generated Files (optional)
-[list — run /atta --rescan after update]
-
-## Next Steps
-- `/update pull` — Apply automatically
-- `/update pull --interactive` — Review each merge manually
-```
+Show per-tier summary: Tier 1 files to replace (with counts), Tier 2 files needing merge (with customization details), Tier 3 preserved files, generated files (suggest `/atta --rescan`). End with next steps: `/update pull` or `--interactive`.
 
 ---
 
@@ -165,10 +136,12 @@ Copy new versions from framework, update hashes in manifest, log updates.
 **Strategy A — No Customizations:** Simply replace with new version.
 
 **Strategy B — Customizations Detected:**
-1. Extract user customizations (personality names, added rules, modified sections)
+1. Extract user customizations (personality names, added rules, modified sections, `## Project Rules` sections)
 2. Apply framework update (get new template)
 3. Reapply customizations (merge back in)
 4. Show diff and ask for approval
+
+> **`## Project Rules` sections** are user-owned content promoted from scoped directives via `/patterns promote --directives`. They must be extracted before update and reapplied after, same as personality names and added rules. Never overwrite or remove them.
 
 **Strategy C — Interactive Mode (`--interactive`):**
 Show side-by-side diff for each file. User chooses: (a) accept + reapply, (b) keep yours, (c) manual edit.
@@ -181,19 +154,7 @@ Write updated `.metadata/framework-version`, `.metadata/file-manifest.json` (wit
 
 ## Phase 4: Report Results
 
-```markdown
-## Update Complete: v{{CURRENT_VERSION}} → v{{NEW_VERSION}}
-### What Changed
-- **Updated**: N framework files
-- **Merged**: N customized files
-- **Preserved**: N user files
-### Backup Location
-`.claude-backup-update-v{{CURRENT_VERSION}}-to-v{{NEW_VERSION}}-{{BACKUP_TIMESTAMP}}/`
-### Next Steps
-1. `/atta --rescan` — Regenerate agents (optional)
-2. `git diff .claude/` — Review changes
-3. `/update rollback` — Undo if needed
-```
+Show: version transition, counts (updated/merged/preserved), backup location, next steps (`/atta --rescan`, `git diff .claude/`, `/update rollback`).
 
 ---
 
@@ -215,35 +176,19 @@ Read `.metadata/update-history.json` and display each entry: from → to version
 
 ## Smart Merge Algorithm
 
-For Tier 2 files with customizations:
+For Tier 2 files: detect user customizations → get new framework template → reapply customizations (YAML frontmatter, special sections, `## Project Rules`, or 3-way merge) → validate → show diff.
 
-1. **Detect**: Compare current file against original framework template, identify user-added sections
-2. **Update**: Get new framework template version
-3. **Reapply**: Merge customizations back (via YAML front matter, special sections, or line-by-line 3-way merge)
-4. **Validate**: Ensure all customizations preserved, framework improvements applied, no conflicts, valid markdown
-5. **Show diff**: Present what framework changed and what user customizations were preserved
+User-owned sections in Tier 2 agent files (extract before update, reapply after):
+- Personality names (custom agent names)
+- Added rules within existing sections
+- `## Project Rules` — promoted directives from `/patterns promote --directives`
 
 ---
 
-## Error Handling & Recovery
+## Error Handling
 
-### File Manifest Missing
-
-```markdown
-file-manifest.json is missing. /update will run Migration Bootstrap mode to initialize
-tracking metadata, then proceed with normal update safety rules.
-Recommended: /update pull --dry-run --from ./.claude_staging/.claude
-```
-
-### Merge Conflicts
-
-```markdown
-Merge conflict in agents/project-owner.md.
-Options: 1) Keep framework + reapply customizations [recommended]  2) Keep yours  3) Manual merge
-```
-
-### No Backup Space
-
-```markdown
-Cannot create backup — insufficient disk space. Free up space and retry.
-```
+| Error | Recovery |
+|-------|----------|
+| File manifest missing | Auto-switch to Migration Bootstrap mode, suggest `--dry-run` first |
+| Merge conflict | Options: keep framework + reapply (recommended), keep yours, manual merge |
+| No backup space | Free disk space and retry |

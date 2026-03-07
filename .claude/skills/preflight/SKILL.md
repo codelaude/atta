@@ -9,6 +9,7 @@ You are now running a **preflight check** - a comprehensive pre-PR validation th
 
 ```
 /preflight                    # Full preflight (lint + security + tests + review)
+/preflight --auto-fix         # Run preflight, then fix lint/review failures one check at a time
 /preflight --skip-tests       # Skip test execution
 /preflight --skip-lint        # Skip lint checks
 /preflight --skip-security    # Skip security scan
@@ -17,7 +18,67 @@ You are now running a **preflight check** - a comprehensive pre-PR validation th
 
 ---
 
+## Auto-Fix Mode
+
+When run with `--auto-fix`, preflight enters an iterative fix loop after identifying failures.
+
+### What gets fixed
+- **Lint failures** — whitespace, formatting, pattern violations
+- **Review findings** — LOW and MEDIUM severity items with clear remediation (missing null checks, unused imports, obvious code quality issues)
+
+### What does NOT get auto-fixed
+- Test failures (too complex — diagnose and fix manually)
+- CRITICAL or HIGH security findings (too risky — review and fix manually)
+- CRITICAL review findings (require human judgement)
+
+### Fix loop behavior
+
+1. Run all preflight checks (same as normal mode)
+2. If all pass → "Ready for PR" (same as normal)
+3. If lint or review failures exist → for each failing check, one at a time:
+   - Analyze the failure output
+   - Propose specific fixes (file + line + change description)
+   - **Wait for your approval before applying**
+   - On approval: apply fixes, re-run that check only
+   - Report result before moving to the next check
+4. Track what was attempted each round — if a fix attempt didn't resolve an issue, do not retry the same approach
+5. **Maximum 3 iterations** — if still failing after 3 rounds, report a "couldn't auto-fix" summary with remaining items and recommended manual actions
+6. Never auto-commit, never auto-push — only file edits (always user-confirmed)
+
+### Round reporting format
+
+```markdown
+## Auto-Fix Round 1
+
+**Lint**: 2 issues found
+  - auth.js:42 — trailing whitespace
+  - utils.ts:17 — unused import `lodash`
+
+Proposed fixes: Apply both?
+> [awaiting approval]
+
+[After approval]
+
+Lint re-run: PASSED
+
+**Review**: 1 LOW finding
+  - parser.js:88 — missing null check before `.split()`
+
+Proposed fix: Add null guard on line 88?
+> [awaiting approval]
+```
+
+---
+
 ## Execution Steps
+
+### Step 0: Load Scoped Directives
+
+Read these files from `.claude/agents/memory/` if they exist (skip silently if absent):
+- `directives-testing.md` — testing rules
+- `directives-code-reviewer.md` — code review rules
+
+Apply any directives found as additional constraints for the preflight checks.
 
 ### Step 1: Gather Changed Files
 
@@ -100,10 +161,11 @@ Report all findings but don't block unless CRITICAL issues are found.
 
 ---
 
-## Skip Flags
+## Flags
 
 | Flag | Effect |
 |------|--------|
+| `--auto-fix` | After running checks, attempt to fix lint and review failures one check at a time (user confirms each fix) |
 | `--skip-tests` | Skip test execution |
 | `--skip-lint` | Skip lint pattern checks |
 | `--skip-security` | Skip security scan (not recommended for PRs touching auth, API, or user input) |
@@ -190,6 +252,23 @@ Recovery options:
 1. Fix CRITICAL review findings first, then rerun `/preflight`
 2. Run `/review <target>` to focus on specific files
 3. Use `/review --quick <target>` for fast critical-only validation
+```
+
+### Auto-Fix Max Iterations Reached
+
+```markdown
+Auto-fix stopped after 3 rounds. Remaining issues require manual attention.
+
+What was fixed:
+- [list of successfully applied fixes]
+
+Still failing:
+- [check]: [finding] — [why it wasn't auto-fixable]
+
+Recommended next steps:
+1. Fix remaining issues manually
+2. Rerun /preflight to verify
+3. Use /review <target> for focused review on specific files
 ```
 
 ### Review Step Unavailable

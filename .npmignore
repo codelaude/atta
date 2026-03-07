@@ -10,13 +10,16 @@ dev/
 .claude/settings.local.json
 
 # Dev-only scripts
-.claude/scripts/validate-framework.sh
+.atta/scripts/validate-framework.sh
 
 # Generated runtime files (should not ship in npm package)
-.claude/.context/recent.md
+.atta/.context/recent.md
 
 # GitHub community files (not needed in npm package)
 .github/
+
+# Build artifacts
+*.tgz
 
 # IDE and OS
 .DS_Store

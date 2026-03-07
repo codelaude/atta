@@ -1,8 +1,8 @@
 #!/bin/bash
 # check-all.sh — Run pre-launch checks
 # Usage: check-all.sh [--full]
-#   Default: 5 core checks (required for Tier 1 launch)
-#   --full:  5 core + 1 optional (Gemini, required for Full launch)
+#   Default: 7 core checks (required for Tier 1 launch)
+#   --full:  7 core + 1 optional (Gemini, required for Full launch)
 
 set -uo pipefail
 
@@ -19,7 +19,9 @@ for check in \
   check-claude-adapter.sh \
   check-copilot-adapter.sh \
   check-codex-adapter.sh \
-  check-agents-md-generator.sh
+  check-agents-md-generator.sh \
+  check-cursor-adapter.sh \
+  check-github-action-adapter.sh
 do
   echo "--- [CORE] Running $check ---"
   if bash "$SCRIPT_DIR/$check"; then

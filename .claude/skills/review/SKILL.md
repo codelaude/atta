@@ -18,6 +18,14 @@ You are now acting as the **Code Reviewer** with automated pattern checking capa
 
 ## Execution Steps
 
+### Step 0: Load Scoped Directives
+
+Read these files from `.claude/agents/memory/` if they exist (skip silently if absent):
+- `directives-code-reviewer.md` — code review rules
+- `directives-style.md` — style and formatting rules
+
+Apply any directives found as additional review constraints.
+
 ### Step 1: Determine Review Scope
 
 **If no argument provided:**
@@ -160,12 +168,12 @@ Categorize each finding by severity: **CRITICAL** / **HIGH** / **MEDIUM** / **LO
 For each **CRITICAL** or **HIGH** finding, log to the pattern detection system:
 
 ```bash
-bash .claude/scripts/pattern-log.sh {claudeDir} << 'PAYLOAD'
+bash .atta/scripts/pattern-log.sh {attaDir} << 'PAYLOAD'
 {"category":"anti-pattern","pattern":"<slugified-check-name>","description":"<finding-description>","context":{"file":"<file:line>","domain":"<domain>","agent":"code-reviewer"},"source":"skill-annotation","skill":"review","agentId":"code-reviewer"}
 PAYLOAD
 ```
 
-After logging all findings, run: `bash .claude/scripts/pattern-analyze.sh {claudeDir}`
+After logging all findings, run: `bash .atta/scripts/pattern-analyze.sh {attaDir}`
 
 > Skip if no CRITICAL/HIGH findings or if `pattern-log.sh` is not available.
 

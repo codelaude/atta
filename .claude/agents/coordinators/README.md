@@ -19,7 +19,7 @@ Coordinators decompose features into specialist tasks and manage their domain:
 
 ## Templates
 
-Coordinators are generated from templates in `.claude/bootstrap/templates/agents/`:
+Coordinators are generated from templates in `.atta/bootstrap/templates/agents/`:
 - `fe-team-lead.template.md`
 - `be-team-lead.template.md`
 

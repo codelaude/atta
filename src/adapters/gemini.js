@@ -3,23 +3,25 @@ import { join } from 'node:path';
 import pc from 'picocolors';
 import { listSkills } from './claude-code.js';
 import { generateAgentsMd } from './agents-md.js';
-import { readVersion } from '../lib/fs-utils.js';
+import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, createMemoryDirectory } from './shared.js';
 
 /**
- * Gemini CLI adapter — generates gemini-extension.json, GEMINI.md, and TOML commands.
+ * Gemini CLI adapter — generates GEMINI.md, .gemini/commands/, and .gemini/agents/.
  *
- * Gemini CLI extensions use:
- * - gemini-extension.json: manifest with name, version, contextFileName
+ * Gemini CLI uses:
  * - GEMINI.md: context file loaded into the model (equivalent to AGENTS.md)
- * - commands/*.toml: slash commands with description + prompt fields
+ * - .gemini/commands/*.toml: project-scoped slash commands
+ * - .gemini/agents/*.md: agent definition files
  *
  * Skills are converted from SKILL.md → TOML command files.
+ * Note: Gemini extensions are global-only (~/.gemini/extensions/),
+ * so we don't generate gemini-extension.json at the project level.
  */
-export function install(frameworkRoot, targetDir, options = {}) {
+export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   const results = { files: 0 };
 
   // Generate GEMINI.md (same content as AGENTS.md, adapted for Gemini context)
-  const geminiMd = generateGeminiMd(frameworkRoot);
+  const geminiMd = generateGeminiMd(claudeRoot, attaRoot);
   writeFileSync(join(targetDir, 'GEMINI.md'), geminiMd);
   results.files++;
 
@@ -27,29 +29,11 @@ export function install(frameworkRoot, targetDir, options = {}) {
     console.log(`  ${pc.green('✓')} GEMINI.md`);
   }
 
-  // Generate gemini-extension.json manifest
-  const version = readVersion(frameworkRoot);
-  const manifest = {
-    name: 'atta',
-    version,
-    contextFileName: 'GEMINI.md',
-  };
-
-  writeFileSync(
-    join(targetDir, 'gemini-extension.json'),
-    JSON.stringify(manifest, null, 2) + '\n'
-  );
-  results.files++;
-
-  if (!options.quiet) {
-    console.log(`  ${pc.green('✓')} gemini-extension.json`);
-  }
-
-  // Convert skills to TOML commands
-  const skillsDir = join(frameworkRoot, 'skills');
+  // Convert skills to TOML commands at .gemini/commands/
+  const skillsDir = join(claudeRoot, 'skills');
   if (existsSync(skillsDir)) {
-    const skills = listSkills(frameworkRoot);
-    const commandsDir = join(targetDir, 'commands');
+    const skills = listSkills(claudeRoot);
+    const commandsDir = join(targetDir, '.gemini', 'commands');
     mkdirSync(commandsDir, { recursive: true });
 
     for (const skill of skills) {
@@ -63,10 +47,36 @@ export function install(frameworkRoot, targetDir, options = {}) {
 
     if (!options.quiet) {
       console.log(
-        `  ${pc.green('✓')} commands/ (${skills.length} TOML commands)`
+        `  ${pc.green('✓')} .gemini/commands/ (${skills.length} TOML commands)`
       );
     }
   }
+
+  // Copy agent definitions to .gemini/agents/
+  const agentCount = copyAgentFiles(
+    claudeRoot,
+    join(targetDir, '.gemini', 'agents'),
+    options
+  );
+  results.files += agentCount;
+
+  if (!options.quiet && agentCount > 0) {
+    console.log(
+      `  ${pc.green('✓')} .gemini/agents/ (${agentCount} agent definitions)`
+    );
+  }
+
+  // Create memory directory with directives placeholder
+  createMemoryDirectory(join(targetDir, '.gemini', 'agents'), options);
+  results.files++;
+
+  // Copy shared content to .atta/ (knowledge, project, scripts, metadata, context)
+  const sharedCount = copySharedContent(attaRoot, targetDir, options);
+  results.files += sharedCount;
+
+  // Copy bootstrap to .atta/bootstrap/
+  const bootstrapCount = copyBootstrap(attaRoot, targetDir, options);
+  results.files += bootstrapCount;
 
   return results;
 }
@@ -75,17 +85,25 @@ export function install(frameworkRoot, targetDir, options = {}) {
  * Convert a SKILL.md file into a Gemini TOML command.
  * Extracts the prompt content from the SKILL.md body (after frontmatter).
  */
+/** Rewrite config for Gemini — resolves placeholders since TOML is static */
+const GEMINI_REWRITE_CONFIG = {
+  agentsPath: '.gemini/agents',
+  memoryPath: '.gemini/agents/memory',
+  commandMap: {},
+  resolveAttaPlaceholders: true,
+};
+
 function skillToToml(skill, skillFile) {
   const content = readFileSync(skillFile, 'utf-8');
 
-  // Extract body after frontmatter
-  const body = content.replace(/^---\n[\s\S]*?\n---\n*/, '').trim();
+  // Extract body after frontmatter and apply rewrite
+  const rawBody = content.replace(/^---\n[\s\S]*?\n---\n*/, '').trim();
+  const body = rewriteSkillBody(rawBody, GEMINI_REWRITE_CONFIG);
 
   // Escape for TOML multi-line string (triple quotes)
-  // Only need to escape literal triple-quotes and backslashes
   const escapedBody = body
     .replace(/\\/g, '\\\\')
-    .replace(/"""/g, '\\"""');
+    .replace(/"""/g, '\\"\\"\\"');
 
   const desc = (skill.description || `Run the ${skill.name} skill`)
     .replace(/\\/g, '\\\\')
@@ -104,17 +122,21 @@ function skillToToml(skill, skillFile) {
 
 /**
  * Generate GEMINI.md — context file for Gemini CLI.
- * Based on AGENTS.md content with Gemini-specific framing.
+ * Based on AGENTS.md content with Gemini-specific framing and paths.
  */
-function generateGeminiMd(frameworkRoot) {
-  // Reuse the AGENTS.md generator and adapt the header
-  const agentsMd = generateAgentsMd(frameworkRoot);
+function generateGeminiMd(claudeRoot, attaRoot) {
+  // Reuse the AGENTS.md generator with Gemini-specific paths
+  const agentsMd = generateAgentsMd(claudeRoot, attaRoot, {
+    skillPrefix: '/',
+    agentBasePath: '.gemini/agents',
+  });
 
   // Replace header for Gemini context
   return agentsMd
     .replace('# AGENTS.md', '# GEMINI.md — Atta Agent Context')
     .replace(
       '> Generated by [Atta](https://github.com/codelaude/atta) — AI Dev Team Agent',
-      '> Context file for Gemini CLI. Generated by [Atta](https://github.com/codelaude/atta).\n>\n> This file is loaded automatically by the Atta extension. It provides your agent team context.'
+      '> Context file for Gemini CLI. Generated by [Atta](https://github.com/codelaude/atta).\n>\n> This file is loaded automatically as project context. It provides your agent team context.'
     );
 }
+

@@ -30,7 +30,17 @@ export function run(argv) {
     .option('-d, --directory <path>', 'Target project directory', '.')
     .option(
       '--adapter <name>',
-      'Target tool adapter (claude-code, copilot, codex, gemini)'
+      'Target tool adapter (claude-code, copilot, codex, gemini, cursor, github-action)'
+    )
+    .option(
+      '--auth-backend <backend>',
+      'Claude auth backend for github-action adapter (anthropic, bedrock, vertex, foundry)',
+      'anthropic'
+    )
+    .option(
+      '--provider <name>',
+      'AI provider for github-action adapter (anthropic, openai, azure, ollama)',
+      'anthropic'
     )
     .option('--dry-run', 'Show what would be installed without writing files')
     .option('-y, --yes', 'Skip prompts, use defaults')

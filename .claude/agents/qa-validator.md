@@ -11,7 +11,7 @@
 
 ## Workflow
 
-1. Get ACCs from business-analyst or `.claude/knowledge/accs/`
+1. Get ACCs from business-analyst or `.atta/knowledge/accs/`
 2. Create test scenarios per ACC
 3. Validate implementation against each
 4. Report: pass/fail per ACC + issues + recommendation

@@ -5,12 +5,20 @@ import { readVersion } from '../lib/fs-utils.js';
 
 /**
  * Generate AGENTS.md content from framework source.
- * Used by Copilot, Codex, Cursor, and Aider adapters.
+ * Used by all adapters (Claude Code, Copilot, Codex, Gemini, Cursor).
+ *
+ * @param {string} claudeRoot - Path to .claude/ source (skills, agents)
+ * @param {string} attaRoot - Path to .atta/ source (metadata with version)
+ * @param {object} [options] - Adapter-specific options
+ * @param {string} [options.skillPrefix='/'] - Prefix for skill invocation (e.g., '/' or '$')
+ * @param {string} [options.agentBasePath='.claude/agents'] - Base path for agent files in output
+ * @param {Object<string,string>} [options.skillRenames={}] - Map of original→renamed skill names for conflict avoidance
  */
-export function generateAgentsMd(frameworkRoot) {
-  const skills = listSkills(frameworkRoot);
-  const agents = listAgents(frameworkRoot);
-  const version = readVersion(frameworkRoot);
+export function generateAgentsMd(claudeRoot, attaRoot, options = {}) {
+  const { skillPrefix = '/', agentBasePath = '.claude/agents', skillRenames = {} } = options;
+  const skills = listSkills(claudeRoot);
+  const agents = listAgents(claudeRoot, agentBasePath);
+  const version = readVersion(attaRoot);
 
   const lines = [];
 
@@ -62,12 +70,13 @@ export function generateAgentsMd(frameworkRoot) {
   if (skills.length > 0) {
     lines.push('## Build & Commands');
     lines.push('');
-    lines.push('Available slash commands (skills):');
+    lines.push('Available commands (skills):');
     lines.push('');
     lines.push('| Command | Description |');
     lines.push('|---------|-------------|');
     for (const skill of skills) {
-      lines.push(`| \`/${skill.name}\` | ${skill.description} |`);
+      const displayName = skillRenames[skill.dirName] || skill.name;
+      lines.push(`| \`${skillPrefix}${displayName}\` | ${skill.description} |`);
     }
     lines.push('');
   }
@@ -76,7 +85,7 @@ export function generateAgentsMd(frameworkRoot) {
   lines.push('## Code Style');
   lines.push('');
   lines.push(
-    'Use `/review` for comprehensive code review or `/lint` for quick pattern checks. These skills enforce project-specific conventions detected from your tech stack.'
+    `Use \`${skillPrefix}${skillRenames['review'] || 'review'}\` for comprehensive code review or \`${skillPrefix}${skillRenames['lint'] || 'lint'}\` for quick pattern checks. These skills enforce project-specific conventions detected from your tech stack.`
   );
   lines.push('');
 
@@ -92,14 +101,19 @@ export function generateAgentsMd(frameworkRoot) {
   // Footer
   lines.push('---');
   lines.push('');
-  lines.push(`*Atta v${version} — Run \`/atta\` in Claude Code to generate agents tailored to your tech stack.*`);
+  lines.push(`*Atta v${version} — Run \`${skillPrefix}atta\` to generate agents tailored to your tech stack.*`);
   lines.push('');
 
   return lines.join('\n');
 }
 
-function listAgents(frameworkRoot) {
-  const agentsDir = join(frameworkRoot, 'agents');
+/**
+ * List agent definitions from framework source.
+ * @param {string} claudeRoot - Path to .claude/ source (agents live here)
+ * @param {string} agentBasePath - Base path prefix for agent files in output
+ */
+function listAgents(claudeRoot, agentBasePath = '.claude/agents') {
+  const agentsDir = join(claudeRoot, 'agents');
   if (!existsSync(agentsDir)) return [];
 
   const agents = [];
@@ -113,7 +127,7 @@ function listAgents(frameworkRoot) {
     agents.push({
       name: formatAgentName(name),
       role: 'Core Agent',
-      path: `.claude/agents/${file}`,
+      path: `${agentBasePath}/${file}`,
     });
   }
 
@@ -126,7 +140,7 @@ function listAgents(frameworkRoot) {
       agents.push({
         name: formatAgentName(name),
         role: 'Coordinator',
-        path: `.claude/agents/coordinators/${file}`,
+        path: `${agentBasePath}/coordinators/${file}`,
       });
     }
   }
@@ -140,7 +154,7 @@ function listAgents(frameworkRoot) {
       agents.push({
         name: formatAgentName(name),
         role: 'Specialist',
-        path: `.claude/agents/specialists/${file}`,
+        path: `${agentBasePath}/specialists/${file}`,
       });
     }
   }

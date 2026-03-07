@@ -18,9 +18,13 @@ You are running the project's test suite with intelligent framework detection.
 
 ---
 
+## Step 0: Load Scoped Directives
+
+Read `.claude/agents/memory/directives-testing.md` if it exists (skip silently if absent). Apply any directives found as additional testing constraints.
+
 ## Step 1: Detect Test Framework
 
-Read `.claude/knowledge/project/project-context.md` for the detected test framework and commands.
+Read `.atta/project/project-context.md` for the detected test framework and commands.
 
 If project-context.md is unavailable or doesn't specify test commands, auto-detect by checking:
 
@@ -119,44 +123,13 @@ Report:
 
 ### Coverage analysis (when `--coverage` is used)
 
-Present a summary table:
-
-```markdown
-## Coverage Summary
-
-| Category | Coverage | Threshold |
-|----------|----------|-----------|
-| Statements | XX% | — |
-| Branches | XX% | — |
-| Functions | XX% | — |
-| Lines | XX% | — |
-
-### Uncovered Areas
-- `src/utils/parser.ts:42-58` — error handling branch
-- `src/components/Modal.tsx:89` — edge case condition
-```
-
-Highlight files with < 50% coverage if they were recently changed (cross-reference with `git diff`).
+Present: statements/branches/functions/lines percentages in a table. List uncovered areas with file:line references. Highlight files with < 50% coverage if recently changed (`git diff`).
 
 ---
 
 ## Step 4: Report
 
-```markdown
-## Test Results
-
-**Framework**: [detected framework]
-**Mode**: [unit | e2e | coverage | watch]
-**Status**: PASS / FAIL
-**Tests**: X passed, Y failed, Z skipped
-**Coverage**: X% (if --coverage)
-**Duration**: Xs
-
-### Failures (if any)
-- `test_name` in `file_path:line` — Expected X, got Y
-  - **Root cause**: [analysis]
-  - **Suggested fix**: [recommendation]
-```
+Show: framework, mode, status (PASS/FAIL), test counts, coverage % (if applicable), duration. For failures: test name, file:line, expected vs actual, root cause analysis, suggested fix.
 
 ---
 

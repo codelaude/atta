@@ -28,5 +28,5 @@ ACC-001:
 
 ## Knowledge Base
 
-- `.claude/knowledge/project/project-context.md`
-- `.claude/knowledge/accs/`
+- `.atta/project/project-context.md`
+- `.atta/knowledge/accs/`

@@ -34,12 +34,12 @@ Manually capture a correction or anti-pattern.
 2. Generate normalized key: lowercase, hyphens, verb-first for preferences, noun-first for anti-patterns
 3. Log and analyze:
 ```bash
-bash .claude/scripts/pattern-log.sh {claudeDir} << 'PAYLOAD'
+bash .atta/scripts/pattern-log.sh {attaDir} << 'PAYLOAD'
 {"category":"<category>","pattern":"<key>","description":"<description>","context":{},"source":"manual","skill":"patterns"}
 PAYLOAD
-bash .claude/scripts/pattern-analyze.sh {claudeDir}
+bash .atta/scripts/pattern-analyze.sh {attaDir}
 ```
-4. Read `{claudeDir}/.context/patterns-learned.json` and report count, threshold status, promotion readiness.
+4. Read `{attaDir}/.context/patterns-learned.json` and report count, threshold status, promotion readiness.
 
 ---
 
@@ -47,9 +47,9 @@ bash .claude/scripts/pattern-analyze.sh {claudeDir}
 
 Full analysis of correction history and session patterns.
 
-1. Read `{claudeDir}/.context/corrections.jsonl`
-2. Run `bash .claude/scripts/pattern-analyze.sh {claudeDir}`
-3. Read `{claudeDir}/.context/patterns-learned.json`
+1. Read `{attaDir}/.context/corrections.jsonl`
+2. Run `bash .atta/scripts/pattern-analyze.sh {attaDir}`
+3. Read `{attaDir}/.context/patterns-learned.json`
 4. Analyze command sequences: read last 20 session files from `{claudeDir}/.sessions/`, extract `skill.name`, find recurring 2-3 skill sequences via sliding window
 5. Output tables: Corrections (pattern/count/status/last seen), Anti-Patterns (pattern/count/status/domain), Command Sequences (sequence/occurrences), Summary (totals + promotion readiness)
 
@@ -59,7 +59,7 @@ Full analysis of correction history and session patterns.
 
 Show patterns that reached promotion threshold.
 
-1. Read `{claudeDir}/.context/patterns-learned.json` (run analyze first if missing)
+1. Read `{attaDir}/.context/patterns-learned.json` (run analyze first if missing)
 2. Filter: `ready == true` and `promoted == false`
 3. For each, display: pattern key, count, date range, and two promotion options:
    - **Option A — Directive**: `DIR-YYYYMMDD-NNN` format with `source: pattern_detection`
@@ -72,22 +72,49 @@ If none ready: report total tracked count and suggest `/patterns learn`.
 
 ## Promote Subcommand
 
-Interactive promotion of a pattern to a directive or pattern file.
+Interactive promotion of a pattern to a directive or pattern file, or promotion of scoped directives into agent definitions.
 
 ```
-/patterns promote use-nullish-coalescing
+/patterns promote use-nullish-coalescing    # Promote a pattern to directive/pattern file
 /patterns promote ts-any-type
+/patterns promote --directives              # Check scoped directive files for promotion to agent definitions
 ```
 
-1. Read `{claudeDir}/.context/patterns-learned.json`, find matching key (or list available)
+### Pattern Promotion (default)
+
+1. Read `{attaDir}/.context/patterns-learned.json`, find matching key (or list available)
 2. Present options: (A) directive, (B) pattern file, (C) both, (D) dismiss
 3. Execute:
-   - **Directive**: Format `DIR-YYYYMMDD-NNN` with `source: pattern_detection`, append to `.claude/agents/memory/directives.md`
+   - **Directive**: Format `DIR-YYYYMMDD-NNN` with `source: pattern_detection`, append to the appropriate scoped file (use routing table from librarian step 2b) or root `directives.md`
    - **Pattern file**: Read target file, find/create section, propose anti-pattern row, show diff
    - **Dismiss**: Skip
-4. Record promotion to `{claudeDir}/.context/promoted-patterns.json` via inline Python (append to `promotions` array with pattern, timestamp, target)
-5. Run `bash .claude/scripts/pattern-analyze.sh {claudeDir}`
+4. Record promotion to `{attaDir}/.context/promoted-patterns.json` via inline Python (append to `promotions` array with pattern, timestamp, target)
+5. Run `bash .atta/scripts/pattern-analyze.sh {attaDir}`
 6. Confirm: `Promoted <key> → [directive / pattern file / both].`
+
+### Directive-to-Agent Promotion (`--directives`)
+
+When **agent-scoped** directive files accumulate 8+ directives, promote them into the matching agent's `.md` definition under a `## Project Rules` section.
+
+1. Scan `.claude/agents/memory/directives-*.md` files
+2. Classify each file:
+   - **Agent-scoped**: filename matches `directives-<agent-id>.md` where `.claude/agents/<agent-id>.md` exists. These are eligible for promotion.
+   - **Category/shared**: any other `directives-*.md` file (e.g., `directives-testing.md`, `directives-style.md`). These are **never auto-promoted** — they remain shared across multiple skills. Promotion from these files must be handled manually per agent if desired.
+3. For each **agent-scoped** file, count directives (identified by `DIR-YYYYMMDD-NNN:` YAML blocks). For files with 8+ directives, propose promotion:
+   ```
+   directives-code-reviewer.md has 12 directives → promote to code-reviewer.md ## Project Rules?
+   directives-testing.md → category-scoped, not eligible for auto-promotion
+   ```
+4. For each eligible file above threshold, present the merge proposal:
+   - Show the directives that would move
+   - Show the target agent `.md` file (derived as `directives-<agent-id>.md` → `.claude/agents/<agent-id>.md`) and where `## Project Rules` would be inserted (after the last existing section, before any `---` footer)
+5. On approval:
+   - Read the target agent `.md` file
+   - Append `## Project Rules` section containing the directives (preserve DIR format)
+   - **Keep the scoped file intact** — do NOT remove promoted directives from it. Scoped files are shared across multiple skills (e.g., `directives-code-reviewer.md` is loaded by `/review`, `/collaborate`, `/preflight`). Removing directives would break other consumers.
+6. Report: `Promoted {N} directives from {file} → {agent}.md ## Project Rules (scoped file preserved)`
+
+**Threshold**: 8 directives (consistent with pattern system thresholds)
 
 ---
 
@@ -95,9 +122,9 @@ Interactive promotion of a pattern to a directive or pattern file.
 
 Quick dashboard of pattern detection state.
 
-1. Read `{claudeDir}/.context/patterns-learned.json` (run analyze if corrections exist but no aggregation; report "No corrections logged yet" if neither exists)
+1. Read `{attaDir}/.context/patterns-learned.json` (run analyze if corrections exist but no aggregation; report "No corrections logged yet" if neither exists)
 2. Display: total corrections, unique patterns, ready to promote, already promoted
-3. If `{claudeDir}/.context/agent-learning.json` exists: append agents tracked count and overall acceptance rate
+3. If `{attaDir}/.context/agent-learning.json` exists: append agents tracked count and overall acceptance rate
 4. If `trends` key exists and non-null: append Quick Trends section with velocity (this week vs prior, direction) and recommendation count
 
 ---
@@ -111,7 +138,7 @@ Per-agent learning status and adaptation profile.
 /patterns agent code-reviewer      # Detail for specific agent
 ```
 
-1. Read `{claudeDir}/.context/agent-learning.json` (run analyze first if missing)
+1. Read `{attaDir}/.context/agent-learning.json` (run analyze first if missing)
 
 **Overview mode** (no agent-id): Table of all agents (events/accepted/rejected/rate/top preference) + project-wide preferences table (preference/confidence/agents/occurrences).
 
@@ -123,8 +150,8 @@ Per-agent learning status and adaptation profile.
 
 Comprehensive learning dashboard with trends and recommendations.
 
-1. Read `{claudeDir}/.context/patterns-learned.json` (run analyze if missing)
-2. Read `{claudeDir}/.context/agent-learning.json`
+1. Read `{attaDir}/.context/patterns-learned.json` (run analyze if missing)
+2. Read `{attaDir}/.context/agent-learning.json`
 3. Display sections:
    - **Overview**: Total corrections, unique patterns, ready/promoted counts, avg days to threshold
    - **Correction Velocity**: This week vs prior week, delta, direction interpretation (up=actively learning, down=stabilizing, stable=steady)
@@ -160,5 +187,5 @@ Pattern <key> not found. Available ready patterns: [list]. Use /patterns learn f
 
 ```markdown
 Pattern detection scripts not found. Run npx atta-dev init . to reinstall, or verify
-.claude/scripts/pattern-log.sh and .claude/scripts/pattern-analyze.sh exist.
+.atta/scripts/pattern-log.sh and .atta/scripts/pattern-analyze.sh exist.
 ```

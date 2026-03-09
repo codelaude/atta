@@ -22,6 +22,7 @@ export async function runSetupPrompts(options = {}) {
             { value: 'copilot', label: 'Copilot CLI' },
             { value: 'codex', label: 'Codex CLI' },
             { value: 'gemini', label: 'Gemini CLI' },
+            { value: 'cursor', label: 'Cursor' },
           ],
         }));
 
@@ -206,7 +207,7 @@ _What should AI focus on during code review?_
 
 ### When Stuck on Implementation
 1. [ ] Ask clarifying questions about what's been tried
-2. [ ] Reference patterns from \`.claude/knowledge/\`
+2. [ ] Reference patterns from \`.atta/knowledge/\`
 3. [ ] Suggest next debugging steps
 4. [ ] Explain the "why" behind suggestions
 5. [ ] Provide minimal code examples
@@ -214,7 +215,7 @@ _What should AI focus on during code review?_
 
 ### Preferred Learning Resources
 _Where should AI point you for more information?_
-- [ ] Project's own pattern files (\`.claude/knowledge/patterns/\`)
+- [ ] Project's own pattern files (\`.atta/knowledge/patterns/\`)
 - [ ] Official documentation (framework/language docs)
 - [ ] Internal examples (existing code in this project)
 - [ ] External tutorials and guides

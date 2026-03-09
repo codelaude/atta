@@ -88,7 +88,15 @@ If a `fe-team-lead` or `be-team-lead` exists in the INDEX, show the extended hie
 └── [cross-cutting agents: code-reviewer, librarian, etc.]
 ```
 
-### 1c. Explain How to Invoke Agents
+### 1c. Mention Developer Profile
+
+After showing the team, briefly mention the profile system:
+
+```markdown
+> **Personalize your team:** Run `/profile` to set your working preferences — collaboration style, response format, review priorities. Your agents adapt to match how you work.
+```
+
+### 1d. Explain How to Invoke Agents
 
 Show the user:
 
@@ -103,7 +111,7 @@ Show the user:
 
 Example: `/team-lead Add a user profile page`
 
-### 1d. Continue Prompt
+### 1e. Continue Prompt
 
 Use AskUserQuestion:
 - Question: "Got it! Ready to try your first task?"
@@ -255,6 +263,7 @@ Display this (whether reached from the end of the tutorial, from the `--quick` f
 | Command | What it does |
 |---------|-------------|
 | `/atta` | Set up agents for your project (run once) |
+| `/profile` | Set your working preferences (collaboration, review priorities) |
 | `/tutorial` | This tutorial |
 | `/tutorial --quick` | Show this card |
 

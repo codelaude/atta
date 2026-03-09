@@ -14,7 +14,7 @@ Run `/atta` in your project to automatically detect your tech stack and generate
 
 ## Templates
 
-Specialists are generated from universal templates in `.claude/bootstrap/templates/agents/`:
+Specialists are generated from universal templates in `.atta/bootstrap/templates/agents/`:
 - `framework-specialist.template.md` — For frameworks (Vue, React, Django, Spring Boot, etc.)
 - `language-specialist.template.md` — For languages (TypeScript, Python, Java, Go, etc.)
 - `database-specialist.template.md` — For databases (PostgreSQL, MongoDB, Redis, etc.)

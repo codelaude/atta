@@ -8,13 +8,9 @@ You are now acting as the requested specialist agent.
 Follow these steps:
 
 1. **Identify the agent**: Extract the agent ID from the command
-2. **Load agent definition**: Search for the agent's definition file in this order:
-   - `.claude/agents/{agent-id}.md` (core agents)
-   - `.claude/agents/coordinators/{agent-id}.md` (generated coordinators)
-   - `.claude/agents/specialists/{agent-id}.md` (generated specialists)
-   Use the first match found.
-3. **Load knowledge base**: Read any pattern files referenced by the agent from `.claude/knowledge/`
-3b. **Load learning profile**: Read `{claudeDir}/.context/agent-learning.json` (if it exists). If the file contains an entry for the requested agent ID, inject it into the agent context as follows:
+2. **Load agent definition**: Search for `{agent-id}.md` in these base dirs (first match wins): `.claude/agents/`, `.cursor/agents/`, `.github/atta/agents/`, `.agents/agents/`, `.gemini/agents/`. Within each base, check root, then `coordinators/`, then `specialists/`.
+3. **Load knowledge base**: Read any pattern files referenced by the agent from `.atta/knowledge/`
+3b. **Load learning profile**: Read `{attaDir}/.context/agent-learning.json` (if it exists). If the file contains an entry for the requested agent ID, inject it into the agent context as follows:
    ```
    ## Your Learning Profile
    Based on {totalEvents} tracked interactions (acceptance rate: {acceptanceRate}%):
@@ -22,6 +18,7 @@ Follow these steps:
    - User corrected: {list rejected patterns from topPatterns where lastOutcome is "rejected"} — avoid these
    ```
    If the file does not exist or has no data for this agent, skip silently.
+3c. **Load scoped directives**: Using the same base dir where the agent was found in step 2, read `{base}/memory/directives-{agent-id}.md` if it exists. These contain rules specific to this agent — inject as additional constraints alongside the agent definition. If the file doesn't exist, skip silently (backward compatible). For agents that map to a category rather than an exact ID, also check the category file (e.g., `directives-code-reviewer.md` for code-reviewer, `directives-testing.md` for testing-specialist, `directives-style.md` for styling-specialist, `directives-pr.md` for pr-manager). **Dedupe guard**: If the agent definition already contains a `## Project Rules` section (from `/patterns promote --directives`), skip loading the corresponding scoped directive file to avoid duplicate rules in context.
 4. **Check memory**: If the agent is `librarian` or needs context, read `.claude/agents/memory/directives.md`
 5. **Respond as the agent**: Follow the agent's capabilities, limitations, and response patterns exactly as defined. Pay special attention to patterns the user has previously rejected — do not repeat those suggestions without strong justification.
 
@@ -69,29 +66,9 @@ Include:
 
 ---
 
-## Error Handling & Recovery
+## Error Handling
 
-### Agent Not Found
-
-```markdown
-Agent `{agent-id}` was not found in this project.
-
-Recovery options:
-1. Run `/atta` to generate coordinators/specialists for your stack
-2. Check `agents/INDEX.md` for available agent IDs
-3. Route through a core fallback now:
-   - Planning/routing: `/agent project-owner`
-   - Quality: `/agent code-reviewer`
-   - Documentation/requirements: `/agent business-analyst`
-```
-
-### Agent Stuck (Cannot progress or missing required context)
-
-```markdown
-`{agent-id}` is blocked and cannot complete this task as-is.
-
-Recovery options:
-1. Route this to `/agent project-owner` for decomposition and delegation
-2. Narrow the request to a specific file/feature
-3. Ask for a focused review pass with `/review` or validation pass with `/preflight`
-```
+| Error | Recovery |
+|-------|----------|
+| Agent not found | Run `/atta` to generate, check `INDEX.md`, or use core fallback (`project-owner`, `code-reviewer`, `business-analyst`) |
+| Agent stuck | Route to `project-owner` for decomposition, narrow request, or use `/review`/`/preflight` |

@@ -14,6 +14,33 @@ You are running **project initialization** — interactive setup that configures
 
 ---
 
+## Step 0: Adapter Detection (BEFORE anything else)
+
+Determine which AI tool is running this skill by checking which directories exist in the project root. This controls where you read bootstrap assets from and where you write generated files.
+
+**Detect adapter:**
+1. If `.claude/skills/` exists → **Claude Code** (native)
+2. Else if `.atta/bootstrap/` exists → **Non-Claude adapter** (Copilot, Codex, or Gemini)
+3. If neither exists → Warn the user: "Bootstrap assets not found. Run `npx atta-dev init --adapter <tool>` first to install the framework, then re-run /atta."
+
+**Resolve paths based on adapter:**
+
+| Path variable | Claude Code | Copilot (`.github/skills/`) | Codex (`.agents/skills/`) | Gemini (`.gemini/commands/`) |
+|---------------|-------------|---------------------------|-------------------------|---------------------------|
+| `{bootstrapDir}` | `.atta/bootstrap` | `.atta/bootstrap` | `.atta/bootstrap` | `.atta/bootstrap` |
+| `{knowledgeDir}` | `.atta/knowledge` | `.atta/knowledge` | `.atta/knowledge` | `.atta/knowledge` |
+| `{agentsDir}` | `.claude/agents` | `.github/atta/agents` | `.agents/agents` | `.gemini/agents` |
+| `{metadataDir}` | `.atta/.metadata` | `.atta/.metadata` | `.atta/.metadata` | `.atta/.metadata` |
+
+**Sub-detect non-Claude adapter** (if `.atta/bootstrap/` was found):
+- If `.github/skills/` exists → Copilot → agents go to `.github/atta/agents/`
+- Else if `.agents/skills/` exists → Codex → agents go to `.agents/agents/`
+- Else if `.gemini/commands/` exists → Gemini → agents go to `.gemini/agents/`
+
+**All paths below use these variables.** Substitute `.atta/bootstrap/` → `{bootstrapDir}/`, `.atta/knowledge/` → `{knowledgeDir}/`, `.claude/agents/` → `{agentsDir}/`, `.atta/.metadata/` → `{metadataDir}/`.
+
+---
+
 ## Phase 1: User Interview
 
 Ask questions using AskUserQuestion (max 4 per call).
@@ -42,25 +69,11 @@ Ask questions using AskUserQuestion (max 4 per call).
 
 ### Round 4: MCP Configuration
 
-Ask if user wants MCP (Model Context Protocol) servers. Describe briefly: live documentation (Context7), database access, browser testing, code intelligence.
+Ask if user wants MCP servers (live docs, database access, browser testing, code intelligence). If no, skip to Phase 2.
 
-**If "No":** Skip to Phase 2.
+If yes: verify Node 18+ (check `node --version`, try nvm if needed, offer to skip if unavailable). Read `.atta/bootstrap/mappings/mcp-mappings.yaml` for stack-specific recommendations. Present multiSelect: Context7 (always), Database MCP (if DB detected), Browser MCP (if FE), Serena (optional). Gather required config per selection.
 
-**If "Yes":** Check Node.js version. MCP servers need Node 18+ but run as separate processes (don't affect project's Node).
-
-1. Run `node --version`. If >= 18, use it.
-2. If < 18 and nvm available: list Node 18+ versions, let user pick.
-3. If no Node 18+: offer to skip MCPs, user can install and rerun `/atta`.
-
-**MCP Recommendations:** Read `.claude/bootstrap/mappings/mcp-mappings.yaml` for stack-specific recommendations. Present with multiSelect AskUserQuestion:
-- **Context7** (always recommended) — live, version-specific docs. Requires API key (free tier).
-- **Database MCP** (if database detected) — schema inspection, query validation. Needs connection string.
-- **Browser MCP** (if frontend detected) — E2E testing, accessibility.
-- **Serena** (optional) — semantic code intelligence via language server.
-
-For each selected MCP, gather required config (connection strings, API keys).
-
-> **MCP Security:** Always use env variable references (`${DATABASE_URL}`, `${CONTEXT7_API_KEY}`) — never hardcode credentials. `npx -y` fetches latest versions; for production, pin versions (e.g., `@upstash/context7-mcp@1.2.3`). Add `mcp-config.json` to `.gitignore` if it contains secrets.
+> **Security:** Use env variable references for credentials (`${VAR}`). Pin versions in production. Add `mcp-config.json` to `.gitignore` if it contains secrets.
 
 ---
 
@@ -70,103 +83,47 @@ Scan config files at confirmed project root.
 
 ### Tech Stack Detection
 
-#### Package & Runtime
-| File | Detects |
-|------|---------|
-| `package.json` | Dependencies, scripts, browserslist |
-| `yarn.lock` / `pnpm-lock.yaml` / `bun.lockb` | Package manager |
-| `.nvmrc` / `.node-version` | Node version |
+Load detection rules from `.atta/bootstrap/detection/` YAML files:
+- `frontend-detectors.yaml` — frameworks, styling, state management
+- `backend-detectors.yaml` — languages, frameworks, databases
+- `database-detectors.yaml` — database engines and ORMs
+- `tools-detectors.yaml` — build tools, package managers, testing frameworks
+- `security-detectors.yaml` — dependency security, SAST, secrets scanning
+- `architectural-detectors.yaml` — project structure patterns
 
-#### Frontend Framework
-| Dependency | Detects |
-|------------|---------|
-| `vue` | Vue.js (v2 vs v3) |
-| `react` / `react-dom` | React |
-| `@angular/core` | Angular |
-| `svelte` | Svelte |
-| `next` / `nuxt` / `astro` | Meta-frameworks |
-
-#### Language & Types
-| File | Detects |
-|------|---------|
-| `tsconfig.json` | TypeScript (strict, target, paths) |
-| `jsconfig.json` | JavaScript with aliases |
-
-#### Styling
-| Indicator | Detects |
-|-----------|---------|
-| `sass` / `dart-sass` | SCSS |
-| `tailwindcss` | Tailwind |
-| `styled-components` / `@emotion/react` | CSS-in-JS |
-
-#### Testing
-| Indicator | Detects |
-|-----------|---------|
-| `jest` / `vitest` | Test runner |
-| `@testing-library/*` | Testing Library |
-| `cypress` / `playwright` / `puppeteer` / `selenium-webdriver` / `@wdio/cli` | E2E framework |
-
-If any detected E2E framework has `triggers_e2e_specialist: true`, generate E2E specialist from `bootstrap/templates/agents/e2e-testing-specialist.template.md`. Attach to `fe-team-lead` (or `project-owner` as fallback).
-
-#### State Management
-| Dependency | Detects |
-|------------|---------|
-| `pinia` / `vuex` | Vue state |
-| `redux` / `@reduxjs/toolkit` / `zustand` | React state |
-
-#### Build Tools
-| File | Detects |
-|------|---------|
-| `vite.config.*` | Vite |
-| `webpack.config.*` | Webpack |
-| `turbo.json` | Turborepo |
-
-#### Backend (if FE+BE)
-| File | Detects |
-|------|---------|
-| `pom.xml` / `build.gradle` | Java |
-| `requirements.txt` / `pyproject.toml` | Python |
-| `go.mod` | Go |
-| `Cargo.toml` | Rust |
-| `Gemfile` | Ruby |
-| `composer.json` | PHP |
+Scan `package.json` (dependencies, scripts), lock files (package manager), config files (`tsconfig.json`, `vite.config.*`, etc.), and tool configs at confirmed project root. Match against YAML detector rules.
 
 #### Security Tools (cross-cutting)
-| Indicator | Detects |
-|-----------|---------|
-| `.snyk`, `dependabot.yml`, `renovate.json` | Dependency security |
-| `.semgrep.yml`, `sonar-project.properties`, `codeql` workflows | SAST |
-| `.gitleaks.toml`, `.secrets.baseline` | Secrets scanning |
-| `helmet`, `django-csp`, `spring-boot-starter-security` | Security middleware |
 
-If any detected security tool has `triggers_security_specialist: true`, generate `security-specialist`. Attach to `be-team-lead` (or `fe-team-lead` if no backend, or `project-owner` as fallback).
+Security detection is handled by `security-detectors.yaml` (dependency security, SAST, secrets scanning, security middleware).
+
+**Specialist triggers:**
+- E2E framework with `triggers_e2e_specialist: true` → generate E2E specialist, attach to `fe-team-lead` (or `project-owner`)
+- Security tool with `triggers_security_specialist: true` → generate `security-specialist`, attach to `be-team-lead` (or `fe-team-lead`, or `project-owner`)
 
 ### Detect Conventions
 
-Sample up to 10 source files for: naming conventions, component patterns, import patterns, styling approach, test file location.
+Sample up to 10 source files from `src/` or `lib/` (Read tool, no shell). Detect dominant patterns for:
+- **Naming**: functions, variables, constants, interfaces/types, CSS classes (camelCase/snake_case/PascalCase/UPPER_SNAKE_CASE/kebab-case/BEM/IPrefix)
+- **Documentation**: jsdoc, inline comments, or minimal
+
+ESLint/Prettier/EditorConfig rules override file sampling when present. Mark "mixed" if no clear dominant pattern. Skip entirely if fewer than 3 source files.
+
+Hold results in memory as `conventions: { functions, variables, constants, interfaces, cssClasses, documentation }` for Phase 4.
+
+### Architectural Pattern Extraction
+
+Load rules from `.atta/bootstrap/detection/architectural-detectors.yaml`. For each category (structure, components, routes, api, state), check `directory_exists`, `file_patterns`, and `files` conditions (AND logic). Hold matched patterns in memory for Phase 4. Only include categories with a match.
 
 ### PR Template Detection
 
-Check for an existing PR template at the confirmed project root, in priority order:
-
-| Priority | Path | Platform |
-|----------|------|----------|
-| 1 | `.github/PULL_REQUEST_TEMPLATE.md` | GitHub |
-| 2 | `.github/pull_request_template.md` | GitHub (lowercase) |
-| 3 | `.github/PULL_REQUEST_TEMPLATE/` directory | GitHub (multiple templates) |
-| 4 | `.gitlab/merge_request_templates/` directory | GitLab |
-| 5 | `.azuredevops/pull_request_template.md` | Azure DevOps |
-| 6 | `docs/pull_request_template.md` | GitHub (fallback location) |
-
-Stop at the first match. For directories (priorities 3–4), use `default.md` if it exists, otherwise the first `.md` file alphabetically.
-
-If found: note the path and read the template content for use in Phase 3 and Phase 4.
+Check (in order): `.github/PULL_REQUEST_TEMPLATE.md`, lowercase variant, `.github/PULL_REQUEST_TEMPLATE/` dir, `.gitlab/merge_request_templates/`, `.azuredevops/pull_request_template.md`, `docs/pull_request_template.md`. Stop at first match. For directories, use `default.md` or first `.md` alphabetically. Read content for Phase 3/4.
 
 ---
 
 ## Phase 3: Reconcile & Confirm
 
-Present detected stack to user: project root, command directory, package manager, frontend stack, backend stack, security tooling, agents to activate (including security-specialist (if triggered)), and PR template (if detected — show path and platform). Wait for confirmation before writing files.
+Present detected stack to user: project root, command directory, package manager, frontend stack, backend stack, security tooling, agents to activate (including security-specialist (if triggered)), PR template (if detected — show path and platform), detected conventions (naming + documentation style, if detected), and architectural patterns (if detected — list matched categories with descriptions). Wait for confirmation before writing files.
 
 ---
 
@@ -174,7 +131,7 @@ Present detected stack to user: project root, command directory, package manager
 
 ### project-context.md
 
-Write `.claude/knowledge/project/project-context.md`:
+Write `.atta/project/project-context.md`:
 
 ```markdown
 # Project Context
@@ -201,7 +158,17 @@ Write `.claude/knowledge/project/project-context.md`:
 
 ## Git Workflow
 - **Base branch**: [main/develop]
+
+## Architectural Patterns
+[Only include if architectural pattern extraction detected matches. Max 10 lines. Example:]
+- **Structure**: Feature-sliced design (features/, entities/, shared/)
+- **Components**: Co-located components (index + styles per folder)
+- **Routing**: File-based routing (pages/ or app/)
+- **API**: Service layer abstraction (services/)
+- **State**: Store-per-feature pattern
 ```
+
+> The `## Architectural Patterns` section is only written if at least one pattern was detected. Use the `description` field from the matched detector in `architectural-detectors.yaml`. Omit categories with no match. On `--rescan`, replace this section entirely with fresh detection results — but if the user has manually edited it (added lines not matching any detector description), preserve those manual additions at the end.
 
 ### Pattern Files
 
@@ -219,24 +186,35 @@ Each pattern file: key rules from existing code, anti-patterns, conventions, doc
 
 ### PR Template (conditional)
 
-**If a PR template was detected in the PR Template Detection step (Phase 2):**
+If a PR template was detected: overwrite `.atta/knowledge/templates/pr-template.md` with a mapped version keeping Atta frontmatter + structure, adding the project template verbatim in a code block, a section mapping table, and instructions to format PR descriptions matching the project's structure while preserving Atta content.
 
-1. Read the detected template's full content
-2. Overwrite `.claude/knowledge/templates/pr-template.md` with a mapped version that:
-   - Keeps the standard Atta frontmatter (`applyTo`, `description`)
-   - Keeps the Atta file structure (Header, Suggested Commit Message, PR Title, PR Description)
-   - Adds a **"Project PR Template"** section containing the original template verbatim in a code block (use a longer fence like ```````` or `~~~~` if the template itself contains triple backticks)
-   - Adds a **"Section Mapping"** table showing how Atta's PR Description subsections (Summary, Changes, Verification, Notes) map to the project template's sections
-   - Instructs the AI: "Format the PR Description body to match the project's template structure below, while preserving all Atta content (summary, changes, verification, notes). Sections from the project template that have no Atta equivalent should be included with a placeholder comment."
+If no PR template detected: do nothing (default `pr-template.md` is already in place).
 
-**If no PR template was detected:** Do nothing — the default `pr-template.md` shipped with the framework is already in place.
+### Pre-Fill Project Profile
+
+If convention detection produced results, update `.atta/project/project-profile.md`:
+- **Naming Conventions**: replace placeholder values (e.g., `[camelCase / snake_case / PascalCase]`) with detected values. Skip "mixed" conventions. Add `_Auto-detected from project source. Edit if needed._`
+- **Documentation**: check the matching checkbox (jsdoc/inline/minimal). Leave unchecked if "mixed".
+
+> Only pre-fill sections without existing `[x]` checkboxes. Never overwrite user selections.
+
+### Agent Generation from Templates
+
+When generating specialists and coordinators from `{bootstrapDir}/templates/agents/`:
+1. Read `{bootstrapDir}/templates/agents/_common.md` first — it defines shared partial sections.
+2. Read the specific `{bootstrapDir}/templates/agents/<agent>.template.md` file for the agent being generated.
+3. Where a template uses `{{> common.SECTION}}`, substitute only the body of the matching section from `{bootstrapDir}/templates/agents/_common.md`:
+   - In `_common.md`, each shared section starts at a `## common.SECTION` heading and ends at the next `---` separator.
+   - When substituting, **do not** include the `## common.*` heading line or any `---` delimiters — insert only the inner markdown content.
+   - After insertion, resolve all `{{TEAM_LEAD}}` and other placeholders inside both the agent template and the inserted partials as usual.
+4. Fill any remaining Handlebars-style placeholders with detected stack values.
 
 ### BE Team Lead
 
 - **FE only:** No be-team-lead. Project-owner handles backend-adjacent questions.
 - **FE+BE:** Generate be-team-lead from bootstrap template. Delegates to BE specialists, coordinates with fe-team-lead.
 
-Update `.claude/agents/INDEX.md` routing table.
+Update `{agentsDir}/INDEX.md` routing table.
 
 ---
 
@@ -247,31 +225,13 @@ Generate and display:
 2. **Hierarchy visualization**: Tree showing Project Owner → Team Leads → Specialists + Core agents
 3. **Routing rules table**: Task Pattern → Route To (based on detected stack)
 
-Write all to `.claude/agents/INDEX.md` with auto-generated header and timestamp.
+Write all to `{agentsDir}/INDEX.md` with auto-generated header and timestamp.
 
 ---
 
 ## Phase 6: Configure MCP Servers
 
-If user selected MCPs, write `.claude/knowledge/project/mcp-config.json`:
-
-```json
-{
-  "mcpServers": {
-    "context7": {
-      "type": "stdio",
-      "command": "{{NPX_PATH}}",
-      "args": ["-y", "@upstash/context7-mcp@<pinned-version>"],
-      "env": {
-        "PATH": "{{NODE_BIN_PATH}}:...",
-        "CONTEXT7_API_KEY": "${CONTEXT7_API_KEY}"
-      }
-    }
-  }
-}
-```
-
-**Variables:** `{{NPX_PATH}}` = full nvm path or `"npx"`. Always expand `~` to full path (tilde doesn't work in JSON). Include `PATH` env only if using nvm. Use env variable references for all credentials.
+If user selected MCPs, write `.atta/project/mcp-config.json` with `mcpServers` entries. Each entry: `type: "stdio"`, `command` (full npx path — expand `~`, no tilde in JSON), `args` (with pinned version), `env` (credentials as `${VAR}` references, `PATH` only if using nvm).
 
 For agents with MCP access, add an "MCP Capabilities" section to their generated definition.
 
@@ -279,45 +239,20 @@ For agents with MCP access, add an "MCP Capabilities" section to their generated
 
 ## Phase 7: Generate Manifest
 
-Write `.claude/.metadata/generated-manifest.json` tracking: version (`{{FRAMEWORK_VERSION}}`), timestamp, project root, detected stack array, and all generated files (agents with templates, patterns, config). Also list configured MCP servers.
-
-Update `.metadata/last-init` with current timestamp.
+Write `.atta/.metadata/generated-manifest.json`: version (`{{FRAMEWORK_VERSION}}`), timestamp, project root, detected stack, generated files (with templates), MCP servers. Update `.metadata/last-init`.
 
 ---
 
 ## Phase 8: Create File Manifest
 
-Write `.claude/.metadata/file-manifest.json` for the update system. Minimal skeleton:
+Write `.atta/.metadata/file-manifest.json` for the update system. Include:
+- `framework_version`, `user_version`, `manifest_created`, `last_update`
+- `files`: one entry per file with `source` (framework|generated|user), `customized`, `safe_to_replace`, `framework_hash`, `user_hash`. For generated sources, add `regenerate_on_init: true` and `template`.
+- `classification` tiers: `tier_1_safe_replace` (bootstrap, docs, skills, templates), `tier_2_merge_required` (core agents), `tier_3_never_touch` (memory, project, ACCs, config, metadata), `generated_optional` (coordinators, specialists, patterns, INDEX.md)
 
-```json
-{
-  "framework_version": "{{FRAMEWORK_VERSION}}",
-  "user_version": "{{USER_VERSION}}",
-  "manifest_created": "{{TIMESTAMP}}",
-  "last_update": "{{TIMESTAMP}}",
-  "files": {
-    "path/to/file": {
-      "source": "framework|generated|user",
-      "customized": false,
-      "safe_to_replace": true,
-      "framework_hash": "{{HASH}}",
-      "user_hash": "{{HASH}}"
-    }
-  },
-  "classification": {
-    "tier_1_safe_replace": ["bootstrap/**", "docs/**", "skills/*/SKILL.md", "knowledge/templates/**"],
-    "tier_2_merge_required": ["agents/project-owner.md", "agents/librarian.md", "agents/code-reviewer.md", "agents/business-analyst.md", "agents/qa-validator.md", "agents/pr-manager.md", "agents/rubber-duck.md"],
-    "tier_3_never_touch": ["agents/memory/**", "knowledge/project/**", "knowledge/accs/**", "agents-config.json", "settings.local.json", ".metadata/file-manifest.json", ".metadata/framework-version", ".metadata/update-history.json"],
-    "generated_optional": ["agents/coordinators/**", "agents/specialists/**", "knowledge/patterns/**", "agents/INDEX.md"]
-  }
-}
-```
+> If a custom `pr-template.md` was generated in Phase 4, classify it as `tier_3_never_touch` (not tier 1).
 
-Populate `files` with one entry per generated/framework file. For `"generated"` sources, add `"regenerate_on_init": true` and `"template": "<template-name>"`.
-
-> **PR template override:** If a custom `pr-template.md` was generated in Phase 4 (mapped to project's existing PR template), classify `knowledge/templates/pr-template.md` as `tier_3_never_touch` instead of `tier_1_safe_replace` — it contains project-specific mapping that must not be overwritten by framework updates.
-
-Also write `.claude/.metadata/framework-version` (`{{FRAMEWORK_VERSION}}`) and `.claude/.metadata/update-history.json` with initial setup entry.
+Also write `.atta/.metadata/framework-version` and `.atta/.metadata/update-history.json` with initial setup entry.
 
 ---
 
@@ -329,12 +264,13 @@ Display initialization summary: files created/updated, active agents table, quic
 
 ## Rescan Mode (`--rescan`)
 
-- Skip user interview (reuse answers from project-context.md)
-- Re-detect tech stack from config files
-- Re-check for PR templates (if one is now present or changed, regenerate `pr-template.md` mapping)
-- Update pattern files with new findings
-- Preserve manual edits (only update auto-generated sections)
-- Report what changed
+Skip interview (reuse `project-context.md`). Re-detect: tech stack, architectural patterns (preserve manual additions), PR templates. Update pattern files. Preserve manual edits.
+
+**Profile sync**: If either profile file has checked items, run `/profile --apply` logic (Steps 5-6) — write `## Preferences` to `project-context.md`.
+
+**Staleness reset**: Record mtimes of detection source files in `generated-manifest.json` `detection_sources`.
+
+Report what changed.
 
 ---
 

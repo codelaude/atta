@@ -11,7 +11,7 @@
 
 ## Context Sources
 
-- `.claude/knowledge/project/developer-profile.md` — collaboration style prefs (optional)
+- `.atta/knowledge/developer-profile.md` — personal collaboration style prefs (optional, gitignored)
 
 ## Approach
 

@@ -11,8 +11,9 @@
 
 ## Context Sources
 
-- `.claude/knowledge/project/developer-profile.md` — review priorities and response style (optional)
-- `.claude/knowledge/patterns/` + `quick-reference.md` — project patterns
+- `.atta/project/project-profile.md` — review priorities and team conventions (optional, committed)
+- `.atta/knowledge/developer-profile.md` — personal response style (optional, gitignored)
+- `.atta/knowledge/patterns/` + `quick-reference.md` — project patterns
 
 ## Review Checklist
 

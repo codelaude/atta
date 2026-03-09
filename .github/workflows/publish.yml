@@ -1,0 +1,65 @@
+name: Publish to npm
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: publish-npm
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-tags: true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          registry-url: https://registry.npmjs.org
+
+      - name: Check if version changed
+        id: version
+        run: |
+          NAME=$(node -p "require('./package.json').name")
+          CURRENT=$(node -p "require('./package.json').version")
+          if PUBLISHED=$(npm view "$NAME" version 2>/dev/null); then
+            if [ "$PUBLISHED" = "$CURRENT" ]; then
+              echo "skip=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "skip=false" >> "$GITHUB_OUTPUT"
+              echo "version=$CURRENT" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "version=$CURRENT" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install dependencies
+        if: steps.version.outputs.skip == 'false'
+        run: npm install
+
+      - name: Run tests
+        if: steps.version.outputs.skip == 'false'
+        run: bash tests/check-all.sh
+
+      - name: Publish with provenance
+        if: steps.version.outputs.skip == 'false'
+        run: npm publish --provenance
+
+      - name: Create Git tag
+        if: steps.version.outputs.skip == 'false'
+        run: |
+          TAG="v${{ steps.version.outputs.version }}"
+          if git ls-remote --tags origin "refs/tags/$TAG" | grep -q .; then
+            echo "Tag $TAG already exists on remote, skipping."
+          else
+            git tag "$TAG"
+            git push origin "$TAG"
+          fi

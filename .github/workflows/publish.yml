@@ -24,9 +24,6 @@ jobs:
           node-version: 22
           registry-url: https://registry.npmjs.org
 
-      - name: Upgrade npm for OIDC trusted publishing
-        run: npm install -g npm@latest
-
       - name: Check if version changed
         id: version
         run: |
@@ -43,6 +40,12 @@ jobs:
             echo "skip=false" >> "$GITHUB_OUTPUT"
             echo "version=$CURRENT" >> "$GITHUB_OUTPUT"
           fi
+
+      - name: Upgrade npm for OIDC trusted publishing
+        if: steps.version.outputs.skip == 'false'
+        run: |
+          npm install -g npm@^11.5.1
+          npm --version
 
       - name: Install dependencies
         if: steps.version.outputs.skip == 'false'

@@ -190,7 +190,7 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
     }
   }
 
-  // Generate plugin manifest
+  // Generate plugin manifest (matches Claude Code plugin spec)
   const pluginDir = join(targetDir, '.claude-plugin');
   mkdirSync(pluginDir, { recursive: true });
 
@@ -200,8 +200,16 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
     version,
     description:
       'Atta — AI Dev Team Agent. Dynamic agent generation, multi-tool support, and intelligent code review.',
-    skills: listSkills(claudeRoot).map(({ name, description, path }) => ({ name, description, path })),
-    agents_index: '.claude/agents/INDEX.md',
+    author: {
+      name: 'CodeLaude',
+      url: 'https://github.com/codelaude',
+    },
+    repository: 'https://github.com/codelaude/atta-dev',
+    license: 'MIT',
+    keywords: ['framework', 'agents', 'skills', 'code-review'],
+    skills: '.claude/skills/',
+    agents: '.claude/agents/',
+    hooks: '.claude/hooks/',
   };
 
   const pluginPath = join(pluginDir, 'plugin.json');

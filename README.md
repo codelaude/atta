@@ -8,7 +8,7 @@ A multi-agent system for AI-assisted development that guides, reviews, and valid
 
 ## Requirements
 
-- **Node.js** >= 18.0.0
+- **Node.js** >= 22.0.0
 - **Unix/macOS** (or WSL on Windows) — shell scripts require bash
 - **python3** — used by framework scripts for JSON processing
 - One of: Claude Code, GitHub Copilot CLI, OpenAI Codex CLI, Google Gemini CLI, or Cursor

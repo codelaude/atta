@@ -6,7 +6,7 @@ Thank you for your interest in contributing to Atta! This guide will help you ge
 
 ### Prerequisites
 
-- **Node.js** >= 18.0.0
+- **Node.js** >= 22.0.0
 - **python3** (used by shell scripts for JSON processing)
 - **Ruby** (optional, used by `validate-framework.sh` for YAML validation)
 - **ripgrep** (`rg`) (optional, `grep` fallback used when unavailable)

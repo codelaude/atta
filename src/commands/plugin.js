@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, cpSync, writeFileSync, readFileSync, readdirSync, renameSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, cpSync, writeFileSync, readFileSync, renameSync, rmSync } from 'node:fs';
 import { resolve, join, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as p from '@clack/prompts';
@@ -342,13 +342,11 @@ function generateCopilotPlugin(claudeRoot, attaRoot, outputBase) {
   const renamedCount = skills.filter((s) => COPILOT_BUILTIN_CONFLICTS.has(s.dirName)).length;
   summary.push(`skills/ (${skills.length} skills, ${renamedCount} renamed to avoid conflicts)`);
 
-  // 2. Copy agents with .agent.md extension (Copilot convention)
+  // 2. Copy agents (Copilot accepts .md — no rename needed, keeps file references valid)
   const agentsDir = join(pluginDir, 'agents');
   const agentCount = copyAgentFiles(claudeRoot, agentsDir, { quiet: true });
-  // Rename .md → .agent.md for Copilot compatibility
-  renameAgentFiles(agentsDir);
   files += agentCount;
-  summary.push(`agents/ (${agentCount} agent definitions, .agent.md format)`);
+  summary.push(`agents/ (${agentCount} agent definitions)`);
 
   // 3. Generate hooks.json (Copilot hook format)
   const hooksDir = join(pluginDir, 'hooks');
@@ -434,21 +432,6 @@ function generateCopilotPlugin(claudeRoot, attaRoot, outputBase) {
     summary,
     testCmd: `/plugin install ${pluginDir}`,
   };
-}
-
-/** Rename .md files to .agent.md in a directory (recursive for coordinators/specialists) */
-function renameAgentFiles(dir) {
-  if (!existsSync(dir)) return;
-  const entries = readdirSync(dir, { withFileTypes: true });
-  for (const entry of entries) {
-    const full = join(dir, entry.name);
-    if (entry.isDirectory()) {
-      renameAgentFiles(full);
-    } else if (entry.name.endsWith('.md') && !entry.name.endsWith('.agent.md')) {
-      const newName = entry.name.replace(/\.md$/, '.agent.md');
-      renameSync(full, join(dir, newName));
-    }
-  }
 }
 
 // ─── Cursor Plugin ───────────────────────────────────────────────────────────
@@ -571,20 +554,31 @@ function generateCursorPlugin(claudeRoot, attaRoot, outputBase) {
 
   summary.push(`rules/ (${skills.length} skill rules + atta.mdc)`);
 
-  // 2. Copy skills as SKILL.md too (Cursor discovers from skills/ natively)
+  // 2. Copy and rewrite skills as SKILL.md (Cursor discovers from skills/ natively)
   const skillsDir = join(pluginDir, 'skills');
   const srcSkills = join(claudeRoot, 'skills');
-  if (existsSync(srcSkills)) {
-    cpSync(srcSkills, skillsDir, {
-      recursive: true,
-      filter: (src, _dest) => {
-        const name = basename(src);
-        return name !== '.DS_Store' && name !== 'generated';
-      },
-    });
-    files += countFiles(skillsDir);
-    summary.push(`skills/ (${skills.length} SKILL.md files — native discovery)`);
+
+  for (const skill of skills) {
+    const src = join(srcSkills, skill.dirName, 'SKILL.md');
+    if (!existsSync(src)) continue;
+
+    const destDir = join(skillsDir, skill.dirName);
+    mkdirSync(destDir, { recursive: true });
+
+    const content = readFileSync(src, 'utf-8');
+    const fmMatch = content.match(/^---\n[\s\S]*?\n---\n/);
+    if (fmMatch) {
+      const frontmatter = fmMatch[0];
+      const body = content.slice(frontmatter.length);
+      writeAndSync(join(destDir, 'SKILL.md'), frontmatter + rewriteSkillBody(body, rewriteConfig));
+    } else {
+      writeAndSync(join(destDir, 'SKILL.md'), rewriteSkillBody(content, rewriteConfig));
+    }
+
+    files++;
   }
+
+  summary.push(`skills/ (${skills.length} SKILL.md files — rewritten for Cursor)`);
 
   // 3. Copy agents (Cursor discovers from agents/ — also cross-discovers .claude/agents/)
   const agentsDir = join(pluginDir, 'agents');

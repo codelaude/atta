@@ -127,13 +127,13 @@ for conflict in review agent update; do
   fi
 done
 
-# Agents use .agent.md extension
-COP_AGENT_MD=0
+# Agents directory has .md files (Copilot accepts .md — no rename needed)
+COP_AGENT_COUNT=0
 if [ -d "$DIR/agents" ]; then
-  COP_AGENT_MD=$(find "$DIR/agents" -maxdepth 1 -name "*.md" ! -name "*.agent.md" 2>/dev/null | wc -l | tr -d ' ')
+  COP_AGENT_COUNT=$(find "$DIR/agents" -name "*.md" -not -path "*/memory/*" 2>/dev/null | wc -l | tr -d ' ')
 fi
-if [ "$COP_AGENT_MD" -gt 0 ]; then
-  echo "FAIL: [copilot] $COP_AGENT_MD agent files not renamed to .agent.md"
+if [ "$COP_AGENT_COUNT" -eq 0 ]; then
+  echo "FAIL: [copilot] No agent definitions in agents/"
   ERRORS=$((ERRORS + 1))
 fi
 

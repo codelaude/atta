@@ -102,6 +102,34 @@ FILES=$(git diff --name-only)
 ```
 If still empty, trigger the "Cannot Resolve Changed Files" recovery.
 
+### Step 1.5: Static Analysis (New Files Only)
+
+For **new files** in `$FILES` (not modifications), run these quick checks before the full review:
+
+**Unused imports** — scan for imported symbols not referenced in the file body:
+- JS/TS: `import { X }` where `X` never appears after the import block
+- Python: `from module import X` or `import X` where `X` is unreferenced
+- Report as HIGH — unused imports signal unfinished refactoring
+
+**Cross-file consistency** — for new files that reference values also found in existing files:
+- URLs, version strings, config keys: verify they match the canonical source (e.g., `package.json`, central config)
+- Directory paths or conventions: verify they match patterns already established in the codebase
+- Counts or feature claims in user-facing strings: verify they match the actual generated/configured output
+
+**Platform portability** — scan for common cross-platform footguns in JS/TS:
+- `.split('/')` on file paths → use `path.basename()`, `path.sep`, or `path.parse()`
+- Unquoted variable interpolation in shell command strings → paths with spaces will break
+
+**Shell script safety** — for `.sh` files with `set -euo pipefail`:
+- `find <dir>` in a pipeline → aborts if dir doesn't exist; guard with `[ -d "$dir" ]` or `|| true`
+- `grep` in a pipeline → aborts on zero matches; use `|| true` or `{ grep ... || true; }`
+
+**Test coverage** — if `$FILES` includes a new module, command, or entry point:
+- Check whether a corresponding test file exists or is being added in the same changeset
+- Report as MEDIUM if missing — new modules without tests are a regression risk
+
+Report findings inline with the lint results. These are quick pattern checks, not a substitute for the full review in Step 5.
+
 ### Step 2: Lint Check
 
 Run pattern checks on all changed files:

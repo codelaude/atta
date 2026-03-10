@@ -54,7 +54,7 @@ export function run(argv) {
     )
     .option(
       '-t, --target <tool>',
-      'Target tool (claude-code, copilot, cursor, codex)',
+      'Target tool (claude-code, copilot, cursor, codex, all)',
       'claude-code'
     )
     .option(

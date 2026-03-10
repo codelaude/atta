@@ -1,10 +1,10 @@
 import { existsSync, mkdirSync, cpSync, writeFileSync, readFileSync, readdirSync, renameSync, rmSync } from 'node:fs';
-import { resolve, join, dirname } from 'node:path';
+import { resolve, join, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as p from '@clack/prompts';
 import pc from 'picocolors';
 import { readVersion, countFiles } from '../lib/fs-utils.js';
-import { listSkills, parseFrontmatter } from '../adapters/claude-code.js';
+import { listSkills } from '../adapters/claude-code.js';
 import { copyAgentFiles, rewriteSkillBody } from '../adapters/shared.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -68,7 +68,7 @@ export async function plugin(options) {
     ? Object.entries(TARGETS).filter(([k, v]) => k !== 'all' && v.generate)
     : [[target, TARGETS[target]]];
 
-  for (const [targetName, generator] of targets) {
+  for (const [, generator] of targets) {
     p.intro(pc.bold(`Generating ${generator.label} plugin`));
 
     const s = p.spinner();
@@ -134,7 +134,7 @@ function generateClaudeCodePlugin(claudeRoot, attaRoot, outputBase) {
     cpSync(srcSkills, skillsDir, {
       recursive: true,
       filter: (src, _dest) => {
-        const name = src.split('/').pop();
+        const name = basename(src);
         if (name === '.DS_Store') return false;
         if (name === 'generated') return false;
         return true;
@@ -365,7 +365,7 @@ function generateCopilotPlugin(claudeRoot, attaRoot, outputBase) {
 
   writeAndSync(join(hooksDir, 'hooks.json'), JSON.stringify(hooksJson, null, 2) + '\n');
   files++;
-  summary.push('hooks/hooks.json (Copilot hook format — 6 events)');
+  summary.push('hooks/hooks.json (Copilot hook format — 3 placeholder events)');
 
   // 4. Generate instructions files
   const instructionsDir = join(pluginDir, 'instructions');
@@ -578,7 +578,7 @@ function generateCursorPlugin(claudeRoot, attaRoot, outputBase) {
     cpSync(srcSkills, skillsDir, {
       recursive: true,
       filter: (src, _dest) => {
-        const name = src.split('/').pop();
+        const name = basename(src);
         return name !== '.DS_Store' && name !== 'generated';
       },
     });

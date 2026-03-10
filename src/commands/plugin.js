@@ -276,7 +276,7 @@ const COPILOT_BUILTIN_CONFLICTS = new Set(['review', 'agent', 'update']);
  * Output structure:
  *   plugin.json
  *   skills/<name>/SKILL.md (renamed for conflicts)
- *   agents/<name>.agent.md (Copilot uses .agent.md extension)
+ *   agents/<name>.md (copied from .claude/agents/ without renaming)
  *   hooks/hooks.json
  *   instructions/ (Copilot-idiomatic instruction files)
  *   README.md
@@ -392,7 +392,7 @@ function generateCopilotPlugin(claudeRoot, attaRoot, outputBase) {
   writeAndSync(join(instructionsDir, 'atta-agents.instructions.md'), [
     '# Atta Agents',
     '',
-    'Agent definitions are in `agents/` as `.agent.md` files.',
+    'Agent definitions are in `agents/` as `.md` files.',
     'Invoke agents via `/atta-agent <id>` (e.g., `/atta-agent project-owner`).',
     '',
   ].join('\n'));

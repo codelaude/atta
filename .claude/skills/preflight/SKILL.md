@@ -1,15 +1,15 @@
 ---
 name: preflight
-description: Run full pre-PR validation combining lint checks, security scan, test execution, and code review into one workflow.
+description: Run full pre-PR validation combining static analysis, lint checks, security scan, test execution, and code review into one workflow.
 ---
 
-You are now running a **preflight check** - a comprehensive pre-PR validation that combines all quality checks into one workflow.
+You are now running a **preflight check** - a comprehensive pre-PR validation that combines static analysis, lint, security, tests, and code review into one workflow.
 
 ## How to Use
 
 ```
-/preflight                    # Full preflight (lint + security + tests + review)
-/preflight --auto-fix         # Run preflight, then fix lint/review failures one check at a time
+/preflight                    # Full preflight (static analysis + lint + security + tests + review)
+/preflight --auto-fix         # Run preflight, then fix failures one check at a time
 /preflight --skip-tests       # Skip test execution
 /preflight --skip-lint        # Skip lint checks
 /preflight --skip-security    # Skip security scan
@@ -23,8 +23,9 @@ You are now running a **preflight check** - a comprehensive pre-PR validation th
 When run with `--auto-fix`, preflight enters an iterative fix loop after identifying failures.
 
 ### What gets fixed
+- **Static analysis findings** — unused imports, inconsistent values, missing test files
 - **Lint failures** — whitespace, formatting, pattern violations
-- **Review findings** — LOW and MEDIUM severity items with clear remediation (missing null checks, unused imports, obvious code quality issues)
+- **Review findings** — LOW and MEDIUM severity items with clear remediation (missing null checks, obvious code quality issues)
 
 ### What does NOT get auto-fixed
 - Test failures (too complex — diagnose and fix manually)
@@ -35,7 +36,7 @@ When run with `--auto-fix`, preflight enters an iterative fix loop after identif
 
 1. Run all preflight checks (same as normal mode)
 2. If all pass → "Ready for PR" (same as normal)
-3. If lint or review failures exist → for each failing check, one at a time:
+3. If static analysis, lint, or review failures exist → for each failing check, one at a time:
    - Analyze the failure output
    - Propose specific fixes (file + line + change description)
    - **Wait for your approval before applying**
@@ -50,11 +51,20 @@ When run with `--auto-fix`, preflight enters an iterative fix loop after identif
 ```markdown
 ## Auto-Fix Round 1
 
-**Lint**: 2 issues found
-  - auth.js:42 — trailing whitespace
-  - utils.ts:17 — unused import `lodash`
+**Static Analysis**: 1 issue found
+  - utils.ts:3 — unused import `lodash` (HIGH)
 
-Proposed fixes: Apply both?
+Proposed fix: Remove unused import?
+> [awaiting approval]
+
+[After approval]
+
+Static Analysis re-run: PASSED
+
+**Lint**: 1 issue found
+  - auth.js:42 — trailing whitespace
+
+Proposed fix: Remove trailing whitespace?
 > [awaiting approval]
 
 [After approval]
@@ -181,7 +191,7 @@ Report all findings but don't block unless CRITICAL issues are found.
 
 | Check | Status | Details |
 |-------|--------|---------|
-| Static Analysis | Passed | No issues in new files (or N/A if no new files) |
+| Static Analysis | X high, X medium | New files analyzed (or N/A if none) |
 | Lint | Passed | No critical issues |
 | Security | Passed | No critical vulnerabilities |
 | Tests | Passed | X tests, 0 failures |
@@ -194,7 +204,7 @@ Report all findings but don't block unless CRITICAL issues are found.
 
 | Flag | Effect |
 |------|--------|
-| `--auto-fix` | After running checks, attempt to fix lint and review failures one check at a time (user confirms each fix) |
+| `--auto-fix` | After running checks, attempt to fix static analysis, lint, and review failures one check at a time (user confirms each fix) |
 | `--skip-tests` | Skip test execution |
 | `--skip-lint` | Skip lint pattern checks |
 | `--skip-security` | Skip security scan (not recommended for PRs touching auth, API, or user input) |

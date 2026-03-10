@@ -162,7 +162,7 @@ function generateClaudeCodePlugin(claudeRoot, attaRoot, outputBase) {
         hooks: [
           {
             type: 'command',
-            command: '${CLAUDE_PLUGIN_ROOT}/scripts/session-track.sh',
+            command: '"${CLAUDE_PLUGIN_ROOT}/scripts/session-track.sh"',
             async: true,
           },
         ],
@@ -173,7 +173,7 @@ function generateClaudeCodePlugin(claudeRoot, attaRoot, outputBase) {
         hooks: [
           {
             type: 'command',
-            command: '${CLAUDE_PLUGIN_ROOT}/scripts/session-track.sh',
+            command: '"${CLAUDE_PLUGIN_ROOT}/scripts/session-track.sh"',
             async: true,
           },
         ],
@@ -201,8 +201,8 @@ function generateClaudeCodePlugin(claudeRoot, attaRoot, outputBase) {
   const settings = {
     permissions: {
       allow: [
-        'Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/*)',
-        'Bash(bash .atta/scripts/*)',
+        'Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/*:*)',
+        'Bash(bash .atta/scripts/*:*)',
         'Edit(./.atta/.context/**)',
         'Edit(./.claude/agents/memory/**)',
         'Edit(./.atta/knowledge/**)',
@@ -694,8 +694,8 @@ function generateCodexPlugin(claudeRoot, attaRoot, outputBase) {
   mkdirSync(pluginDir, { recursive: true });
 
   const rewriteConfig = {
-    agentsPath: 'agents',
-    memoryPath: 'agents/memory',
+    agentsPath: '.agents/agents',
+    memoryPath: '.agents/agents/memory',
     commandMap: CODEX_COMMAND_MAP,
   };
 
@@ -749,7 +749,7 @@ function generateCodexPlugin(claudeRoot, attaRoot, outputBase) {
     '',
     '## Agents',
     '',
-    'Agent definitions are in `agents/`. Invoke via `$agent <id>`.',
+    'Agent definitions are in `.agents/agents/`. Invoke via `$agent <id>`.',
     '',
     '- **project-owner** — Routes tasks to specialists',
     '- **code-reviewer** — Code quality reviews',
@@ -763,7 +763,7 @@ function generateCodexPlugin(claudeRoot, attaRoot, outputBase) {
 
   // 4. README.md
   writeAndSync(join(pluginDir, 'README.md'), generateToolReadme('Codex', version, skills, {
-    installCmd: 'Copy skills/ to .agents/skills/ in your project',
+    installCmd: 'Copy skills/ to .agents/skills/ and agents/ to .agents/agents/ in your project',
     prefix: '$',
     renames: {},
   }));
@@ -774,7 +774,7 @@ function generateCodexPlugin(claudeRoot, attaRoot, outputBase) {
     files,
     outputDir: pluginDir,
     summary,
-    testCmd: 'cp -r skills/ /path/to/project/.agents/skills/',
+    testCmd: 'cp -r skills/ /path/to/project/.agents/skills/ && cp -r agents/ /path/to/project/.agents/agents/',
   };
 }
 

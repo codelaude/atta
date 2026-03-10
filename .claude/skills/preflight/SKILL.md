@@ -104,12 +104,12 @@ If still empty, trigger the "Cannot Resolve Changed Files" recovery.
 
 ### Step 1.5: Static Analysis (New Files Only)
 
-For **new files** in `$FILES` (not modifications), run these quick checks before the full review:
+Derive the new-file subset from `$FILES` using `git diff --diff-filter=A --name-only` (only added files, not modifications). Run these quick checks on new files before the full review:
 
 **Unused imports** — scan for imported symbols not referenced in the file body:
-- JS/TS: `import { X }` where `X` never appears after the import block
-- Python: `from module import X` or `import X` where `X` is unreferenced
-- Report as HIGH — unused imports signal unfinished refactoring
+- JS/TS: named (`import { X }`), default (`import X`), namespace (`import * as NS`), and aliased (`import { X as Y }`) — check the *bound identifier* (Y, not X) for usage after the import block
+- Python: `from module import X`, `import module`, and aliased forms (`as Y`) — check the bound name
+- When confident the import is unused, report as HIGH (signals unfinished refactoring). If unsure due to complex patterns (re-exports, side-effect imports), downgrade to MEDIUM or skip.
 
 **Cross-file consistency** — for new files that reference values also found in existing files:
 - URLs, version strings, config keys: verify they match the canonical source (e.g., `package.json`, central config)
@@ -117,7 +117,7 @@ For **new files** in `$FILES` (not modifications), run these quick checks before
 - Counts or feature claims in user-facing strings: verify they match the actual generated/configured output
 
 **Platform portability** — scan for common cross-platform footguns in JS/TS:
-- `.split('/')` on file paths → use `path.basename()`, `path.sep`, or `path.parse()`
+- `.split('/')` on file paths → prefer `path.basename()`, `path.parse()`, or other `path` APIs; use `path.posix` when handling git/repo-relative paths (which always use `/`)
 - Unquoted variable interpolation in shell command strings → paths with spaces will break
 
 **Shell script safety** — for `.sh` files with `set -euo pipefail`:

@@ -191,7 +191,7 @@ Report all findings but don't block unless CRITICAL issues are found.
 
 | Check | Status | Details |
 |-------|--------|---------|
-| Static Analysis | X high, X medium | New files analyzed (or N/A if none) |
+| Static Analysis | X high, X medium (or N/A — no new files) | New files analyzed |
 | Lint | Passed | No critical issues |
 | Security | Passed | No critical vulnerabilities |
 | Tests | Passed | X tests, 0 failures |

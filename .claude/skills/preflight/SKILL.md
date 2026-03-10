@@ -124,11 +124,11 @@ Derive the new-file subset using the same base-branch range from Step 1 with `--
 - `find <dir>` in a pipeline → aborts if dir doesn't exist; guard with `[ -d "$dir" ]` or `|| true`
 - `grep` in a pipeline → aborts on zero matches; use `|| true` or `{ grep ... || true; }`
 
-**Test coverage** — if `$FILES` includes a new module, command, or entry point:
+**Test coverage** — if the new-file subset includes a new module, command, or entry point:
 - Check whether a corresponding test file exists or is being added in the same changeset
 - Report as MEDIUM if missing — new modules without tests are a regression risk
 
-Report findings inline with the lint results. These are quick pattern checks, not a substitute for the full review in Step 5.
+Report as a separate **Static Analysis** row in the summary table (Step 6), using HIGH/MEDIUM severities for prioritization. Static analysis findings do **not** block preflight on their own (unlike Lint critical patterns or Security critical findings) — they are informational and feed into the overall status alongside Review findings. If there are no new files in the changeset, report "N/A — no new files" and move on.
 
 ### Step 2: Lint Check
 
@@ -181,6 +181,7 @@ Report all findings but don't block unless CRITICAL issues are found.
 
 | Check | Status | Details |
 |-------|--------|---------|
+| Static Analysis | Passed | No issues in new files |
 | Lint | Passed | No critical issues |
 | Security | Passed | No critical vulnerabilities |
 | Tests | Passed | X tests, 0 failures |

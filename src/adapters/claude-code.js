@@ -46,6 +46,35 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
     }
   }
 
+  // Generate hooks.json for plugin manifest (hooks field must be a file path per spec)
+  const hooksDir = join(claudeDir, 'hooks');
+  const hooksJsonPath = join(hooksDir, 'hooks.json');
+  if (!existsSync(hooksJsonPath)) {
+    mkdirSync(hooksDir, { recursive: true });
+    const hookCmd = '"$CLAUDE_PROJECT_DIR"/.claude/hooks/session-track.sh';
+    const hooksConfig = {
+      PostToolUse: [
+        {
+          matcher: 'Skill',
+          hooks: [{ type: 'command', command: hookCmd, async: true }],
+        },
+      ],
+      Stop: [
+        {
+          hooks: [{ type: 'command', command: hookCmd, async: true }],
+        },
+      ],
+    };
+    const tmpHooks = hooksJsonPath + '.tmp';
+    writeFileSync(tmpHooks, JSON.stringify(hooksConfig, null, 2) + '\n');
+    renameSync(tmpHooks, hooksJsonPath);
+    results.files++;
+
+    if (!options.quiet) {
+      console.log(`  ${pc.green('✓')} .claude/hooks/hooks.json (session tracking hooks)`);
+    }
+  }
+
   // Copy shared content to .atta/
   const sharedCount = copySharedContent(attaRoot, targetDir, options);
   results.files += sharedCount;
@@ -209,7 +238,7 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
     keywords: ['framework', 'agents', 'skills', 'code-review'],
     skills: '.claude/skills/',
     agents: '.claude/agents/',
-    hooks: '.claude/hooks/',
+    hooks: '.claude/hooks/hooks.json',
   };
 
   const pluginPath = join(pluginDir, 'plugin.json');

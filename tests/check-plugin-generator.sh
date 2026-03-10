@@ -12,6 +12,16 @@ trap 'rm -rf "$WORK_DIR"' EXIT
 
 ERRORS=0
 
+# Helper: count files matching pattern in a directory (safe under pipefail)
+count_files() {
+  local dir="$1" pattern="$2"
+  if [ -d "$dir" ]; then
+    find "$dir" -name "$pattern" 2>/dev/null | wc -l | tr -d ' '
+  else
+    echo 0
+  fi
+}
+
 # ─── Claude Code Plugin ──────────────────────────────────────────────────────
 
 echo "[claude-code] Generating plugin..."
@@ -57,14 +67,17 @@ PYEOF
 fi
 
 # Skills directory has SKILL.md files
-CC_SKILL_COUNT=$(find "$DIR/skills" -name "SKILL.md" 2>/dev/null | wc -l | tr -d ' ')
+CC_SKILL_COUNT=$(count_files "$DIR/skills" "SKILL.md")
 if [ "$CC_SKILL_COUNT" -eq 0 ]; then
   echo "FAIL: [claude-code] No SKILL.md files in skills/"
   ERRORS=$((ERRORS + 1))
 fi
 
 # Agents directory has .md files
-CC_AGENT_COUNT=$(find "$DIR/agents" -name "*.md" -not -path "*/memory/*" 2>/dev/null | wc -l | tr -d ' ')
+CC_AGENT_COUNT=0
+if [ -d "$DIR/agents" ]; then
+  CC_AGENT_COUNT=$(find "$DIR/agents" -name "*.md" -not -path "*/memory/*" 2>/dev/null | wc -l | tr -d ' ')
+fi
 if [ "$CC_AGENT_COUNT" -eq 0 ]; then
   echo "FAIL: [claude-code] No agent definitions in agents/"
   ERRORS=$((ERRORS + 1))
@@ -115,7 +128,10 @@ for conflict in review agent update; do
 done
 
 # Agents use .agent.md extension
-COP_AGENT_MD=$(find "$DIR/agents" -maxdepth 1 -name "*.md" ! -name "*.agent.md" 2>/dev/null | wc -l | tr -d ' ')
+COP_AGENT_MD=0
+if [ -d "$DIR/agents" ]; then
+  COP_AGENT_MD=$(find "$DIR/agents" -maxdepth 1 -name "*.md" ! -name "*.agent.md" 2>/dev/null | wc -l | tr -d ' ')
+fi
 if [ "$COP_AGENT_MD" -gt 0 ]; then
   echo "FAIL: [copilot] $COP_AGENT_MD agent files not renamed to .agent.md"
   ERRORS=$((ERRORS + 1))
@@ -146,7 +162,7 @@ do
 done
 
 # Rules directory has .mdc files
-CUR_RULE_COUNT=$(find "$DIR/rules" -name "*.mdc" 2>/dev/null | wc -l | tr -d ' ')
+CUR_RULE_COUNT=$(count_files "$DIR/rules" "*.mdc")
 if [ "$CUR_RULE_COUNT" -eq 0 ]; then
   echo "FAIL: [cursor] No .mdc rule files in rules/"
   ERRORS=$((ERRORS + 1))
@@ -186,10 +202,11 @@ if grep -q '\.claude/agents' "$DIR/AGENTS.md" 2>/dev/null; then
   ERRORS=$((ERRORS + 1))
 fi
 
-# Skills use $prefix (not / prefix)
-CDX_SLASH_COUNT=$({ grep -rl "Run \`/" "$DIR/skills" 2>/dev/null || true; } | wc -l | tr -d ' ')
+# Skills use $prefix (not / prefix) — check backticked slash commands
+# Uses || true to prevent pipefail abort when grep finds no matches
+CDX_SLASH_COUNT=$({ grep -rl '`/[a-z]' "$DIR/skills" 2>/dev/null || true; } | wc -l | tr -d ' ')
 if [ "$CDX_SLASH_COUNT" -gt 0 ]; then
-  echo "FAIL: [codex] $CDX_SLASH_COUNT skill files use / prefix instead of \$ prefix"
+  echo "FAIL: [codex] $CDX_SLASH_COUNT skill files contain backticked /command instead of \$command"
   ERRORS=$((ERRORS + 1))
 fi
 

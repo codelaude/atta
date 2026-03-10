@@ -233,7 +233,7 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
       name: 'CodeLaude',
       url: 'https://github.com/codelaude',
     },
-    repository: 'https://github.com/codelaude/atta-dev',
+    repository: 'https://github.com/codelaude/atta',
     license: 'MIT',
     keywords: ['framework', 'agents', 'skills', 'code-review'],
     skills: '.claude/skills/',

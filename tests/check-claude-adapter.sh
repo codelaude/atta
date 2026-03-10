@@ -60,7 +60,7 @@ for field in ['name', 'version', 'description', 'skills', 'agents', 'hooks']:
         print(f'FAIL: plugin.json missing field: {field}')
         sys.exit(1)
 # skills/agents/hooks are path strings pointing to directories
-for field in ['skills', 'agents']:
+for field in ['skills', 'agents', 'hooks']:
     if not isinstance(data[field], str) or not data[field].endswith('/'):
         print(f'FAIL: plugin.json {field} should be a path string ending with / (got: {data[field]!r})')
         sys.exit(1)

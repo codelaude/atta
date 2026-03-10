@@ -114,7 +114,7 @@ If still empty, trigger the "Cannot Resolve Changed Files" recovery.
 
 ### Step 1.5: Static Analysis (New Files Only)
 
-Derive the new-file subset using the same base-branch range from Step 1 with `--diff-filter=A` (e.g., `git diff --diff-filter=A --name-only origin/main...HEAD`). Run these quick checks on new files before the full review:
+Derive the new-file subset using the same base-branch range from Step 1 with `--diff-filter=A` for tracked/staged/committed files (for example: `git diff --diff-filter=A --name-only origin/main...HEAD`). When Step 1 falls back to local diffs, or if you want to ensure untracked files are also analyzed, additionally collect untracked files via `git ls-files --others --exclude-standard` and include them in the new-file set. Run these quick checks on new files before the full review:
 
 **Unused imports** — scan for imported symbols not referenced in the file body:
 - JS/TS: named (`import { X }`), default (`import X`), namespace (`import * as NS`), and aliased (`import { X as Y }`) — check the *bound identifier* (Y, not X) for usage after the import block

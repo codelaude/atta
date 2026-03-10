@@ -261,7 +261,7 @@ function generateClaudeCodePlugin(claudeRoot, attaRoot, outputBase) {
     files,
     outputDir: pluginDir,
     summary,
-    testCmd: `claude --plugin-dir ${pluginDir}`,
+    testCmd: `claude --plugin-dir "${pluginDir}"`,
   };
 }
 
@@ -807,7 +807,7 @@ function generateToolReadme(toolName, version, skills, { installCmd, prefix, ren
     '## Links',
     '',
     '- [Documentation](https://github.com/codelaude/atta)',
-    '- [npm package](https://www.npmjs.com/package/atta-dev) — for `npx init` workflow',
+    '- [npm package](https://www.npmjs.com/package/atta-dev) — for `npx atta-dev init` workflow',
     '',
     '---',
     '',
@@ -869,7 +869,7 @@ function generatePluginReadme(version, skills) {
     '## Links',
     '',
     '- [Documentation](https://github.com/codelaude/atta)',
-    '- [npm package](https://www.npmjs.com/package/atta-dev) — for `npx init` workflow',
+    '- [npm package](https://www.npmjs.com/package/atta-dev) — for `npx atta-dev init` workflow',
     '',
     '---',
     '',

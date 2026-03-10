@@ -23,7 +23,7 @@ You are now running a **preflight check** - a comprehensive pre-PR validation th
 When run with `--auto-fix`, preflight enters an iterative fix loop after identifying failures.
 
 ### What gets fixed
-- **Static analysis findings** — unused imports, inconsistent values, missing test files
+- **Static analysis findings** — unused imports, inconsistent values (missing test files are flagged but not auto-authored)
 - **Lint failures** — whitespace, formatting, pattern violations
 - **Review findings** — LOW and MEDIUM severity items with clear remediation (missing null checks, obvious code quality issues)
 
@@ -36,7 +36,7 @@ When run with `--auto-fix`, preflight enters an iterative fix loop after identif
 
 1. Run all preflight checks (same as normal mode)
 2. If all pass → "Ready for PR" (same as normal)
-3. If static analysis, lint, or review failures exist → for each failing check, one at a time:
+3. If static analysis findings, lint failures, or review findings exist → for each check with issues, one at a time:
    - Analyze the failure output
    - Propose specific fixes (file + line + change description)
    - **Wait for your approval before applying**
@@ -204,7 +204,7 @@ Report all findings but don't block unless CRITICAL issues are found.
 
 | Flag | Effect |
 |------|--------|
-| `--auto-fix` | After running checks, attempt to fix static analysis, lint, and review failures one check at a time (user confirms each fix) |
+| `--auto-fix` | After running checks, attempt to fix static analysis findings, lint failures, and review findings one check at a time (user confirms each fix) |
 | `--skip-tests` | Skip test execution |
 | `--skip-lint` | Skip lint pattern checks |
 | `--skip-security` | Skip security scan (not recommended for PRs touching auth, API, or user input) |

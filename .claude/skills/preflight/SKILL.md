@@ -9,7 +9,7 @@ You are now running a **preflight check** - a comprehensive pre-PR validation th
 
 ```
 /preflight                    # Full preflight (static analysis + lint + security + tests + review)
-/preflight --auto-fix         # Run preflight, then fix failures one check at a time
+/preflight --auto-fix         # Run preflight, then fix issues one check at a time
 /preflight --skip-tests       # Skip test execution
 /preflight --skip-lint        # Skip lint checks
 /preflight --skip-security    # Skip security scan
@@ -20,7 +20,7 @@ You are now running a **preflight check** - a comprehensive pre-PR validation th
 
 ## Auto-Fix Mode
 
-When run with `--auto-fix`, preflight enters an iterative fix loop after identifying failures.
+When run with `--auto-fix`, preflight enters an iterative fix loop after identifying issues.
 
 ### What gets fixed
 - **Static analysis findings** — unused imports, inconsistent values (missing test files are flagged but not auto-authored)
@@ -37,7 +37,7 @@ When run with `--auto-fix`, preflight enters an iterative fix loop after identif
 1. Run all preflight checks (same as normal mode)
 2. If all pass → "Ready for PR" (same as normal)
 3. If static analysis findings, lint failures, or review findings exist → for each check with issues, one at a time:
-   - Analyze the failure output
+   - Analyze the check output
    - Propose specific fixes (file + line + change description)
    - **Wait for your approval before applying**
    - On approval: apply fixes, re-run that check only

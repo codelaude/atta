@@ -11,8 +11,9 @@ set -euo pipefail
 # Load shared utilities
 source "$(dirname "${BASH_SOURCE[0]}")/lib/_common.sh"
 
-# sessionsRoot: directory containing .sessions/ (default: .atta/local)
-# Sessions stay in {claudeDir} on Claude Code — pass $REAL_CLAUDE_DIR from the hook.
+# sessionsRoot: parent of .sessions/ where session JSONs live.
+# Claude Code: pass $REAL_CLAUDE_DIR → .claude/.sessions/
+# Default (.atta/local) is a no-op fallback — session JSONs live in {claudeDir}.
 SESSIONS_ROOT="${1:-.atta/local}"
 SESSIONS_DIR="$SESSIONS_ROOT/.sessions"
 MAX_SESSIONS=10

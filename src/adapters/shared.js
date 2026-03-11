@@ -367,7 +367,8 @@ export function copyBootstrap(attaRoot, targetDir, options = {}) {
  * Paths are relative to their respective directory inside .atta/.
  */
 const USER_OWNED_FILES = {
-  local: new Set(['developer-profile.md']),
+  // local/ is not in SHARED_DIRS (copied via SHARED_FILES instead).
+  // developer-profile.md is protected by init.js (only written if absent).
   project: new Set(['project-context.md', 'project-profile.md']),
 };
 

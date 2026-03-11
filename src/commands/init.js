@@ -488,7 +488,7 @@ function migrateToAtta(targetDir) {
  * - knowledge/* (everything else) → team/* (committed, team-shared)
  * - .context/ → local/context/
  * - .sessions/ → local/sessions/
- * - .metadata/generated-manifest.json → local/metadata/generated-manifest.json
+ * Note: .metadata/generated-manifest.json stays in .metadata/ (referenced by multiple consumers).
  * Preserves user customizations — copies then removes originals.
  */
 function migrateToV3(targetDir) {
@@ -501,13 +501,18 @@ function migrateToV3(targetDir) {
   mkdirSync(localDir, { recursive: true });
 
   // Move developer-profile.md to local/ (personal, gitignored)
+  // Guard: don't overwrite an existing v3 profile with the older v2 version
   const profileSrc = join(knowledgeDir, 'developer-profile.md');
+  const profileDest = join(localDir, 'developer-profile.md');
   if (existsSync(profileSrc)) {
-    cpSync(profileSrc, join(localDir, 'developer-profile.md'));
+    if (!existsSync(profileDest)) {
+      cpSync(profileSrc, profileDest);
+    }
     rmSync(profileSrc);
   }
 
   // Move everything else in knowledge/ to team/
+  // If dest already exists (partial migration), skip the copy but still clean up source
   if (existsSync(knowledgeDir)) {
     for (const entry of readdirSync(knowledgeDir, { withFileTypes: true })) {
       const src = join(knowledgeDir, entry.name);
@@ -515,6 +520,7 @@ function migrateToV3(targetDir) {
       if (!existsSync(dest)) {
         cpSync(src, dest, { recursive: true });
       }
+      // Only remove source after successful copy or if dest already had the content
       rmSync(src, { recursive: true });
     }
     // Remove empty knowledge/ dir
@@ -539,14 +545,8 @@ function migrateToV3(targetDir) {
     rmSync(sessionsDir, { recursive: true });
   }
 
-  // Move .metadata/generated-manifest.json → local/metadata/
-  const manifestSrc = join(attaDir, '.metadata', 'generated-manifest.json');
-  if (existsSync(manifestSrc)) {
-    const destMetadata = join(localDir, 'metadata');
-    mkdirSync(destMetadata, { recursive: true });
-    cpSync(manifestSrc, join(destMetadata, 'generated-manifest.json'));
-    rmSync(manifestSrc);
-  }
+  // Note: .metadata/generated-manifest.json stays in .metadata/ — it's referenced by
+  // generate-context.sh, /atta skill, /update skill, and generator.md. Not moved.
 
   console.log(pc.dim('  Migrated .atta/ to v3.0 layout (team/ + local/)'));
 }

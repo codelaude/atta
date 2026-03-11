@@ -7,6 +7,106 @@ import pc from 'picocolors';
  */
 
 /**
+ * Cross-tool hook event mapping.
+ * Documents equivalent event names across all 5 tools with hook support.
+ * Used by adapters and plugin generators to emit the correct event names.
+ *
+ * Event counts: Claude Code 17, Cursor 19+, Gemini 12, Copilot 6, Codex 2 (approval only).
+ *
+ * @type {Object<string, Object<string, string|null>>}
+ */
+export const HOOK_EVENT_MAP = {
+  // Session lifecycle
+  sessionStart:       { 'claude-code': 'SessionStart',       copilot: 'sessionStart',        cursor: 'sessionStart',         gemini: 'SessionStart',      codex: null },
+  sessionEnd:         { 'claude-code': 'SessionEnd',         copilot: 'sessionEnd',          cursor: 'sessionEnd',           gemini: 'SessionEnd',        codex: null },
+  stop:               { 'claude-code': 'Stop',               copilot: null,                  cursor: 'stop',                 gemini: null,                codex: 'after_agent' },
+  // Tool lifecycle
+  preToolUse:         { 'claude-code': 'PreToolUse',         copilot: 'preToolUse',          cursor: 'preToolUse',           gemini: 'BeforeTool',        codex: null },
+  postToolUse:        { 'claude-code': 'PostToolUse',        copilot: 'postToolUse',         cursor: 'postToolUse',          gemini: 'AfterTool',         codex: 'after_tool_use' },
+  postToolUseFailure: { 'claude-code': 'PostToolUseFailure', copilot: 'errorOccurred',       cursor: 'postToolUseFailure',   gemini: null,                codex: null },
+  // User interaction
+  userPromptSubmit:   { 'claude-code': 'UserPromptSubmit',   copilot: 'userPromptSubmitted', cursor: 'beforeSubmitPrompt',    gemini: null,                codex: null },
+  // Agent lifecycle
+  subagentStart:      { 'claude-code': 'SubagentStart',      copilot: null,                  cursor: 'subagentStart',        gemini: 'BeforeAgent',       codex: null },
+  subagentStop:       { 'claude-code': 'SubagentStop',       copilot: null,                  cursor: 'subagentStop',         gemini: 'AfterAgent',        codex: null },
+  // Context management
+  preCompact:         { 'claude-code': 'PreCompact',         copilot: null,                  cursor: 'preCompact',           gemini: 'PreCompress',       codex: null },
+  notification:       { 'claude-code': 'Notification',       copilot: null,                  cursor: null,                   gemini: 'Notification',      codex: null },
+  // Cursor-only file events
+  afterFileEdit:      { 'claude-code': null,                 copilot: null,                  cursor: 'afterFileEdit',        gemini: null,                codex: null },
+  beforeShellExec:    { 'claude-code': null,                 copilot: null,                  cursor: 'beforeShellExecution', gemini: null,                codex: null },
+  // Claude Code-only events
+  permissionRequest:  { 'claude-code': 'PermissionRequest',  copilot: null,                  cursor: null,                   gemini: null,                codex: null },
+  configChange:       { 'claude-code': 'ConfigChange',       copilot: null,                  cursor: null,                   gemini: null,                codex: null },
+  // Gemini-only events
+  beforeModel:        { 'claude-code': null,                 copilot: null,                  cursor: null,                   gemini: 'BeforeModel',       codex: null },
+  afterModel:         { 'claude-code': null,                 copilot: null,                  cursor: null,                   gemini: 'AfterModel',        codex: null },
+};
+
+/**
+ * Generate a hooks.json config for a specific adapter.
+ * Returns placeholder hooks with the adapter's native event names.
+ * Claude Code generates its own hooks (session-track.sh); this is for other adapters.
+ *
+ * @param {'copilot'|'cursor'|'gemini'} adapter - Target adapter
+ * @returns {object} hooks.json content ready to serialize
+ */
+export function generateHooksConfig(adapter) {
+  if (adapter === 'copilot') {
+    // Copilot: 6 events, command hooks only (versioned schema for forward compat)
+    return {
+      version: 1,
+      hooks: {
+        sessionStart: [],
+        sessionEnd: [],
+        preToolUse: [],
+        postToolUse: [],
+        errorOccurred: [],
+        userPromptSubmitted: [],
+      },
+    };
+  }
+
+  if (adapter === 'cursor') {
+    // Cursor: 19+ events, command + prompt hooks
+    return {
+      hooks: {
+        sessionStart: [],
+        sessionEnd: [],
+        stop: [],
+        preToolUse: [],
+        postToolUse: [],
+        afterFileEdit: [],
+        beforeShellExecution: [],
+        subagentStart: [],
+        subagentStop: [],
+        preCompact: [],
+      },
+    };
+  }
+
+  if (adapter === 'gemini') {
+    // Gemini: 12 events, JSON stdin/stdout hooks
+    return {
+      hooks: {
+        SessionStart: [],
+        SessionEnd: [],
+        BeforeTool: [],
+        AfterTool: [],
+        BeforeAgent: [],
+        AfterAgent: [],
+        BeforeModel: [],
+        AfterModel: [],
+        Notification: [],
+        PreCompress: [],
+      },
+    };
+  }
+
+  return { hooks: {} };
+}
+
+/**
  * Parse YAML frontmatter from an agent markdown file.
  * Handles flat key-value pairs only — multiline YAML values are rejected
  * with a clear error rather than silently truncated.

@@ -127,17 +127,47 @@ for conflict in review agent update; do
   fi
 done
 
-# Agents directory has .md files (Copilot accepts .md — no rename needed)
+# Agents directory has .agent.md files (Copilot requires this extension)
 COP_AGENT_COUNT=0
 if [ -d "$DIR/agents" ]; then
-  COP_AGENT_COUNT=$(find "$DIR/agents" -name "*.md" -not -path "*/memory/*" 2>/dev/null | wc -l | tr -d ' ')
+  COP_AGENT_COUNT=$(find "$DIR/agents" -name "*.agent.md" -not -path "*/memory/*" 2>/dev/null | wc -l | tr -d ' ')
 fi
 if [ "$COP_AGENT_COUNT" -eq 0 ]; then
-  echo "FAIL: [copilot] No agent definitions in agents/"
+  echo "FAIL: [copilot] No .agent.md definitions in agents/"
   ERRORS=$((ERRORS + 1))
 fi
 
-echo "[copilot] OK"
+# Plain .md agents should NOT exist (should all be .agent.md)
+COP_PLAIN_MD=0
+if [ -d "$DIR/agents" ]; then
+  # Count .md files that are NOT .agent.md
+  COP_PLAIN_MD=$({ find "$DIR/agents" -name "*.md" -not -name "*.agent.md" -not -path "*/memory/*" 2>/dev/null || true; } | wc -l | tr -d ' ')
+fi
+if [ "$COP_PLAIN_MD" -gt 0 ]; then
+  echo "FAIL: [copilot] Found $COP_PLAIN_MD plain .md agents (should be .agent.md)"
+  ERRORS=$((ERRORS + 1))
+fi
+
+# Agents should not contain model: inherit
+COP_MODEL_INHERIT=$({ grep -rl 'model: inherit' "$DIR/agents" 2>/dev/null || true; } | wc -l | tr -d ' ')
+if [ "$COP_MODEL_INHERIT" -gt 0 ]; then
+  echo "FAIL: [copilot] $COP_MODEL_INHERIT agent files contain 'model: inherit'"
+  ERRORS=$((ERRORS + 1))
+fi
+
+# hooks.json should have version field
+if [ -f "$DIR/hooks/hooks.json" ]; then
+  python3 - "$DIR/hooks/hooks.json" <<'PYEOF' || ERRORS=$((ERRORS + 1))
+import json, sys
+with open(sys.argv[1]) as f:
+    data = json.load(f)
+if data.get('version') != 1:
+    print('FAIL: [copilot] hooks.json missing version: 1')
+    sys.exit(1)
+PYEOF
+fi
+
+echo "[copilot] $COP_AGENT_COUNT .agent.md agents"
 
 # ─── Cursor Plugin ───────────────────────────────────────────────────────────
 
@@ -174,6 +204,13 @@ if [ ! -f "$DIR/rules/atta.mdc" ]; then
   ERRORS=$((ERRORS + 1))
 fi
 
+# Agents should not contain model: inherit
+CUR_MODEL_INHERIT=$({ grep -rl 'model: inherit' "$DIR/agents" 2>/dev/null || true; } | wc -l | tr -d ' ')
+if [ "$CUR_MODEL_INHERIT" -gt 0 ]; then
+  echo "FAIL: [cursor] $CUR_MODEL_INHERIT agent files contain 'model: inherit'"
+  ERRORS=$((ERRORS + 1))
+fi
+
 echo "[cursor] $CUR_RULE_COUNT rules"
 
 # ─── Codex Plugin ────────────────────────────────────────────────────────────
@@ -187,6 +224,7 @@ DIR="$WORK_DIR/codex"
 for path in \
   "skills" \
   "agents" \
+  ".codex/config.toml" \
   "AGENTS.md" \
   "README.md"
 do
@@ -208,6 +246,22 @@ CDX_SLASH_COUNT=$({ grep -rl '`/[a-z]' "$DIR/skills" 2>/dev/null || true; } | wc
 if [ "$CDX_SLASH_COUNT" -gt 0 ]; then
   echo "FAIL: [codex] $CDX_SLASH_COUNT skill files contain backticked /command instead of \$command"
   ERRORS=$((ERRORS + 1))
+fi
+
+# Agents should not contain model: inherit
+CDX_MODEL_INHERIT=$({ grep -rl 'model: inherit' "$DIR/agents" 2>/dev/null || true; } | wc -l | tr -d ' ')
+if [ "$CDX_MODEL_INHERIT" -gt 0 ]; then
+  echo "FAIL: [codex] $CDX_MODEL_INHERIT agent files contain 'model: inherit'"
+  ERRORS=$((ERRORS + 1))
+fi
+
+# config.toml should have [agents.*] sections
+if [ -f "$DIR/.codex/config.toml" ]; then
+  CDX_TOML_AGENTS=$({ grep -c '^\[agents\.' "$DIR/.codex/config.toml" 2>/dev/null || true; })
+  if [ "$CDX_TOML_AGENTS" -eq 0 ]; then
+    echo "FAIL: [codex] config.toml has no [agents.*] sections"
+    ERRORS=$((ERRORS + 1))
+  fi
 fi
 
 echo "[codex] OK"

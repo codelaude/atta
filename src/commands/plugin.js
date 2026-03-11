@@ -5,7 +5,7 @@ import * as p from '@clack/prompts';
 import pc from 'picocolors';
 import { readVersion, countFiles } from '../lib/fs-utils.js';
 import { listSkills } from '../adapters/claude-code.js';
-import { copyAgentFiles, rewriteSkillBody } from '../adapters/shared.js';
+import { copyAgentFiles, rewriteSkillBody, generateHooksConfig, listAgentDefs } from '../adapters/shared.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -342,28 +342,37 @@ function generateCopilotPlugin(claudeRoot, attaRoot, outputBase) {
   const renamedCount = skills.filter((s) => COPILOT_BUILTIN_CONFLICTS.has(s.dirName)).length;
   summary.push(`skills/ (${skills.length} skills, ${renamedCount} renamed to avoid conflicts)`);
 
-  // 2. Copy agents (Copilot accepts .md — no rename needed, keeps file references valid)
+  // 2. Copy agents with Copilot-specific transforms:
+  //    - .agent.md extension (Copilot ignores plain .md in agent directories)
+  //    - Strip model: inherit (not a Copilot field)
+  //    - Rewrite body paths and commands for Copilot
   const agentsDir = join(pluginDir, 'agents');
-  const agentCount = copyAgentFiles(claudeRoot, agentsDir, { quiet: true });
+  const copilotAgentRewriteConfig = {
+    agentsPath: 'agents',
+    memoryPath: 'agents/memory',
+    commandMap,
+  };
+  const agentCount = copyAgentFiles(claudeRoot, agentsDir, {
+    quiet: true,
+    extension: '.agent.md',
+    transformFrontmatter: (fm) => ({
+      name: fm.name,
+      description: fm.description,
+    }),
+    transformBody: (body) => rewriteSkillBody(body, copilotAgentRewriteConfig),
+  });
   files += agentCount;
-  summary.push(`agents/ (${agentCount} agent definitions)`);
+  summary.push(`agents/ (${agentCount} .agent.md definitions)`);
 
-  // 3. Generate hooks.json (Copilot hook format)
+  // 3. Generate hooks.json (Copilot hook format — 6 events)
   const hooksDir = join(pluginDir, 'hooks');
   mkdirSync(hooksDir, { recursive: true });
 
-  const hooksJson = {
-    version: 1,
-    hooks: {
-      sessionStart: [],
-      preToolUse: [],
-      postToolUse: [],
-    },
-  };
+  const hooksJson = generateHooksConfig('copilot');
 
   writeAndSync(join(hooksDir, 'hooks.json'), JSON.stringify(hooksJson, null, 2) + '\n');
   files++;
-  summary.push('hooks/hooks.json (Copilot hook format — 3 placeholder events)');
+  summary.push('hooks/hooks.json (Copilot hook format — 6 event placeholders)');
 
   // 4. Generate instructions files
   const instructionsDir = join(pluginDir, 'instructions');
@@ -580,27 +589,30 @@ function generateCursorPlugin(claudeRoot, attaRoot, outputBase) {
 
   summary.push(`skills/ (${skills.length} SKILL.md files — rewritten for Cursor)`);
 
-  // 3. Copy agents (Cursor discovers from agents/ — also cross-discovers .claude/agents/)
+  // 3. Copy agents with Cursor-specific transforms:
+  //    - Strip model: inherit (not a Cursor field)
+  //    - Rewrite body paths and commands for Cursor
   const agentsDir = join(pluginDir, 'agents');
-  const agentCount = copyAgentFiles(claudeRoot, agentsDir, { quiet: true });
+  const agentCount = copyAgentFiles(claudeRoot, agentsDir, {
+    quiet: true,
+    transformFrontmatter: (fm) => ({
+      name: fm.name,
+      description: fm.description,
+    }),
+    transformBody: (body) => rewriteSkillBody(body, rewriteConfig),
+  });
   files += agentCount;
   summary.push(`agents/ (${agentCount} agent definitions)`);
 
-  // 4. Generate hooks.json (Cursor format — 21 events available)
+  // 4. Generate hooks.json (Cursor format — 19+ events available)
   const hooksDir = join(pluginDir, 'hooks');
   mkdirSync(hooksDir, { recursive: true });
 
-  const hooksJson = {
-    version: 1,
-    hooks: {
-      afterFileEdit: [],
-      stop: [],
-    },
-  };
+  const hooksJson = generateHooksConfig('cursor');
 
   writeAndSync(join(hooksDir, 'hooks.json'), JSON.stringify(hooksJson, null, 2) + '\n');
   files++;
-  summary.push('hooks/hooks.json (Cursor hook format — 21 events available)');
+  summary.push('hooks/hooks.json (Cursor hook format — 10 event placeholders)');
 
   // 5. Generate .cursor-plugin/plugin.json
   const manifestDir = join(pluginDir, '.cursor-plugin');
@@ -666,11 +678,12 @@ const CODEX_COMMAND_MAP = {
 /**
  * Generate Codex skills package.
  *
- * Codex has no standalone plugin manifest — distribution is skills + AGENTS.md.
+ * Codex has no standalone plugin manifest — distribution is skills + AGENTS.md + config.toml.
  *
  * Output structure:
  *   skills/<name>/SKILL.md (rewritten with $prefix)
- *   agents/<name>.md
+ *   agents/<name>.md (frontmatter stripped, body rewritten)
+ *   .codex/config.toml ([agents.*] sections)
  *   AGENTS.md
  *   README.md
  */
@@ -719,13 +732,60 @@ function generateCodexPlugin(claudeRoot, attaRoot, outputBase) {
 
   summary.push(`skills/ (${skills.length} skills with $prefix)`);
 
-  // 2. Copy agents
+  // 2. Copy agents with Codex-specific transforms:
+  //    - Strip model: inherit (not a Codex field)
+  //    - Rewrite body paths and commands for Codex
   const agentsDir = join(pluginDir, 'agents');
-  const agentCount = copyAgentFiles(claudeRoot, agentsDir, { quiet: true });
+  const codexAgentRewriteConfig = {
+    agentsPath: '.agents/agents',
+    memoryPath: '.agents/agents/memory',
+    commandMap: CODEX_COMMAND_MAP,
+  };
+  const agentCount = copyAgentFiles(claudeRoot, agentsDir, {
+    quiet: true,
+    transformFrontmatter: (fm) => ({
+      name: fm.name,
+      description: fm.description,
+    }),
+    transformBody: (body) => rewriteSkillBody(body, codexAgentRewriteConfig),
+  });
   files += agentCount;
   summary.push(`agents/ (${agentCount} agent definitions)`);
 
-  // 3. Generate AGENTS.md (Codex primary instruction file)
+  // 3. Generate .codex/config.toml with [agents.*] sections
+  const agentDefs = listAgentDefs(claudeRoot);
+  if (agentDefs.length > 0) {
+    const codexConfigDir = join(pluginDir, '.codex');
+    mkdirSync(codexConfigDir, { recursive: true });
+
+    const tomlLines = [
+      '# Atta Agent Definitions',
+      '# Generated by Atta framework — do not edit manually.',
+      '# See agents/ for full agent instructions.',
+      '',
+    ];
+
+    for (const agent of agentDefs) {
+      const desc = (agent.description || `Atta ${agent.name} agent`)
+        .replace(/\\/g, '\\\\')
+        .replace(/"/g, '\\"')
+        .replace(/\n/g, '\\n')
+        .replace(/\r/g, '\\r')
+        .replace(/\t/g, '\\t')
+        .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/g,
+          (ch) => '\\u' + ch.charCodeAt(0).toString(16).padStart(4, '0'));
+      tomlLines.push(`[agents.${agent.name}]`);
+      tomlLines.push(`description = "${desc}"`);
+      tomlLines.push(`config_file = "agents/${agent.fileName}"`);
+      tomlLines.push('');
+    }
+
+    writeAndSync(join(codexConfigDir, 'config.toml'), tomlLines.join('\n'));
+    files++;
+    summary.push(`.codex/config.toml (${agentDefs.length} agent sections)`);
+  }
+
+  // 4. Generate AGENTS.md (Codex primary instruction file)
   const skillTable = skills
     .map((s) => `| \`$${s.name}\` | ${s.description} |`)
     .join('\n');
@@ -755,7 +815,7 @@ function generateCodexPlugin(claudeRoot, attaRoot, outputBase) {
   files++;
   summary.push('AGENTS.md (Codex instruction file)');
 
-  // 4. README.md
+  // 5. README.md
   writeAndSync(join(pluginDir, 'README.md'), generateToolReadme('Codex', version, skills, {
     installCmd: 'Copy skills/ to .agents/skills/ and agents/ to .agents/agents/ in your project',
     prefix: '$',

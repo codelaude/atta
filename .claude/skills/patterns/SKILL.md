@@ -1,6 +1,8 @@
 ---
 name: patterns
 description: Pattern detection and learning system. Analyze correction history, view suggested patterns, and promote corrections to directives or pattern files.
+disable-model-invocation: true
+argument-hint: "<subcommand> [--directives]"
 ---
 
 Pattern detection and learning system for the Atta framework.

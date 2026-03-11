@@ -1,6 +1,7 @@
 ---
 name: optimize
 description: Enrich prompts with project context for better results. Use within the current session to rephrase a question that didn't get a good answer, or to prepare prompts for other AI tools (Codex, Copilot, ChatGPT, Gemini) with full project context.
+argument-hint: "<prompt> [--rephrase] [--target codex|copilot|chatgpt|gemini|claude]"
 ---
 
 You are running the **Prompt Optimizer** — a context enrichment tool that makes prompts more effective.

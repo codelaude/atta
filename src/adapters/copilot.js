@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import pc from 'picocolors';
 import { listSkills } from './claude-code.js';
 import { generateAgentsMd } from './agents-md.js';
-import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, createMemoryDirectory } from './shared.js';
+import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, createMemoryDirectory, generateHooksConfig } from './shared.js';
 import { generateReviewRules, formatCopilot } from './review-guidance.js';
 
 /**
@@ -212,6 +212,20 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
 
   if (!options.quiet) {
     console.log(`  ${pc.green('✓')} .github/instructions/atta-review.instructions.md (review guidance, ${reviewContent.length} chars)`);
+  }
+
+  // Generate hooks.json (Copilot hook format — 6 events, placeholder for user customization)
+  const hooksDir = join(targetDir, '.github', 'hooks');
+  const hooksJsonPath = join(hooksDir, 'hooks.json');
+  if (!existsSync(hooksJsonPath)) {
+    mkdirSync(hooksDir, { recursive: true });
+    const hooksConfig = generateHooksConfig('copilot');
+    writeFileSync(hooksJsonPath, JSON.stringify(hooksConfig, null, 2) + '\n');
+    results.files++;
+
+    if (!options.quiet) {
+      console.log(`  ${pc.green('✓')} .github/hooks/hooks.json (6 event placeholders)`);
+    }
   }
 
   // Copy shared content to .atta/ (knowledge, project, scripts, metadata, context)

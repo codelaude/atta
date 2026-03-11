@@ -1,6 +1,8 @@
 ---
 name: security-audit
 description: Security audit scanning for vulnerabilities, secrets, and insecure patterns. Covers OWASP Top 10 (2025), dependency vulnerabilities, and hardcoded credentials.
+allowed-tools: Read, Grep, Glob, Bash(git:*), Bash(npm:*), Bash(pip-audit:*), Bash(bash .atta/scripts/pattern-log.sh:*), Bash(bash .atta/scripts/pattern-analyze.sh:*)
+argument-hint: "[path] [--dependencies] [--secrets] [--quick]"
 ---
 
 You are now acting as the **Security Specialist** performing a comprehensive security audit.

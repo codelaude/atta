@@ -195,6 +195,27 @@ if [ "$AGENT_PLACEHOLDER_COUNT" -gt 0 ]; then
   ERRORS=$((ERRORS + 1))
 fi
 
+# --- Hooks checks (v2.7.1 Track C) ---
+
+# Check hooks.json exists and is valid JSON with Gemini event names
+if [ ! -f "$WORK_DIR/.gemini/hooks.json" ]; then
+  echo "FAIL: .gemini/hooks.json missing"
+  ERRORS=$((ERRORS + 1))
+else
+  python3 - "$WORK_DIR/.gemini/hooks.json" <<'PYEOF' 2>/dev/null || ERRORS=$((ERRORS + 1))
+import json, sys
+with open(sys.argv[1]) as f:
+    data = json.load(f)
+if 'hooks' not in data:
+    print('FAIL: hooks.json missing top-level "hooks" key')
+    sys.exit(1)
+for event in ['SessionStart', 'BeforeTool', 'AfterTool', 'BeforeAgent']:
+    if event not in data['hooks']:
+        print(f'FAIL: hooks.json missing Gemini event: {event}')
+        sys.exit(1)
+PYEOF
+fi
+
 if [ $ERRORS -eq 0 ]; then
   echo "PASS: Gemini adapter — structure + content correct ($TOML_COUNT TOML commands, $AGENT_COUNT agents, zero Claude-isms)"
   exit 0

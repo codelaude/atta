@@ -110,6 +110,48 @@ else
   fi
 fi
 
+# --- Skill flags checks (v2.7.1 Track C) ---
+
+# Check action skills have disable-model-invocation
+for skill in preflight test ship update migrate atta patterns; do
+  SKILL_FILE="$WORK_DIR/.claude/skills/$skill/SKILL.md"
+  if [ -f "$SKILL_FILE" ] && ! head -10 "$SKILL_FILE" | grep -q "disable-model-invocation: true"; then
+    echo "FAIL: $skill/SKILL.md missing 'disable-model-invocation: true'"
+    ERRORS=$((ERRORS + 1))
+  fi
+done
+
+# Check read-only skills have allowed-tools
+for skill in review lint security-audit; do
+  SKILL_FILE="$WORK_DIR/.claude/skills/$skill/SKILL.md"
+  if [ -f "$SKILL_FILE" ] && ! head -10 "$SKILL_FILE" | grep -q "allowed-tools:"; then
+    echo "FAIL: $skill/SKILL.md missing 'allowed-tools:'"
+    ERRORS=$((ERRORS + 1))
+  fi
+done
+
+# Check skills have argument-hint
+for skill in review preflight test agent collaborate; do
+  SKILL_FILE="$WORK_DIR/.claude/skills/$skill/SKILL.md"
+  if [ -f "$SKILL_FILE" ] && ! head -10 "$SKILL_FILE" | grep -q "argument-hint:"; then
+    echo "FAIL: $skill/SKILL.md missing 'argument-hint:'"
+    ERRORS=$((ERRORS + 1))
+  fi
+done
+
+# Check hooks.json is valid JSON with expected events
+if [ -f "$WORK_DIR/.claude/hooks/hooks.json" ]; then
+  python3 - "$WORK_DIR/.claude/hooks/hooks.json" <<'PYEOF' 2>/dev/null || ERRORS=$((ERRORS + 1))
+import json, sys
+with open(sys.argv[1]) as f:
+    data = json.load(f)
+for event in ['PostToolUse', 'Stop']:
+    if event not in data:
+        print(f'FAIL: hooks.json missing event: {event}')
+        sys.exit(1)
+PYEOF
+fi
+
 # Count total files
 CLAUDE_COUNT=$(find "$WORK_DIR/.claude" -type f 2>/dev/null | wc -l | tr -d ' ' || echo 0)
 ATTA_COUNT=$(find "$WORK_DIR/.atta" -type f 2>/dev/null | wc -l | tr -d ' ' || echo 0)

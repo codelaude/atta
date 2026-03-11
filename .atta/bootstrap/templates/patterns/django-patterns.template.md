@@ -59,7 +59,6 @@
 | Accessing `request` in models | Pass data via parameters | HIGH |
 | Not using migrations | Always create and apply migrations | CRITICAL |
 | `objects.get()` without exception handling | Use `get_object_or_404()` | HIGH |
-
 | Foreign key without `on_delete` | Specify `on_delete` behavior | CRITICAL |
 | Missing `__str__()` on models | Add for better debugging | MEDIUM |
 | Not using `select_related` / `prefetch_related` | Optimize queries to avoid N+1 | HIGH |

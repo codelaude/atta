@@ -778,7 +778,7 @@ function generateCodexPlugin(claudeRoot, attaRoot, outputBase) {
       const safeKey = /^[A-Za-z0-9_-]+$/.test(agent.name) ? agent.name : `"${agent.name.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
       tomlLines.push(`[agents.${safeKey}]`);
       tomlLines.push(`description = "${desc}"`);
-      tomlLines.push(`config_file = "agents/${agent.fileName}"`);
+      tomlLines.push(`config_file = ".agents/agents/${agent.fileName}"`);
       tomlLines.push('');
     }
 
@@ -819,7 +819,7 @@ function generateCodexPlugin(claudeRoot, attaRoot, outputBase) {
 
   // 5. README.md
   writeAndSync(join(pluginDir, 'README.md'), generateToolReadme('Codex', version, skills, {
-    installCmd: 'Copy skills/ to .agents/skills/ and agents/ to .agents/agents/ in your project',
+    installCmd: 'Copy skills/ to .agents/skills/, agents/ to .agents/agents/, and .codex/config.toml to .codex/config.toml in your project',
     prefix: '$',
     renames: {},
   }));
@@ -830,7 +830,7 @@ function generateCodexPlugin(claudeRoot, attaRoot, outputBase) {
     files,
     outputDir: pluginDir,
     summary,
-    testCmd: 'cp -r skills/ /path/to/project/.agents/skills/ && cp -r agents/ /path/to/project/.agents/agents/',
+    testCmd: 'cp -r skills/ /path/to/project/.agents/skills/ && cp -r agents/ /path/to/project/.agents/agents/ && cp -r .codex/ /path/to/project/.codex/',
   };
 }
 

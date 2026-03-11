@@ -330,7 +330,7 @@ project/
 │   │   ├── atta.mdc              # Always-applied framework context (alwaysApply: true)
 │   │   ├── atta-*.mdc            # Individual skill rules (alwaysApply: false)
 │   │   └── atta-review.mdc       # Review context for agent/chat
-│   ├── agents/*.md               # Agent definitions (frontmatter stripped, body rewritten)
+│   ├── agents/*.md               # Agent definitions (YAML frontmatter filtered to name+description, body rewritten)
 │   ├── BUGBOT.md                 # PR review rules (conditional, blocking vs non-blocking)
 │   └── hooks.json                # Hook event placeholders (10 events)
 ├── AGENTS.md                     # Agent registry (supported natively by Cursor)

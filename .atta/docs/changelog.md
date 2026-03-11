@@ -14,7 +14,7 @@ Review guidance generation, plugin marketplace distribution, and cross-tool form
 
 **Plugin Generator for Marketplace Distribution**
 - **`npx atta-dev plugin`**: Standalone plugin generator for 4 marketplace targets (Claude Code, Copilot, Cursor, Codex) with `--target` flag
-- **Adapter-native agent transforms**: Each target gets agents in its native format — `.agent.md` for Copilot, `config.toml` for Codex, frontmatter-stripped for Cursor, YAML frontmatter for Claude Code
+- **Adapter-native agent transforms**: Each target gets agents in its native format — `.agent.md` for Copilot, `config.toml` for Codex, YAML frontmatter filtered to `name` + `description` for Cursor, YAML frontmatter for Claude Code
 - **Marketplace manifests**: Generates `plugin.json`, `package.json`, or equivalent per target
 - **Atomic writes**: All file operations use temp-dir-then-rename pattern
 
@@ -32,7 +32,7 @@ Review guidance generation, plugin marketplace distribution, and cross-tool form
 - Gemini event count corrected from 12 → 10 (shared.js, gemini.js)
 - Unknown adapter in `generateHooksConfig()` now throws instead of silent empty return
 - Codex doc comment: "frontmatter stripped" → "filtered to name+description"
-- Copilot instructions: `.md` → `.agent.md` in generated instructions
+- Copilot instructions: `*.md` → `*.agent.md` agent glob in generated `copilot-instructions.md`
 - HOOK_EVENT_MAP docstring clarified as reference-only table
 
 **Tests**

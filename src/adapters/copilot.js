@@ -262,7 +262,7 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
     '',
     '## Agent Definitions',
     '',
-    'Agent definitions: `.github/atta/agents/*.md`',
+    'Agent definitions: `.github/atta/agents/*.agent.md`',
     'Agent memory: `.github/atta/agents/memory/directives.md`',
     'Invoke agents via `/atta-agent <id>` (e.g., `/atta-agent project-owner`).',
     '',

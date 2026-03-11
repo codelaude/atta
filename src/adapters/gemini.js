@@ -52,11 +52,27 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
     }
   }
 
-  // Copy agent definitions to .gemini/agents/
+  // Copy agent definitions to .gemini/agents/ with Gemini-specific frontmatter:
+  // - name + description only (model: inherit is Claude Code-specific)
+  // - Body: rewrite paths and resolve {attaDir} placeholders (Gemini is static, no AI resolves them)
+  const geminiAgentRewriteConfig = {
+    agentsPath: '.gemini/agents',
+    memoryPath: '.gemini/agents/memory',
+    commandMap: {},
+    resolveAttaPlaceholders: true,
+  };
+
   const agentCount = copyAgentFiles(
     claudeRoot,
     join(targetDir, '.gemini', 'agents'),
-    options
+    {
+      ...options,
+      transformFrontmatter: (fm) => ({
+        name: fm.name,
+        description: fm.description,
+      }),
+      transformBody: (body) => rewriteSkillBody(body, geminiAgentRewriteConfig),
+    }
   );
   results.files += agentCount;
 

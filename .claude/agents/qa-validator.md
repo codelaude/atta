@@ -1,3 +1,9 @@
+---
+name: qa-validator
+description: Validates implementations against acceptance criteria. Use when checking if code meets requirements, creating test scenarios, or performing QA validation.
+model: inherit
+---
+
 # Agent: QA Validator
 
 > Validates implementations against Acceptance Criteria.

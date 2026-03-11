@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, cpSync, lstatSync, readdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, cpSync, lstatSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, dirname, relative } from 'node:path';
 import pc from 'picocolors';
 
@@ -7,19 +7,134 @@ import pc from 'picocolors';
  */
 
 /**
+ * Parse YAML frontmatter from an agent markdown file.
+ * Handles flat key-value pairs only — multiline YAML values are rejected
+ * with a clear error rather than silently truncated.
+ *
+ * @param {string} content - Full markdown content with optional frontmatter
+ * @returns {{ frontmatter: Object<string,string>, body: string }}
+ * @throws {Error} If frontmatter contains multiline YAML or malformed lines
+ */
+export function parseAgentFrontmatter(content) {
+  // Normalize CRLF → LF for cross-platform compatibility (Windows-edited files)
+  const normalized = content.replace(/\r\n/g, '\n');
+
+  // Trailing body is optional — frontmatter-only agent files are valid
+  const match = normalized.match(/^---\n([\s\S]*?)\n---(?:\n([\s\S]*))?$/);
+  if (!match) return { frontmatter: {}, body: normalized };
+
+  const fm = {};
+  for (const line of match[1].split('\n')) {
+    // Skip empty lines and YAML comments
+    if (!line.trim() || line.trim().startsWith('#')) continue;
+
+    const kvMatch = line.match(/^([\w][\w-]*)\s*:\s*(.*)$/);
+    if (!kvMatch) {
+      throw new Error(
+        `Malformed agent frontmatter line: "${line}". ` +
+        `Only single-line key: value pairs are supported.`
+      );
+    }
+
+    const value = kvMatch[2].trim();
+
+    // Detect multiline YAML block indicators — fail fast instead of silent truncation
+    if (/^[>|][+-]?$/.test(value)) {
+      throw new Error(
+        `Unsupported multiline YAML value for "${kvMatch[1]}" (found "${value}"). ` +
+        `Agent frontmatter only supports single-line key: value pairs.`
+      );
+    }
+
+    // Strip surrounding quotes if present (both single and double)
+    fm[kvMatch[1]] = value.replace(/^(['"])(.*)\1$/, '$2');
+  }
+
+  return { frontmatter: fm, body: match[2] || '' };
+}
+
+/**
+ * Serialize a frontmatter object back to YAML fences.
+ * Values containing YAML-significant characters are double-quoted.
+ *
+ * @param {Object<string,string>} fm - Frontmatter key-value pairs
+ * @returns {string} YAML frontmatter block (with --- delimiters)
+ */
+function serializeFrontmatter(fm) {
+  const lines = ['---'];
+  for (const [key, value] of Object.entries(fm)) {
+    lines.push(`${key}: ${yamlQuoteIfNeeded(value)}`);
+  }
+  lines.push('---');
+  return lines.join('\n');
+}
+
+/**
+ * Quote a YAML scalar value if it contains characters that would be
+ * misinterpreted by a YAML parser (colon-space, space-hash, indicator
+ * chars, boolean/null literals, leading/trailing whitespace, or is empty).
+ */
+function yamlQuoteIfNeeded(value) {
+  if (value === undefined || value === null) return '""';
+  const str = String(value);
+  if (
+    str === '' ||
+    str !== str.trim() ||
+    /: /.test(str) || /:$/.test(str) ||
+    / #/.test(str) ||
+    /^[!&*'"@`|>{}\[\],%?-]/.test(str) ||
+    /^(true|false|null|yes|no|on|off|~)$/i.test(str)
+  ) {
+    return '"' + str.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"';
+  }
+  return str;
+}
+
+/**
  * Copy agent definition .md files from framework source to target directory.
  * Copies core agents, coordinators, and specialists.
+ * Optionally transforms frontmatter and body per adapter.
  *
  * @param {string} claudeRoot - Path to .claude/ source (agents live here)
  * @param {string} destAgentsDir - Target directory for agent files
- * @param {object} [options] - Options (quiet: boolean)
+ * @param {object} [options] - Options
+ * @param {boolean} [options.quiet] - Suppress console output
+ * @param {string} [options.extension='.md'] - Output file extension (e.g., '.agent.md' for Copilot)
+ * @param {function} [options.transformFrontmatter] - Transform frontmatter object before writing
+ * @param {function} [options.transformBody] - Transform body text before writing
  * @returns {number} Number of files copied
  */
 export function copyAgentFiles(claudeRoot, destAgentsDir, options = {}) {
+  const { extension = '.md', transformFrontmatter, transformBody } = options;
   const srcAgentsDir = join(claudeRoot, 'agents');
   if (!existsSync(srcAgentsDir)) return 0;
 
+  const hasTransform = transformFrontmatter || transformBody || extension !== '.md';
   let count = 0;
+
+  /**
+   * Process a single agent file: copy verbatim or transform frontmatter/body.
+   */
+  function processFile(srcPath, destDir, fileName) {
+    const baseName = fileName.replace(/\.md$/, '');
+    const destFileName = baseName + extension;
+    const destPath = join(destDir, destFileName);
+
+    mkdirSync(destDir, { recursive: true });
+
+    if (!hasTransform) {
+      cpSync(srcPath, destPath);
+    } else {
+      const content = readFileSync(srcPath, 'utf-8');
+      const { frontmatter, body } = parseAgentFrontmatter(content);
+
+      const newFm = transformFrontmatter ? transformFrontmatter(frontmatter) : frontmatter;
+      const newBody = transformBody ? transformBody(body) : body;
+
+      writeFileSync(destPath, serializeFrontmatter(newFm) + '\n' + newBody);
+    }
+    count++;
+  }
 
   // Core agents (root .md files, skip INDEX, README, and subdirectories)
   const rootFiles = readdirSync(srcAgentsDir, { withFileTypes: true })
@@ -31,12 +146,8 @@ export function copyAgentFiles(claudeRoot, destAgentsDir, options = {}) {
         f.name !== 'README.md'
     );
 
-  if (rootFiles.length > 0) {
-    mkdirSync(destAgentsDir, { recursive: true });
-    for (const file of rootFiles) {
-      cpSync(join(srcAgentsDir, file.name), join(destAgentsDir, file.name));
-      count++;
-    }
+  for (const file of rootFiles) {
+    processFile(join(srcAgentsDir, file.name), destAgentsDir, file.name);
   }
 
   // Coordinators
@@ -45,15 +156,8 @@ export function copyAgentFiles(claudeRoot, destAgentsDir, options = {}) {
     const coordFiles = readdirSync(coordDir).filter(
       (f) => f.endsWith('.md') && f !== 'README.md'
     );
-    if (coordFiles.length > 0) {
-      mkdirSync(join(destAgentsDir, 'coordinators'), { recursive: true });
-      for (const file of coordFiles) {
-        cpSync(
-          join(coordDir, file),
-          join(destAgentsDir, 'coordinators', file)
-        );
-        count++;
-      }
+    for (const file of coordFiles) {
+      processFile(join(coordDir, file), join(destAgentsDir, 'coordinators'), file);
     }
   }
 
@@ -63,19 +167,47 @@ export function copyAgentFiles(claudeRoot, destAgentsDir, options = {}) {
     const specFiles = readdirSync(specDir).filter(
       (f) => f.endsWith('.md') && f !== 'README.md'
     );
-    if (specFiles.length > 0) {
-      mkdirSync(join(destAgentsDir, 'specialists'), { recursive: true });
-      for (const file of specFiles) {
-        cpSync(
-          join(specDir, file),
-          join(destAgentsDir, 'specialists', file)
-        );
-        count++;
-      }
+    for (const file of specFiles) {
+      processFile(join(specDir, file), join(destAgentsDir, 'specialists'), file);
     }
   }
 
   return count;
+}
+
+/**
+ * List canonical agent files from .claude/agents/ with parsed frontmatter.
+ * Returns flat array of { name, description, fileName } for all core agents.
+ * Used by adapters that need to generate tool-specific agent configs (e.g., Codex TOML).
+ *
+ * @param {string} claudeRoot - Path to .claude/ source
+ * @returns {Array<{ name: string, description: string, fileName: string }>}
+ */
+export function listAgentDefs(claudeRoot) {
+  const srcAgentsDir = join(claudeRoot, 'agents');
+  if (!existsSync(srcAgentsDir)) return [];
+
+  const agents = [];
+  const rootFiles = readdirSync(srcAgentsDir, { withFileTypes: true })
+    .filter(
+      (f) =>
+        f.isFile() &&
+        f.name.endsWith('.md') &&
+        f.name !== 'INDEX.md' &&
+        f.name !== 'README.md'
+    );
+
+  for (const file of rootFiles) {
+    const content = readFileSync(join(srcAgentsDir, file.name), 'utf-8');
+    const { frontmatter } = parseAgentFrontmatter(content);
+    agents.push({
+      name: frontmatter.name || file.name.replace(/\.md$/, ''),
+      description: frontmatter.description || '',
+      fileName: file.name,
+    });
+  }
+
+  return agents;
 }
 
 /**

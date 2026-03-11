@@ -47,17 +47,17 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
     console.log(`  ${pc.green('✓')} AGENTS.md`);
   }
 
+  // Build command map for body rewriting (renamed skills — used by both skills and agents)
+  const copilotCommandMap = {};
+  for (const [orig, renamed] of Object.entries(SKILL_RENAMES)) {
+    copilotCommandMap[orig] = `/${renamed}`;
+  }
+
   // Copy skills to .github/skills/ (renaming conflicting ones)
   const skillsDir = join(claudeRoot, 'skills');
   if (existsSync(skillsDir)) {
     const skills = listSkills(claudeRoot);
     const githubSkillsDir = join(targetDir, '.github', 'skills');
-
-    // Build command map for body rewriting (all renamed skills + standard rewrites)
-    const copilotCommandMap = {};
-    for (const [orig, renamed] of Object.entries(SKILL_RENAMES)) {
-      copilotCommandMap[orig] = `/${renamed}`;
-    }
 
     const rewriteConfig = {
       agentsPath: '.github/atta/agents',
@@ -108,17 +108,34 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
     }
   }
 
-  // Copy agent definitions to .github/atta/agents/ (avoids .github/agents/ namespace conflict)
+  // Copy agent definitions to .github/atta/agents/ with Copilot-specific format:
+  // - Extension: .agent.md (Copilot ignores plain .md in agent directories)
+  // - Frontmatter: name + description only (omit model: inherit — not a Copilot field)
+  // - Body: rewrite Claude-isms (paths, commands) for Copilot
+  const copilotAgentRewriteConfig = {
+    agentsPath: '.github/atta/agents',
+    memoryPath: '.github/atta/agents/memory',
+    commandMap: copilotCommandMap,
+  };
+
   const agentCount = copyAgentFiles(
     claudeRoot,
     join(targetDir, '.github', 'atta', 'agents'),
-    options
+    {
+      ...options,
+      extension: '.agent.md',
+      transformFrontmatter: (fm) => ({
+        name: fm.name,
+        description: fm.description,
+      }),
+      transformBody: (body) => rewriteSkillBody(body, copilotAgentRewriteConfig),
+    }
   );
   results.files += agentCount;
 
   if (!options.quiet && agentCount > 0) {
     console.log(
-      `  ${pc.green('✓')} .github/atta/agents/ (${agentCount} agent definitions)`
+      `  ${pc.green('✓')} .github/atta/agents/ (${agentCount} .agent.md definitions)`
     );
   }
 

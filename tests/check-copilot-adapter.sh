@@ -48,14 +48,37 @@ while IFS= read -r -d '' skill; do
   fi
 done < <(find "$WORK_DIR/.github/skills" -name "SKILL.md" -print0 2>/dev/null)
 
-# Check agent definitions exist in .github/atta/agents/
+# Check agent definitions exist in .github/atta/agents/ with .agent.md extension
 if [ -d "$WORK_DIR/.github/atta/agents" ]; then
-  AGENT_COUNT=$(find "$WORK_DIR/.github/atta/agents" -name "*.md" -not -path "*/memory/*" | wc -l | tr -d ' ')
+  AGENT_COUNT=$(find "$WORK_DIR/.github/atta/agents" -name "*.agent.md" -not -path "*/memory/*" 2>/dev/null | wc -l | tr -d ' ')
 else
   AGENT_COUNT=0
 fi
 if [ "$AGENT_COUNT" -eq 0 ]; then
-  echo "FAIL: No agent definitions in .github/atta/agents/"
+  echo "FAIL: No .agent.md definitions in .github/atta/agents/"
+  ERRORS=$((ERRORS + 1))
+fi
+
+# Check: agent files have valid YAML frontmatter (name + description, no model: inherit)
+while IFS= read -r -d '' agent; do
+  if ! head -5 "$agent" | grep -q "^name:"; then
+    echo "FAIL: $agent missing 'name:' frontmatter"
+    ERRORS=$((ERRORS + 1))
+  fi
+  if ! head -5 "$agent" | grep -q "^description:"; then
+    echo "FAIL: $agent missing 'description:' frontmatter"
+    ERRORS=$((ERRORS + 1))
+  fi
+  if head -5 "$agent" | grep -q "^model: inherit"; then
+    echo "FAIL: $agent contains 'model: inherit' (Claude Code-specific, should be stripped)"
+    ERRORS=$((ERRORS + 1))
+  fi
+done < <(find "$WORK_DIR/.github/atta/agents" -name "*.agent.md" -not -path "*/memory/*" -print0 2>/dev/null)
+
+# Check: no plain .md agent files (should all be .agent.md)
+PLAIN_MD=$(find "$WORK_DIR/.github/atta/agents" -maxdepth 1 -name "*.md" -not -name "*.agent.md" -not -path "*/memory/*" 2>/dev/null | wc -l | tr -d ' ')
+if [ "$PLAIN_MD" -gt 0 ]; then
+  echo "FAIL: $PLAIN_MD plain .md files found (should be .agent.md)"
   ERRORS=$((ERRORS + 1))
 fi
 

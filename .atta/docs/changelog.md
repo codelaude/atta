@@ -4,6 +4,43 @@ Full version history for the Atta framework.
 
 ---
 
+## v2.7.1 — Multi-Tool Plugin Distribution + Review Guidance + Format Alignment
+
+Review guidance generation, plugin marketplace distribution, and cross-tool format alignment across all 6 adapters.
+
+**Review Guidance Generation**
+- **Review guidance extraction**: New `src/adapters/review-guidance.js` — extracts Key Rules and Anti-Patterns from pattern templates and formats them into each tool's native review format (8 formatters: Claude Code REVIEW.md, Copilot .instructions.md, Cursor BUGBOT.md, Cursor MDC, Codex AGENTS.md appendix, Gemini styleguide.md, Gemini config.yaml, CI prompt context)
+- **Adapter integration**: All 6 adapters generate review guidance files during `atta init`
+
+**Plugin Generator for Marketplace Distribution**
+- **`npx atta-dev plugin`**: Standalone plugin generator for 4 marketplace targets (Claude Code, Copilot, Cursor, Codex) with `--target` flag
+- **Adapter-native agent transforms**: Each target gets agents in its native format — `.agent.md` for Copilot, `config.toml` for Codex, frontmatter-stripped for Cursor, YAML frontmatter for Claude Code
+- **Marketplace manifests**: Generates `plugin.json`, `package.json`, or equivalent per target
+- **Atomic writes**: All file operations use temp-dir-then-rename pattern
+
+**Cross-Tool Format Alignment**
+- **HOOK_EVENT_MAP**: Centralized 17-event × 5-tool hook event mapping in `shared.js` with `generateHooksConfig()` per adapter
+- **SKILL.md frontmatter flags**: Skills now support `disable-model-invocation`, `allowed-tools`, `argument-hint` fields
+- **Agent YAML frontmatter**: All 7 core agents gained YAML frontmatter (`name`, `description`, `model: inherit`) with adapter-specific transforms via `parseAgentFrontmatter()` / `serializeFrontmatter()`
+- **Copilot hooks.json**: Includes `version: 1` per Copilot spec
+
+**Preflight Static Analysis**
+- **Step 1.5**: New static analysis step in `/preflight` — unused imports, cross-file consistency, platform portability, shell script safety, test coverage
+
+**Cross-Review Fixes** (Codex 7 findings + Copilot 8 comments, 2 rounds)
+- TOML bare-key safety for agent names (plugin.js + codex.js)
+- Gemini event count corrected from 12 → 10 (shared.js, gemini.js)
+- Unknown adapter in `generateHooksConfig()` now throws instead of silent empty return
+- Codex doc comment: "frontmatter stripped" → "filtered to name+description"
+- Copilot instructions: `.md` → `.agent.md` in generated instructions
+- HOOK_EVENT_MAP docstring clarified as reference-only table
+
+**Tests**
+- **8 test scripts**: All existing adapter tests expanded + new `check-plugin-generator.sh`
+- **Plugin generator E2E**: Validates all 4 targets — structure, agent format, hooks version, config.toml
+
+---
+
 ## v2.7.0 (2026-03-03) — .atta/ Architecture + Developer Profile + Cursor + CI Review Adapter
 
 Tool-agnostic shared content architecture, developer profile system, prompt optimization, iterative preflight auto-fix loop, a fifth adapter for Cursor, and a sixth adapter for CI-aware GitHub Actions code review.

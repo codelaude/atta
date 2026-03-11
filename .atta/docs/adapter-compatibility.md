@@ -32,9 +32,11 @@ Claude Code is the primary adapter with complete framework support.
 ```
 project/
 ├── .claude/                      # Claude Code-specific files
-│   ├── agents/                   # Core + generated agents
-│   ├── hooks/                    # Session tracking hook
-│   ├── skills/*/SKILL.md         # Skill definitions
+│   ├── agents/                   # Core + generated agents (YAML frontmatter)
+│   ├── hooks/
+│   │   ├── session-track.sh      # Session tracking hook
+│   │   └── hooks.json            # Hook event definitions
+│   ├── skills/*/SKILL.md         # Skill definitions (frontmatter flags)
 │   └── settings.local.json       # Hook config + permissions
 ├── .atta/                        # Tool-agnostic shared content
 │   ├── bootstrap/                # Tech detection + templates
@@ -43,7 +45,8 @@ project/
 │   ├── .context/
 │   ├── .metadata/
 │   └── .sessions/                # Schema + developer templates
-├── .claude-plugin/plugin.json    # Plugin manifest
+├── .claude-plugin/plugin.json    # Plugin manifest (skills, agents, hooks)
+├── REVIEW.md                     # Code review guidance (from pattern templates)
 └── CLAUDE.md                     # Instructions
 ```
 
@@ -72,8 +75,14 @@ project/
 ├── .atta/bootstrap/              # Shared bootstrap assets (detection, templates, mappings)
 ├── .github/
 │   ├── copilot-instructions.md   # Repo-level instructions
+│   ├── instructions/
+│   │   ├── atta-skills.instructions.md    # Skill index
+│   │   ├── atta-agents.instructions.md    # Agent index
+│   │   ├── atta-memory.instructions.md    # Memory/directives
+│   │   └── atta-review.instructions.md    # Review guidance (4K char limit)
+│   ├── hooks/hooks.json          # Hook event placeholders (6 events)
 │   ├── skills/*/SKILL.md         # Skill definitions (conflicts renamed with atta- prefix)
-│   └── atta/agents/*.md          # Agent definitions (NOT .github/agents/ — see below)
+│   └── atta/agents/*.agent.md    # Agent definitions (.agent.md format)
 ├── AGENTS.md                     # Agent registry + instructions
 └── GETTING-STARTED.md
 ```
@@ -130,7 +139,7 @@ The SKILL.md files are copied with updated frontmatter `name:` fields. The AGENT
 - `/atta` skill executes with adapter detection — generates agents to `.github/atta/agents/`, reads bootstrap from `.atta/bootstrap/`
 
 ### Limitations
-- No session tracking (no hook support)
+- No session tracking (hooks.json generated as placeholders for future Copilot hook support)
 - No pattern detection or learning
 - No runtime profile re-propagation (generation-time injection works via `/atta`; re-run `/atta --rescan` to re-apply after profile changes)
 
@@ -154,8 +163,9 @@ project/
 ├── .atta/bootstrap/              # Shared bootstrap assets (detection, templates, mappings)
 ├── .agents/
 │   ├── skills/*/SKILL.md         # Skill definitions
-│   └── agents/*.md               # Agent definitions
-├── AGENTS.md                     # Agent registry + instructions
+│   └── agents/*.md               # Agent definitions (name + description frontmatter)
+├── .codex/config.toml            # Agent definitions with config_file references
+├── AGENTS.md                     # Agent registry + instructions (+ review guidelines appendix)
 └── GETTING-STARTED.md
 ```
 
@@ -225,9 +235,12 @@ Optional: `agents/openai.yaml` in skill directory for `allow_implicit_invocation
 project/
 ├── .atta/bootstrap/              # Shared bootstrap assets (detection, templates, mappings)
 ├── .gemini/
-│   ├── commands/*.toml            # Converted skill commands
-│   └── agents/*.md               # Agent definitions
-├── GEMINI.md                      # Project context
+│   ├── commands/*.toml           # Converted skill commands
+│   ├── agents/*.md               # Agent definitions (with placeholder resolution)
+│   ├── styleguide.md             # Review guidance (natural language rules)
+│   ├── config.yaml               # Severity thresholds (MEDIUM default, max 20 comments)
+│   └── hooks.json                # Hook event placeholders (10 events)
+├── GEMINI.md                     # Project context
 └── GETTING-STARTED.md
 ```
 
@@ -315,11 +328,16 @@ project/
 ├── .cursor/
 │   ├── rules/
 │   │   ├── atta.mdc              # Always-applied framework context (alwaysApply: true)
-│   │   └── atta-*.mdc            # Individual skill rules (alwaysApply: false)
-│   └── agents/*.md               # Agent definitions
+│   │   ├── atta-*.mdc            # Individual skill rules (alwaysApply: false)
+│   │   └── atta-review.mdc       # Review context for agent/chat
+│   ├── agents/*.md               # Agent definitions (frontmatter stripped, body rewritten)
+│   ├── BUGBOT.md                 # PR review rules (conditional, blocking vs non-blocking)
+│   └── hooks.json                # Hook event placeholders (10 events)
 ├── AGENTS.md                     # Agent registry (supported natively by Cursor)
 └── GETTING-STARTED.md
 ```
+
+**Note**: Cursor has **two separate review channels**: `BUGBOT.md` for automated PR review (BugBot), and `.cursor/rules/atta-review.mdc` for agent/chat context. Both are generated from the same pattern templates but formatted differently.
 
 ### Discovery Mechanism
 
@@ -405,7 +423,9 @@ atta init --adapter github-action
 
 ```
 project/
-├── .atta/knowledge/ci-suppressions.md   # False positive suppression list
+├── .atta/knowledge/
+│   ├── ci-suppressions.md               # False positive suppression list
+│   └── review-guidance.md               # Stack-aware review rules for CI prompt context
 └── .github/workflows/atta-review.yml    # CI review workflow
 # Docs: https://github.com/nicholasgasior/atta-dev/blob/main/.atta/docs/ci-review.md
 ```
@@ -456,6 +476,9 @@ This gives the CI reviewer the same context as your local agents — resulting i
 | Agent invocation | Yes | Yes | Yes | Yes | Via AGENTS.md |
 | Skill execution | Yes | Yes | Yes | Yes | Yes |
 | Skill commands | `/name` | `/name` | `$name` | `/name` | `@atta-name` |
+| Review guidance | REVIEW.md | .instructions.md | AGENTS.md appendix | styleguide.md + config.yaml | BUGBOT.md + .mdc |
+| Hooks config | Yes (17 events) | Placeholders (6) | — | Placeholders (10) | Placeholders (10) |
+| Plugin manifest | plugin.json | — | — | — | — |
 | Session tracking | Yes | — | — | — | — |
 | Pattern detection | Yes | — | — | — | — |
 | Developer profile | Yes | Gen-time | Gen-time | Gen-time | Gen-time |
@@ -464,7 +487,7 @@ This gives the CI reviewer the same context as your local agents — resulting i
 | Custom instructions | CLAUDE.md | Multi-source | Multi-level | Hierarchical | AGENTS.md |
 | Update system | Yes | — | — | — | — |
 
-**Legend**: Yes = full support, Gen-time = generation-time only (via `/atta`), — = not available
+**Legend**: Yes = full support, Gen-time = generation-time only (via `/atta`), Placeholders = hook config generated but requires tool-native support, — = not available
 
 ---
 
@@ -580,5 +603,5 @@ The `.atta/.sessions/` directory contains **framework docs** (schema, templates)
 
 ---
 
-*Last updated: 2026-03-03. Based on tool documentation, dry-run testing, and live smoke tests.*
-*Validated against: Copilot CLI GA (Feb 2026), Codex CLI, Gemini CLI. Cursor: documentation-only (dry-run). See temp-*/SMOKE-TEST.md for detailed results.*
+*Last updated: 2026-03-11. Based on tool documentation, dry-run testing, and live smoke tests.*
+*Validated against: Copilot CLI GA (Feb 2026), Codex CLI, Gemini CLI. Cursor: documentation-only (dry-run). v2.7.1: review guidance, hooks config, plugin manifest, agent transforms added across all adapters.*

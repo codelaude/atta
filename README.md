@@ -28,7 +28,7 @@ Installs the framework, asks a few questions, and configures everything for your
 
 **Option B — manual:**
 
-Copy the `.claude/` directory into your project root, then run `/atta`:
+Copy both the `.claude/` and `.atta/` directories into your project root, then run `/atta`:
 
 ```
 /atta

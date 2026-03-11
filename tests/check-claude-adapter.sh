@@ -84,6 +84,25 @@ if [ ! -d "$WORK_DIR/.atta/scripts" ]; then
   ERRORS=$((ERRORS + 1))
 fi
 
+# Check REVIEW.md exists and has expected sections
+if [ ! -s "$WORK_DIR/REVIEW.md" ]; then
+  echo "FAIL: REVIEW.md missing or empty"
+  ERRORS=$((ERRORS + 1))
+else
+  if ! grep -q "## Always check" "$WORK_DIR/REVIEW.md"; then
+    echo "FAIL: REVIEW.md missing '## Always check' section"
+    ERRORS=$((ERRORS + 1))
+  fi
+  if ! grep -q "## Style" "$WORK_DIR/REVIEW.md"; then
+    echo "FAIL: REVIEW.md missing '## Style' section"
+    ERRORS=$((ERRORS + 1))
+  fi
+  if ! grep -q "## Skip" "$WORK_DIR/REVIEW.md"; then
+    echo "FAIL: REVIEW.md missing '## Skip' section"
+    ERRORS=$((ERRORS + 1))
+  fi
+fi
+
 # Count total files
 CLAUDE_COUNT=$(find "$WORK_DIR/.claude" -type f 2>/dev/null | wc -l | tr -d ' ' || echo 0)
 ATTA_COUNT=$(find "$WORK_DIR/.atta" -type f 2>/dev/null | wc -l | tr -d ' ' || echo 0)

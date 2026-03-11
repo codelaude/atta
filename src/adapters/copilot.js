@@ -4,6 +4,7 @@ import pc from 'picocolors';
 import { listSkills } from './claude-code.js';
 import { generateAgentsMd } from './agents-md.js';
 import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, createMemoryDirectory } from './shared.js';
+import { generateReviewRules, formatCopilot } from './review-guidance.js';
 
 /**
  * Copilot CLI adapter — generates .github/skills/, .github/atta/agents/, and AGENTS.md.
@@ -184,6 +185,16 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
 
   if (!options.quiet) {
     console.log(`  ${pc.green('✓')} .github/instructions/ (3 instruction files)`);
+  }
+
+  // Generate review guidance (.github/instructions/atta-review.instructions.md)
+  const reviewRules = generateReviewRules(attaRoot, options.detectedTechs);
+  const reviewContent = formatCopilot(reviewRules);
+  writeFileSync(join(instructionsDir, 'atta-review.instructions.md'), reviewContent);
+  results.files++;
+
+  if (!options.quiet) {
+    console.log(`  ${pc.green('✓')} .github/instructions/atta-review.instructions.md (review guidance, ${reviewContent.length} chars)`);
   }
 
   // Copy shared content to .atta/ (knowledge, project, scripts, metadata, context)

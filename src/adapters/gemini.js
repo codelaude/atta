@@ -4,6 +4,7 @@ import pc from 'picocolors';
 import { listSkills } from './claude-code.js';
 import { generateAgentsMd } from './agents-md.js';
 import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, createMemoryDirectory } from './shared.js';
+import { generateReviewRules, formatGeminiStyleguide, formatGeminiConfig } from './review-guidance.js';
 
 /**
  * Gemini CLI adapter — generates GEMINI.md, .gemini/commands/, and .gemini/agents/.
@@ -50,6 +51,25 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
         `  ${pc.green('✓')} .gemini/commands/ (${skills.length} TOML commands)`
       );
     }
+  }
+
+  // Generate review guidance files
+  const reviewRules = generateReviewRules(attaRoot, options.detectedTechs);
+
+  // .gemini/styleguide.md — natural language review rules
+  const geminiDir = join(targetDir, '.gemini');
+  mkdirSync(geminiDir, { recursive: true });
+  const styleguideContent = formatGeminiStyleguide(reviewRules);
+  writeFileSync(join(geminiDir, 'styleguide.md'), styleguideContent);
+  results.files++;
+
+  // .gemini/config.yaml — severity thresholds
+  const configContent = formatGeminiConfig();
+  writeFileSync(join(geminiDir, 'config.yaml'), configContent);
+  results.files++;
+
+  if (!options.quiet) {
+    console.log(`  ${pc.green('✓')} .gemini/styleguide.md + .gemini/config.yaml (review guidance)`);
   }
 
   // Copy agent definitions to .gemini/agents/

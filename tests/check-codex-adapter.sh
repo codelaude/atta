@@ -74,6 +74,12 @@ if [ ! -f "$WORK_DIR/.agents/agents/memory/directives.md" ]; then
   ERRORS=$((ERRORS + 1))
 fi
 
+# Check AGENTS.md contains review guidelines section
+if ! grep -q "## Review Guidelines" "$WORK_DIR/AGENTS.md"; then
+  echo "FAIL: AGENTS.md missing '## Review Guidelines' section"
+  ERRORS=$((ERRORS + 1))
+fi
+
 # --- Content contract checks (adapter hardening) ---
 
 SKILLS_DIR="$WORK_DIR/.agents/skills"

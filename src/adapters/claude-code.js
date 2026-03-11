@@ -12,6 +12,7 @@ import pc from 'picocolors';
 import { generateAgentsMd } from './agents-md.js';
 import { readVersion, countFiles } from '../lib/fs-utils.js';
 import { copySharedContent, copyBootstrap } from './shared.js';
+import { generateReviewRules, formatClaudeCode } from './review-guidance.js';
 
 /** Directories to copy from .claude/ source (discovery-required, tool-specific) */
 const CLAUDE_DIRS = ['agents', 'hooks', 'skills'];
@@ -187,6 +188,21 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
 
     if (!options.quiet) {
       console.log(`  ${pc.green('✓')} CLAUDE.md`);
+    }
+  }
+
+  // Generate REVIEW.md (review guidance for Claude Code code review)
+  const reviewMdPath = join(targetDir, 'REVIEW.md');
+  if (!existsSync(reviewMdPath)) {
+    const reviewRules = generateReviewRules(attaRoot, options.detectedTechs);
+    const reviewMd = formatClaudeCode(reviewRules);
+    const tmpReview = reviewMdPath + '.tmp';
+    writeFileSync(tmpReview, reviewMd);
+    renameSync(tmpReview, reviewMdPath);
+    results.files++;
+
+    if (!options.quiet) {
+      console.log(`  ${pc.green('✓')} REVIEW.md (code review guidance)`);
     }
   }
 

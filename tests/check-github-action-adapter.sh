@@ -29,6 +29,7 @@ const results = install(claudeRoot, attaRoot, targetDir, { quiet: true });
 const checks = [
   [join(targetDir, '.github', 'workflows', 'atta-review.yml'), 'workflow file'],
   [join(targetDir, '.atta', 'knowledge', 'ci-suppressions.md'), 'ci-suppressions.md'],
+  [join(targetDir, '.atta', 'knowledge', 'review-guidance.md'), 'review-guidance.md'],
   [join(targetDir, '.atta', 'knowledge'), 'shared knowledge/'],
   [join(targetDir, '.atta', 'bootstrap'), 'shared bootstrap/'],
 ];

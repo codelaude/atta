@@ -4,6 +4,7 @@ import pc from 'picocolors';
 import { listSkills } from './claude-code.js';
 import { generateAgentsMd } from './agents-md.js';
 import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, createMemoryDirectory } from './shared.js';
+import { generateReviewRules, formatCursorBugbot, formatCursorMdc } from './review-guidance.js';
 
 /**
  * Cursor adapter — generates AGENTS.md, .cursor/rules/*.mdc, and .cursor/agents/.
@@ -62,6 +63,25 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
         `  ${pc.green('✓')} .cursor/rules/ (${skills.length} skill rules + atta.mdc)`
       );
     }
+  }
+
+  // Generate review guidance files
+  const reviewRules = generateReviewRules(attaRoot, options.detectedTechs);
+
+  // .cursor/BUGBOT.md — BugBot PR review (conditional rules)
+  const bugbotContent = formatCursorBugbot(reviewRules);
+  writeFileSync(join(targetDir, '.cursor', 'BUGBOT.md'), bugbotContent);
+  results.files++;
+
+  // .cursor/rules/atta-review.mdc — agent/chat review context
+  const reviewMdc = formatCursorMdc(reviewRules);
+  const rulesDir2 = join(targetDir, '.cursor', 'rules');
+  mkdirSync(rulesDir2, { recursive: true });
+  writeFileSync(join(rulesDir2, 'atta-review.mdc'), reviewMdc);
+  results.files++;
+
+  if (!options.quiet) {
+    console.log(`  ${pc.green('✓')} .cursor/BUGBOT.md + .cursor/rules/atta-review.mdc (review guidance)`);
   }
 
   // Copy agent definitions to .cursor/agents/

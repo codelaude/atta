@@ -4,6 +4,7 @@ import pc from 'picocolors';
 import { listSkills } from './claude-code.js';
 import { generateAgentsMd } from './agents-md.js';
 import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, createMemoryDirectory } from './shared.js';
+import { generateReviewRules, formatCodex } from './review-guidance.js';
 
 /**
  * Codex CLI adapter — generates .agents/skills/, .agents/agents/, and AGENTS.md.
@@ -107,6 +108,17 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   // Create memory directory with directives placeholder
   createMemoryDirectory(join(targetDir, '.agents', 'agents'), options);
   results.files++;
+
+  // Append review guidelines to AGENTS.md
+  const reviewRules = generateReviewRules(attaRoot, options.detectedTechs);
+  const reviewSection = formatCodex(reviewRules);
+  const agentsMdPath = join(targetDir, 'AGENTS.md');
+  const existingAgentsMd = readFileSync(agentsMdPath, 'utf-8');
+  writeFileSync(agentsMdPath, existingAgentsMd + reviewSection);
+
+  if (!options.quiet) {
+    console.log(`  ${pc.green('✓')} AGENTS.md (appended review guidelines)`);
+  }
 
   // Copy shared content to .atta/ (knowledge, project, scripts, metadata, context)
   const sharedCount = copySharedContent(attaRoot, targetDir, options);

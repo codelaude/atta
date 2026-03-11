@@ -151,7 +151,7 @@ export function generateReviewRules(attaRoot, detectedTechs) {
     // Fallback: scan available templates (init without detection runs this path)
     techsToProcess = [];
     if (existsSync(templatesDir)) {
-      for (const f of readdirSync(templatesDir)) {
+      for (const f of readdirSync(templatesDir).sort()) {
         if (!f.endsWith('.template.md')) continue;
         const techName = f.replace('-patterns.template.md', '').replace('.template.md', '');
         // Skip review-guidance template itself
@@ -312,7 +312,7 @@ export function formatCursorBugbot(rules) {
   for (const { antiPatterns } of rules.techRules) {
     for (const ap of antiPatterns) {
       if (ap.severity === 'CRITICAL' || ap.severity === 'HIGH') {
-        lines.push(`- If you see ${ap.see.toLowerCase()}, then: ${ap.do}. [blocking]`);
+        lines.push(`- If you see ${ap.see}, then: ${ap.do}. [blocking]`);
       }
     }
   }
@@ -321,12 +321,12 @@ export function formatCursorBugbot(rules) {
   // Non-blocking rules (MEDIUM)
   lines.push('## Non-blocking', '');
   for (const rule of rules.universal.style) {
-    lines.push(`- If the code does not follow ${rule.toLowerCase()}, then: Suggest fix. [non-blocking]`);
+    lines.push(`- If the code does not follow ${rule}, then: Suggest fix. [non-blocking]`);
   }
   for (const { antiPatterns } of rules.techRules) {
     for (const ap of antiPatterns) {
       if (ap.severity === 'MEDIUM') {
-        lines.push(`- If you see ${ap.see.toLowerCase()}, then: ${ap.do}. [non-blocking]`);
+        lines.push(`- If you see ${ap.see}, then: ${ap.do}. [non-blocking]`);
       }
     }
   }

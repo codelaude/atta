@@ -188,7 +188,7 @@ export function generateReviewRules(attaRoot, detectedTechs) {
 
 /**
  * Format review rules as Claude Code REVIEW.md.
- * Sections: ## Always check, ## Style, ## Skip, ## {Tech} (per detected tech)
+ * Sections: ## Always check (with per-tech ### {Tech} subsections), ## Style, ## Skip
  * Severity: 🔴 (CRITICAL), 🟠 (HIGH), 🟡 (MEDIUM), skip LOW
  */
 export function formatClaudeCode(rules) {
@@ -307,7 +307,7 @@ export function formatCursorBugbot(rules) {
   // Blocking rules (CRITICAL/HIGH)
   lines.push('## Blocking', '');
   for (const rule of rules.universal.alwaysCheck) {
-    lines.push(`- If ${rule.toLowerCase().replace(/^no /, 'there are ')}, then: Flag as blocking.`);
+    lines.push(`- ${rule}. Flag as blocking when violated.`);
   }
   for (const { antiPatterns } of rules.techRules) {
     for (const ap of antiPatterns) {
@@ -321,7 +321,7 @@ export function formatCursorBugbot(rules) {
   // Non-blocking rules (MEDIUM)
   lines.push('## Non-blocking', '');
   for (const rule of rules.universal.style) {
-    lines.push(`- If ${rule.toLowerCase()}, then: Suggest fix. [non-blocking]`);
+    lines.push(`- If the code does not follow ${rule.toLowerCase()}, then: Suggest fix. [non-blocking]`);
   }
   for (const { antiPatterns } of rules.techRules) {
     for (const ap of antiPatterns) {

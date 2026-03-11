@@ -15,8 +15,8 @@ Review guidance generation, plugin marketplace distribution, and cross-tool form
 **Plugin Generator for Marketplace Distribution**
 - **`npx atta-dev plugin`**: Standalone plugin generator for 4 marketplace targets (Claude Code, Copilot, Cursor, Codex) with `--target` flag
 - **Adapter-native agent transforms**: Each target gets agents in its native format — `.agent.md` for Copilot, `config.toml` for Codex, YAML frontmatter filtered to `name` + `description` for Cursor, YAML frontmatter for Claude Code
-- **Marketplace manifests**: Generates `plugin.json`, `package.json`, or equivalent per target
-- **Atomic writes**: All file operations use temp-dir-then-rename pattern
+- **Marketplace manifests**: Generates `plugin.json` (Claude Code, Cursor) and `AGENTS.md` + `config.toml` (Codex) per target
+- **Atomic writes**: Plugin generator uses temp-file-then-rename pattern (`writeAndSync`)
 
 **Cross-Tool Format Alignment**
 - **HOOK_EVENT_MAP**: Centralized 17-event × 5-tool hook event mapping in `shared.js` with `generateHooksConfig()` per adapter

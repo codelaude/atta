@@ -163,11 +163,15 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   createMemoryDirectory(join(targetDir, '.agents', 'agents'), options);
   results.files++;
 
-  // Append review guidelines to AGENTS.md
+  // Append review guidelines to AGENTS.md (idempotent — replace if already present)
   const reviewRules = generateReviewRules(attaRoot, options.detectedTechs);
   const reviewSection = formatCodex(reviewRules);
   const agentsMdPath = join(targetDir, 'AGENTS.md');
-  const existingAgentsMd = readFileSync(agentsMdPath, 'utf-8');
+  let existingAgentsMd = readFileSync(agentsMdPath, 'utf-8');
+  const sentinel = '## Review Guidelines';
+  if (existingAgentsMd.includes(sentinel)) {
+    existingAgentsMd = existingAgentsMd.slice(0, existingAgentsMd.indexOf(sentinel)).trimEnd() + '\n';
+  }
   writeFileSync(agentsMdPath, existingAgentsMd + reviewSection);
 
   if (!options.quiet) {

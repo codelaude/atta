@@ -1,3 +1,9 @@
+---
+name: business-analyst
+description: Defines and maintains requirements and acceptance criteria. Use when clarifying business logic, defining ACCs, or documenting edge cases.
+model: inherit
+---
+
 # Agent: Business Analyst
 
 > Defines and maintains requirements and acceptance criteria.

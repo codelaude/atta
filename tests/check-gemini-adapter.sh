@@ -170,6 +170,31 @@ if [ "$PLACEHOLDER_COUNT" -gt 0 ]; then
   ERRORS=$((ERRORS + 1))
 fi
 
+# Check: agent files have valid frontmatter (name + description, no model: inherit)
+AGENTS_DIR="$WORK_DIR/.gemini/agents"
+while IFS= read -r -d '' agent; do
+  if ! head -5 "$agent" | grep -q "^name:"; then
+    echo "FAIL: $agent missing 'name:' frontmatter"
+    ERRORS=$((ERRORS + 1))
+  fi
+  if ! head -5 "$agent" | grep -q "^description:"; then
+    echo "FAIL: $agent missing 'description:' frontmatter"
+    ERRORS=$((ERRORS + 1))
+  fi
+  if head -5 "$agent" | grep -q "^model: inherit"; then
+    echo "FAIL: $agent contains 'model: inherit' (Claude Code-specific)"
+    ERRORS=$((ERRORS + 1))
+  fi
+done < <(find "$AGENTS_DIR" -name "*.md" -not -path "*/memory/*" -print0 2>/dev/null)
+
+# Check: zero unresolved {attaDir} placeholders in agent files
+AGENT_PLACEHOLDER_COUNT=$({ grep -rl "{attaDir}\|{agentsDir}\|{bootstrapDir}\|{knowledgeDir}\|{metadataDir}" "$AGENTS_DIR" 2>/dev/null || true; } | { grep -v "/memory/" || true; } | wc -l | tr -d ' ')
+if [ "$AGENT_PLACEHOLDER_COUNT" -gt 0 ]; then
+  echo "FAIL: $AGENT_PLACEHOLDER_COUNT agent files still contain unresolved placeholders"
+  { grep -rl "{attaDir}\|{agentsDir}\|{bootstrapDir}\|{knowledgeDir}\|{metadataDir}" "$AGENTS_DIR" 2>/dev/null || true; } | { grep -v "/memory/" || true; } | sed 's|.*/agents/||'
+  ERRORS=$((ERRORS + 1))
+fi
+
 if [ $ERRORS -eq 0 ]; then
   echo "PASS: Gemini adapter — structure + content correct ($TOML_COUNT TOML commands, $AGENT_COUNT agents, zero Claude-isms)"
   exit 0

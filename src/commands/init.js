@@ -182,7 +182,7 @@ async function runInstall(targetDir, adapterName, dryRun, answers, adapterOption
     results = adapter.install(CLAUDE_ROOT, ATTA_ROOT, targetDir, { quiet: true, ...adapterOptions });
 
     // Gitignore runtime & personal content; keep only team-shared files
-    ensureAttaGitignored(targetDir);
+    ensureAttaGitignored(targetDir, adapterName);
 
     // Pre-fill developer profile if we have answers
     if (answers) {
@@ -351,9 +351,10 @@ function listFrameworkFiles() {
  * Gitignores runtime/personal content (.context/, .sessions/, personal profile, .claude/).
  * Team-shared files (patterns, suppressions, project/) are committed by default.
  * .claude/ is personal — each dev runs init and generates agents for their own role/tool.
+ * Adapter memory directories are per-developer (directives, corrections) — not committed.
  * Uses a sentinel comment for idempotency.
  */
-function ensureAttaGitignored(targetDir) {
+function ensureAttaGitignored(targetDir, adapterName) {
   const gitignorePath = join(targetDir, '.gitignore');
   const existing = existsSync(gitignorePath) ? readFileSync(gitignorePath, 'utf-8') : '';
   const SENTINEL = '# Atta — runtime & personal';
@@ -364,7 +365,8 @@ function ensureAttaGitignored(targetDir) {
     // Idempotent — safe to run even when developer-profile.md line already exists.
     let hasProfile = existing.includes('.atta/knowledge/developer-profile.md');
     let changed = false;
-    const updated = existing.split('\n').map((line) => {
+    const lines = existing.split('\n');
+    const updated = lines.map((line) => {
       const trimmed = line.trim();
       if (trimmed === '.atta/knowledge/' || trimmed === '.atta/knowledge') {
         changed = true;
@@ -373,10 +375,25 @@ function ensureAttaGitignored(targetDir) {
         return line.replace(/\.atta\/knowledge\/?/, '.atta/knowledge/developer-profile.md');
       }
       return line;
-    }).filter((line) => line !== null).join('\n');
-    if (changed) writeFileSync(gitignorePath, updated);
+    }).filter((line) => line !== null);
+
+    // Append adapter memory path if missing (upgrade from pre-v2.7.1 installs)
+    const memoryPath = getAdapterMemoryPath(adapterName);
+    if (memoryPath && !existing.includes(memoryPath)) {
+      // Insert before trailing empty string (from split) to preserve file structure
+      const insertIdx = updated.length > 0 && updated[updated.length - 1] === ''
+        ? updated.length - 1
+        : updated.length;
+      updated.splice(insertIdx, 0, memoryPath);
+      changed = true;
+    }
+
+    if (changed) writeFileSync(gitignorePath, updated.join('\n'));
     return;
   }
+
+  // Build adapter-specific memory line
+  const memoryPath = getAdapterMemoryPath(adapterName);
 
   const block = [
     '',
@@ -387,8 +404,24 @@ function ensureAttaGitignored(targetDir) {
     '.atta/knowledge/developer-profile.md',
     '.claude/',
     '.claude-plugin/',
+    ...(memoryPath ? [memoryPath] : []),
   ].join('\n');
   writeFileSync(gitignorePath, existing.trimEnd() + block + '\n');
+}
+
+/**
+ * Returns the gitignore path for the adapter's agent memory directory.
+ * .claude/ is already fully gitignored, so only non-Claude adapters need an entry.
+ * github-action has no agents/memory.
+ */
+function getAdapterMemoryPath(adapterName) {
+  const map = {
+    copilot: '.github/atta/agents/memory/',
+    codex: '.agents/agents/memory/',
+    gemini: '.gemini/agents/memory/',
+    cursor: '.cursor/agents/memory/',
+  };
+  return map[adapterName] || null;
 }
 
 /**

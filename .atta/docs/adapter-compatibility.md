@@ -566,13 +566,17 @@ Add to your project's `.gitignore`:
 .atta/.context/corrections.jsonl
 .atta/.context/patterns-learned.json
 
-# Personal AI preferences (each developer maintains their own copy)
+# Per-developer content (not team-shared)
 .atta/knowledge/developer-profile.md
 ```
+
+> **Note**: `.claude/` is **fully gitignored** by `npx atta-dev init` — this includes `agents/memory/` (directives). Each developer runs init locally and generates their own `.claude/` content. For non-Claude adapters, the agent memory directories (`.github/atta/agents/memory/`, `.agents/agents/memory/`, `.gemini/agents/memory/`, `.cursor/agents/memory/`) should also be gitignored — directives are per-developer, not per-project. See the adapter-specific block added by init.
 
 The `.atta/.sessions/` directory contains **framework docs** (schema, templates) and **is committed**. Only the runtime JSON files in `.claude/.sessions/` (or `{claudeDir}/.sessions/`) are excluded.
 
 `project-profile.md` (team conventions) is **committed**. `developer-profile.md` (personal style) is **gitignored**.
+
+`agents/memory/` (directives, scoped directive files) is **per-developer** — directives capture personal workflow preferences, correction history, and AI interaction rules. Team-level project rules belong in `project-profile.md` or in the `## Project Rules` section of agent definitions (both committed).
 
 ---
 

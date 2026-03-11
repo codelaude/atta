@@ -86,10 +86,19 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   }
 
   // Copy agent definitions to .cursor/agents/
+  // Cursor also discovers .claude/agents/ natively, but we generate copies
+  // with rewritten paths for standalone Cursor projects (no .claude/ present).
   const agentCount = copyAgentFiles(
     claudeRoot,
     join(targetDir, '.cursor', 'agents'),
-    options
+    {
+      ...options,
+      transformFrontmatter: (fm) => ({
+        name: fm.name,
+        description: fm.description,
+      }),
+      transformBody: (body) => rewriteSkillBody(body, CURSOR_REWRITE_CONFIG),
+    }
   );
   results.files += agentCount;
 

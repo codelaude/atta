@@ -21,7 +21,15 @@ export function parseAgentFrontmatter(content) {
 
   // Trailing body is optional — frontmatter-only agent files are valid
   const match = normalized.match(/^---\n([\s\S]*?)\n---(?:\n([\s\S]*))?$/);
-  if (!match) return { frontmatter: {}, body: normalized };
+  if (!match) {
+    // Detect unterminated frontmatter — file starts with `---` but has no closing fence
+    if (normalized.startsWith('---\n') || normalized === '---') {
+      throw new Error(
+        'Unterminated or malformed agent frontmatter: missing closing "---" fence.'
+      );
+    }
+    return { frontmatter: {}, body: normalized };
+  }
 
   const fm = {};
   for (const line of match[1].split('\n')) {

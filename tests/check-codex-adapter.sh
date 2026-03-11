@@ -119,7 +119,11 @@ import sys
 try:
     import tomllib
 except ImportError:
-    import tomli as tomllib
+    try:
+        import tomli as tomllib
+    except ImportError:
+        print('FAIL: No TOML parser available. Install Python 3.11+ (tomllib) or the "tomli" package.')
+        sys.exit(1)
 
 path = sys.argv[1]
 try:

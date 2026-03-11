@@ -59,7 +59,7 @@ function extractFromTemplate(templatePath) {
   const antiPatterns = [];
 
   // Extract Key Rules section (everything between ## Key Rules and next ## heading)
-  const keyRulesMatch = content.match(/## Key Rules\n([\s\S]*?)(?=\n## [A-Z])/);
+  const keyRulesMatch = content.match(/## Key Rules\n([\s\S]*?)(?=\n## [A-Z]|$)/);
   if (keyRulesMatch) {
     const rulesBlock = keyRulesMatch[1];
     // Extract bullet points (- Rule text), skip ### headers and blank lines
@@ -72,7 +72,7 @@ function extractFromTemplate(templatePath) {
   }
 
   // Extract Anti-Patterns table rows (handles both "## Anti-Patterns" and "## Anti-Patterns to Flag")
-  const antiPatternsMatch = content.match(/## Anti-Patterns(?:\s+to\s+Flag)?\n([\s\S]*?)(?=\n## [A-Z]|\n<!--|\n$)/);
+  const antiPatternsMatch = content.match(/## Anti-Patterns(?:\s+to\s+Flag)?\n([\s\S]*?)(?=\n## [A-Z]|\n<!--|$)/);
   if (antiPatternsMatch) {
     const tableBlock = antiPatternsMatch[1];
     for (const line of tableBlock.split('\n')) {

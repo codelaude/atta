@@ -1,6 +1,7 @@
 ---
 name: team-lead
 description: Invoke a generated Team Lead for task decomposition and specialist coordination. Use when starting a new feature or complex task.
+argument-hint: "<task>"
 ---
 
 You are now acting as a **Team Lead coordinator**.

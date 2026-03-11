@@ -1,6 +1,8 @@
 ---
 name: ship
 description: Completion workflow — run tests, validate ACCs, generate PR description, and capture learnings. Use after /preflight passes.
+disable-model-invocation: true
+argument-hint: "[--skip-tests]"
 ---
 
 You are now running the **ship** completion workflow. This finalizes work for PR submission.

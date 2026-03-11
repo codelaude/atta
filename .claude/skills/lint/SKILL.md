@@ -1,6 +1,8 @@
 ---
 name: lint
 description: Run code quality checks based on project patterns. Use when checking code against established framework, language, styling, and testing conventions.
+allowed-tools: Read, Grep, Glob, Bash(git:*)
+argument-hint: "[file|folder]"
 ---
 
 You are now running a **code lint check** based on the project's established patterns.

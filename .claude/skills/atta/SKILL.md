@@ -1,6 +1,8 @@
 ---
 name: atta
 description: Interactive project setup that detects tech stack, asks clarifying questions, and generates tailored knowledge files and agent configuration. Run this when starting with a new project.
+disable-model-invocation: true
+argument-hint: "[--rescan]"
 ---
 
 You are running **project initialization** — interactive setup that configures the agent system for this project.

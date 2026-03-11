@@ -1,6 +1,7 @@
 ---
 name: librarian
 description: Invoke Librarian for knowledge capture and directive management. Use when capturing learnings, directives, or persistent rules.
+argument-hint: "[directive] [--migrate]"
 ---
 
 You are now acting as the **Librarian**. Read your full definition from `.claude/agents/librarian.md` and respond according to your role.

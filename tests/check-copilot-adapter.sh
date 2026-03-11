@@ -177,6 +177,30 @@ if [ -f "$SKILLS_DIR/atta-update/SKILL.md" ]; then
   fi
 fi
 
+# --- Hooks checks (v2.7.1 Track C) ---
+
+# Check hooks.json exists and is valid JSON
+if [ ! -f "$WORK_DIR/.github/hooks/hooks.json" ]; then
+  echo "FAIL: .github/hooks/hooks.json missing"
+  ERRORS=$((ERRORS + 1))
+else
+  python3 - "$WORK_DIR/.github/hooks/hooks.json" <<'PYEOF' 2>/dev/null || ERRORS=$((ERRORS + 1))
+import json, sys
+with open(sys.argv[1]) as f:
+    data = json.load(f)
+if 'version' not in data or data['version'] != 1:
+    print('FAIL: hooks.json missing or wrong "version" field (expected 1)')
+    sys.exit(1)
+if 'hooks' not in data:
+    print('FAIL: hooks.json missing top-level "hooks" key')
+    sys.exit(1)
+for event in ['sessionStart', 'postToolUse', 'errorOccurred']:
+    if event not in data['hooks']:
+        print(f'FAIL: hooks.json missing event: {event}')
+        sys.exit(1)
+PYEOF
+fi
+
 if [ $ERRORS -eq 0 ]; then
   echo "PASS: Copilot adapter — structure + content correct ($SKILL_COUNT skills, $AGENT_COUNT agents, zero Claude-isms)"
   exit 0

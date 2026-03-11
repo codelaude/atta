@@ -1,6 +1,8 @@
 ---
 name: preflight
 description: Run full pre-PR validation combining static analysis, lint checks, security scan, test execution, and code review into one workflow.
+disable-model-invocation: true
+argument-hint: "[--auto-fix] [--skip-tests] [--skip-lint] [--skip-security] [--skip-review]"
 ---
 
 You are now running a **preflight check** - a comprehensive pre-PR validation that combines static analysis, lint, security, tests, and code review into one workflow.

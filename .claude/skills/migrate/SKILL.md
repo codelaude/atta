@@ -1,6 +1,8 @@
 ---
 name: migrate
 description: Compatibility alias for migration operations. Routes to /update Migration mode.
+disable-model-invocation: true
+argument-hint: "[--from path] [--dry-run] [--interactive]"
 ---
 
 You are running **migrate** as a compatibility alias.

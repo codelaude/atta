@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import pc from 'picocolors';
 import { listSkills } from './claude-code.js';
 import { generateAgentsMd } from './agents-md.js';
-import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, createMemoryDirectory } from './shared.js';
+import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, createMemoryDirectory, generateHooksConfig } from './shared.js';
 import { generateReviewRules, formatCursorBugbot, formatCursorMdc } from './review-guidance.js';
 
 /**
@@ -111,6 +111,20 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   // Create memory directory with directives placeholder
   createMemoryDirectory(join(targetDir, '.cursor', 'agents'), options);
   results.files++;
+
+  // Generate hooks.json (Cursor hook format — 19+ events, placeholder for user customization)
+  const cursorDir = join(targetDir, '.cursor');
+  const hooksJsonPath = join(cursorDir, 'hooks.json');
+  if (!existsSync(hooksJsonPath)) {
+    mkdirSync(cursorDir, { recursive: true });
+    const hooksConfig = generateHooksConfig('cursor');
+    writeFileSync(hooksJsonPath, JSON.stringify(hooksConfig, null, 2) + '\n');
+    results.files++;
+
+    if (!options.quiet) {
+      console.log(`  ${pc.green('✓')} .cursor/hooks.json (10 event placeholders)`);
+    }
+  }
 
   // Copy shared content to .atta/ (knowledge, project, scripts, metadata, context)
   const sharedCount = copySharedContent(attaRoot, targetDir, options);

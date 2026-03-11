@@ -159,6 +159,27 @@ while IFS= read -r -d '' agent; do
   fi
 done < <(find "$WORK_DIR/.cursor/agents" -name "*.md" -not -path "*/memory/*" -print0 2>/dev/null)
 
+# --- Hooks checks (v2.7.1 Track C) ---
+
+# Check hooks.json exists and is valid JSON
+if [ ! -f "$WORK_DIR/.cursor/hooks.json" ]; then
+  echo "FAIL: .cursor/hooks.json missing"
+  ERRORS=$((ERRORS + 1))
+else
+  python3 - "$WORK_DIR/.cursor/hooks.json" <<'PYEOF' 2>/dev/null || ERRORS=$((ERRORS + 1))
+import json, sys
+with open(sys.argv[1]) as f:
+    data = json.load(f)
+if 'hooks' not in data:
+    print('FAIL: hooks.json missing top-level "hooks" key')
+    sys.exit(1)
+for event in ['sessionStart', 'postToolUse', 'afterFileEdit', 'preCompact']:
+    if event not in data['hooks']:
+        print(f'FAIL: hooks.json missing event: {event}')
+        sys.exit(1)
+PYEOF
+fi
+
 if [ $ERRORS -eq 0 ]; then
   echo "PASS: Cursor adapter — structure + content correct ($MDC_COUNT rules, $AGENT_COUNT agents, zero Claude-isms)"
   exit 0

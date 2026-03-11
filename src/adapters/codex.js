@@ -140,7 +140,9 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
         .replace(/\t/g, '\\t')
         .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/g,
           (ch) => '\\u' + ch.charCodeAt(0).toString(16).padStart(4, '0'));
-      tomlLines.push(`[agents.${agent.name}]`);
+      // Quote the key to handle names with dots, spaces, or other non-bare-key chars
+      const safeKey = /^[A-Za-z0-9_-]+$/.test(agent.name) ? agent.name : `"${agent.name.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+      tomlLines.push(`[agents.${safeKey}]`);
       tomlLines.push(`description = "${desc}"`);
       tomlLines.push(`config_file = ".agents/agents/${agent.fileName}"`);
       tomlLines.push('');

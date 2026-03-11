@@ -401,7 +401,7 @@ function generateCopilotPlugin(claudeRoot, attaRoot, outputBase) {
   writeAndSync(join(instructionsDir, 'atta-agents.instructions.md'), [
     '# Atta Agents',
     '',
-    'Agent definitions are in `agents/` as `.md` files.',
+    'Agent definitions are in `agents/` as `.agent.md` files.',
     'Invoke agents via `/atta-agent <id>` (e.g., `/atta-agent project-owner`).',
     '',
   ].join('\n'));

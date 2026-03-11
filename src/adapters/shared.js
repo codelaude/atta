@@ -7,9 +7,11 @@ import pc from 'picocolors';
  */
 
 /**
- * Cross-tool hook event mapping.
+ * Cross-tool hook event mapping — reference-only compatibility table.
  * Documents equivalent event names across all 5 tools with hook support.
- * Used by adapters and plugin generators to emit the correct event names.
+ * Not wired into generateHooksConfig() or runtime hook emitters (each adapter
+ * hardcodes its own subset). Kept as a canonical reference for documentation,
+ * external tooling, and future dynamic generation.
  *
  * Event counts: Claude Code 17, Cursor 19+, Gemini 10, Copilot 6, Codex 2 (approval only).
  *

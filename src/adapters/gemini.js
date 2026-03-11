@@ -105,7 +105,7 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   createMemoryDirectory(join(targetDir, '.gemini', 'agents'), options);
   results.files++;
 
-  // Generate hooks.json (Gemini hook format — 12 events, placeholder for user customization)
+  // Generate hooks.json (Gemini hook format — 10 events, placeholder for user customization)
   const hooksJsonPath = join(geminiDir, 'hooks.json');
   if (!existsSync(hooksJsonPath)) {
     const hooksConfig = generateHooksConfig('gemini');

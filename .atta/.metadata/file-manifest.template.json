@@ -96,7 +96,7 @@
       "description": "Security audit skill (OWASP, dependencies, secrets)",
       "framework_hash": null
     },
-    "knowledge/templates/": {
+    "team/templates/": {
       "source": "framework",
       "customized": false,
       "safe_to_replace": true,
@@ -208,7 +208,7 @@
       "description": "Generated domain specialists",
       "user_rules_may_exist": true
     },
-    "knowledge/patterns/": {
+    "team/patterns/": {
       "source": "generated",
       "regenerate_on_init": false,
       "template": "patterns/*.template.md",
@@ -232,11 +232,11 @@
       "never_touch": true,
       "description": "Project-specific context and documentation (team-shared, committed)"
     },
-    "knowledge/accs/": {
+    "local/accs/": {
       "source": "user",
       "protected": true,
       "never_touch": true,
-      "description": "Acceptance criteria documents"
+      "description": "Acceptance criteria documents (generated, per-developer)"
     },
     "agents-config.json": {
       "source": "user",
@@ -256,7 +256,7 @@
       "bootstrap/**/*",
       "docs/**/*",
       "skills/*/SKILL.md",
-      "knowledge/templates/**/*"
+      "team/templates/**/*"
     ],
     "tier_2_merge_required": [
       "agents/project-owner.md",
@@ -270,7 +270,7 @@
     "tier_3_never_touch": [
       "agents/memory/**/*",
       "project/**/*",
-      "knowledge/accs/**/*",
+      "local/accs/**/*",
       "agents-config.json",
       "settings.local.json",
       ".metadata/file-manifest.json",
@@ -280,7 +280,7 @@
     "generated_optional": [
       "agents/coordinators/**/*",
       "agents/specialists/**/*",
-      "knowledge/patterns/**/*",
+      "team/patterns/**/*",
       "agents/INDEX.md",
       "skills/generated/**/*"
     ]

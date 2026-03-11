@@ -35,4 +35,5 @@ ACC-001:
 ## Knowledge Base
 
 - `.atta/project/project-context.md`
-- `.atta/knowledge/accs/`
+- `.atta/local/accs/` (generated ACCs — per-developer)
+- `.atta/team/accs/acceptance-criteria-template.md` (template)

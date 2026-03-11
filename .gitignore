@@ -4,8 +4,8 @@ node_modules/
 package-lock.json
 *.tgz
 
-# Generated context files (keep README, ignore generated content)
-.atta/.context/recent.md
+# Runtime & personal files (generated, not committed)
+.atta/local/
 
 # User-specific settings (generated per-project by atta init)
 .claude/settings.local.json

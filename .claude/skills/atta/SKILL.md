@@ -30,7 +30,7 @@ Determine which AI tool is running this skill by checking which directories exis
 | Path variable | Claude Code | Copilot (`.github/skills/`) | Codex (`.agents/skills/`) | Gemini (`.gemini/commands/`) |
 |---------------|-------------|---------------------------|-------------------------|---------------------------|
 | `{bootstrapDir}` | `.atta/bootstrap` | `.atta/bootstrap` | `.atta/bootstrap` | `.atta/bootstrap` |
-| `{knowledgeDir}` | `.atta/knowledge` | `.atta/knowledge` | `.atta/knowledge` | `.atta/knowledge` |
+| `{teamDir}` | `.atta/team` | `.atta/team` | `.atta/team` | `.atta/team` |
 | `{agentsDir}` | `.claude/agents` | `.github/atta/agents` | `.agents/agents` | `.gemini/agents` |
 | `{metadataDir}` | `.atta/.metadata` | `.atta/.metadata` | `.atta/.metadata` | `.atta/.metadata` |
 
@@ -39,7 +39,7 @@ Determine which AI tool is running this skill by checking which directories exis
 - Else if `.agents/skills/` exists → Codex → agents go to `.agents/agents/`
 - Else if `.gemini/commands/` exists → Gemini → agents go to `.gemini/agents/`
 
-**All paths below use these variables.** Substitute `.atta/bootstrap/` → `{bootstrapDir}/`, `.atta/knowledge/` → `{knowledgeDir}/`, `.claude/agents/` → `{agentsDir}/`, `.atta/.metadata/` → `{metadataDir}/`.
+**All paths below use these variables.** Substitute `.atta/bootstrap/` → `{bootstrapDir}/`, `.atta/team/` → `{teamDir}/`, `.claude/agents/` → `{agentsDir}/`, `.atta/.metadata/` → `{metadataDir}/`.
 
 ---
 
@@ -188,7 +188,7 @@ Each pattern file: key rules from existing code, anti-patterns, conventions, doc
 
 ### PR Template (conditional)
 
-If a PR template was detected: overwrite `.atta/knowledge/templates/pr-template.md` with a mapped version keeping Atta frontmatter + structure, adding the project template verbatim in a code block, a section mapping table, and instructions to format PR descriptions matching the project's structure while preserving Atta content.
+If a PR template was detected: overwrite `.atta/team/templates/pr-template.md` with a mapped version keeping Atta frontmatter + structure, adding the project template verbatim in a code block, a section mapping table, and instructions to format PR descriptions matching the project's structure while preserving Atta content.
 
 If no PR template detected: do nothing (default `pr-template.md` is already in place).
 

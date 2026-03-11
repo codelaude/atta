@@ -17,7 +17,7 @@ model: inherit
 
 ## Context Sources
 
-- `.atta/knowledge/developer-profile.md` — personal collaboration style prefs (optional, gitignored)
+- `.atta/local/developer-profile.md` — personal collaboration style prefs (optional, gitignored)
 
 ## Approach
 

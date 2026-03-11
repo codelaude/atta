@@ -98,9 +98,9 @@ When spanning frontend + backend:
 
 ## Knowledge Base
 
-- **Patterns**: `.atta/knowledge/patterns/`
+- **Patterns**: `.atta/team/patterns/`
 {{#each PATTERN_FILES}}
-  - `.atta/knowledge/patterns/{{this}}`
+  - `.atta/team/patterns/{{this}}`
 {{/each}}
 - **Context**: `.atta/project/project-context.md`
 - **Accessibility**: WAI-ARIA APG, WCAG (via accessibility specialist)

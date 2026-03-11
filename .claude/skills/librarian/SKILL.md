@@ -189,10 +189,10 @@ When a project has accumulated many directives in root `directives.md` and wants
 
 - **Memory (universal)**: `.claude/agents/memory/directives.md`
 - **Memory (scoped)**: `.claude/agents/memory/directives-*.md` (routed by `applies_to`)
-- **Corrections**: `{attaDir}/.context/corrections.jsonl` (append-only)
-- **Pattern cache**: `{attaDir}/.context/patterns-learned.json` (rebuilt by analysis)
-- **Agent learning**: `{attaDir}/.context/agent-learning.json` (rebuilt by analysis)
-- **Knowledge Files** (in `.atta/knowledge/`):
+- **Corrections**: `{attaDir}/local/context/corrections.jsonl` (append-only)
+- **Pattern cache**: `{attaDir}/local/context/patterns-learned.json` (rebuilt by analysis)
+- **Agent learning**: `{attaDir}/local/context/agent-learning.json` (rebuilt by analysis)
+- **Knowledge Files** (in `.atta/team/`):
   - Pattern files in `patterns/`
   - `project/project-context.md`
   - `quick-reference.md`

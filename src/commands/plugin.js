@@ -13,7 +13,7 @@ const __dirname = dirname(__filename);
 /** Path to .claude/ source (tool-specific: skills, agents, hooks) */
 const CLAUDE_ROOT = resolve(__dirname, '..', '..', '.claude');
 
-/** Path to .atta/ source (shared: knowledge, scripts, metadata, bootstrap) */
+/** Path to .atta/ source (shared: team, scripts, metadata, bootstrap) */
 const ATTA_ROOT = resolve(__dirname, '..', '..', '.atta');
 
 const TARGETS = {
@@ -203,9 +203,9 @@ function generateClaudeCodePlugin(claudeRoot, attaRoot, outputBase) {
       allow: [
         'Bash(bash ${CLAUDE_PLUGIN_ROOT}/scripts/*:*)',
         'Bash(bash .atta/scripts/*:*)',
-        'Edit(./.atta/.context/**)',
+        'Edit(./.atta/local/**)',
         'Edit(./.claude/agents/memory/**)',
-        'Edit(./.atta/knowledge/**)',
+        'Edit(./.atta/team/**)',
         'Edit(./.atta/project/**)',
       ],
     },

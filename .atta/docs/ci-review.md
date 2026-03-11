@@ -15,8 +15,8 @@ and which security checks actually apply.
 **What the CI reviewer reads:**
 - `.atta/project/project-context.md` — tech stack and architecture
 - `.atta/project/project-profile.md` — team conventions and review priorities
-- `.atta/knowledge/patterns/*.md` — technology-specific conventions
-- `.atta/knowledge/ci-suppressions.md` — known false positives to skip
+- `.atta/team/patterns/*.md` — technology-specific conventions
+- `.atta/team/ci-suppressions.md` — known false positives to skip
 
 **Result:** Fewer false positives, findings scoped to your actual stack, and
 convention violations caught before human review.
@@ -30,7 +30,7 @@ convention violations caught before human review.
 
 2. **Commit the workflow**: The workflow file is not auto-committed.
    ```bash
-   git add .github/workflows/atta-review.yml .atta/knowledge/ci-suppressions.md
+   git add .github/workflows/atta-review.yml .atta/team/ci-suppressions.md
    git commit -m "feat: add Atta CI review workflow"
    ```
 
@@ -58,7 +58,7 @@ The CI reviewer is only as good as your knowledge files. In rough order of impac
 When CI flags something that isn't a real issue:
 
 1. **Verify it's a false positive** — paste the finding into your local AI tool to confirm
-2. **Add a suppression entry** to `.atta/knowledge/ci-suppressions.md` in your PR branch
+2. **Add a suppression entry** to `.atta/team/ci-suppressions.md` in your PR branch
 3. **Human reviewer approves** the suppression in the PR diff (or rejects it)
 4. On merge, all future PRs benefit from the suppression
 
@@ -105,7 +105,7 @@ PR opened/updated
 GitHub Action runs
        │
        ▼
-Claude reads .atta/knowledge/ files    ← project knowledge (committed to repo)
+Claude reads .atta/team/ files           ← project knowledge (committed to repo)
        │
        ▼
 Context-scoped review of changed files

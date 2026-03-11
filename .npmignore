@@ -13,7 +13,7 @@ dev/
 .atta/scripts/validate-framework.sh
 
 # Generated runtime files (should not ship in npm package)
-.atta/.context/recent.md
+.atta/local/
 
 # GitHub community files (not needed in npm package)
 .github/

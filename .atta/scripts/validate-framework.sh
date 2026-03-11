@@ -126,14 +126,14 @@ assert_contains ".claude/skills/patterns/SKILL.md" "learn" "patterns skill has l
 assert_contains ".claude/skills/patterns/SKILL.md" "suggest" "patterns skill has suggest subcommand"
 assert_contains ".claude/skills/patterns/SKILL.md" "promote" "patterns skill has promote subcommand"
 assert_contains ".claude/skills/patterns/SKILL.md" "status" "patterns skill has status subcommand"
-assert_contains ".atta/knowledge/templates/correction-event.md" "corrections.jsonl" "correction-event schema references corrections.jsonl"
+assert_contains ".atta/team/templates/correction-event.md" "corrections.jsonl" "correction-event schema references corrections.jsonl"
 assert_contains ".claude/agents/librarian.md" "Correction Capture Protocol" "librarian has Correction Capture Protocol"
 assert_contains ".claude/skills/review/SKILL.md" "pattern-log.sh" "review skill integrates pattern logging"
 assert_contains ".claude/skills/collaborate/SKILL.md" "pattern-log.sh" "collaborate skill integrates pattern logging"
 
 echo "==> Validating agent adaptation system (Track 6)"
-assert_contains ".atta/knowledge/templates/correction-event.md" "outcome" "correction-event schema has outcome field"
-assert_contains ".atta/knowledge/templates/correction-event.md" "agentId" "correction-event schema has agentId field"
+assert_contains ".atta/team/templates/correction-event.md" "outcome" "correction-event schema has outcome field"
+assert_contains ".atta/team/templates/correction-event.md" "agentId" "correction-event schema has agentId field"
 assert_contains ".atta/scripts/pattern-log.sh" "outcome" "pattern-log.sh accepts outcome field"
 assert_contains ".atta/scripts/pattern-log.sh" "agentId" "pattern-log.sh accepts agentId field"
 assert_contains ".atta/scripts/pattern-analyze.sh" "agent-learning.json" "pattern-analyze.sh generates agent-learning.json"
@@ -157,7 +157,7 @@ assert_contains ".atta/scripts/pattern-analyze.sh" "trends_data" "pattern-analyz
 assert_contains ".atta/scripts/pattern-analyze.sh" "recommendations" "pattern-analyze.sh generates recommendations"
 assert_contains ".atta/scripts/pattern-analyze.sh" "velocity" "pattern-analyze.sh computes velocity"
 assert_contains ".atta/scripts/pattern-analyze.sh" "aging" "pattern-analyze.sh detects aging patterns"
-assert_contains ".atta/knowledge/templates/correction-event.md" "v1.1.0" "correction-event schema documents v1.1.0"
+assert_contains ".atta/team/templates/correction-event.md" "v1.1.0" "correction-event schema documents v1.1.0"
 
 echo "==> Checking git diff integrity"
 if [ "$SKIP_DIFF_CHECK" = false ]; then

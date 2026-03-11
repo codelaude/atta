@@ -81,8 +81,8 @@ elif [ ! -f "$WORK_DIR/.atta/bootstrap/generator.md" ]; then
   ERRORS=$((ERRORS + 1))
 fi
 
-if [ ! -d "$WORK_DIR/.atta/knowledge" ]; then
-  echo "FAIL: .atta/knowledge/ directory missing"
+if [ ! -d "$WORK_DIR/.atta/team" ]; then
+  echo "FAIL: .atta/team/ directory missing"
   ERRORS=$((ERRORS + 1))
 fi
 

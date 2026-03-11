@@ -108,7 +108,7 @@ When multiple specialists needed, coordinate through fe-team-lead.
 
 ## Knowledge Base
 
-- **Patterns**: `.atta/knowledge/patterns/accessibility-patterns.md` (if exists)
+- **Patterns**: `.atta/team/patterns/accessibility-patterns.md` (if exists)
 - **Docs**:
   - [WCAG 2.1 Quick Reference](https://www.w3.org/WAI/WCAG21/quickref/)
   - [WAI-ARIA APG](https://www.w3.org/WAI/ARIA/apg/)

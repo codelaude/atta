@@ -85,7 +85,7 @@ The core innovation in v2.x is **dynamic agent generation**. Instead of hardcodi
   ├── jest.md                  (from testing-specialist template, FE)
   └── pytest.md                (from testing-specialist template, BE)
 
-.atta/knowledge/patterns/
+.atta/team/patterns/
   ├── vue-patterns.md          (Composition API, reactivity, component structure)
   ├── python-patterns.md       (PEP 8, type hints, error handling)
   ├── django-patterns.md       (ORM, views, templates, DRF)
@@ -114,7 +114,7 @@ The core innovation in v2.x is **dynamic agent generation**. Instead of hardcodi
   ├── mongodb.md
   └── jest.md                  (handles Vitest/Jest, from testing-specialist template)
 
-.atta/knowledge/patterns/
+.atta/team/patterns/
   ├── react-patterns.md        (Hooks, Context, component composition)
   ├── express-patterns.md      (Middleware, routing, error handling)
   ├── security-patterns.md     (OWASP checks, secrets management, API hardening)

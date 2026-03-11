@@ -5,10 +5,10 @@ Tracks skill invocations and agent usage across sessions to enable future featur
 
 ## Structure
 
-### Framework Files (`.atta/.sessions/`)
-The framework source files are stored in `.atta/.sessions/`:
+### Framework Files (`.atta/local/sessions/`)
+The framework source files are stored in `.atta/local/sessions/`:
 ```
-.atta/.sessions/
+.atta/local/sessions/
 ├── README.md                    # This file (framework documentation)
 ├── schema.json                  # JSON Schema definition (framework)
 ├── TRACKING_GUIDE.md            # Developer integration guide (framework)

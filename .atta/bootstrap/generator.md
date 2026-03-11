@@ -393,7 +393,7 @@ After all template substitution is complete, append a `## Developer Preferences`
 **Step 1: Parse profile**
 
 Read both profile files:
-- `.atta/knowledge/developer-profile.md` (personal, may not exist if gitignored)
+- `.atta/local/developer-profile.md` (personal, may not exist if gitignored)
 - `.atta/project/project-profile.md` (team conventions)
 
 If neither file exists or has `[x]` checkboxes, skip profile injection entirely.
@@ -444,7 +444,7 @@ For each agent that has `pattern_file` specified:
 1. Check if rich pattern template exists: `bootstrap/templates/patterns/{tech}-patterns.template.md`
 2. **If template exists**: load and substitute variables (full rich content)
 3. **If template does NOT exist**: generate a basic pattern file from the agent mapping's `rules` and `anti_patterns` arrays — this ensures every detected technology gets a pattern file
-4. Write to `knowledge/patterns/{pattern_file}`
+4. Write to `team/patterns/{pattern_file}`
 5. Link agent to pattern file in Knowledge Base section
 
 ---
@@ -631,9 +631,9 @@ Write `.metadata/generated-manifest.json`:
       }
     ],
     "patterns": [
-      "knowledge/patterns/vue-patterns.md",
-      "knowledge/patterns/typescript-patterns.md",
-      "knowledge/patterns/django-patterns.md"
+      "team/patterns/vue-patterns.md",
+      "team/patterns/typescript-patterns.md",
+      "team/patterns/django-patterns.md"
     ],
     "skills": [],
     "config": [
@@ -715,7 +715,7 @@ If a required variable is missing:
 
 - Coordinators in `agents/coordinators/`
 - Specialists in `agents/specialists/`
-- Patterns in `knowledge/patterns/`
+- Patterns in `team/patterns/`
 - Generated skills in `skills/generated/`
 - Never modify core agents at `agents/` root (universal agents)
 

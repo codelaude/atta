@@ -118,7 +118,7 @@ All agents produce findings in a normalized markdown table:
 | agent_id | domain | severity | file:line | finding | recommendation | conflicts_with |
 ```
 
-This standardized format is what enables automated conflict detection and cross-agent comparison. It's defined in `.atta/knowledge/templates/collaboration-finding.md`.
+This standardized format is what enables automated conflict detection and cross-agent comparison. It's defined inline in `.claude/skills/collaborate/SKILL.md`.
 
 **Domains**: framework, language, styling, accessibility, security, testing, architecture, performance, database
 
@@ -224,8 +224,8 @@ The normalized finding schema (markdown tables) is the portable contract:
 ### Framework Files (Committed)
 ```
 .claude/skills/collaborate/SKILL.md                      # The skill itself
-.atta/knowledge/templates/collaboration-finding.md     # Normalized finding schema
-.atta/.sessions/schema.json                            # Extended with collaboration metadata
+# Finding schema is inlined in SKILL.md (no separate file)
+.atta/local/sessions/schema.json                            # Extended with collaboration metadata
 ```
 
 ### Referenced Files
@@ -233,7 +233,7 @@ The normalized finding schema (markdown tables) is the portable contract:
 .claude/agents/INDEX.md                                  # Agent registry (for discovery)
 .atta/project/project-context.md             # Tech stack context (for routing)
 .claude/agents/specialists/*.md                          # Specialist definitions (read per agent)
-.atta/knowledge/patterns/*.md                          # Pattern files (passed to agents)
+.atta/team/patterns/*.md                          # Pattern files (passed to agents)
 ```
 
 ## FAQ

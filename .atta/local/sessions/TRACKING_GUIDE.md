@@ -23,7 +23,7 @@ Copilot, Codex, and Gemini adapters do not support hooks. Session tracking is sk
 
 - **Session files**: `{claudeDir}/.sessions/session-YYYY-MM-DD-HHMMSS-{uuid}.json`
 - **Hook script**: `.claude/hooks/session-track.sh` (framework source)
-- **Schema**: `.atta/.sessions/schema.json`
+- **Schema**: `.atta/local/sessions/schema.json`
 - `{claudeDir}` comes from `.env.claude` (CLAUDE_WORKSPACE_DIR) or defaults to `.claude/`
 
 ## Session Schema
@@ -52,7 +52,7 @@ Copilot, Codex, and Gemini adapters do not support hooks. Session tracking is sk
 
 ## Cleanup
 
-The hook auto-runs `session-cleanup.sh` (keeps 10 most recent sessions) and `generate-context.sh` (refreshes `.atta/.context/recent.md`) on session finalization.
+The hook auto-runs `session-cleanup.sh` (keeps 10 most recent sessions) and `generate-context.sh` (refreshes `.atta/local/context/recent.md`) on session finalization.
 
 ## Manual Session Tracking (if hooks unavailable)
 

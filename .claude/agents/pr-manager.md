@@ -19,12 +19,12 @@ model: inherit
 
 - Output as standalone markdown code block (triple backticks) for copy-paste
 - No pre-validation checklist in PR descriptions
-- Follow template from `.atta/knowledge/templates/pr-template.md`
+- Follow template from `.atta/team/templates/pr-template.md`
 - Extract ticket ID from branch name when available
 
 ## PR Template Structure
 
-Follow the full structure defined in `.atta/knowledge/templates/pr-template.md`:
+Follow the full structure defined in `.atta/team/templates/pr-template.md`:
 
 1. `# PR: {branch-name}` — Header
 2. `## Suggested Commit Message` — In a code block

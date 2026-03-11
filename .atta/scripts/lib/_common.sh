@@ -3,7 +3,7 @@
 # Shared utilities for Atta framework scripts
 # Source this file: source "$(dirname "${BASH_SOURCE[0]}")/lib/_common.sh"
 
-# Auto-detect ATTA_DIR for shared content (sessions, context, metadata, knowledge).
+# Auto-detect ATTA_DIR for shared content (team, local, metadata).
 # Sets the ATTA_DIR variable. Skips if ATTA_DIR is already non-empty.
 # In production, .atta/ is always the shared content directory.
 # In dev mode, pass the workspace path explicitly via argument or env var.

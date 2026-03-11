@@ -43,7 +43,7 @@ You are now acting as the **Profile Manager** — responsible for viewing, updat
 ### Step 1: Read Profile
 
 Read both profile files:
-- `.atta/knowledge/developer-profile.md` — personal AI collaboration prefs (gitignored)
+- `.atta/local/developer-profile.md` — personal AI collaboration prefs (gitignored)
 - `.atta/project/project-profile.md` — team conventions and review priorities (committed)
 
 If neither file has any `[x]` checkboxes, show:
@@ -188,7 +188,7 @@ Profile updated with core preferences. Now applying to your project...
 
 ### Step 3c: Detect Already-Configured Sections
 
-Read `.atta/knowledge/developer-profile.md`. **Skip any section that already has `[x]` checkboxes** (or for Naming Conventions: placeholder values replaced with detected values by `/atta`).
+Read `.atta/local/developer-profile.md`. **Skip any section that already has `[x]` checkboxes** (or for Naming Conventions: placeholder values replaced with detected values by `/atta`).
 
 `--complete` owns: Exception Cases, Output Format, Code Examples, Testing Approach, Documentation, Naming Conventions. Always skip the 5 sections owned by `--update`.
 
@@ -290,7 +290,7 @@ Profile completed! All sections configured. Now applying to your project...
 ### Step 5: Parse Profile
 
 Read both profile files:
-- `.atta/knowledge/developer-profile.md` — personal prefs (may not exist if gitignored and not yet created)
+- `.atta/local/developer-profile.md` — personal prefs (may not exist if gitignored and not yet created)
 - `.atta/project/project-profile.md` — team conventions
 
 If neither file has any checked items:

@@ -56,6 +56,7 @@ const contentChecks = [
   ['anthropic_api_key:', 'API key reference'],
   ['.atta/project/project-context.md', 'project-context.md reference'],
   ['.atta/knowledge/ci-suppressions.md', 'suppressions reference'],
+  ['.atta/knowledge/review-guidance.md', 'review-guidance.md reference'],
   ['pull_request:', 'PR trigger'],
   ['ready_for_review', 'ready_for_review trigger'],
 ];

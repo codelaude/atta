@@ -17,7 +17,7 @@
     Pattern CRITICAL → review CRITICAL / 🔴 blocker
     Pattern HIGH     → review HIGH / 🟠 normal
     Pattern MEDIUM   → review MEDIUM / 🟡 nit
-    Pattern LOW      → review LOW / 🟡 nit (or skip)
+    Pattern LOW      → not surfaced by formatters (ignored in review output)
 -->
 
 ## Always Check (Universal)

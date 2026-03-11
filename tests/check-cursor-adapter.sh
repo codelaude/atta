@@ -117,6 +117,22 @@ if ! grep -q '@atta-review\|@atta-agent\|@atta-atta' "$WORK_DIR/AGENTS.md"; then
   ERRORS=$((ERRORS + 1))
 fi
 
+# Check: agent files have valid frontmatter (name + description, no model: inherit)
+while IFS= read -r -d '' agent; do
+  if ! head -5 "$agent" | grep -q "^name:"; then
+    echo "FAIL: $agent missing 'name:' frontmatter"
+    ERRORS=$((ERRORS + 1))
+  fi
+  if ! head -5 "$agent" | grep -q "^description:"; then
+    echo "FAIL: $agent missing 'description:' frontmatter"
+    ERRORS=$((ERRORS + 1))
+  fi
+  if head -5 "$agent" | grep -q "^model: inherit"; then
+    echo "FAIL: $agent contains 'model: inherit' (Claude Code-specific)"
+    ERRORS=$((ERRORS + 1))
+  fi
+done < <(find "$WORK_DIR/.cursor/agents" -name "*.md" -not -path "*/memory/*" -print0 2>/dev/null)
+
 if [ $ERRORS -eq 0 ]; then
   echo "PASS: Cursor adapter — structure + content correct ($MDC_COUNT rules, $AGENT_COUNT agents, zero Claude-isms)"
   exit 0

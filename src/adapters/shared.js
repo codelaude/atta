@@ -54,8 +54,18 @@ export function parseAgentFrontmatter(content) {
       );
     }
 
-    // Strip surrounding quotes if present (both single and double)
-    fm[kvMatch[1]] = value.replace(/^(['"])(.*)\1$/, '$2');
+    // Strip surrounding quotes and unescape if present (both single and double)
+    const quoteMatch = value.match(/^(['"])(.*)\1$/);
+    if (quoteMatch) {
+      let inner = quoteMatch[2];
+      // Double-quoted values: unescape \" and \\ (matches yamlQuoteIfNeeded output)
+      if (quoteMatch[1] === '"') {
+        inner = inner.replace(/\\(["\\])/g, '$1');
+      }
+      fm[kvMatch[1]] = inner;
+    } else {
+      fm[kvMatch[1]] = value;
+    }
   }
 
   return { frontmatter: fm, body: match[2] || '' };

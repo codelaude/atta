@@ -114,7 +114,8 @@ if [ ! -s "$WORK_DIR/.codex/config.toml" ]; then
   ERRORS=$((ERRORS + 1))
 else
   # Validate TOML is parseable and has agent sections
-  python3 - "$WORK_DIR/.codex/config.toml" <<'PYEOF'
+  # Use || to prevent set -e from exiting the script on python3 failure
+  if ! python3 - "$WORK_DIR/.codex/config.toml" <<'PYEOF'
 import sys
 try:
     import tomllib
@@ -151,7 +152,9 @@ for name, agent in agents.items():
         print(f'FAIL: agents.{name} missing or empty config_file')
         sys.exit(1)
 PYEOF
-  [ $? -eq 0 ] || ERRORS=$((ERRORS + 1))
+  then
+    ERRORS=$((ERRORS + 1))
+  fi
 fi
 
 # Check: agent .md files have valid frontmatter (no model: inherit)

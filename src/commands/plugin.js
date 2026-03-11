@@ -276,7 +276,7 @@ const COPILOT_BUILTIN_CONFLICTS = new Set(['review', 'agent', 'update']);
  * Output structure:
  *   plugin.json
  *   skills/<name>/SKILL.md (renamed for conflicts)
- *   agents/<name>.md (copied from .claude/agents/ without renaming)
+ *   agents/<name>.agent.md (copied from .claude/agents/, .agent.md extension)
  *   hooks/hooks.json
  *   instructions/ (Copilot-idiomatic instruction files)
  *   README.md

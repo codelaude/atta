@@ -1,5 +1,5 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
-import { join, basename } from 'node:path';
+import { join } from 'node:path';
 
 /**
  * Review guidance generation — extracts Key Rules and Anti-Patterns from
@@ -220,7 +220,7 @@ export function formatClaudeCode(rules) {
     lines.push(`- 🟡 ${rule}`);
   }
   // Add MEDIUM anti-patterns as style nits
-  for (const { tech, antiPatterns } of rules.techRules) {
+  for (const { antiPatterns } of rules.techRules) {
     const medium = antiPatterns.filter((a) => a.severity === 'MEDIUM');
     for (const ap of medium) {
       lines.push(`- 🟡 ${ap.see} → ${ap.do}`);
@@ -309,7 +309,7 @@ export function formatCursorBugbot(rules) {
   for (const rule of rules.universal.alwaysCheck) {
     lines.push(`- If ${rule.toLowerCase().replace(/^no /, 'there are ')}, then: Flag as blocking.`);
   }
-  for (const { tech, antiPatterns } of rules.techRules) {
+  for (const { antiPatterns } of rules.techRules) {
     for (const ap of antiPatterns) {
       if (ap.severity === 'CRITICAL' || ap.severity === 'HIGH') {
         lines.push(`- If you see ${ap.see.toLowerCase()}, then: ${ap.do}. [blocking]`);
@@ -323,7 +323,7 @@ export function formatCursorBugbot(rules) {
   for (const rule of rules.universal.style) {
     lines.push(`- If ${rule.toLowerCase()}, then: Suggest fix. [non-blocking]`);
   }
-  for (const { tech, antiPatterns } of rules.techRules) {
+  for (const { antiPatterns } of rules.techRules) {
     for (const ap of antiPatterns) {
       if (ap.severity === 'MEDIUM') {
         lines.push(`- If you see ${ap.see.toLowerCase()}, then: ${ap.do}. [non-blocking]`);
@@ -393,7 +393,7 @@ export function formatCodex(rules) {
   for (const rule of rules.universal.alwaysCheck) {
     lines.push(`- ${rule}`);
   }
-  for (const { tech, antiPatterns } of rules.techRules) {
+  for (const { antiPatterns } of rules.techRules) {
     for (const ap of antiPatterns) {
       if (ap.severity === 'CRITICAL') {
         lines.push(`- ${ap.see} → ${ap.do}`);
@@ -403,7 +403,7 @@ export function formatCodex(rules) {
   lines.push('');
 
   lines.push('### P1 — Flag when significant');
-  for (const { tech, antiPatterns } of rules.techRules) {
+  for (const { antiPatterns } of rules.techRules) {
     for (const ap of antiPatterns) {
       if (ap.severity === 'HIGH') {
         lines.push(`- ${ap.see} → ${ap.do}`);

@@ -46,6 +46,35 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
     }
   }
 
+  // Generate hooks.json for plugin manifest (hooks field must be a file path per spec)
+  const hooksDir = join(claudeDir, 'hooks');
+  const hooksJsonPath = join(hooksDir, 'hooks.json');
+  if (!existsSync(hooksJsonPath)) {
+    mkdirSync(hooksDir, { recursive: true });
+    const hookCmd = '"$CLAUDE_PROJECT_DIR"/.claude/hooks/session-track.sh';
+    const hooksConfig = {
+      PostToolUse: [
+        {
+          matcher: 'Skill',
+          hooks: [{ type: 'command', command: hookCmd, async: true }],
+        },
+      ],
+      Stop: [
+        {
+          hooks: [{ type: 'command', command: hookCmd, async: true }],
+        },
+      ],
+    };
+    const tmpHooks = hooksJsonPath + '.tmp';
+    writeFileSync(tmpHooks, JSON.stringify(hooksConfig, null, 2) + '\n');
+    renameSync(tmpHooks, hooksJsonPath);
+    results.files++;
+
+    if (!options.quiet) {
+      console.log(`  ${pc.green('✓')} .claude/hooks/hooks.json (session tracking hooks)`);
+    }
+  }
+
   // Copy shared content to .atta/
   const sharedCount = copySharedContent(attaRoot, targetDir, options);
   results.files += sharedCount;
@@ -190,7 +219,7 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
     }
   }
 
-  // Generate plugin manifest
+  // Generate plugin manifest (matches Claude Code plugin spec)
   const pluginDir = join(targetDir, '.claude-plugin');
   mkdirSync(pluginDir, { recursive: true });
 
@@ -200,8 +229,16 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
     version,
     description:
       'Atta — AI Dev Team Agent. Dynamic agent generation, multi-tool support, and intelligent code review.',
-    skills: listSkills(claudeRoot).map(({ name, description, path }) => ({ name, description, path })),
-    agents_index: '.claude/agents/INDEX.md',
+    author: {
+      name: 'CodeLaude',
+      url: 'https://github.com/codelaude',
+    },
+    repository: 'https://github.com/codelaude/atta',
+    license: 'MIT',
+    keywords: ['framework', 'agents', 'skills', 'code-review'],
+    skills: '.claude/skills/',
+    agents: '.claude/agents/',
+    hooks: '.claude/hooks/hooks.json',
   };
 
   const pluginPath = join(pluginDir, 'plugin.json');

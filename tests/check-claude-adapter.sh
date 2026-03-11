@@ -24,6 +24,7 @@ for path in \
   ".claude/skills/atta/SKILL.md" \
   ".claude/agents/project-owner.md" \
   ".claude/agents/code-reviewer.md" \
+  ".claude/hooks/hooks.json" \
   ".claude-plugin/plugin.json" \
   "GETTING-STARTED.md"
 do
@@ -55,12 +56,18 @@ import json, sys
 path = sys.argv[1]
 with open(path) as f:
     data = json.load(f)
-for field in ['name', 'version', 'description', 'skills']:
+for field in ['name', 'version', 'description', 'skills', 'agents', 'hooks']:
     if field not in data:
         print(f'FAIL: plugin.json missing field: {field}')
         sys.exit(1)
-if len(data['skills']) < 3:
-    print(f'FAIL: plugin.json has fewer than 3 skills ({len(data["skills"])})')
+# skills/agents are directory path strings
+for field in ['skills', 'agents']:
+    if not isinstance(data[field], str) or not data[field].endswith('/'):
+        print(f'FAIL: plugin.json {field} should be a path string ending with / (got: {data[field]!r})')
+        sys.exit(1)
+# hooks is a file path string (per plugin spec: hooks points to a .json file)
+if not isinstance(data['hooks'], str) or not data['hooks'].endswith('.json'):
+    print(f'FAIL: plugin.json hooks should be a file path ending with .json (got: {data["hooks"]!r})')
     sys.exit(1)
 PYEOF
 fi

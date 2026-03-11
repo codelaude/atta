@@ -21,7 +21,8 @@ for check in \
   check-codex-adapter.sh \
   check-agents-md-generator.sh \
   check-cursor-adapter.sh \
-  check-github-action-adapter.sh
+  check-github-action-adapter.sh \
+  check-plugin-generator.sh
 do
   echo "--- [CORE] Running $check ---"
   if bash "$SCRIPT_DIR/$check"; then

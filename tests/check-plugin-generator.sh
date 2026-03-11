@@ -25,7 +25,10 @@ count_files() {
 # ─── Claude Code Plugin ──────────────────────────────────────────────────────
 
 echo "[claude-code] Generating plugin..."
-node "$REPO_ROOT/bin/atta.js" plugin --target claude-code --output "$WORK_DIR" > /dev/null 2>&1
+if ! node "$REPO_ROOT/bin/atta.js" plugin --target claude-code --output "$WORK_DIR" > /dev/null 2>&1; then
+  echo "FAIL: [claude-code] Plugin generation failed"
+  ERRORS=$((ERRORS + 1))
+fi
 
 DIR="$WORK_DIR/claude-code"
 
@@ -96,7 +99,10 @@ echo "[claude-code] $CC_SKILL_COUNT skills, $CC_AGENT_COUNT agents"
 # ─── Copilot Plugin ──────────────────────────────────────────────────────────
 
 echo "[copilot] Generating plugin..."
-node "$REPO_ROOT/bin/atta.js" plugin --target copilot --output "$WORK_DIR" > /dev/null 2>&1
+if ! node "$REPO_ROOT/bin/atta.js" plugin --target copilot --output "$WORK_DIR" > /dev/null 2>&1; then
+  echo "FAIL: [copilot] Plugin generation failed"
+  ERRORS=$((ERRORS + 1))
+fi
 
 DIR="$WORK_DIR/copilot"
 
@@ -172,7 +178,10 @@ echo "[copilot] $COP_AGENT_COUNT .agent.md agents"
 # ─── Cursor Plugin ───────────────────────────────────────────────────────────
 
 echo "[cursor] Generating plugin..."
-node "$REPO_ROOT/bin/atta.js" plugin --target cursor --output "$WORK_DIR" > /dev/null 2>&1
+if ! node "$REPO_ROOT/bin/atta.js" plugin --target cursor --output "$WORK_DIR" > /dev/null 2>&1; then
+  echo "FAIL: [cursor] Plugin generation failed"
+  ERRORS=$((ERRORS + 1))
+fi
 
 DIR="$WORK_DIR/cursor"
 
@@ -216,7 +225,10 @@ echo "[cursor] $CUR_RULE_COUNT rules"
 # ─── Codex Plugin ────────────────────────────────────────────────────────────
 
 echo "[codex] Generating plugin..."
-node "$REPO_ROOT/bin/atta.js" plugin --target codex --output "$WORK_DIR" > /dev/null 2>&1
+if ! node "$REPO_ROOT/bin/atta.js" plugin --target codex --output "$WORK_DIR" > /dev/null 2>&1; then
+  echo "FAIL: [codex] Plugin generation failed"
+  ERRORS=$((ERRORS + 1))
+fi
 
 DIR="$WORK_DIR/codex"
 

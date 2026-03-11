@@ -682,7 +682,7 @@ const CODEX_COMMAND_MAP = {
  *
  * Output structure:
  *   skills/<name>/SKILL.md (rewritten with $prefix)
- *   agents/<name>.md (frontmatter stripped, body rewritten)
+ *   agents/<name>.md (frontmatter filtered to name+description, body rewritten)
  *   .codex/config.toml ([agents.*] sections)
  *   AGENTS.md
  *   README.md
@@ -774,7 +774,9 @@ function generateCodexPlugin(claudeRoot, attaRoot, outputBase) {
         .replace(/\t/g, '\\t')
         .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/g,
           (ch) => '\\u' + ch.charCodeAt(0).toString(16).padStart(4, '0'));
-      tomlLines.push(`[agents.${agent.name}]`);
+      // Quote the key to handle names with dots, spaces, or other non-bare-key chars
+      const safeKey = /^[A-Za-z0-9_-]+$/.test(agent.name) ? agent.name : `"${agent.name.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+      tomlLines.push(`[agents.${safeKey}]`);
       tomlLines.push(`description = "${desc}"`);
       tomlLines.push(`config_file = "agents/${agent.fileName}"`);
       tomlLines.push('');

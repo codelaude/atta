@@ -11,7 +11,7 @@ import pc from 'picocolors';
  * Documents equivalent event names across all 5 tools with hook support.
  * Used by adapters and plugin generators to emit the correct event names.
  *
- * Event counts: Claude Code 17, Cursor 19+, Gemini 12, Copilot 6, Codex 2 (approval only).
+ * Event counts: Claude Code 17, Cursor 19+, Gemini 10, Copilot 6, Codex 2 (approval only).
  *
  * @type {Object<string, Object<string, string|null>>}
  */
@@ -86,7 +86,7 @@ export function generateHooksConfig(adapter) {
   }
 
   if (adapter === 'gemini') {
-    // Gemini: 12 events, JSON stdin/stdout hooks
+    // Gemini: 10 events, JSON stdin/stdout hooks
     return {
       hooks: {
         SessionStart: [],
@@ -103,7 +103,7 @@ export function generateHooksConfig(adapter) {
     };
   }
 
-  return { hooks: {} };
+  throw new Error(`generateHooksConfig: unknown adapter "${adapter}" (expected copilot, cursor, or gemini)`);
 }
 
 /**

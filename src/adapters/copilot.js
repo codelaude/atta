@@ -173,7 +173,7 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   writeFileSync(join(instructionsDir, 'atta-agents.instructions.md'), [
     '# Atta Agents',
     '',
-    'Agent definitions are in `.github/atta/agents/` as markdown files.',
+    'Agent definitions are in `.github/atta/agents/*.agent.md`.',
     'Invoke agents via `/atta-agent <id>` (e.g., `/atta-agent project-owner`).',
     '',
     '## Agent Directory',

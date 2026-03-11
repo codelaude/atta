@@ -100,7 +100,7 @@ function extractFromTemplate(templatePath) {
  *
  * @param {string} attaRoot - Path to .atta/ source (templates live here)
  * @param {string[]} [detectedTechs] - Array of detected technology identifiers.
- *   If empty/undefined, scans all available templates.
+ *   If empty/undefined, falls back to security and testing templates only.
  * @returns {{ universal: object, techRules: Array<{tech: string, keyRules: string[], antiPatterns: object[]}> }}
  */
 export function generateReviewRules(attaRoot, detectedTechs) {
@@ -208,7 +208,7 @@ export function formatClaudeCode(rules) {
 
     lines.push(`### ${formatTechName(tech)}`, '');
     for (const ap of critical) {
-      const emoji = ap.severity === 'CRITICAL' ? '🔴' : '🔴';
+      const emoji = ap.severity === 'CRITICAL' ? '🔴' : '🟠';
       lines.push(`- ${emoji} ${ap.see} → ${ap.do}`);
     }
     lines.push('');

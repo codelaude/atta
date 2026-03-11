@@ -70,6 +70,7 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
 
   // .cursor/BUGBOT.md — BugBot PR review (conditional rules)
   const bugbotContent = formatCursorBugbot(reviewRules);
+  mkdirSync(join(targetDir, '.cursor'), { recursive: true });
   writeFileSync(join(targetDir, '.cursor', 'BUGBOT.md'), bugbotContent);
   results.files++;
 

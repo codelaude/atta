@@ -113,6 +113,27 @@ if [ ! -f "$WORK_DIR/.gemini/agents/memory/directives.md" ]; then
   ERRORS=$((ERRORS + 1))
 fi
 
+# Check review guidance files exist
+if [ ! -s "$WORK_DIR/.gemini/styleguide.md" ]; then
+  echo "FAIL: .gemini/styleguide.md missing or empty"
+  ERRORS=$((ERRORS + 1))
+else
+  if ! grep -q "## Always Check" "$WORK_DIR/.gemini/styleguide.md"; then
+    echo "FAIL: styleguide.md missing '## Always Check' section"
+    ERRORS=$((ERRORS + 1))
+  fi
+fi
+
+if [ ! -s "$WORK_DIR/.gemini/config.yaml" ]; then
+  echo "FAIL: .gemini/config.yaml missing or empty"
+  ERRORS=$((ERRORS + 1))
+else
+  if ! grep -q "comment_severity_threshold" "$WORK_DIR/.gemini/config.yaml"; then
+    echo "FAIL: config.yaml missing comment_severity_threshold"
+    ERRORS=$((ERRORS + 1))
+  fi
+fi
+
 # --- Content contract checks (adapter hardening) ---
 
 COMMANDS_DIR="$WORK_DIR/.gemini/commands"

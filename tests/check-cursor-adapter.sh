@@ -83,6 +83,32 @@ if [ ! -f "$WORK_DIR/.cursor/agents/memory/directives.md" ]; then
   ERRORS=$((ERRORS + 1))
 fi
 
+# Check BUGBOT.md exists and has blocking/non-blocking sections
+if [ ! -s "$WORK_DIR/.cursor/BUGBOT.md" ]; then
+  echo "FAIL: .cursor/BUGBOT.md missing or empty"
+  ERRORS=$((ERRORS + 1))
+else
+  if ! grep -q "## Blocking" "$WORK_DIR/.cursor/BUGBOT.md"; then
+    echo "FAIL: BUGBOT.md missing '## Blocking' section"
+    ERRORS=$((ERRORS + 1))
+  fi
+  if ! grep -q "## Non-blocking" "$WORK_DIR/.cursor/BUGBOT.md"; then
+    echo "FAIL: BUGBOT.md missing '## Non-blocking' section"
+    ERRORS=$((ERRORS + 1))
+  fi
+fi
+
+# Check atta-review.mdc exists with review guidance
+if [ ! -s "$WORK_DIR/.cursor/rules/atta-review.mdc" ]; then
+  echo "FAIL: .cursor/rules/atta-review.mdc missing or empty"
+  ERRORS=$((ERRORS + 1))
+else
+  if ! grep -q "## Always Check" "$WORK_DIR/.cursor/rules/atta-review.mdc"; then
+    echo "FAIL: atta-review.mdc missing '## Always Check' section"
+    ERRORS=$((ERRORS + 1))
+  fi
+fi
+
 # --- Content contract checks (adapter hardening) ---
 
 RULES_DIR="$WORK_DIR/.cursor/rules"

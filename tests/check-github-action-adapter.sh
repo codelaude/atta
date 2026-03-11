@@ -29,6 +29,7 @@ const results = install(claudeRoot, attaRoot, targetDir, { quiet: true });
 const checks = [
   [join(targetDir, '.github', 'workflows', 'atta-review.yml'), 'workflow file'],
   [join(targetDir, '.atta', 'knowledge', 'ci-suppressions.md'), 'ci-suppressions.md'],
+  [join(targetDir, '.atta', 'knowledge', 'review-guidance.md'), 'review-guidance.md'],
   [join(targetDir, '.atta', 'knowledge'), 'shared knowledge/'],
   [join(targetDir, '.atta', 'bootstrap'), 'shared bootstrap/'],
 ];
@@ -55,6 +56,7 @@ const contentChecks = [
   ['anthropic_api_key:', 'API key reference'],
   ['.atta/project/project-context.md', 'project-context.md reference'],
   ['.atta/knowledge/ci-suppressions.md', 'suppressions reference'],
+  ['.atta/knowledge/review-guidance.md', 'review-guidance.md reference'],
   ['pull_request:', 'PR trigger'],
   ['ready_for_review', 'ready_for_review trigger'],
 ];

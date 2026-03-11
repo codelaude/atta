@@ -111,6 +111,23 @@ for ifile in atta-skills.instructions.md atta-agents.instructions.md atta-memory
   fi
 done
 
+# Check review guidance instructions file exists and has frontmatter
+if [ ! -s "$WORK_DIR/.github/instructions/atta-review.instructions.md" ]; then
+  echo "FAIL: .github/instructions/atta-review.instructions.md missing or empty"
+  ERRORS=$((ERRORS + 1))
+else
+  if ! head -3 "$WORK_DIR/.github/instructions/atta-review.instructions.md" | grep -q "^applyTo:"; then
+    echo "FAIL: atta-review.instructions.md missing 'applyTo:' frontmatter"
+    ERRORS=$((ERRORS + 1))
+  fi
+  # Verify under 4K char limit
+  REVIEW_SIZE=$(wc -c < "$WORK_DIR/.github/instructions/atta-review.instructions.md" | tr -d ' ')
+  if [ "$REVIEW_SIZE" -gt 4000 ]; then
+    echo "FAIL: atta-review.instructions.md exceeds 4000 char limit ($REVIEW_SIZE chars)"
+    ERRORS=$((ERRORS + 1))
+  fi
+fi
+
 # --- Content contract checks (adapter hardening) ---
 
 # Exclude update/SKILL.md from .claude/ checks — it's inherently about .claude/ management

@@ -189,7 +189,7 @@ export function generateReviewRules(attaRoot, detectedTechs) {
 /**
  * Format review rules as Claude Code REVIEW.md.
  * Sections: ## Always check, ## Style, ## Skip, ## {Tech} (per detected tech)
- * Severity: 🔴 (CRITICAL/HIGH), 🟡 (MEDIUM), skip LOW
+ * Severity: 🔴 (CRITICAL), 🟠 (HIGH), 🟡 (MEDIUM), skip LOW
  */
 export function formatClaudeCode(rules) {
   const lines = ['# Code Review Guidance', ''];

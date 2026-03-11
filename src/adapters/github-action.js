@@ -102,7 +102,8 @@ function buildPromptBody() {
             1. \`.atta/project/project-context.md\` — tech stack and architecture
             2. \`.atta/project/project-profile.md\` — team conventions and review priorities (if exists)
             3. All \`*.md\` files in \`.atta/knowledge/patterns/\` — technology-specific conventions
-            4. \`.atta/knowledge/ci-suppressions.md\` — known false positives (skip these)
+            4. \`.atta/knowledge/review-guidance.md\` — stack-specific review rules (if exists)
+            5. \`.atta/knowledge/ci-suppressions.md\` — known false positives (skip these)
 
             Then review all files changed in this PR.
 

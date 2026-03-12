@@ -41,6 +41,12 @@ jobs:
             echo "version=$CURRENT" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Upgrade npm for OIDC trusted publishing
+        if: steps.version.outputs.skip == 'false'
+        run: |
+          npm install -g npm@^11.5.1
+          npm --version
+
       - name: Install dependencies
         if: steps.version.outputs.skip == 'false'
         run: npm install

@@ -75,5 +75,6 @@ bash .claude/hooks/session-track.sh <<< '{"hook_event_name":"Stop","cwd":"/path/
 - `interrupted`: User canceled or session ended unexpectedly
 
 ### Agent Status
+- `in_progress`: Agent is currently running
 - `completed`: Agent finished its task
 - `failed`: Agent encountered an error

@@ -5,7 +5,7 @@ description: PR Description Template
 
 # Pull Request Description Template
 
-When generating a PR description, follow this exact structure. Ensure `{claudeDir}/local/PR/` exists (create if needed). Write the file to `{claudeDir}/local/PR/PR-{branch-slug}.md`, where `branch-slug` is the branch name with `/` replaced by `-` (e.g., `feature/ABC-123` → `feature-ABC-123`).
+When generating a PR description, follow this exact structure. Ensure `{attaDir}/local/PR/` exists (create if needed). Write the file to `{attaDir}/local/PR/PR-{branch-slug}.md`, where `branch-slug` is the branch name with `/` replaced by `-` (e.g., `feature/ABC-123` → `feature-ABC-123`).
 
 ## File Structure
 

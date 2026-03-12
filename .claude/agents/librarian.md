@@ -79,6 +79,6 @@ All scoped files live in the same `memory/` directory as root `directives.md`.
 - `{attaDir}/local/context/corrections.jsonl` — append-only correction log
 - `{attaDir}/local/context/patterns-learned.json` — aggregation cache
 - `{attaDir}/local/context/agent-learning.json` — per-agent learning
-- `.atta/team/patterns/` — pattern files
-- `.atta/team/quick-reference.md`
-- `.atta/project/project-context.md`
+- `{attaDir}/team/patterns/` — pattern files
+- `{attaDir}/team/quick-reference.md`
+- `{attaDir}/project/project-context.md`

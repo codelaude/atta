@@ -1,6 +1,0 @@
-# Generated session files (runtime data, not framework source)
-session-*.json
-
-# Keep the schema and documentation
-!schema.json
-!README.md

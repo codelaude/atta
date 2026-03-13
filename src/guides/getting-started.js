@@ -11,12 +11,8 @@ export function generateGettingStarted(adapter, answers) {
     'github-action': 'GitHub Action',
   }[adapter] || 'your AI tool';
 
-  // Codex uses $ prefix, Cursor uses @atta- prefix, all others use /
-  const p = adapter === 'codex' ? '$' : adapter === 'cursor' ? '@atta-' : '/';
-
-  // Copilot renames skills that conflict with built-in commands
-  const agent = adapter === 'copilot' ? 'atta-agent' : 'agent';
-  const review = adapter === 'copilot' ? 'atta-review' : 'review';
+  // Codex uses $ prefix, Cursor uses @ prefix, all others use /
+  const p = adapter === 'codex' ? '$' : adapter === 'cursor' ? '@' : '/';
 
   const lines = [];
 
@@ -59,7 +55,7 @@ export function generateGettingStarted(adapter, answers) {
     lines.push('```');
     lines.push('');
     lines.push(
-      'This auto-detects your tech stack and generates specialist agents tailored to your project. Skills are in `.agents/skills/` and agents in `.agents/agents/`. Invoke skills with `$review`, `$preflight`, etc.'
+      'This auto-detects your tech stack and generates specialist agents tailored to your project. Skills are in `.agents/skills/` and agents in `.agents/agents/`. Invoke skills with `$atta-review`, `$atta-preflight`, etc.'
     );
   } else if (adapter === 'gemini') {
     lines.push('Open your project in Gemini CLI and run:');
@@ -69,13 +65,13 @@ export function generateGettingStarted(adapter, answers) {
     lines.push('```');
     lines.push('');
     lines.push(
-      'This auto-detects your tech stack and generates specialist agents tailored to your project. `GEMINI.md` provides context and TOML commands in `.gemini/commands/` register as slash commands (e.g., `/review`, `/preflight`).'
+      'This auto-detects your tech stack and generates specialist agents tailored to your project. `GEMINI.md` provides context and TOML commands in `.gemini/commands/` register as slash commands (e.g., `/atta-review`, `/atta-preflight`).'
     );
   } else if (adapter === 'cursor') {
     lines.push('Open your project in Cursor and type in chat:');
     lines.push('');
     lines.push('```');
-    lines.push('@atta-atta');
+    lines.push('@atta');
     lines.push('```');
     lines.push('');
     lines.push(
@@ -95,7 +91,7 @@ export function generateGettingStarted(adapter, answers) {
     lines.push('## 2. Take the Tutorial (5 min)');
     lines.push('');
     lines.push('```');
-    lines.push(`${p}tutorial`);
+    lines.push(`${p}atta-tutorial`);
     lines.push('```');
     lines.push('');
     lines.push(
@@ -103,7 +99,7 @@ export function generateGettingStarted(adapter, answers) {
     );
     lines.push('');
     lines.push('```');
-    lines.push(`${p}tutorial --quick    # Just the reference card`);
+    lines.push(`${p}atta-tutorial --quick    # Just the reference card`);
     lines.push('```');
     lines.push('');
   }
@@ -135,27 +131,27 @@ export function generateGettingStarted(adapter, answers) {
     lines.push('');
     lines.push('| Command | What it does |');
     lines.push('|---------|-------------|');
-    lines.push(`| \`${p}${agent} project-owner\` | Route any task to the right specialist |`);
-    lines.push(`| \`${p}team-lead [task]\` | Decompose a feature into specialist tracks |`);
-    lines.push(`| \`${p}${agent} rubber-duck\` | Think through a problem with guided questions |`);
+    lines.push(`| \`${p}atta-agent project-owner\` | Route any task to the right specialist |`);
+    lines.push(`| \`${p}atta-team-lead [task]\` | Decompose a feature into specialist tracks |`);
+    lines.push(`| \`${p}atta-agent rubber-duck\` | Think through a problem with guided questions |`);
     lines.push('');
 
     lines.push('### Code Quality');
     lines.push('');
     lines.push('| Command | What it does |');
     lines.push('|---------|-------------|');
-    lines.push(`| \`${p}lint [file]\` | Fast pattern check |`);
-    lines.push(`| \`${p}${review}\` | Deep code review against conventions |`);
-    lines.push(`| \`${p}security-audit\` | OWASP Top 10 vulnerability scan |`);
-    lines.push(`| \`${p}preflight\` | Full pre-PR validation (lint + review + security + tests) |`);
+    lines.push(`| \`${p}atta-lint [file]\` | Fast pattern check |`);
+    lines.push(`| \`${p}atta-review\` | Deep code review against conventions |`);
+    lines.push(`| \`${p}atta-security-audit\` | OWASP Top 10 vulnerability scan |`);
+    lines.push(`| \`${p}atta-preflight\` | Full pre-PR validation (lint + review + security + tests) |`);
     lines.push('');
 
     lines.push('### Knowledge & Memory');
     lines.push('');
     lines.push('| Command | What it does |');
     lines.push('|---------|-------------|');
-    lines.push(`| \`${p}librarian\` | Capture rules and preferences across sessions |`);
-    lines.push(`| \`${p}collaborate\` | Multi-agent review (2-4 specialists in parallel) |`);
+    lines.push(`| \`${p}atta-librarian\` | Capture rules and preferences across sessions |`);
+    lines.push(`| \`${p}atta-collaborate\` | Multi-agent review (2-4 specialists in parallel) |`);
     lines.push('');
   }
 
@@ -201,7 +197,7 @@ export function generateGettingStarted(adapter, answers) {
   lines.push('## Keeping Updated');
   lines.push('');
   lines.push('```');
-  lines.push(`${p}update              # Check for framework updates`);
+  lines.push(`${p}atta-update         # Check for framework updates`);
   lines.push(`${p}atta --rescan       # Re-detect tech stack changes`);
   lines.push('```');
   lines.push('');

@@ -261,7 +261,7 @@ Also write `.atta/.metadata/framework-version` and `.atta/.metadata/update-histo
 
 ## Phase 9: Report
 
-Display initialization summary: files created/updated, active agents table, quick start commands (`/agent fe-team-lead`, `/review`, `/preflight`), next steps (`/atta --rescan`, `/agent librarian`).
+Display initialization summary: files created/updated, active agents table, quick start commands (`/atta-agent fe-team-lead`, `/atta-review`, `/atta-preflight`), next steps (`/atta --rescan`, `/atta-agent librarian`).
 
 ---
 
@@ -269,7 +269,7 @@ Display initialization summary: files created/updated, active agents table, quic
 
 Skip interview (reuse `project-context.md`). Re-detect: tech stack, architectural patterns (preserve manual additions), PR templates. Update pattern files. Preserve manual edits.
 
-**Profile sync**: If either profile file has checked items, run `/profile --apply` logic (Steps 5-6) — write `## Preferences` to `project-context.md`.
+**Profile sync**: If either profile file has checked items, run `/atta-profile --apply` logic (Steps 5-6) — write `## Preferences` to `project-context.md`.
 
 **Staleness reset**: Record mtimes of detection source files in `generated-manifest.json` `detection_sources`.
 
@@ -290,10 +290,10 @@ Report what changed.
 
 ## Related Skills
 
-- `/agent librarian` — Capture additional patterns and directives
-- `/agent fe-team-lead` / `/agent be-team-lead` — Task decomposition
-- `/review` — Review against generated patterns
-- `/preflight` — Full pre-PR validation
+- `/atta-agent librarian` — Capture additional patterns and directives
+- `/atta-agent fe-team-lead` / `/atta-agent be-team-lead` — Task decomposition
+- `/atta-review` — Review against generated patterns
+- `/atta-preflight` — Full pre-PR validation
 
 ---
 

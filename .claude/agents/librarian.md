@@ -35,7 +35,7 @@ model: inherit
 2. Generate normalized pattern key (lowercase, hyphens, verb-first)
 3. Determine target agent (who made the wrong suggestion)
 4. Log: `bash .atta/scripts/pattern-log.sh {attaDir} '<json>'` with `category: correction`, `source: librarian`, `outcome: rejected`, `agentId: <target>`
-5. If threshold reached, notify: "Pattern '{key}' corrected {N} times. Consider `/patterns suggest`."
+5. If threshold reached, notify: "Pattern '{key}' corrected {N} times. Consider `/atta-patterns suggest`."
 
 After skill completion with corrections: append "**Pattern note:** {N} correction(s) logged. {M} pattern(s) ready for promotion."
 
@@ -75,7 +75,7 @@ All scoped files live in the same `memory/` directory as root `directives.md`.
 ## Files Managed
 
 - `{claudeDir}/agents/memory/directives.md` — universal directive memory (loaded at session start)
-- `{claudeDir}/agents/memory/directives-*.md` — scoped directive files (loaded on demand by `/agent` and skills)
+- `{claudeDir}/agents/memory/directives-*.md` — scoped directive files (loaded on demand by `/atta-agent` and skills)
 - `{attaDir}/local/context/corrections.jsonl` — append-only correction log
 - `{attaDir}/local/context/patterns-learned.json` — aggregation cache
 - `{attaDir}/local/context/agent-learning.json` — per-agent learning

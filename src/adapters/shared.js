@@ -482,7 +482,7 @@ export function rewriteSkillBody(body, config) {
   result = result.replace(/\.claude\/agents\//g, `${agentsPath}/`);
   result = result.replace(/\.claude\/agents(?=[`\s]|$)/g, agentsPath);
 
-  // 3. Replace slash-command references: `/review`, `/agent`, etc.
+  // 3. Replace slash-command references: `/atta-review`, `/atta-agent`, etc.
   //    Use capturing group for prefix instead of lookbehind (valid across all Node versions)
   for (const [original, replacement] of Object.entries(commandMap)) {
     const pattern = new RegExp(

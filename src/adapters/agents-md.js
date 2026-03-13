@@ -12,10 +12,9 @@ import { readVersion } from '../lib/fs-utils.js';
  * @param {object} [options] - Adapter-specific options
  * @param {string} [options.skillPrefix='/'] - Prefix for skill invocation (e.g., '/' or '$')
  * @param {string} [options.agentBasePath='.claude/agents'] - Base path for agent files in output
- * @param {Object<string,string>} [options.skillRenames={}] - Map of original→renamed skill names for conflict avoidance
  */
 export function generateAgentsMd(claudeRoot, attaRoot, options = {}) {
-  const { skillPrefix = '/', agentBasePath = '.claude/agents', skillRenames = {} } = options;
+  const { skillPrefix = '/', agentBasePath = '.claude/agents' } = options;
   const skills = listSkills(claudeRoot);
   const agents = listAgents(claudeRoot, agentBasePath);
   const version = readVersion(attaRoot);
@@ -75,19 +74,32 @@ export function generateAgentsMd(claudeRoot, attaRoot, options = {}) {
     lines.push('| Command | Description |');
     lines.push('|---------|-------------|');
     for (const skill of skills) {
-      const displayName = skillRenames[skill.dirName] || skill.name;
-      lines.push(`| \`${skillPrefix}${displayName}\` | ${skill.description} |`);
+      lines.push(`| \`${skillPrefix}${skill.name}\` | ${skill.description} |`);
     }
     lines.push('');
   }
 
   // Code Style
-  lines.push('## Code Style');
-  lines.push('');
-  lines.push(
-    `Use \`${skillPrefix}${skillRenames['review'] || 'review'}\` for comprehensive code review or \`${skillPrefix}${skillRenames['lint'] || 'lint'}\` for quick pattern checks. These skills enforce project-specific conventions detected from your tech stack.`
-  );
-  lines.push('');
+  const reviewSkill = skills.find((s) => s.name === 'atta-review');
+  const lintSkill = skills.find((s) => s.name === 'atta-lint');
+  if (reviewSkill || lintSkill) {
+    lines.push('## Code Style');
+    lines.push('');
+    if (reviewSkill && lintSkill) {
+      lines.push(
+        `Use \`${skillPrefix}${reviewSkill.name}\` for comprehensive code review or \`${skillPrefix}${lintSkill.name}\` for quick pattern checks. These skills enforce project-specific conventions detected from your tech stack.`
+      );
+    } else if (reviewSkill) {
+      lines.push(
+        `Use \`${skillPrefix}${reviewSkill.name}\` for comprehensive code review. It enforces project-specific conventions detected from your tech stack.`
+      );
+    } else {
+      lines.push(
+        `Use \`${skillPrefix}${lintSkill.name}\` for quick pattern checks against project-specific conventions detected from your tech stack.`
+      );
+    }
+    lines.push('');
+  }
 
   // Key Principles
   lines.push('## Key Principles');

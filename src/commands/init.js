@@ -29,8 +29,8 @@ const ADAPTERS = {
     label: 'Claude Code',
     nextSteps: [
       `Run ${pc.cyan('/atta')} in Claude Code to generate agents for your stack`,
-      `Run ${pc.cyan('/tutorial')} for a 5-minute interactive walkthrough`,
-      `Run ${pc.cyan('/review')} to review your code`,
+      `Run ${pc.cyan('/atta-tutorial')} for a 5-minute interactive walkthrough`,
+      `Run ${pc.cyan('/atta-review')} to review your code`,
     ],
   },
   copilot: {
@@ -48,7 +48,7 @@ const ADAPTERS = {
     nextSteps: [
       `Open your project in Codex CLI`,
       `See ${pc.cyan('AGENTS.md')} for available agents and commands`,
-      `Try mentioning ${pc.cyan('$review')} or ${pc.cyan('$preflight')} to activate skills`,
+      `Try mentioning ${pc.cyan('$atta-review')} or ${pc.cyan('$atta-preflight')} to activate skills`,
     ],
   },
   gemini: {
@@ -56,7 +56,7 @@ const ADAPTERS = {
     label: 'Gemini CLI',
     nextSteps: [
       `Open your project in Gemini CLI`,
-      `Use ${pc.cyan('/review')} or ${pc.cyan('/preflight')} as slash commands`,
+      `Use ${pc.cyan('/atta-review')} or ${pc.cyan('/atta-preflight')} as slash commands`,
       `See ${pc.cyan('GEMINI.md')} for agent context`,
     ],
   },
@@ -217,9 +217,9 @@ async function runInstall(targetDir, adapterName, dryRun, answers, adapterOption
     // Remove tutorial skill if user opted out
     if (answers && !answers.includeTutorial) {
       const tutorialPaths = [
-        join(claudeDir, 'skills', 'tutorial'),               // Claude Code
-        join(targetDir, '.github', 'skills', 'tutorial'),     // Copilot
-        join(targetDir, '.agents', 'skills', 'tutorial'),     // Codex
+        join(claudeDir, 'skills', 'atta-tutorial'),               // Claude Code
+        join(targetDir, '.github', 'skills', 'atta-tutorial'),     // Copilot
+        join(targetDir, '.agents', 'skills', 'atta-tutorial'),     // Codex
         join(targetDir, '.gemini', 'commands', 'tutorial.toml'), // Gemini
         join(targetDir, '.cursor', 'rules', 'atta-tutorial.mdc'), // Cursor
       ];
@@ -270,16 +270,14 @@ function printWelcome(adapterName, adapter, answers, adapterOptions = {}) {
     }
   } else {
     const prefix = adapterName === 'codex' ? '$' : '/';
-    const agent = adapterName === 'copilot' ? 'atta-agent' : 'agent';
-    const review = adapterName === 'copilot' ? 'atta-review' : 'review';
 
-    console.log(`  ${pc.cyan(`${prefix}atta`)}          Set up agents for your stack`);
-    console.log(`  ${pc.cyan(`${prefix}${review}`)}        Code review against conventions`);
-    console.log(`  ${pc.cyan(`${prefix}preflight`)}     Full pre-PR validation`);
-    console.log(`  ${pc.cyan(`${prefix}${agent} <id>`)}    Invoke any agent directly`);
+    console.log(`  ${pc.cyan(`${prefix}atta`)}              Set up agents for your stack`);
+    console.log(`  ${pc.cyan(`${prefix}atta-review`)}       Code review against conventions`);
+    console.log(`  ${pc.cyan(`${prefix}atta-preflight`)}    Full pre-PR validation`);
+    console.log(`  ${pc.cyan(`${prefix}atta-agent <id>`)}   Invoke any agent directly`);
 
     if (answers?.includeTutorial !== false) {
-      console.log(`  ${pc.cyan(`${prefix}tutorial`)}      5-minute interactive walkthrough`);
+      console.log(`  ${pc.cyan(`${prefix}atta-tutorial`)}    5-minute interactive walkthrough`);
     }
   }
 
@@ -548,7 +546,7 @@ function migrateToV3(targetDir) {
   }
 
   // Note: .metadata/generated-manifest.json stays in .metadata/ — it's referenced by
-  // generate-context.sh, /atta skill, /update skill, and generator.md. Not moved.
+  // generate-context.sh, /atta skill, /atta-update skill, and generator.md. Not moved.
 
   console.log(pc.dim('  Migrated .atta/ to v3.0 layout (team/ + local/)'));
 }

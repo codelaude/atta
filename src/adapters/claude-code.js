@@ -282,7 +282,7 @@ export function generateClaudeMd(claudeRoot, attaRoot) {
     '## On Every Session Start',
     '',
     '1. Read `.claude/agents/memory/directives.md` for persistent project rules (if it exists)',
-    '   - This file contains **universal rules only** — agent-specific directives are loaded automatically when you invoke `/agent`',
+    '   - This file contains **universal rules only** — agent-specific directives are loaded automatically when you invoke `/atta-agent`',
     '   - Do NOT read `directives-*.md` files at session start — they are scoped and loaded on demand',
     '',
   ].join('\n');

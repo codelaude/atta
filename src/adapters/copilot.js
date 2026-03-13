@@ -194,8 +194,8 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
     '`.github/atta/agents/memory/directives.md`',
     '',
     'The Librarian agent reads and writes this file.',
-    'Pattern detection artifacts are in `.atta/.context/`.',
-    'Project knowledge is in `.atta/knowledge/` and `.atta/project/`.',
+    'Pattern detection artifacts are in `.atta/local/context/`.',
+    'Team knowledge is in `.atta/team/` and `.atta/project/`.',
     '',
   ].join('\n'));
   results.files++;
@@ -228,7 +228,7 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
     }
   }
 
-  // Copy shared content to .atta/ (knowledge, project, scripts, metadata, context)
+  // Copy shared content to .atta/ (team, project, scripts, metadata)
   const sharedCount = copySharedContent(attaRoot, targetDir, options);
   results.files += sharedCount;
 

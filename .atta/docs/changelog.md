@@ -72,9 +72,9 @@ Tool-agnostic shared content architecture, developer profile system, prompt opti
 - **Dual-root architecture**: All JS adapters updated to `install(claudeRoot, attaRoot, targetDir, options)`. `shared.js` `copySharedContent()` copies `.atta/` dirs to target. Each adapter only copies discovery-required files to its own directory
 - **Shell script updates**: All 6 scripts (`_common.sh`, `generate-context.sh`, `pattern-log.sh`, `pattern-analyze.sh`, `session-cleanup.sh`, `validate-framework.sh`) use new `resolve_atta_dir()` / `validate_atta_dir()` for shared content paths
 - **Path migration**: ~70 stale `.claude/` shared-content references updated to `.atta/` across 40+ files (skills, agents, bootstrap templates, docs). `.claude/agents/` and `.claude/skills/` references preserved
-- **Migration detection**: `init.js` detects pre-v2.7 layout (`.claude/knowledge/` exists, `.atta/knowledge/` doesn't) and auto-migrates
+- **Migration detection**: `init.js` detects pre-v2.7 layout (`.claude/knowledge/` exists, `.atta/team/` doesn't) and auto-migrates
 - **Adapter smoke tests**: All 4 adapters verified (Claude Code, Copilot, Codex, Gemini) with correct split layout. Claude adapter test now checks both `.claude/` and `.atta/` structure
-- **Settings permissions**: Updated for `.atta/scripts/*`, `.atta/.context/**`, `.atta/knowledge/**`
+- **Settings permissions**: Updated for `.atta/scripts/*`, `.atta/local/context/**`, `.atta/team/**`
 - **Package structure**: `package.json` `files` array, `.gitignore`, `.npmignore` updated for `.atta/` content
 
 **`/preflight --auto-fix`**
@@ -100,10 +100,10 @@ Tool-agnostic shared content architecture, developer profile system, prompt opti
 
 **CI Review Adapter — GitHub Action (6th adapter)**
 - New `src/adapters/github-action.js` — generates `.github/workflows/atta-review.yml`
-- Context-aware PR review: the generated workflow reads `.atta/knowledge/` files (project-context, project-profile, pattern files, ci-suppressions) before reviewing, scoping findings to the actual tech stack and conventions
+- Context-aware PR review: the generated workflow reads `.atta/team/` files (project-context, project-profile, pattern files, ci-suppressions) before reviewing, scoping findings to the actual tech stack and conventions
 - Stack-scoped OWASP: prompt instructs the CI model to determine relevant security checks from project-context.md — skips irrelevant categories (e.g. XXE for REST-only APIs, CSRF for CLI tools)
 - Convention injection: project-profile and pattern files teach the CI model what to flag and what to skip — no generic false positives
-- Suppression workflow: `.atta/knowledge/ci-suppressions.md` tracks confirmed false positives; every suppression lands in a PR diff for human review before merging
+- Suppression workflow: `.atta/team/ci-suppressions.md` tracks confirmed false positives; every suppression lands in a PR diff for human review before merging
 - Read-only CI: the action never writes to `.atta/` — all learning stays local via `/patterns`, committed normally
 - `atta init --adapter github-action` entry point
 - New `.atta/docs/ci-review.md` — setup, customization, and suppression workflow guide

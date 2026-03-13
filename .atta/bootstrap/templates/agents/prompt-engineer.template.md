@@ -22,8 +22,8 @@
 ## Context Sources (priority order)
 
 1. `.atta/project/project-context.md` — tech stack, paths, commands, patterns
-2. `.atta/knowledge/patterns/*.md` — relevant framework patterns only
-3. `.atta/knowledge/developer-profile.md` — working style (if available)
+2. `.atta/team/patterns/*.md` — relevant framework patterns only
+3. `.atta/local/developer-profile.md` — working style (if available)
 
 ## What to Inject
 
@@ -73,7 +73,7 @@ Adapt structure to target tool conventions.
 
 ## Knowledge Base
 
-- `.atta/knowledge/patterns/{{PATTERN_FILE}}`
+- `.atta/team/patterns/{{PATTERN_FILE}}`
 
 ## Escalation
 

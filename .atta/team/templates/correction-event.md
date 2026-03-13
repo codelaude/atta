@@ -106,10 +106,10 @@ This design keeps `corrections.jsonl` strictly append-only — no read-modify-wr
 ## Aggregation
 
 Correction events are aggregated by `.atta/scripts/pattern-analyze.sh` into:
-- `{claudeDir}/.context/patterns-learned.json` — pattern aggregation (grouped by pattern key)
-- `{claudeDir}/.context/agent-learning.json` — per-agent learning profiles (grouped by agentId)
+- `{attaDir}/local/context/patterns-learned.json` — pattern aggregation (grouped by pattern key)
+- `{attaDir}/local/context/agent-learning.json` — per-agent learning profiles (grouped by agentId)
 
-All three are caches that can be regenerated from `corrections.jsonl` + `promoted-patterns.json`.
+Both are caches that can be regenerated from `corrections.jsonl` + `promoted-patterns.json`.
 
 ## Aggregation Output Schema (v1.1.0)
 

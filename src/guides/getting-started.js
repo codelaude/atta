@@ -117,14 +117,14 @@ export function generateGettingStarted(adapter, answers) {
     lines.push('| `.github/workflows/atta-review.yml` | Workflow that triggers on PRs |');
     lines.push('| `.atta/project/project-context.md` | Project conventions the reviewer reads |');
     lines.push('| `.atta/project/project-profile.md` | Team review priorities |');
-    lines.push('| `.atta/knowledge/ci-suppressions.md` | False positive management |');
-    lines.push('| `.atta/knowledge/patterns/` | Project-specific review rules |');
+    lines.push('| `.atta/team/ci-suppressions.md` | False positive management |');
+    lines.push('| `.atta/team/patterns/` | Project-specific review rules |');
     lines.push('');
     lines.push('### Suppression Workflow');
     lines.push('');
     lines.push('1. CI flags issues on your PR');
     lines.push('2. Triage locally with your AI tool — verify real vs false positive');
-    lines.push('3. Add false positives to `.atta/knowledge/ci-suppressions.md`');
+    lines.push('3. Add false positives to `.atta/team/ci-suppressions.md`');
     lines.push('4. Commit on the PR branch — reviewer sees the change');
     lines.push('5. On merge, all future PRs benefit from the suppression');
     lines.push('');
@@ -172,7 +172,7 @@ export function generateGettingStarted(adapter, answers) {
     );
   }
   lines.push('');
-  lines.push('Personal prefs (gitignored): `.atta/knowledge/developer-profile.md`');
+  lines.push('Personal prefs (gitignored): `.atta/local/developer-profile.md`');
   lines.push('Team conventions (committed): `.atta/project/project-profile.md`');
   lines.push('');
 

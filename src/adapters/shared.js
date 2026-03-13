@@ -367,33 +367,36 @@ export function copyBootstrap(attaRoot, targetDir, options = {}) {
  * Paths are relative to their respective directory inside .atta/.
  */
 const USER_OWNED_FILES = {
-  knowledge: new Set(['developer-profile.md']),
+  // local/ is not in SHARED_DIRS (copied via SHARED_FILES instead).
+  // developer-profile.md is protected by init.js (only written if absent).
   project: new Set(['project-context.md', 'project-profile.md']),
+  // team/ files that /atta generates or users customize — don't overwrite on re-init.
+  team: new Set(['quick-reference.md', 'templates/pr-template.md']),
 };
 
 /** Shared directories to copy from .atta/ source to .atta/ in the target */
 const SHARED_DIRS = [
-  'knowledge',
+  'team',
   'project',
   'scripts',
   '.metadata',
-  '.context',
   // Note: 'docs' intentionally excluded — Atta meta-docs don't ship to user projects.
   // Users can read them at https://github.com/nicholasgasior/atta-dev
 ];
 
-/** Individual shared files to copy */
+/** Individual shared files to copy to .atta/local/ */
 const SHARED_FILES = [
-  '.sessions/schema.json',
-  '.sessions/README.md',
-  '.sessions/TRACKING_GUIDE.md',
-  '.sessions/SKILL_TEMPLATE.md',
-  '.sessions/INTEGRATION_EXAMPLE.md',
+  'local/sessions/schema.json',
+  'local/sessions/README.md',
+  'local/sessions/TRACKING_GUIDE.md',
+  'local/sessions/SKILL_TEMPLATE.md',
+  'local/sessions/INTEGRATION_EXAMPLE.md',
+  'local/context/README.md',
 ];
 
 /**
  * Copy shared (tool-agnostic) content from .atta/ source to .atta/ in the target project.
- * Copies knowledge, scripts, metadata, context, and session schema. Does not copy docs.
+ * Copies team content, scripts, metadata, and local templates. Does not copy docs.
  *
  * @param {string} attaRoot - Path to .atta/ source
  * @param {string} targetDir - Project root where .atta/ will be populated
@@ -443,7 +446,7 @@ export function copySharedContent(attaRoot, targetDir, options = {}) {
   }
 
   if (!options.quiet && SHARED_FILES.length > 0) {
-    console.log(`  ${pc.green('✓')} .atta/.sessions/ (schema + templates)`);
+    console.log(`  ${pc.green('✓')} .atta/local/ (sessions schema + context template)`);
   }
 
   return totalCount;
@@ -458,7 +461,7 @@ export function copySharedContent(attaRoot, targetDir, options = {}) {
  * @param {string} config.agentsPath - Agent directory path (e.g., '.github/atta/agents', '.agents/agents')
  * @param {string} config.memoryPath - Memory directory path (e.g., '.github/atta/agents/memory')
  * @param {Object<string,string>} [config.commandMap] - Map of original→rewritten commands (e.g., { review: '/atta-review' })
- * @param {boolean} [config.resolveAttaPlaceholders=false] - Resolve {attaDir}/{agentsDir}/{bootstrapDir}/{knowledgeDir}/{metadataDir} to literal paths
+ * @param {boolean} [config.resolveAttaPlaceholders=false] - Resolve {attaDir}/{agentsDir}/{bootstrapDir}/{teamDir}/{localDir}/{metadataDir} to literal paths
  * @returns {string} Rewritten skill body
  */
 export function rewriteSkillBody(body, config) {
@@ -522,7 +525,9 @@ export function rewriteSkillBody(body, config) {
     result = result.replace(/\{attaDir\}/g, '.atta');
     result = result.replace(/\{agentsDir\}/g, agentsPath);
     result = result.replace(/\{bootstrapDir\}/g, '.atta/bootstrap');
-    result = result.replace(/\{knowledgeDir\}/g, '.atta/knowledge');
+    result = result.replace(/\{knowledgeDir\}/g, '.atta/team');
+    result = result.replace(/\{teamDir\}/g, '.atta/team');
+    result = result.replace(/\{localDir\}/g, '.atta/local');
     result = result.replace(/\{metadataDir\}/g, '.atta/.metadata');
   }
 

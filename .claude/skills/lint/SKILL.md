@@ -18,7 +18,7 @@ You are now running a **code lint check** based on the project's established pat
 ## What This Skill Does
 
 1. **Reads the target code** (file, folder, or recent git changes)
-2. **Applies pattern rules** from `.atta/knowledge/` pattern files
+2. **Applies pattern rules** from `.atta/team/` pattern files
 3. **Reports violations** grouped by severity
 4. **Suggests fixes** for each issue found
 

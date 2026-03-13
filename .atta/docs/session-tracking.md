@@ -127,9 +127,9 @@ See [Changelog](changelog.md) for full details on the v2.5 pattern detection sys
 
 If you're building custom skills or want to understand the internals:
 
-- **[Integration Guide](../.sessions/TRACKING_GUIDE.md)** - Hook-based tracking details
-- **[Skill Template](../.sessions/SKILL_TEMPLATE.md)** - Ready-to-use template
-- **[Schema Reference](../.sessions/schema.json)** - Full JSON Schema
+- **[Integration Guide](../local/sessions/TRACKING_GUIDE.md)** - Hook-based tracking details
+- **[Skill Template](../local/sessions/SKILL_TEMPLATE.md)** - Ready-to-use template
+- **[Schema Reference](../local/sessions/schema.json)** - Full JSON Schema
 
 ## Disabling Session Tracking
 
@@ -151,7 +151,7 @@ Note: Disabling session tracking will prevent pattern detection features from wo
 .claude/hooks/
 └── session-track.sh         # Hook script (lifecycle management)
 
-.atta/.sessions/
+.atta/local/sessions/
 ├── README.md                # Technical overview
 ├── schema.json              # JSON Schema definition
 ├── TRACKING_GUIDE.md        # Developer integration guide
@@ -165,7 +165,7 @@ Note: Disabling session tracking will prevent pattern detection features from wo
 
 ### Generated Files (Local, Gitignored)
 
-> **Note**: Session JSON files are always written to `{claudeDir}/.sessions/` — separate from the framework docs in `.atta/.sessions/`. By default `{claudeDir}` = `.claude`, so sessions land in `.claude/.sessions/`. The `.gitignore` pattern `*.json` in `.sessions/` ensures generated session files are not committed.
+> **Note**: Session JSON files are always written to `{claudeDir}/.sessions/` — separate from the framework docs in `.atta/local/sessions/`. By default `{claudeDir}` = `.claude`, so sessions land in `.claude/.sessions/`. The `.gitignore` pattern `*.json` in `.sessions/` ensures generated session files are not committed.
 
 ```
 {claudeDir}/.sessions/

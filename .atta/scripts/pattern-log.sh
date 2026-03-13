@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Pattern Correction Logger
-# Appends a correction event to .atta/.context/corrections.jsonl
+# Appends a correction event to .atta/local/context/corrections.jsonl
 # Usage:
 #   .atta/scripts/pattern-log.sh {attaDir} '{"category":"correction","pattern":"key","description":"...","context":{},"source":"manual"}'
 #   .atta/scripts/pattern-log.sh            '{"category":"correction","pattern":"key","description":"...","context":{},"source":"manual"}'
@@ -48,7 +48,7 @@ fi
 resolve_atta_dir
 validate_atta_dir
 
-CONTEXT_DIR="$ATTA_DIR/.context"
+CONTEXT_DIR="$ATTA_DIR/local/context"
 CORRECTIONS_FILE="$CONTEXT_DIR/corrections.jsonl"
 
 # Require python3 for safe JSON handling

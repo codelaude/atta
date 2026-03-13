@@ -16,7 +16,7 @@ ATTA_DIR="${1:-}"
 resolve_atta_dir
 validate_atta_dir
 
-CONTEXT_DIR="$ATTA_DIR/.context"
+CONTEXT_DIR="$ATTA_DIR/local/context"
 CORRECTIONS_FILE="$CONTEXT_DIR/corrections.jsonl"
 OUTPUT_FILE="$CONTEXT_DIR/patterns-learned.json"
 AGENT_FILE="$CONTEXT_DIR/agent-learning.json"
@@ -184,14 +184,14 @@ for pattern_key in sorted(groups.keys()):
 
     # Map domain to likely pattern file
     domain_to_file = {
-        'language': '.atta/knowledge/patterns/%s-patterns.md' % primary_domain,
-        'framework': '.atta/knowledge/patterns/framework-patterns.md',
-        'styling': '.atta/knowledge/patterns/styling-patterns.md',
-        'security': '.atta/knowledge/patterns/security-patterns.md',
-        'testing': '.atta/knowledge/patterns/testing-patterns.md',
-        'accessibility': '.atta/knowledge/patterns/accessibility-patterns.md',
+        'language': '.atta/team/patterns/%s-patterns.md' % primary_domain,
+        'framework': '.atta/team/patterns/framework-patterns.md',
+        'styling': '.atta/team/patterns/styling-patterns.md',
+        'security': '.atta/team/patterns/security-patterns.md',
+        'testing': '.atta/team/patterns/testing-patterns.md',
+        'accessibility': '.atta/team/patterns/accessibility-patterns.md',
     }
-    target_file = domain_to_file.get(primary_domain, '.atta/knowledge/patterns/%s-patterns.md' % primary_domain)
+    target_file = domain_to_file.get(primary_domain, '.atta/team/patterns/%s-patterns.md' % primary_domain)
 
     pattern_summary = {
         'pattern': pattern_key,

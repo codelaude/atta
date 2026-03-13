@@ -163,10 +163,10 @@ if [ "$CLAUDE_PATH_COUNT" -gt 0 ]; then
 fi
 
 # Check: zero unresolved {attaDir} placeholders in TOML commands
-PLACEHOLDER_COUNT=$({ grep -rl "{attaDir}\|{agentsDir}\|{bootstrapDir}\|{knowledgeDir}\|{metadataDir}" "$COMMANDS_DIR" 2>/dev/null || true; } | wc -l | tr -d ' ')
+PLACEHOLDER_COUNT=$({ grep -rl "{attaDir}\|{agentsDir}\|{bootstrapDir}\|{knowledgeDir}\|{metadataDir}\|{teamDir}\|{localDir}" "$COMMANDS_DIR" 2>/dev/null || true; } | wc -l | tr -d ' ')
 if [ "$PLACEHOLDER_COUNT" -gt 0 ]; then
   echo "FAIL: $PLACEHOLDER_COUNT command files still contain unresolved placeholders"
-  { grep -rl "{attaDir}\|{agentsDir}\|{bootstrapDir}\|{knowledgeDir}\|{metadataDir}" "$COMMANDS_DIR" 2>/dev/null || true; } | sed 's|.*/commands/||'
+  { grep -rl "{attaDir}\|{agentsDir}\|{bootstrapDir}\|{knowledgeDir}\|{metadataDir}\|{teamDir}\|{localDir}" "$COMMANDS_DIR" 2>/dev/null || true; } | sed 's|.*/commands/||'
   ERRORS=$((ERRORS + 1))
 fi
 
@@ -188,10 +188,10 @@ while IFS= read -r -d '' agent; do
 done < <(find "$AGENTS_DIR" -name "*.md" -not -path "*/memory/*" -print0 2>/dev/null)
 
 # Check: zero unresolved {attaDir} placeholders in agent files
-AGENT_PLACEHOLDER_COUNT=$({ grep -rl "{attaDir}\|{agentsDir}\|{bootstrapDir}\|{knowledgeDir}\|{metadataDir}" "$AGENTS_DIR" 2>/dev/null || true; } | { grep -v "/memory/" || true; } | wc -l | tr -d ' ')
+AGENT_PLACEHOLDER_COUNT=$({ grep -rl "{attaDir}\|{agentsDir}\|{bootstrapDir}\|{knowledgeDir}\|{metadataDir}\|{teamDir}\|{localDir}" "$AGENTS_DIR" 2>/dev/null || true; } | { grep -v "/memory/" || true; } | wc -l | tr -d ' ')
 if [ "$AGENT_PLACEHOLDER_COUNT" -gt 0 ]; then
   echo "FAIL: $AGENT_PLACEHOLDER_COUNT agent files still contain unresolved placeholders"
-  { grep -rl "{attaDir}\|{agentsDir}\|{bootstrapDir}\|{knowledgeDir}\|{metadataDir}" "$AGENTS_DIR" 2>/dev/null || true; } | { grep -v "/memory/" || true; } | sed 's|.*/agents/||'
+  { grep -rl "{attaDir}\|{agentsDir}\|{bootstrapDir}\|{knowledgeDir}\|{metadataDir}\|{teamDir}\|{localDir}" "$AGENTS_DIR" 2>/dev/null || true; } | { grep -v "/memory/" || true; } | sed 's|.*/agents/||'
   ERRORS=$((ERRORS + 1))
 fi
 

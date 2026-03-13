@@ -62,7 +62,7 @@ Never manually copy a new `.claude/` folder over your existing one.
 
 ### Tier 1: Safe to Replace (no user customizations)
 
-Patterns: `bootstrap/**/*`, `docs/**/*`, `skills/*/SKILL.md` (except `skills/generated/`), `knowledge/templates/**/*`, `.metadata/README.md`
+Patterns: `bootstrap/**/*`, `docs/**/*`, `skills/*/SKILL.md` (except `skills/generated/`), `team/templates/**/*`, `.metadata/README.md`
 
 ### Tier 2: Requires Merge (framework files with user customizations)
 
@@ -70,13 +70,13 @@ Files: `agents/project-owner.md`, `agents/librarian.md`, `agents/rubber-duck.md`
 
 ### Tier 3: Never Touch (pure user content)
 
-Patterns: `agents/memory/**/*`, `project/**/*`, `knowledge/accs/**/*`, `agents-config.json`, `settings.local.json`, `.metadata/file-manifest.json`, `.metadata/framework-version`, `.metadata/update-history.json`
+Patterns: `agents/memory/**/*`, `project/**/*`, `local/accs/**/*`, `agents-config.json`, `settings.local.json`, `.metadata/file-manifest.json`, `.metadata/framework-version`, `.metadata/update-history.json`
 
 Backup directories (`.claude-backup-*`) are created as siblings outside `.claude/`.
 
 ### Generated (Optional Update)
 
-Patterns: `agents/coordinators/**/*`, `agents/specialists/**/*`, `knowledge/patterns/**/*`, `agents/INDEX.md`, `.metadata/generated-manifest.json`, `.metadata/last-init`, `skills/generated/**/*`
+Patterns: `agents/coordinators/**/*`, `agents/specialists/**/*`, `team/patterns/**/*`, `agents/INDEX.md`, `.metadata/generated-manifest.json`, `.metadata/last-init`, `skills/generated/**/*`
 
 Run `/atta --rescan` after update to regenerate from new templates.
 

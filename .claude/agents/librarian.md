@@ -26,7 +26,7 @@ model: inherit
 | Signal | Type | Action |
 |--------|------|--------|
 | "Always do X" | Directive | Capture to directives.md |
-| "No, do X instead" | Correction | Log to `{attaDir}/.context/corrections.jsonl` |
+| "No, do X instead" | Correction | Log to `{attaDir}/local/context/corrections.jsonl` |
 | "From now on, do X" | Both | Directive + correction |
 
 ## Correction Capture Protocol
@@ -76,9 +76,9 @@ All scoped files live in the same `memory/` directory as root `directives.md`.
 
 - `{claudeDir}/agents/memory/directives.md` — universal directive memory (loaded at session start)
 - `{claudeDir}/agents/memory/directives-*.md` — scoped directive files (loaded on demand by `/agent` and skills)
-- `{attaDir}/.context/corrections.jsonl` — append-only correction log
-- `{attaDir}/.context/patterns-learned.json` — aggregation cache
-- `{attaDir}/.context/agent-learning.json` — per-agent learning
-- `.atta/knowledge/patterns/` — pattern files
-- `.atta/knowledge/quick-reference.md`
-- `.atta/project/project-context.md`
+- `{attaDir}/local/context/corrections.jsonl` — append-only correction log
+- `{attaDir}/local/context/patterns-learned.json` — aggregation cache
+- `{attaDir}/local/context/agent-learning.json` — per-agent learning
+- `{attaDir}/team/patterns/` — pattern files
+- `{attaDir}/team/quick-reference.md`
+- `{attaDir}/project/project-context.md`

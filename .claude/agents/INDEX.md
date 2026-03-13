@@ -107,7 +107,7 @@ If you're not using the `/atta` system and want to manually configure agents:
 - **Agents guide, they don't auto-generate** code (except when explicitly requested)
 - **Stateless** invocations (except Librarian-captured directives)
 - **Conflicts escalate to user** for final decision
-- **Knowledge-driven**: all agents reference `.atta/knowledge/` patterns
+- **Knowledge-driven**: all agents reference `.atta/team/` patterns
 - **Constraints are real**: Each agent has boundaries on what it can/cannot do
 
 ---
@@ -118,8 +118,8 @@ If you're not using the `/atta` system and want to manually configure agents:
 - **Coordinators**: `.claude/agents/coordinators/<team-lead>.md`
 - **Specialists**: `.claude/agents/specialists/<specialist>.md`
 - **Skills** (slash commands): `.claude/skills/`
-- **Knowledge base**: `.atta/knowledge/`
-- **Pattern files**: `.atta/knowledge/patterns/`
+- **Knowledge base**: `.atta/team/`
+- **Pattern files**: `.atta/team/patterns/`
 - **Project context**: `.atta/project/project-context.md`
 
 ---

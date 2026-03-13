@@ -105,10 +105,9 @@ Show available agents if not found.
 For each agent, spawn a Task tool subagent (`run_in_background: true`):
 
 1. Read the agent definition file
-2. Read relevant pattern files from `.atta/knowledge/patterns/`
-3. Read `.atta/knowledge/templates/collaboration-finding.md` for the finding schema
-4. Read `{attaDir}/.context/agent-learning.json` — extract this agent's learning profile if available
-5. Construct prompt and spawn
+2. Read relevant pattern files from `.atta/team/patterns/`
+3. Read `{attaDir}/local/context/agent-learning.json` — extract this agent's learning profile if available
+4. Construct prompt and spawn
 
 ### Subagent Prompt Template
 
@@ -130,7 +129,28 @@ OTHERWISE: "No learning data yet."}
 ## Collaboration Protocol
 You are one of {N} agents reviewing the same code. Format output per the finding schema below.
 
-{COLLABORATION_FINDING_SCHEMA}
+### Finding Table Format
+| agent_id | domain | severity | file:line | finding | recommendation | conflicts_with |
+
+- agent_id: Your agent ID (e.g., security-specialist, accessibility)
+- domain: framework, language, styling, accessibility, security, testing, architecture, performance, database
+- severity: CRITICAL (must fix), HIGH (should fix), MEDIUM (fix in sprint), LOW (track), INFO (observation)
+- file:line: File path and line (e.g., src/UserProfile.tsx:42), or "general"
+- finding: One-sentence issue description
+- recommendation: One-sentence actionable fix
+- conflicts_with: Agent IDs whose recommendations may contradict, or "-"
+
+### Agent Output Envelope
+## [Agent Name] Assessment
+### Context
+[1-2 sentences: what was examined and from which perspective]
+### Findings
+| agent_id | domain | severity | file:line | finding | recommendation | conflicts_with |
+|----------|--------|----------|-----------|---------|----------------|----------------|
+| [rows]   |        |          |           |         |                |                |
+### Summary
+- **Critical**: N | **High**: N | **Medium**: N | **Low**: N | **Info**: N
+- **Verdict**: APPROVED / CHANGES REQUESTED / NEEDS DISCUSSION
 
 ### Rules
 1. Stay in YOUR domain only. Cross-domain observations go in Summary only.

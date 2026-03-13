@@ -22,7 +22,7 @@ const CLAUDE_DIRS = ['agents', 'hooks', 'skills'];
  * generates settings and plugin manifest.
  *
  * @param {string} claudeRoot - Path to .claude/ source (agents, skills, hooks)
- * @param {string} attaRoot - Path to .atta/ source (knowledge, project, scripts, metadata, context)
+ * @param {string} attaRoot - Path to .atta/ source (team, project, scripts, metadata)
  * @param {string} targetDir - Project root
  * @param {object} [options]
  */
@@ -95,12 +95,12 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
           'Bash(bash .atta/scripts/generate-context.sh:*)',
           'Bash(bash .atta/scripts/pattern-log.sh:*)',
           'Bash(bash .atta/scripts/pattern-analyze.sh:*)',
-          // Context files (recent work summary)
-          'Edit(./.atta/.context/**)',
+          // Local files (context, sessions, developer profile)
+          'Edit(./.atta/local/**)',
           // Agent memory (directives, learnings)
           'Edit(./.claude/agents/memory/**)',
-          // Knowledge capture (patterns, developer profile)
-          'Edit(./.atta/knowledge/**)',
+          // Team knowledge (patterns, ci-suppressions, review guidance)
+          'Edit(./.atta/team/**)',
           // Project files (team-shared: project-context, project-profile)
           'Edit(./.atta/project/**)',
         ],

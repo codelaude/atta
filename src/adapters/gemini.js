@@ -117,7 +117,7 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
     }
   }
 
-  // Copy shared content to .atta/ (knowledge, project, scripts, metadata, context)
+  // Copy shared content to .atta/ (team, project, scripts, metadata)
   const sharedCount = copySharedContent(attaRoot, targetDir, options);
   results.files += sharedCount;
 

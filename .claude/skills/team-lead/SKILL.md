@@ -58,4 +58,4 @@ Recommended sequence of work
 
 ## Pattern Files You Reference
 
-Pattern files in `.atta/knowledge/patterns/` when available.
+Pattern files in `.atta/team/patterns/` when available.

@@ -18,9 +18,9 @@ ERRORS=0
 
 # Check expected paths exist
 for path in \
-  ".claude/skills/review/SKILL.md" \
-  ".claude/skills/preflight/SKILL.md" \
-  ".claude/skills/collaborate/SKILL.md" \
+  ".claude/skills/atta-review/SKILL.md" \
+  ".claude/skills/atta-preflight/SKILL.md" \
+  ".claude/skills/atta-collaborate/SKILL.md" \
   ".claude/skills/atta/SKILL.md" \
   ".claude/agents/project-owner.md" \
   ".claude/agents/code-reviewer.md" \
@@ -113,7 +113,7 @@ fi
 # --- Skill flags checks (v2.7.1 Track C) ---
 
 # Check action skills have disable-model-invocation
-for skill in preflight test ship update migrate atta patterns; do
+for skill in atta-preflight atta-test atta-ship atta-update atta-migrate atta atta-patterns; do
   SKILL_FILE="$WORK_DIR/.claude/skills/$skill/SKILL.md"
   if [ -f "$SKILL_FILE" ] && ! head -10 "$SKILL_FILE" | grep -q "disable-model-invocation: true"; then
     echo "FAIL: $skill/SKILL.md missing 'disable-model-invocation: true'"
@@ -122,7 +122,7 @@ for skill in preflight test ship update migrate atta patterns; do
 done
 
 # Check read-only skills have allowed-tools
-for skill in review lint security-audit; do
+for skill in atta-review atta-lint atta-security-audit; do
   SKILL_FILE="$WORK_DIR/.claude/skills/$skill/SKILL.md"
   if [ -f "$SKILL_FILE" ] && ! head -10 "$SKILL_FILE" | grep -q "allowed-tools:"; then
     echo "FAIL: $skill/SKILL.md missing 'allowed-tools:'"
@@ -131,7 +131,7 @@ for skill in review lint security-audit; do
 done
 
 # Check skills have argument-hint
-for skill in review preflight test agent collaborate; do
+for skill in atta-review atta-preflight atta-test atta-agent atta-collaborate; do
   SKILL_FILE="$WORK_DIR/.claude/skills/$skill/SKILL.md"
   if [ -f "$SKILL_FILE" ] && ! head -10 "$SKILL_FILE" | grep -q "argument-hint:"; then
     echo "FAIL: $skill/SKILL.md missing 'argument-hint:'"

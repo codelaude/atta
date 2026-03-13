@@ -33,7 +33,7 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   // Convert skills to TOML commands at .gemini/commands/
   const skillsDir = join(claudeRoot, 'skills');
   if (existsSync(skillsDir)) {
-    const skills = listSkills(claudeRoot);
+    const skills = listSkills(claudeRoot).filter((s) => s.userInvocable !== false);
     const commandsDir = join(targetDir, '.gemini', 'commands');
     mkdirSync(commandsDir, { recursive: true });
 

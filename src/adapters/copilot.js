@@ -37,7 +37,7 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   // Copy skills to .github/skills/ (all skills already use atta-* namespace)
   const skillsDir = join(claudeRoot, 'skills');
   if (existsSync(skillsDir)) {
-    const skills = listSkills(claudeRoot);
+    const skills = listSkills(claudeRoot).filter((s) => s.userInvocable !== false);
     const githubSkillsDir = join(targetDir, '.github', 'skills');
 
     const rewriteConfig = {

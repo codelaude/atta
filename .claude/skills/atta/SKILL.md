@@ -32,6 +32,7 @@ Determine which AI tool is running this skill by checking which directories exis
 | `{bootstrapDir}` | `.atta/bootstrap` | `.atta/bootstrap` | `.atta/bootstrap` | `.atta/bootstrap` |
 | `{teamDir}` | `.atta/team` | `.atta/team` | `.atta/team` | `.atta/team` |
 | `{agentsDir}` | `.claude/agents` | `.github/atta/agents` | `.agents/agents` | `.gemini/agents` |
+| `{localDir}` | `.atta/local` | `.atta/local` | `.atta/local` | `.atta/local` |
 | `{metadataDir}` | `.atta/.metadata` | `.atta/.metadata` | `.atta/.metadata` | `.atta/.metadata` |
 
 **Sub-detect non-Claude adapter** (if `.atta/bootstrap/` was found):
@@ -39,7 +40,7 @@ Determine which AI tool is running this skill by checking which directories exis
 - Else if `.agents/skills/` exists → Codex → agents go to `.agents/agents/`
 - Else if `.gemini/commands/` exists → Gemini → agents go to `.gemini/agents/`
 
-**All paths below use these variables.** Substitute `.atta/bootstrap/` → `{bootstrapDir}/`, `.atta/team/` → `{teamDir}/`, `.claude/agents/` → `{agentsDir}/`, `.atta/.metadata/` → `{metadataDir}/`.
+**All paths below use these variables.** Substitute `.atta/bootstrap/` → `{bootstrapDir}/`, `.atta/team/` → `{teamDir}/`, `.atta/local/` → `{localDir}/`, `.claude/agents/` → `{agentsDir}/`, `.atta/.metadata/` → `{metadataDir}/`.
 
 ---
 

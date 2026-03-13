@@ -370,6 +370,8 @@ const USER_OWNED_FILES = {
   // local/ is not in SHARED_DIRS (copied via SHARED_FILES instead).
   // developer-profile.md is protected by init.js (only written if absent).
   project: new Set(['project-context.md', 'project-profile.md']),
+  // team/ files that /atta generates or users customize — don't overwrite on re-init.
+  team: new Set(['quick-reference.md', 'templates/pr-template.md']),
 };
 
 /** Shared directories to copy from .atta/ source to .atta/ in the target */

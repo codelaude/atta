@@ -142,7 +142,9 @@ async function runInstall(targetDir, adapterName, dryRun, answers, adapterOption
   const isUpdate = existsSync(claudeDir) || existsSync(attaDir);
 
   // Detect pre-v2.7 layout (shared content in .claude/ instead of .atta/)
-  const needsMigration = existsSync(join(claudeDir, 'knowledge')) && !existsSync(join(attaDir, 'team'));
+  // Also require .atta/knowledge/ to be absent — if it exists, this is a v2.7 install
+  // and migrateToAtta()'s cpSync would overwrite user-modified .atta/knowledge/ content.
+  const needsMigration = existsSync(join(claudeDir, 'knowledge')) && !existsSync(join(attaDir, 'team')) && !existsSync(join(attaDir, 'knowledge'));
   // Detect pre-v3.0 layout (.atta/knowledge/ instead of .atta/team/ + .atta/local/)
   const needsV3Migration = existsSync(join(attaDir, 'knowledge')) && !existsSync(join(attaDir, 'team'));
 

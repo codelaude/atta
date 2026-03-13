@@ -24,7 +24,7 @@ import { generateReviewRules, formatCursorBugbot, formatCursorMdc } from './revi
  */
 export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   const results = { files: 0 };
-  const skills = listSkills(claudeRoot);
+  const skills = listSkills(claudeRoot).filter((s) => s.userInvocable !== false);
 
   // Build commandMap dynamically: /atta-review → @atta-review (@ prefix for Cursor @-mentions)
   const cursorCommandMap = Object.fromEntries(

@@ -16,7 +16,7 @@ import { generateReviewRules, formatCodex } from './review-guidance.js';
  */
 export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   const results = { files: 0 };
-  const skills = listSkills(claudeRoot);
+  const skills = listSkills(claudeRoot).filter((s) => s.userInvocable !== false);
 
   // Codex uses $skill invocation — build commandMap dynamically: /atta-review → $atta-review
   const codexCommandMap = Object.fromEntries(

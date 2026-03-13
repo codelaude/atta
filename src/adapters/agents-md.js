@@ -12,10 +12,12 @@ import { readVersion } from '../lib/fs-utils.js';
  * @param {object} [options] - Adapter-specific options
  * @param {string} [options.skillPrefix='/'] - Prefix for skill invocation (e.g., '/' or '$')
  * @param {string} [options.agentBasePath='.claude/agents'] - Base path for agent files in output
+ * @param {boolean} [options.includeHiddenSkills=false] - Include skills with user-invocable: false (Claude Code only)
  */
 export function generateAgentsMd(claudeRoot, attaRoot, options = {}) {
-  const { skillPrefix = '/', agentBasePath = '.claude/agents' } = options;
-  const skills = listSkills(claudeRoot);
+  const { skillPrefix = '/', agentBasePath = '.claude/agents', includeHiddenSkills = false } = options;
+  const allSkills = listSkills(claudeRoot);
+  const skills = includeHiddenSkills ? allSkills : allSkills.filter((s) => s.userInvocable !== false);
   const agents = listAgents(claudeRoot, agentBasePath);
   const version = readVersion(attaRoot);
 

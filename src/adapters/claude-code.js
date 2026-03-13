@@ -275,7 +275,7 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
  * Based on AGENTS.md content with Claude Code-specific framing.
  */
 export function generateClaudeMd(claudeRoot, attaRoot) {
-  const agentsMd = generateAgentsMd(claudeRoot, attaRoot);
+  const agentsMd = generateAgentsMd(claudeRoot, attaRoot, { includeHiddenSkills: true });
 
   const sessionStart = [
     '',
@@ -309,12 +309,13 @@ export function listSkills(claudeRoot) {
     const skillFile = join(skillsDir, entry.name, 'SKILL.md');
     if (!existsSync(skillFile)) continue;
 
-    const { name, description } = parseFrontmatter(skillFile);
+    const fm = parseFrontmatter(skillFile);
     skills.push({
-      name: name || entry.name,
+      name: fm.name || entry.name,
       dirName: entry.name,
-      description: description || '',
+      description: fm.description || '',
       path: `.claude/skills/${entry.name}/SKILL.md`,
+      userInvocable: fm['user-invocable'] !== 'false',
     });
   }
 

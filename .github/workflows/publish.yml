@@ -74,7 +74,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="v$(node -p "require('./package.json').version")"
+          TAG="v$(node -p 'require("./package.json").version')"
           HTTP_CODE=$(gh api "repos/${{ github.repository }}/releases/tags/$TAG" \
             --silent --include 2>&1 | head -1 | awk '{print $2}') || true
           if [ "$HTTP_CODE" = "200" ]; then

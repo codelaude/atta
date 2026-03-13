@@ -523,7 +523,7 @@ function generateCursorPlugin(claudeRoot, attaRoot, outputBase) {
   ].join('\n'));
   files++;
 
-  summary.push(`rules/ (${skills.length} skill rules + atta.mdc)`);
+  summary.push(`rules/ (${skills.length - 1} skill rules + atta.mdc)`);
 
   // 2. Copy and rewrite skills as SKILL.md (Cursor discovers from skills/ natively)
   const skillsDir = join(pluginDir, 'skills');

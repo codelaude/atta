@@ -72,7 +72,7 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
 
     if (!options.quiet) {
       console.log(
-        `  ${pc.green('✓')} .cursor/rules/ (${skills.length} skill rules + atta.mdc)`
+        `  ${pc.green('✓')} .cursor/rules/ (${skills.length - 1} skill rules + atta.mdc)`
       );
     }
   }

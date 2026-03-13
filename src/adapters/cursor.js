@@ -84,15 +84,15 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   writeFileSync(join(targetDir, '.cursor', 'BUGBOT.md'), bugbotContent);
   results.files++;
 
-  // .cursor/rules/atta-review.mdc — agent/chat review context
+  // .cursor/rules/atta-review-guidance.mdc — generated review rules (distinct from atta-review skill)
   const reviewMdc = formatCursorMdc(reviewRules);
   const rulesDir2 = join(targetDir, '.cursor', 'rules');
   mkdirSync(rulesDir2, { recursive: true });
-  writeFileSync(join(rulesDir2, 'atta-review.mdc'), reviewMdc);
+  writeFileSync(join(rulesDir2, 'atta-review-guidance.mdc'), reviewMdc);
   results.files++;
 
   if (!options.quiet) {
-    console.log(`  ${pc.green('✓')} .cursor/BUGBOT.md + .cursor/rules/atta-review.mdc (review guidance)`);
+    console.log(`  ${pc.green('✓')} .cursor/BUGBOT.md + .cursor/rules/atta-review-guidance.mdc (review guidance)`);
   }
 
   // Copy agent definitions to .cursor/agents/

@@ -516,7 +516,7 @@ function generateCursorPlugin(claudeRoot, attaRoot, outputBase) {
     'Agents use a three-tier hierarchy:',
     '1. **Core Agents** — Always available (project-owner, code-reviewer, librarian)',
     '2. **Coordinators** — Generated per project (fe-team-lead, be-team-lead)',
-    '3. **Specialists** — Generated from detected tech stack (run `@atta-atta` to set up)',
+    '3. **Specialists** — Generated from detected tech stack (run `@atta` to set up)',
     '',
   ].join('\n'));
   files++;

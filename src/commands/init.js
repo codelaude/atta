@@ -261,7 +261,7 @@ function printWelcome(adapterName, adapter, answers, adapterOptions = {}) {
   } else if (adapterName === 'cursor') {
     // Cursor uses @-mention invocation, not slash commands
     console.log(`  ${pc.cyan('atta.mdc')}             Framework context (auto-applied)`);
-    console.log(`  ${pc.cyan('@atta-atta')}           Set up agents for your stack`);
+    console.log(`  ${pc.cyan('@atta')}               Set up agents for your stack`);
     console.log(`  ${pc.cyan('@atta-review')}         Code review against conventions`);
     console.log(`  ${pc.cyan('@atta-preflight')}      Full pre-PR validation`);
     console.log(`  ${pc.cyan('@atta-agent')} <id>     Invoke any agent directly`);

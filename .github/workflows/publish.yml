@@ -76,11 +76,12 @@ jobs:
         run: |
           TAG="v$(node -p 'require("./package.json").version')"
           HTTP_CODE=$(gh api "repos/${{ github.repository }}/releases/tags/$TAG" \
-            --silent --include 2>&1 | head -1 | awk '{print $2}') || true
+            --silent --include 2>/dev/null | head -1 | awk '{print $2}') || true
           if [ "$HTTP_CODE" = "200" ]; then
             echo "Release $TAG already exists, skipping."
           elif [ "$HTTP_CODE" = "404" ]; then
             gh release create "$TAG" \
+              --verify-tag \
               --title "$TAG" \
               --generate-notes
           else

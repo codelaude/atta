@@ -5,6 +5,7 @@ import { listSkills } from './claude-code.js';
 import { generateAgentsMd } from './agents-md.js';
 import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, createMemoryDirectory, generateHooksConfig } from './shared.js';
 import { generateReviewRules, formatCopilot } from './review-guidance.js';
+import { generateRules, writeToolAgnosticRules, installCopilotRules } from './rules-generator.js';
 
 /**
  * Copilot CLI adapter — generates .github/skills/, .github/atta/agents/, and AGENTS.md.
@@ -170,6 +171,19 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
 
   if (!options.quiet) {
     console.log(`  ${pc.green('✓')} .github/instructions/atta-review.instructions.md (review guidance, ${reviewContent.length} chars)`);
+  }
+
+  // Generate path-scoped rules (.github/instructions/atta-{tech}.instructions.md + .atta/team/rules/)
+  const rules = generateRules(attaRoot, options.detectedTechs);
+  if (rules.length > 0) {
+    const agnosticCount = writeToolAgnosticRules(targetDir, rules);
+    const nativeCount = installCopilotRules(targetDir, rules);
+    results.files += agnosticCount + nativeCount;
+
+    if (!options.quiet) {
+      console.log(`  ${pc.green('✓')} .atta/team/rules/ (${agnosticCount} rule files)`);
+      console.log(`  ${pc.green('✓')} .github/instructions/ (${nativeCount} path-scoped rules)`);
+    }
   }
 
   // Generate hooks.json (Copilot hook format — 6 events, placeholder for user customization)

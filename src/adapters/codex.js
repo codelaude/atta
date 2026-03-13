@@ -5,6 +5,7 @@ import { listSkills } from './claude-code.js';
 import { generateAgentsMd } from './agents-md.js';
 import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, createMemoryDirectory, listAgentDefs } from './shared.js';
 import { generateReviewRules, formatCodex } from './review-guidance.js';
+import { generateRules, writeToolAgnosticRules, installCodexRules } from './rules-generator.js';
 
 /**
  * Codex CLI adapter — generates .agents/skills/, .agents/agents/, and AGENTS.md.
@@ -153,6 +154,21 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
 
   if (!options.quiet) {
     console.log(`  ${pc.green('✓')} AGENTS.md (appended review guidelines)`);
+  }
+
+  // Generate path-scoped rules (appended to AGENTS.md + .atta/team/rules/)
+  const rules = generateRules(attaRoot, options.detectedTechs);
+  if (rules.length > 0) {
+    const agnosticCount = writeToolAgnosticRules(targetDir, rules);
+    const nativeCount = installCodexRules(targetDir, rules);
+    results.files += agnosticCount;
+
+    if (!options.quiet) {
+      console.log(`  ${pc.green('✓')} .atta/team/rules/ (${agnosticCount} rule files)`);
+      if (nativeCount > 0) {
+        console.log(`  ${pc.green('✓')} AGENTS.md (appended coding rules)`);
+      }
+    }
   }
 
   // Copy shared content to .atta/ (team, project, scripts, metadata)

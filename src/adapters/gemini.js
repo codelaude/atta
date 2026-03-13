@@ -5,6 +5,7 @@ import { listSkills } from './claude-code.js';
 import { generateAgentsMd } from './agents-md.js';
 import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, createMemoryDirectory, generateHooksConfig } from './shared.js';
 import { generateReviewRules, formatGeminiStyleguide, formatGeminiConfig } from './review-guidance.js';
+import { generateRules, writeToolAgnosticRules, installGeminiRules } from './rules-generator.js';
 
 /**
  * Gemini CLI adapter — generates GEMINI.md, .gemini/commands/, and .gemini/agents/.
@@ -70,6 +71,19 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
 
   if (!options.quiet) {
     console.log(`  ${pc.green('✓')} .gemini/styleguide.md + .gemini/config.yaml (review guidance)`);
+  }
+
+  // Generate path-scoped rules (merged into .gemini/styleguide.md + .atta/team/rules/)
+  const rules = generateRules(attaRoot, options.detectedTechs);
+  if (rules.length > 0) {
+    const agnosticCount = writeToolAgnosticRules(targetDir, rules);
+    installGeminiRules(targetDir, rules);
+    results.files += agnosticCount;
+
+    if (!options.quiet) {
+      console.log(`  ${pc.green('✓')} .atta/team/rules/ (${agnosticCount} rule files)`);
+      console.log(`  ${pc.green('✓')} .gemini/styleguide.md (appended coding rules)`);
+    }
   }
 
   // Copy agent definitions to .gemini/agents/ with Gemini-specific frontmatter:

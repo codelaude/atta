@@ -13,6 +13,7 @@ import { generateAgentsMd } from './agents-md.js';
 import { readVersion, countFiles } from '../lib/fs-utils.js';
 import { copySharedContent, copyBootstrap } from './shared.js';
 import { generateReviewRules, formatClaudeCode } from './review-guidance.js';
+import { generateRules, writeToolAgnosticRules, installClaudeCodeRules } from './rules-generator.js';
 
 /** Directories to copy from .claude/ source (discovery-required, tool-specific) */
 const CLAUDE_DIRS = ['agents', 'hooks', 'skills'];
@@ -232,6 +233,19 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
 
     if (!options.quiet) {
       console.log(`  ${pc.green('✓')} REVIEW.md (code review guidance)`);
+    }
+  }
+
+  // Generate path-scoped rules (.claude/rules/*.md + .atta/team/rules/)
+  const rules = generateRules(attaRoot, options.detectedTechs);
+  if (rules.length > 0) {
+    const agnosticCount = writeToolAgnosticRules(targetDir, rules);
+    const nativeCount = installClaudeCodeRules(targetDir, rules);
+    results.files += agnosticCount + nativeCount;
+
+    if (!options.quiet) {
+      console.log(`  ${pc.green('✓')} .atta/team/rules/ (${agnosticCount} rule files)`);
+      console.log(`  ${pc.green('✓')} .claude/rules/ (${nativeCount} path-scoped rules)`);
     }
   }
 

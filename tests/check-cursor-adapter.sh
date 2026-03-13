@@ -45,17 +45,29 @@ elif ! grep -q "^alwaysApply: true" "$WORK_DIR/.cursor/rules/atta.mdc"; then
   ERRORS=$((ERRORS + 1))
 fi
 
-# Check .mdc files have valid frontmatter with globs: []
+# Check .mdc files have valid frontmatter (description + globs field)
 while IFS= read -r -d '' mdc; do
   if ! head -5 "$mdc" | grep -q "^description:"; then
     echo "FAIL: $mdc missing 'description:' frontmatter"
     ERRORS=$((ERRORS + 1))
   fi
-  if ! head -5 "$mdc" | grep -q "^globs: \[\]"; then
-    echo "FAIL: $mdc has invalid globs format (expected 'globs: []')"
+  # Skill .mdc files use globs: [] (no scoping), rule .mdc files use globs: [] or globs: with entries
+  if ! head -10 "$mdc" | grep -q "^globs:"; then
+    echo "FAIL: $mdc missing 'globs:' frontmatter"
     ERRORS=$((ERRORS + 1))
   fi
 done < <(find "$WORK_DIR/.cursor/rules" -name "*.mdc" -print0 2>/dev/null)
+
+# Check path-scoped rule files exist (at least security, always generated)
+if [ ! -s "$WORK_DIR/.cursor/rules/atta-security.mdc" ]; then
+  echo "FAIL: .cursor/rules/atta-security.mdc missing or empty (path-scoped rules not generated)"
+  ERRORS=$((ERRORS + 1))
+else
+  if ! head -8 "$WORK_DIR/.cursor/rules/atta-security.mdc" | grep -q "^alwaysApply: true"; then
+    echo "FAIL: atta-security.mdc should have alwaysApply: true (universal rule)"
+    ERRORS=$((ERRORS + 1))
+  fi
+fi
 
 # Check agent definitions exist in .cursor/agents/
 if [ -d "$WORK_DIR/.cursor/agents" ]; then

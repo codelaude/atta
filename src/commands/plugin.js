@@ -461,6 +461,8 @@ function generateCursorPlugin(claudeRoot, attaRoot, outputBase) {
   mkdirSync(rulesDir, { recursive: true });
 
   for (const skill of skills) {
+    // Skip core 'atta' skill — its content is subsumed by the always-applied atta.mdc below
+    if (skill.dirName === 'atta') continue;
     const skillFile = join(claudeRoot, 'skills', skill.dirName, 'SKILL.md');
     if (!existsSync(skillFile)) continue;
 

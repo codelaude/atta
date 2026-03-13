@@ -75,8 +75,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG="v$(node -p 'require("./package.json").version')"
+          API_STDERR=$(mktemp)
           HTTP_CODE=$(gh api "repos/${{ github.repository }}/releases/tags/$TAG" \
-            --silent --include 2>/dev/null | head -1 | awk '{print $2}') || true
+            --silent --include 2>"$API_STDERR" | head -1 | awk '{print $2}') || true
           if [ "$HTTP_CODE" = "200" ]; then
             echo "Release $TAG already exists, skipping."
           elif [ "$HTTP_CODE" = "404" ]; then
@@ -86,5 +87,6 @@ jobs:
               --generate-notes
           else
             echo "::error::Unexpected response ($HTTP_CODE) checking release $TAG"
+            cat "$API_STDERR" >&2
             exit 1
           fi

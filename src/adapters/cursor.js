@@ -5,6 +5,7 @@ import { listSkills } from './claude-code.js';
 import { generateAgentsMd } from './agents-md.js';
 import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, createMemoryDirectory, generateHooksConfig } from './shared.js';
 import { generateReviewRules, formatCursorBugbot, formatCursorMdc } from './review-guidance.js';
+import { generateRules, writeToolAgnosticRules, installCursorRules } from './rules-generator.js';
 
 /**
  * Cursor adapter — generates AGENTS.md, .cursor/rules/*.mdc, and .cursor/agents/.
@@ -95,6 +96,19 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
 
   if (!options.quiet) {
     console.log(`  ${pc.green('✓')} .cursor/BUGBOT.md + .cursor/rules/atta-review-guidance.mdc (review guidance)`);
+  }
+
+  // Generate path-scoped rules (.cursor/rules/atta-{tech}.mdc + .atta/team/rules/)
+  const rules = generateRules(attaRoot, options.detectedTechs);
+  if (rules.length > 0) {
+    const agnosticCount = writeToolAgnosticRules(targetDir, rules);
+    const nativeCount = installCursorRules(targetDir, rules);
+    results.files += agnosticCount + nativeCount;
+
+    if (!options.quiet) {
+      console.log(`  ${pc.green('✓')} .atta/team/rules/ (${agnosticCount} rule files)`);
+      console.log(`  ${pc.green('✓')} .cursor/rules/ (${nativeCount} path-scoped rules)`);
+    }
   }
 
   // Copy agent definitions to .cursor/agents/

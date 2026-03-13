@@ -13,7 +13,7 @@ import { generateReviewRules, formatCIReview } from './review-guidance.js';
  *
  * Design constraints (from PLAN.md):
  * - CI action is read-only: never writes to .atta/
- * - All learning happens locally via /patterns, then committed normally
+ * - All learning happens locally via /atta-patterns, then committed normally
  * - Suppression workflow: CI flags → author triages → adds to ci-suppressions.md
  *   → human reviewer approves/rejects in PR diff → merges to main
  * - The workflow YAML structure is user-configured; Atta owns the prompt section
@@ -316,14 +316,14 @@ ${promptBody}
  * Build the initial ci-suppressions.md.
  * Teams add entries here for confirmed false positives.
  * Each suppression is reviewed as part of the PR that introduces it.
- * Over time, use `/patterns promote` to replace suppressions with understood patterns.
+ * Over time, use `/atta-patterns promote` to replace suppressions with understood patterns.
  */
 function buildSuppressions() {
   return `# CI Review Suppressions
 
 > Add confirmed false positives here so the CI reviewer skips them.
 > Each entry lands in a PR diff — the human reviewer approves or rejects the suppression.
-> Over time, use \`/patterns promote\` to replace raw suppressions with understood patterns
+> Over time, use \`/atta-patterns promote\` to replace raw suppressions with understood patterns
 > (the AI stops flagging the category, not just the specific instance).
 
 ## How to Add a Suppression

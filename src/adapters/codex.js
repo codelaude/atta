@@ -16,6 +16,17 @@ import { generateReviewRules, formatCodex } from './review-guidance.js';
  */
 export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   const results = { files: 0 };
+  const skills = listSkills(claudeRoot);
+
+  // Codex uses $skill invocation — build commandMap dynamically: /atta-review → $atta-review
+  const codexCommandMap = Object.fromEntries(
+    skills.map((s) => [s.dirName, `$${s.dirName}`])
+  );
+  const codexRewriteConfig = {
+    agentsPath: '.agents/agents',
+    memoryPath: '.agents/agents/memory',
+    commandMap: codexCommandMap,
+  };
 
   // Generate AGENTS.md with Codex-specific paths and $ prefix
   const agentsMd = generateAgentsMd(claudeRoot, attaRoot, {
@@ -29,38 +40,10 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
     console.log(`  ${pc.green('✓')} AGENTS.md`);
   }
 
-  // Codex uses $skill invocation — rewrite /command → $command (used by both skills and agents)
-  const codexCommandMap = {
-    review: '$review',
-    agent: '$agent',
-    atta: '$atta',
-    preflight: '$preflight',
-    lint: '$lint',
-    test: '$test',
-    collaborate: '$collaborate',
-    'team-lead': '$team-lead',
-    librarian: '$librarian',
-    patterns: '$patterns',
-    profile: '$profile',
-    'security-audit': '$security-audit',
-    ship: '$ship',
-    tutorial: '$tutorial',
-    optimize: '$optimize',
-    update: '$update',
-    migrate: '$migrate',
-  };
-
   // Copy skills to .agents/skills/
   const skillsDir = join(claudeRoot, 'skills');
   if (existsSync(skillsDir)) {
-    const skills = listSkills(claudeRoot);
     const agentsSkillsDir = join(targetDir, '.agents', 'skills');
-
-    const rewriteConfig = {
-      agentsPath: '.agents/agents',
-      memoryPath: '.agents/agents/memory',
-      commandMap: codexCommandMap,
-    };
 
     for (const skill of skills) {
       const src = join(skillsDir, skill.dirName, 'SKILL.md');
@@ -76,9 +59,9 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
       if (fmMatch) {
         const frontmatter = fmMatch[0];
         const body = content.slice(frontmatter.length);
-        writeFileSync(dest, frontmatter + rewriteSkillBody(body, rewriteConfig));
+        writeFileSync(dest, frontmatter + rewriteSkillBody(body, codexRewriteConfig));
       } else {
-        writeFileSync(dest, rewriteSkillBody(content, rewriteConfig));
+        writeFileSync(dest, rewriteSkillBody(content, codexRewriteConfig));
       }
 
       results.files++;
@@ -92,12 +75,6 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   }
 
   // Copy agent definitions to .agents/agents/ (rewrite body for Codex paths)
-  const codexAgentRewriteConfig = {
-    agentsPath: '.agents/agents',
-    memoryPath: '.agents/agents/memory',
-    commandMap: codexCommandMap,
-  };
-
   const agentCount = copyAgentFiles(
     claudeRoot,
     join(targetDir, '.agents', 'agents'),
@@ -107,7 +84,7 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
         name: fm.name,
         description: fm.description,
       }),
-      transformBody: (body) => rewriteSkillBody(body, codexAgentRewriteConfig),
+      transformBody: (body) => rewriteSkillBody(body, codexRewriteConfig),
     }
   );
   results.files += agentCount;

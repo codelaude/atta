@@ -98,13 +98,13 @@ else
   fi
 fi
 
-# Check atta-review.mdc exists with review guidance
-if [ ! -s "$WORK_DIR/.cursor/rules/atta-review.mdc" ]; then
-  echo "FAIL: .cursor/rules/atta-review.mdc missing or empty"
+# Check atta-review-guidance.mdc exists with review guidance (distinct from atta-review skill)
+if [ ! -s "$WORK_DIR/.cursor/rules/atta-review-guidance.mdc" ]; then
+  echo "FAIL: .cursor/rules/atta-review-guidance.mdc missing or empty"
   ERRORS=$((ERRORS + 1))
 else
-  if ! grep -q "## Always Check" "$WORK_DIR/.cursor/rules/atta-review.mdc"; then
-    echo "FAIL: atta-review.mdc missing '## Always Check' section"
+  if ! grep -q "## Always Check" "$WORK_DIR/.cursor/rules/atta-review-guidance.mdc"; then
+    echo "FAIL: atta-review-guidance.mdc missing '## Always Check' section"
     ERRORS=$((ERRORS + 1))
   fi
 fi

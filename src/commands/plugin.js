@@ -267,15 +267,15 @@ function generateClaudeCodePlugin(claudeRoot, attaRoot, outputBase) {
 
 // ─── Copilot Plugin ──────────────────────────────────────────────────────────
 
-/** Skills that conflict with Copilot CLI built-in commands */
-const COPILOT_BUILTIN_CONFLICTS = new Set(['review', 'agent', 'update']);
-
 /**
  * Generate Copilot plugin package.
  *
+ * All skills use the atta-* namespace (e.g., /atta-review, /atta-lint) which avoids
+ * conflicts with Copilot built-in commands (/review, /agent, /update).
+ *
  * Output structure:
  *   plugin.json
- *   skills/<name>/SKILL.md (renamed for conflicts)
+ *   skills/<name>/SKILL.md
  *   agents/<name>.agent.md (copied from .claude/agents/, .agent.md extension)
  *   hooks/hooks.json
  *   instructions/ (Copilot-idiomatic instruction files)
@@ -294,16 +294,11 @@ function generateCopilotPlugin(claudeRoot, attaRoot, outputBase) {
   }
   mkdirSync(pluginDir, { recursive: true });
 
-  // Build command map for body rewriting
-  const commandMap = {};
-  for (const name of COPILOT_BUILTIN_CONFLICTS) {
-    commandMap[name] = `/atta-${name}`;
-  }
-
+  // No command rewrites needed — atta-* namespace avoids all Copilot built-in conflicts
   const rewriteConfig = {
     agentsPath: 'agents',
     memoryPath: 'agents/memory',
-    commandMap,
+    commandMap: {},
   };
 
   // 1. Copy and rewrite skills
@@ -314,18 +309,10 @@ function generateCopilotPlugin(claudeRoot, attaRoot, outputBase) {
     const src = join(srcSkills, skill.dirName, 'SKILL.md');
     if (!existsSync(src)) continue;
 
-    const destName = COPILOT_BUILTIN_CONFLICTS.has(skill.dirName)
-      ? `atta-${skill.dirName}`
-      : skill.dirName;
-    const destDir = join(skillsDir, destName);
+    const destDir = join(skillsDir, skill.dirName);
     mkdirSync(destDir, { recursive: true });
 
     let content = readFileSync(src, 'utf-8');
-
-    // Rename frontmatter for conflicting skills
-    if (COPILOT_BUILTIN_CONFLICTS.has(skill.dirName)) {
-      content = content.replace(/^(---\nname:\s*)(.+)/m, `$1${destName}`);
-    }
 
     // Rewrite body
     const fmMatch = content.match(/^---\n[\s\S]*?\n---\n/);
@@ -339,8 +326,7 @@ function generateCopilotPlugin(claudeRoot, attaRoot, outputBase) {
     files++;
   }
 
-  const renamedCount = skills.filter((s) => COPILOT_BUILTIN_CONFLICTS.has(s.dirName)).length;
-  summary.push(`skills/ (${skills.length} skills, ${renamedCount} renamed to avoid conflicts)`);
+  summary.push(`skills/ (${skills.length} skills)`);
 
   // 2. Copy agents with Copilot-specific transforms:
   //    - .agent.md extension (Copilot ignores plain .md in agent directories)
@@ -350,7 +336,7 @@ function generateCopilotPlugin(claudeRoot, attaRoot, outputBase) {
   const copilotAgentRewriteConfig = {
     agentsPath: 'agents',
     memoryPath: 'agents/memory',
-    commandMap,
+    commandMap: {},
   };
   const agentCount = copyAgentFiles(claudeRoot, agentsDir, {
     quiet: true,
@@ -378,22 +364,15 @@ function generateCopilotPlugin(claudeRoot, attaRoot, outputBase) {
   const instructionsDir = join(pluginDir, 'instructions');
   mkdirSync(instructionsDir, { recursive: true });
 
-  const renamedWarnings = [...COPILOT_BUILTIN_CONFLICTS]
-    .map((name) => `- **NEVER use \`/${name}\`** — it triggers Copilot's built-in. Use \`/atta-${name}\` instead.`)
-    .join('\n');
-
   writeAndSync(join(instructionsDir, 'atta-skills.instructions.md'), [
     '# Atta Skills',
     '',
     'This project uses the Atta framework. Skills are in `skills/`.',
     '',
-    '## Command Conflicts',
-    '',
-    renamedWarnings,
-    '',
     '## Invocation',
     '',
-    'Use `/skill-name` to activate a skill (e.g., `/preflight`, `/lint`, `/atta-review`).',
+    'All Atta skills use the `atta-` prefix to avoid conflicts with Copilot built-in commands.',
+    'Use `/skill-name` to activate a skill (e.g., `/atta-review`, `/atta-lint`, `/atta-preflight`).',
     '',
   ].join('\n'));
   files++;
@@ -407,7 +386,7 @@ function generateCopilotPlugin(claudeRoot, attaRoot, outputBase) {
   ].join('\n'));
   files++;
 
-  summary.push('instructions/ (skill conflicts + agent registry)');
+  summary.push('instructions/ (skill overview + agent registry)');
 
   // 5. Generate plugin.json manifest
   const manifest = {
@@ -430,7 +409,7 @@ function generateCopilotPlugin(claudeRoot, attaRoot, outputBase) {
   writeAndSync(join(pluginDir, 'README.md'), generateToolReadme('Copilot', version, skills, {
     installCmd: '/plugin install codelaude/atta-copilot-plugin',
     prefix: '/',
-    renames: Object.fromEntries([...COPILOT_BUILTIN_CONFLICTS].map((n) => [n, `atta-${n}`])),
+    renames: {},
   }));
   files++;
   summary.push('README.md');
@@ -445,26 +424,7 @@ function generateCopilotPlugin(claudeRoot, attaRoot, outputBase) {
 
 // ─── Cursor Plugin ───────────────────────────────────────────────────────────
 
-/** Rewrite config for Cursor — @atta- mentions, agents/ relative paths */
-const CURSOR_COMMAND_MAP = {
-  review: '@atta-review',
-  agent: '@atta-agent',
-  atta: '@atta-atta',
-  preflight: '@atta-preflight',
-  lint: '@atta-lint',
-  test: '@atta-test',
-  collaborate: '@atta-collaborate',
-  'team-lead': '@atta-team-lead',
-  librarian: '@atta-librarian',
-  patterns: '@atta-patterns',
-  profile: '@atta-profile',
-  'security-audit': '@atta-security-audit',
-  ship: '@atta-ship',
-  tutorial: '@atta-tutorial',
-  optimize: '@atta-optimize',
-  update: '@atta-update',
-  migrate: '@atta-migrate',
-};
+// No static command map — built dynamically from listSkills() below
 
 /**
  * Generate Cursor plugin package.
@@ -493,7 +453,7 @@ function generateCursorPlugin(claudeRoot, attaRoot, outputBase) {
   const rewriteConfig = {
     agentsPath: 'agents',
     memoryPath: 'agents/memory',
-    commandMap: CURSOR_COMMAND_MAP,
+    commandMap: Object.fromEntries(skills.map((s) => [s.dirName, `@${s.dirName}`])),
   };
 
   // 1. Generate .cursor rules (MDC format) — primary skill delivery for Cursor
@@ -501,6 +461,8 @@ function generateCursorPlugin(claudeRoot, attaRoot, outputBase) {
   mkdirSync(rulesDir, { recursive: true });
 
   for (const skill of skills) {
+    // Skip core 'atta' skill — its content is subsumed by the always-applied atta.mdc below
+    if (skill.dirName === 'atta') continue;
     const skillFile = join(claudeRoot, 'skills', skill.dirName, 'SKILL.md');
     if (!existsSync(skillFile)) continue;
 
@@ -525,13 +487,13 @@ function generateCursorPlugin(claudeRoot, attaRoot, outputBase) {
       '',
     ].join('\n');
 
-    writeAndSync(join(rulesDir, `atta-${skill.dirName}.mdc`), mdc);
+    writeAndSync(join(rulesDir, `${skill.dirName}.mdc`), mdc);
     files++;
   }
 
   // Main atta.mdc — always-applied framework context
   const skillList = skills
-    .map((s) => `- \`@atta-${s.dirName}\` — ${s.description || s.name}`)
+    .map((s) => `- \`@${s.dirName}\` — ${s.description || s.name}`)
     .join('\n');
 
   writeAndSync(join(rulesDir, 'atta.mdc'), [
@@ -556,12 +518,12 @@ function generateCursorPlugin(claudeRoot, attaRoot, outputBase) {
     'Agents use a three-tier hierarchy:',
     '1. **Core Agents** — Always available (project-owner, code-reviewer, librarian)',
     '2. **Coordinators** — Generated per project (fe-team-lead, be-team-lead)',
-    '3. **Specialists** — Generated from detected tech stack (run `@atta-atta` to set up)',
+    '3. **Specialists** — Generated from detected tech stack (run `@atta` to set up)',
     '',
   ].join('\n'));
   files++;
 
-  summary.push(`rules/ (${skills.length} skill rules + atta.mdc)`);
+  summary.push(`rules/ (${skills.length - 1} skill rules + atta.mdc)`);
 
   // 2. Copy and rewrite skills as SKILL.md (Cursor discovers from skills/ natively)
   const skillsDir = join(pluginDir, 'skills');
@@ -638,7 +600,7 @@ function generateCursorPlugin(claudeRoot, attaRoot, outputBase) {
   // 6. README.md
   writeAndSync(join(pluginDir, 'README.md'), generateToolReadme('Cursor', version, skills, {
     installCmd: 'Browse cursor.com/marketplace or /add-plugin',
-    prefix: '@atta-',
+    prefix: '@',
     renames: {},
   }));
   files++;
@@ -654,26 +616,7 @@ function generateCursorPlugin(claudeRoot, attaRoot, outputBase) {
 
 // ─── Codex Plugin ────────────────────────────────────────────────────────────
 
-/** Command map for Codex — $skill prefix */
-const CODEX_COMMAND_MAP = {
-  review: '$review',
-  agent: '$agent',
-  atta: '$atta',
-  preflight: '$preflight',
-  lint: '$lint',
-  test: '$test',
-  collaborate: '$collaborate',
-  'team-lead': '$team-lead',
-  librarian: '$librarian',
-  patterns: '$patterns',
-  profile: '$profile',
-  'security-audit': '$security-audit',
-  ship: '$ship',
-  tutorial: '$tutorial',
-  optimize: '$optimize',
-  update: '$update',
-  migrate: '$migrate',
-};
+// No static command map — built dynamically from listSkills() below
 
 /**
  * Generate Codex skills package.
@@ -703,7 +646,7 @@ function generateCodexPlugin(claudeRoot, attaRoot, outputBase) {
   const rewriteConfig = {
     agentsPath: '.agents/agents',
     memoryPath: '.agents/agents/memory',
-    commandMap: CODEX_COMMAND_MAP,
+    commandMap: Object.fromEntries(skills.map((s) => [s.dirName, `$${s.dirName}`])),
   };
 
   // 1. Copy and rewrite skills with $prefix
@@ -739,7 +682,7 @@ function generateCodexPlugin(claudeRoot, attaRoot, outputBase) {
   const codexAgentRewriteConfig = {
     agentsPath: '.agents/agents',
     memoryPath: '.agents/agents/memory',
-    commandMap: CODEX_COMMAND_MAP,
+    commandMap: rewriteConfig.commandMap,
   };
   const agentCount = copyAgentFiles(claudeRoot, agentsDir, {
     quiet: true,

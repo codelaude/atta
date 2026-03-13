@@ -15,31 +15,17 @@ import { generateReviewRules, formatCopilot } from './review-guidance.js';
  * reserved for Copilot's native agent system and requires specific YAML frontmatter).
  * AGENTS.md is generated at the project root.
  *
- * Skills that conflict with Copilot built-in commands are renamed with an 'atta-' prefix.
+ * All skills use the atta-* namespace (e.g., /atta-review, /atta-lint) which avoids
+ * conflicts with Copilot built-in commands (/review, /agent, /update).
  */
-
-/**
- * Skills that conflict with Copilot CLI built-in slash commands.
- * Known built-ins (from /help output):
- *   /review — "Run code review agent to analyze changes"
- *   /agent  — "Browse and select from available agents"
- *   /update — "Update the CLI to the latest version"
- */
-const COPILOT_BUILTIN_CONFLICTS = new Set(['review', 'agent', 'update']);
-
-/** Map of original skill name → renamed skill name for Copilot */
-const SKILL_RENAMES = Object.fromEntries(
-  [...COPILOT_BUILTIN_CONFLICTS].map((name) => [name, `atta-${name}`])
-);
 
 export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   const results = { files: 0 };
 
-  // Generate AGENTS.md with Copilot-specific paths and renamed skills
+  // Generate AGENTS.md with Copilot-specific paths
   const agentsMd = generateAgentsMd(claudeRoot, attaRoot, {
     skillPrefix: '/',
     agentBasePath: '.github/atta/agents',
-    skillRenames: SKILL_RENAMES,
   });
   writeFileSync(join(targetDir, 'AGENTS.md'), agentsMd);
   results.files++;
@@ -48,13 +34,7 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
     console.log(`  ${pc.green('✓')} AGENTS.md`);
   }
 
-  // Build command map for body rewriting (renamed skills — used by both skills and agents)
-  const copilotCommandMap = {};
-  for (const [orig, renamed] of Object.entries(SKILL_RENAMES)) {
-    copilotCommandMap[orig] = `/${renamed}`;
-  }
-
-  // Copy skills to .github/skills/ (renaming conflicting ones)
+  // Copy skills to .github/skills/ (all skills already use atta-* namespace)
   const skillsDir = join(claudeRoot, 'skills');
   if (existsSync(skillsDir)) {
     const skills = listSkills(claudeRoot);
@@ -63,30 +43,21 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
     const rewriteConfig = {
       agentsPath: '.github/atta/agents',
       memoryPath: '.github/atta/agents/memory',
-      commandMap: copilotCommandMap,
+      commandMap: {},
     };
 
     for (const skill of skills) {
       const src = join(skillsDir, skill.dirName, 'SKILL.md');
       if (!existsSync(src)) continue;
 
-      const destName = SKILL_RENAMES[skill.dirName] || skill.dirName;
-      const destDir = join(githubSkillsDir, destName);
+      const destDir = join(githubSkillsDir, skill.dirName);
       const dest = join(destDir, 'SKILL.md');
 
       mkdirSync(destDir, { recursive: true });
 
       let content = readFileSync(src, 'utf-8');
 
-      // Rename frontmatter for conflicting skills
-      if (COPILOT_BUILTIN_CONFLICTS.has(skill.dirName)) {
-        content = content.replace(
-          /^(---\nname:\s*)(.+)/m,
-          `$1${destName}`
-        );
-      }
-
-      // Rewrite body content (after frontmatter) for Copilot compatibility
+      // Rewrite body content (after frontmatter) for Copilot compatibility (path rewrites)
       const fmMatch = content.match(/^---\n[\s\S]*?\n---\n/);
       if (fmMatch) {
         const frontmatter = fmMatch[0];
@@ -98,14 +69,8 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
       results.files++;
     }
 
-    const renamedCount = skills.filter((s) => COPILOT_BUILTIN_CONFLICTS.has(s.dirName)).length;
     if (!options.quiet) {
-      let msg = `  ${pc.green('✓')} .github/skills/ (${skills.length} skills`;
-      if (renamedCount > 0) {
-        msg += `, ${renamedCount} renamed to avoid Copilot built-in conflicts`;
-      }
-      msg += ')';
-      console.log(msg);
+      console.log(`  ${pc.green('✓')} .github/skills/ (${skills.length} skills)`);
     }
   }
 
@@ -116,7 +81,7 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   const copilotAgentRewriteConfig = {
     agentsPath: '.github/atta/agents',
     memoryPath: '.github/atta/agents/memory',
-    commandMap: copilotCommandMap,
+    commandMap: {},
   };
 
   const agentCount = copyAgentFiles(
@@ -148,23 +113,16 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   const instructionsDir = join(targetDir, '.github', 'instructions');
   mkdirSync(instructionsDir, { recursive: true });
 
-  // Skills instruction file — command table with renames and conflict warnings
-  const renamedWarnings = Object.entries(SKILL_RENAMES)
-    .map(([orig, renamed]) => `- **NEVER use \`/${orig}\`** — it triggers Copilot's built-in. Use \`/${renamed}\` instead.`)
-    .join('\n');
-
+  // Skills instruction file — command reference
   writeFileSync(join(instructionsDir, 'atta-skills.instructions.md'), [
     '# Atta Skills',
     '',
     'This project uses the Atta framework. Skills are in `.github/skills/`.',
     '',
-    '## Command Conflicts',
-    '',
-    renamedWarnings,
-    '',
     '## Invocation',
     '',
-    'Use `/skill-name` to activate a skill (e.g., `/preflight`, `/lint`, `/atta-review`).',
+    'Use `/skill-name` to activate a skill (e.g., `/atta-review`, `/atta-lint`, `/atta-preflight`).',
+    'All Atta skills use the `atta-` prefix to avoid conflicts with built-in commands.',
     '',
   ].join('\n'));
   results.files++;
@@ -237,28 +195,16 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   results.files += bootstrapCount;
 
   // Copy .github/copilot-instructions.md (instruction file)
-  const renamedList = Object.entries(SKILL_RENAMES)
-    .map(([orig, renamed]) => `\`/${orig}\` → \`/${renamed}\``)
-    .join(', ');
-
   const instructionContent = [
     '# Copilot Instructions',
     '',
     'This project uses the Atta framework for AI-assisted development.',
     'See AGENTS.md for the full agent registry and available commands.',
     '',
-    '## Critical: Command Conflicts',
-    '',
-    `The following Atta skills are renamed to avoid conflicts with Copilot built-in commands: ${renamedList}.`,
-    '',
-    ...Object.entries(SKILL_RENAMES).map(([orig, renamed]) =>
-      `**NEVER use \`/${orig}\`** — it triggers Copilot\'s built-in command, not Atta. Use \`/${renamed}\` instead.`
-    ),
-    '',
     '## Available Skills',
     '',
     'Skills are in `.github/skills/` as SKILL.md files.',
-    'Use `/skill-name` to activate (e.g., `/atta-review`, `/preflight`, `/lint`).',
+    'All Atta skills use the `atta-` prefix (e.g., `/atta-review`, `/atta-lint`, `/atta-preflight`).',
     '',
     '## Agent Definitions',
     '',

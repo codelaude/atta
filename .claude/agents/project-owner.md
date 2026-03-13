@@ -36,7 +36,7 @@ model: inherit
 | FE task | fe-team-lead (if generated) |
 | BE task | be-team-lead (if generated) |
 | FE + BE feature | fe-team-lead + be-team-lead (parallel, then synthesize) |
-| Multi-domain review | `/collaborate` skill |
+| Multi-domain review | `/atta-collaborate` skill |
 | Code review | code-reviewer |
 | QA / ACC validation | qa-validator |
 | PR preparation | pr-manager |

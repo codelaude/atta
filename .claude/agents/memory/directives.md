@@ -6,7 +6,7 @@
 ## Active Directives
 
 ```yaml
-# No active directives yet. Use /librarian to capture new ones.
+# No active directives yet. Use /atta-librarian to capture new ones.
 ```
 
 ## Graduated Directives

@@ -1,6 +1,7 @@
 .DS_Store
 .mcp.json
 node_modules/
+.npm-cache/
 package-lock.json
 *.tgz
 

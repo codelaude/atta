@@ -26,11 +26,8 @@ Use this to determine which agent handles what:
 |-------|------|------------|
 | project-owner | Strategic coordinator, escalation endpoint | `/agent project-owner` |
 | code-reviewer | Code review and quality checks | `/agent code-reviewer` |
-| qa-validator | Quality assurance and validation | `/agent qa-validator` |
-| business-analyst | Requirements and business logic | `/agent business-analyst` |
-| pr-manager | Pull request workflow | `/agent pr-manager` |
-| rubber-duck | Brainstorming and problem decomposition | `/agent rubber-duck` |
 | librarian | Knowledge capture and directives | `/agent librarian` |
+| architect | System design, ADRs, and blueprints | `/agent architect` |
 
 {{#if HAS_FRONTEND}}
 ### Frontend Team

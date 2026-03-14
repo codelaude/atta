@@ -6,6 +6,7 @@ import {
   renameSync,
   readFileSync,
   readdirSync,
+  unlinkSync,
 } from 'node:fs';
 import { join } from 'node:path';
 import pc from 'picocolors';
@@ -45,6 +46,23 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
 
     if (!options.quiet) {
       console.log(`  ${pc.green('✓')} .claude/${dir}/ (${count} files)`);
+    }
+  }
+
+  // Filter agents based on selection (remove unselected optional agents)
+  if (options.selectedAgents) {
+    const agentsDir = join(claudeDir, 'agents');
+    if (existsSync(agentsDir)) {
+      const agentFiles = readdirSync(agentsDir).filter(
+        (f) => f.endsWith('.md') && f !== 'INDEX.md' && f !== 'README.md'
+      );
+      for (const file of agentFiles) {
+        const agentId = file.replace(/\.md$/, '');
+        if (!options.selectedAgents.includes(agentId)) {
+          unlinkSync(join(agentsDir, file));
+          results.files--;
+        }
+      }
     }
   }
 
@@ -128,7 +146,7 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   // Generate CLAUDE.md (only if none exist)
   const claudeMdPath = join(targetDir, 'CLAUDE.md');
   if (!existsSync(claudeMdPath)) {
-    const claudeMd = generateClaudeMd(claudeRoot, attaRoot);
+    const claudeMd = generateClaudeMd(claudeRoot, attaRoot, options);
     const tmpClaudeMd = claudeMdPath + '.tmp';
     writeFileSync(tmpClaudeMd, claudeMd);
     renameSync(tmpClaudeMd, claudeMdPath);
@@ -206,8 +224,8 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
  * Generate CLAUDE.md — instruction file for Claude Code.
  * Based on AGENTS.md content with Claude Code-specific framing.
  */
-export function generateClaudeMd(claudeRoot, attaRoot) {
-  const agentsMd = generateAgentsMd(claudeRoot, attaRoot, { includeHiddenSkills: true });
+export function generateClaudeMd(claudeRoot, attaRoot, options = {}) {
+  const agentsMd = generateAgentsMd(claudeRoot, attaRoot, { includeHiddenSkills: true, selectedAgents: options.selectedAgents });
 
   const sessionStart = [
     '',

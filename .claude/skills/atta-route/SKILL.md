@@ -15,10 +15,18 @@ Operational guidance for routing decisions. Loaded when deciding which agent or 
 | project-owner | Orchestrator — routes tasks, synthesizes multi-agent output | Complex features, cross-domain work, task decomposition |
 | code-reviewer | Code quality, patterns, security | Code review, pattern checks, pre-PR review |
 | librarian | Knowledge capture, directives, corrections | "Remember to...", "Always...", "Never...", corrections |
+| architect | System design, ADRs, tech decisions, implementation blueprints | Architecture decisions, scalability analysis, API design |
+
+## Optional Agents (installed during init)
+
+| Agent | Role | When to invoke |
+|-------|------|----------------|
 | business-analyst | Requirements, acceptance criteria, edge cases | Clarifying business logic, defining ACCs |
 | qa-validator | ACC validation, test scenario creation | Checking if code meets requirements |
 | pr-manager | PR descriptions, commit messages, completion criteria | Preparing PRs, writing commit messages |
 | rubber-duck | Guided learning, problem exploration | When user wants to think through a problem |
+
+> Optional agents may not be installed. If invoked and absent, fall back to the closest core agent (e.g., code-reviewer for QA, project-owner for PR/requirements).
 
 ## Generated Agents (project-specific)
 
@@ -37,6 +45,9 @@ Use `/atta-agent <agent-id>` to invoke a specialist. To discover available agent
 Is it a code review?
   → /atta-agent code-reviewer (or /atta-review for comprehensive review)
 
+Is it architecture / system design / ADR?
+  → /atta-agent architect
+
 Is it a specific specialist domain?
   → /atta-agent <specialist-id>
 
@@ -53,10 +64,10 @@ Is it a knowledge capture? ("remember...", "always...", "never...")
   → /atta-agent librarian
 
 Is it requirements/acceptance criteria?
-  → /atta-agent business-analyst
+  → /atta-agent business-analyst (if installed, else project-owner)
 
 Is it PR preparation?
-  → /atta-agent pr-manager (or /atta-ship for full workflow)
+  → /atta-agent pr-manager (if installed, else /atta-ship)
 
 Is it a quick single-domain task?
   → /atta-agent <id> (skip coordination overhead)

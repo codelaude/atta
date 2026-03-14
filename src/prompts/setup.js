@@ -1,9 +1,20 @@
 import * as p from '@clack/prompts';
 import { printBanner } from '../banner.js';
 
+/** Core agents — always installed, not selectable */
+export const CORE_AGENTS = ['project-owner', 'code-reviewer', 'librarian', 'architect'];
+
+/** Optional agents — user selects during init */
+export const OPTIONAL_AGENTS = [
+  { value: 'business-analyst', label: 'Business Analyst', hint: 'formal requirements & acceptance criteria' },
+  { value: 'qa-validator', label: 'QA Validator', hint: 'acceptance criteria validation & test scenarios' },
+  { value: 'pr-manager', label: 'PR Manager', hint: 'structured PR descriptions & completion tracking' },
+  { value: 'rubber-duck', label: 'Rubber Duck', hint: 'guided learning & problem exploration' },
+];
+
 /**
  * Interactive setup prompts for `npx atta-dev init`.
- * Asks 5 questions (adapter, collaboration, response style, review priorities, tutorial) and returns answers for profile pre-fill.
+ * Asks 6 questions (adapter, collaboration, response style, review priorities, optional agents, tutorial) and returns answers for profile pre-fill.
  */
 export async function runSetupPrompts(options = {}) {
   printBanner();
@@ -101,6 +112,17 @@ export async function runSetupPrompts(options = {}) {
     process.exit(0);
   }
 
+  const selectedAgents = await p.multiselect({
+    message: 'Select optional agents to install (core 4 always included)',
+    options: OPTIONAL_AGENTS,
+    required: false,
+  });
+
+  if (p.isCancel(selectedAgents)) {
+    p.cancel('Setup cancelled.');
+    process.exit(0);
+  }
+
   const runTutorial = await p.confirm({
     message: 'Include the interactive tutorial? (runs inside your AI tool, uses tokens)',
     initialValue: true,
@@ -116,6 +138,7 @@ export async function runSetupPrompts(options = {}) {
     collaboration,
     responseStyle,
     reviewPriorities,
+    selectedAgents: [...CORE_AGENTS, ...selectedAgents],
     includeTutorial: runTutorial,
   };
 }

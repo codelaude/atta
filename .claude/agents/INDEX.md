@@ -17,7 +17,7 @@ A virtual software development team with specialized agents that provide experti
 ## Agent Hierarchy (Auto-Generated)
 
 The agent structure adapts to your project:
-- **Core Agents**: Universal, always available (project-owner, librarian, rubber-duck, etc.)
+- **Core Agents**: Always available (project-owner, code-reviewer, librarian, architect)
 - **Coordinators**: Generated if frontend/backend detected (fe-team-lead, be-team-lead)
 - **Specialists**: Generated based on detected technologies (Vue, React, Django, Java, PostgreSQL, etc.)
 
@@ -30,14 +30,17 @@ The agent structure adapts to your project:
 Until you run `/atta`, here's the expected structure:
 
 ```
-Core Agents (universal)
+Core Agents (always installed)
 ├── Project Owner         (orchestrator)
-├── Librarian             (persistent memory)
-├── Rubber Duck           (guided learning)
 ├── Code Reviewer         (quality reviewer)
+├── Librarian             (persistent memory)
+└── Architect             (system design & blueprints)
+
+Optional Agents (selected during init)
 ├── Business Analyst      (requirements)
 ├── QA Validator          (acceptance criteria)
-└── PR Manager            (PR descriptions)
+├── PR Manager            (PR descriptions)
+└── Rubber Duck           (guided learning)
 
 Coordinators (generated per project)
 ├── FE Team Lead          (if frontend detected)

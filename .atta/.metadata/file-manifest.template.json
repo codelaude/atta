@@ -133,7 +133,7 @@
       "source": "framework",
       "customized": false,
       "requires_merge": false,
-      "description": "Guided learning agent",
+      "description": "Guided learning agent (optional)",
       "framework_hash": null,
       "user_hash": null,
       "customizations": {
@@ -155,11 +155,24 @@
         "rules_added": false
       }
     },
+    "agents/architect.md": {
+      "source": "framework",
+      "customized": false,
+      "requires_merge": false,
+      "description": "System design and architecture agent",
+      "framework_hash": null,
+      "user_hash": null,
+      "customizations": {
+        "personality_name": null,
+        "sections_modified": [],
+        "rules_added": false
+      }
+    },
     "agents/business-analyst.md": {
       "source": "framework",
       "customized": false,
       "requires_merge": false,
-      "description": "Requirements analyst agent",
+      "description": "Requirements analyst agent (optional)",
       "framework_hash": null,
       "user_hash": null,
       "customizations": {
@@ -172,7 +185,7 @@
       "source": "framework",
       "customized": false,
       "requires_merge": false,
-      "description": "QA validation agent",
+      "description": "QA validation agent (optional)",
       "framework_hash": null,
       "user_hash": null,
       "customizations": {
@@ -185,7 +198,7 @@
       "source": "framework",
       "customized": false,
       "requires_merge": false,
-      "description": "PR management agent",
+      "description": "PR management agent (optional)",
       "framework_hash": null,
       "user_hash": null,
       "customizations": {

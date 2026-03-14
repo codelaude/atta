@@ -9,7 +9,7 @@ import { install as installCodex } from '../adapters/codex.js';
 import { install as installGemini } from '../adapters/gemini.js';
 import { install as installCursor } from '../adapters/cursor.js';
 import { install as installGithubAction } from '../adapters/github-action.js';
-import { runSetupPrompts, generateProfile } from '../prompts/setup.js';
+import { runSetupPrompts, generateProfile, CORE_AGENTS } from '../prompts/setup.js';
 import { generateGettingStarted } from '../guides/getting-started.js';
 import { printBanner } from '../banner.js';
 import { countFiles } from '../lib/fs-utils.js';
@@ -115,17 +115,17 @@ export async function init(options) {
     process.exit(1);
   }
 
-  // Non-interactive mode (--yes flag)
+  // Non-interactive mode (--yes flag) — core agents only, no optionals
   if (options.yes) {
     printBanner();
-    return runInstall(targetDir, options.adapter || 'claude-code', dryRun, null, { authBackend, provider });
+    return runInstall(targetDir, options.adapter || 'claude-code', dryRun, null, { authBackend, provider, selectedAgents: [...CORE_AGENTS] });
   }
 
   // Interactive setup — only pass adapter if explicitly provided via --adapter flag
   const answers = await runSetupPrompts({ adapter: options.adapter || null });
 
-  // Run installation with chosen adapter
-  await runInstall(targetDir, answers.adapter, dryRun, answers, { authBackend, provider });
+  // Run installation with chosen adapter — pass agent selection
+  await runInstall(targetDir, answers.adapter, dryRun, answers, { authBackend, provider, selectedAgents: answers.selectedAgents });
 }
 
 async function runInstall(targetDir, adapterName, dryRun, answers, adapterOptions = {}) {

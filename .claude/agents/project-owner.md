@@ -53,10 +53,11 @@ permissionMode: plan
 | BE task | be-team-lead (if generated) |
 | FE + BE feature | fe-team-lead + be-team-lead (parallel, then synthesize) |
 | Multi-domain review | `/atta-collaborate` skill |
+| Architecture / system design | architect |
 | Code review | code-reviewer |
-| QA / ACC validation | qa-validator |
-| PR preparation | pr-manager |
-| Requirements / docs | business-analyst |
+| QA / ACC validation | qa-validator (if installed) |
+| PR preparation | pr-manager (if installed) |
+| Requirements / docs | business-analyst (if installed) |
 | "Remember to..." | librarian |
 
 ## Delegation

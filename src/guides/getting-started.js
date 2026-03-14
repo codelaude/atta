@@ -143,7 +143,7 @@ export function generateGettingStarted(adapter, answers) {
     lines.push('|---------|-------------|');
     lines.push(`| \`${p}atta-agent project-owner\` | Route any task to the right specialist |`);
     lines.push(`| \`${p}atta-team-lead [task]\` | Decompose a feature into specialist tracks |`);
-    lines.push(`| \`${p}atta-agent rubber-duck\` | Think through a problem with guided questions |`);
+    lines.push(`| \`${p}atta-agent architect\` | System design and architecture decisions |`);
     lines.push('');
 
     lines.push('### Code Quality');

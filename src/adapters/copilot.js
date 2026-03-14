@@ -33,6 +33,7 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   const agentsMd = generateAgentsMd(claudeRoot, attaRoot, {
     skillPrefix: '/',
     agentBasePath: '.github/atta/agents',
+    selectedAgents: options.selectedAgents,
   });
   writeFileSync(join(targetDir, 'AGENTS.md'), agentsMd);
   results.files++;
@@ -151,7 +152,7 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
     '- **project-owner** — Routes tasks to specialists, coordinates work',
     '- **code-reviewer** — Code quality reviews, pattern enforcement',
     '- **librarian** — Captures rules, directives, and learnings',
-    '- **rubber-duck** — Guided problem-solving and learning',
+    '- **architect** — System design, architecture decisions, and blueprints',
     '',
   ].join('\n'));
   results.files++;

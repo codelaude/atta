@@ -45,7 +45,7 @@ The interactive setup interviews you about your project, auto-detects your tech 
 /agent vue             How should I structure props for this?
 /agent accessibility   Check keyboard navigation
 /agent be-team-lead    Design REST API for user management
-/agent rubber-duck     Help me understand focus management
+/agent architect       Design the auth module architecture
 /review                Review my changed files
 /preflight             Run full pre-PR validation
 /ship                  Generate PR description and finalize

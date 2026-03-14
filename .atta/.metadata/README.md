@@ -43,10 +43,10 @@ Complete manifest of all generated files from the bootstrap system.
   ```
 
 ### `file-manifest.json` (introduced in v2.1)
-Tracks all files in `.claude/` and their source (framework/generated/user).
+Tracks all files in `.claude/` and `.atta/` and their source (framework/generated/user).
 - **Purpose**: Enable safe framework updates that preserve customizations
-- **Used by**: `/update` skill to classify files and detect customizations
-- **Created by**: `/atta` on new projects, `/migrate --add-update-system` on existing v2.0 projects
+- **Used by**: `/atta-update` skill to classify files and detect customizations
+- **Created by**: `/atta` on new projects, `/atta-migrate` on existing projects
 - **Structure**:
   ```json
   {

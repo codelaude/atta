@@ -69,7 +69,7 @@ Create a backup before any changes:
 
 ```bash
 timestamp=$(date +%Y%m%d-%H%M%S)
-backup_dir=".atta/.metadata/pre-migration-backup-$timestamp"
+backup_dir=".atta/local/pre-migration-backup-$timestamp"
 mkdir -p "$backup_dir"
 ```
 
@@ -86,9 +86,9 @@ Report: `Backup created at $backup_dir`
 
 ## Step 3: Directory Restructure (if needed)
 
-> Skip this step if `.atta/team/` already exists — `init` handled it.
+> Skip this step if none of the legacy paths exist (`.atta/knowledge/`, `.atta/.context/`, `.atta/.sessions/` are all absent).
 
-If `.atta/knowledge/` still exists:
+If any legacy paths still exist:
 
 | Old Path | New Path | Notes |
 |----------|----------|-------|
@@ -162,7 +162,7 @@ For Codex specifically, scan for both `$skillname` and `/skillname` forms (AGENT
 ### Files to Scan
 
 1. **Config files** (adapter-dependent): CLAUDE.md, AGENTS.md, GEMINI.md, `.github/copilot-instructions.md`, `.cursor/rules/*.mdc`
-2. **Agent files** in the adapter's agent directory (`.md` files — these may contain skill references in routing tables or delegation instructions)
+2. **Agent files** in the adapter's agent directory (`.md` files, or `.agent.md` for Copilot — these may contain skill references in routing tables or delegation instructions)
 3. **Coordinator/specialist files** (if they exist — generated agents may reference old skill names)
 4. **`.atta/team/quick-reference.md`** (if it has skill references)
 
@@ -222,7 +222,7 @@ After applying all changes, show a summary:
 - [ ] Skill references renamed: N occurrences in M files
 - [ ] User customizations recovered: N sections re-applied (or: skipped)
 - [ ] Completeness verified: all components present (or: M missing — run init)
-- [ ] Backup: .atta/.metadata/pre-migration-backup-{timestamp}/
+- [ ] Backup: .atta/local/pre-migration-backup-{timestamp}/
 
 ### Next Steps
 1. Review the changes: `git diff`
@@ -236,7 +236,7 @@ After applying all changes, show a summary:
 
 When the user runs `/atta-migrate --rollback`:
 
-1. Find the latest `.atta/.metadata/pre-migration-backup-*` directory
+1. Find the latest `.atta/local/pre-migration-backup-*` directory
 2. Show the user what will be restored (list backup contents)
 3. After confirmation:
    - Restore config files from backup to their original locations

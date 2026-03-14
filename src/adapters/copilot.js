@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import pc from 'picocolors';
 import { listSkills } from './claude-code.js';
 import { generateAgentsMd } from './agents-md.js';
-import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, filterSkillFrontmatter, COPILOT_SKILL_FIELDS, checkSkillConflicts, createMemoryDirectory, generateHooks, writeHookScripts } from './shared.js';
+import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, filterSkillFrontmatter, COPILOT_SKILL_FIELDS, checkSkillConflicts, createMemoryDirectory, generateHooks, writeHookScripts, mapToolsToCopilot } from './shared.js';
 import { generateReviewRules, formatCopilot } from './review-guidance.js';
 import { generateRules, writeToolAgnosticRules, installCopilotRules } from './rules-generator.js';
 
@@ -254,34 +254,3 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
 
   return results;
 }
-
-/**
- * Map Claude Code tool names to Copilot tool names.
- * Copilot uses lowercase names: read, edit, search, agent, etc.
- *
- * @param {string[]|string} tools - Claude Code tool names
- * @returns {string[]} Copilot tool names
- */
-function mapToolsToCopilot(tools) {
-  // Verified against GitHub docs (copilot/reference/custom-agents-configuration.md)
-  // Primary aliases: read, edit, search, execute, agent, web, todo
-  // Copilot accepts aliases case-insensitively; this map uses exact CC tool names as keys
-  const CC_TO_COPILOT = {
-    Read: 'read',
-    Edit: 'edit',
-    Write: 'edit',     // Write is an alias for edit
-    Grep: 'search',
-    Glob: 'search',    // Glob is an alias for search
-    Bash: 'execute',   // Primary alias (not run_in_terminal)
-    Agent: 'agent',
-  };
-
-  const list = Array.isArray(tools) ? tools : tools.split(/,\s*/);
-  const mapped = new Set();
-  for (const tool of list) {
-    const copilotName = CC_TO_COPILOT[tool.trim()];
-    if (copilotName) mapped.add(copilotName);
-  }
-  return [...mapped];
-}
-

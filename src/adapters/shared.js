@@ -522,8 +522,9 @@ export function writeHookScripts(targetDir) {
 
 /**
  * Parse YAML frontmatter from an agent markdown file.
- * Handles flat key-value pairs only — multiline YAML values are rejected
- * with a clear error rather than silently truncated.
+ * Handles key-value pairs, block lists (  - item), inline flow lists ([a, b]),
+ * and scalar type conversion (booleans, numbers). Multiline YAML values are
+ * rejected with a clear error rather than silently truncated.
  *
  * @param {string} content - Full markdown content with optional frontmatter
  * @returns {{ frontmatter: Object<string, string|string[]|boolean|number>, body: string }}
@@ -620,7 +621,8 @@ export function parseAgentFrontmatter(content) {
       }
       fm[currentKey] = inner;
     } else {
-      fm[currentKey] = value;
+      // Convert YAML scalars: booleans and numbers (ensures round-trip with serializeFrontmatter)
+      fm[currentKey] = convertYamlScalar(value);
     }
   }
 
@@ -662,6 +664,19 @@ function serializeFrontmatter(fm) {
  * misinterpreted by a YAML parser (colon-space, space-hash, indicator
  * chars, boolean/null literals, leading/trailing whitespace, or is empty).
  */
+/**
+ * Convert unquoted YAML scalar strings to native JS types.
+ * Handles booleans (true/false/yes/no) and numbers.
+ * Returns the original string if no conversion applies.
+ */
+function convertYamlScalar(value) {
+  if (/^(true|yes|on)$/i.test(value)) return true;
+  if (/^(false|no|off)$/i.test(value)) return false;
+  if (/^-?\d+$/.test(value)) return parseInt(value, 10);
+  if (/^-?\d+\.\d+$/.test(value)) return parseFloat(value);
+  return value;
+}
+
 function yamlQuoteIfNeeded(value) {
   if (value === undefined || value === null) return '""';
   const str = String(value);
@@ -1175,4 +1190,49 @@ function countFiles(dir) {
     }
   }
   return count;
+}
+
+// ─── Cross-Tool Name Mappings ───────────────────────────────────────
+
+/**
+ * Map Claude Code tool names to Copilot tool names.
+ * Verified against GitHub docs (copilot/reference/custom-agents-configuration.md).
+ * Copilot accepts aliases case-insensitively; this map uses exact CC tool names as keys.
+ *
+ * @param {string[]|string} tools - Claude Code tool names
+ * @returns {string[]} Copilot tool names (deduplicated)
+ */
+export function mapToolsToCopilot(tools) {
+  const CC_TO_COPILOT = {
+    Read: 'read', Edit: 'edit', Write: 'edit',
+    Grep: 'search', Glob: 'search', Bash: 'execute', Agent: 'agent',
+  };
+  const list = Array.isArray(tools) ? tools : tools.split(/,\s*/);
+  const mapped = new Set();
+  for (const tool of list) {
+    const name = CC_TO_COPILOT[tool.trim()];
+    if (name) mapped.add(name);
+  }
+  return [...mapped];
+}
+
+/**
+ * Map Claude Code tool names to Gemini tool names.
+ * Verified against gemini-cli docs (docs/tools/file-system.md, docs/tools/shell.md).
+ *
+ * @param {string[]|string} tools - Claude Code tool names
+ * @returns {string[]} Gemini tool names (deduplicated)
+ */
+export function mapToolsToGemini(tools) {
+  const CC_TO_GEMINI = {
+    Read: 'read_file', Edit: 'replace', Write: 'write_file',
+    Grep: 'grep_search', Glob: 'glob', Bash: 'run_shell_command',
+  };
+  const list = Array.isArray(tools) ? tools : tools.split(/,\s*/);
+  const mapped = new Set();
+  for (const tool of list) {
+    const name = CC_TO_GEMINI[tool.trim()];
+    if (name) mapped.add(name);
+  }
+  return [...mapped];
 }

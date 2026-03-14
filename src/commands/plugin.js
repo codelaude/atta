@@ -5,7 +5,7 @@ import * as p from '@clack/prompts';
 import pc from 'picocolors';
 import { readVersion, countFiles } from '../lib/fs-utils.js';
 import { listSkills } from '../adapters/claude-code.js';
-import { copyAgentFiles, rewriteSkillBody, filterSkillFrontmatter, COPILOT_SKILL_FIELDS, CURSOR_SKILL_FIELDS, CODEX_SKILL_FIELDS, generateHooksConfig, listAgentDefs, writeHookScripts } from '../adapters/shared.js';
+import { copyAgentFiles, rewriteSkillBody, filterSkillFrontmatter, COPILOT_SKILL_FIELDS, CURSOR_SKILL_FIELDS, CODEX_SKILL_FIELDS, generateHooksConfig, listAgentDefs, writeHookScripts, mapToolsToCopilot } from '../adapters/shared.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -344,7 +344,7 @@ function generateCopilotPlugin(claudeRoot, attaRoot, outputBase) {
     transformFrontmatter: (fm) => {
       const result = { name: fm.name, description: fm.description };
       if (fm.tools) {
-        result.tools = mapToolsToCopilotPlugin(fm.tools);
+        result.tools = mapToolsToCopilot(fm.tools);
       }
       return result;
     },
@@ -906,23 +906,4 @@ function writeAndSync(filePath, content) {
   const tmp = filePath + '.tmp';
   writeFileSync(tmp, content);
   renameSync(tmp, filePath);
-}
-
-/**
- * Map Claude Code tool names to Copilot tool names for plugin packaging.
- * Duplicated from copilot.js to avoid cross-module dependency.
- * Verified against GitHub docs (copilot/reference/custom-agents-configuration.md).
- */
-function mapToolsToCopilotPlugin(tools) {
-  const CC_TO_COPILOT = {
-    Read: 'read', Edit: 'edit', Write: 'edit',
-    Grep: 'search', Glob: 'search', Bash: 'execute', Agent: 'agent',
-  };
-  const list = Array.isArray(tools) ? tools : tools.split(/,\s*/);
-  const mapped = new Set();
-  for (const tool of list) {
-    const name = CC_TO_COPILOT[tool.trim()];
-    if (name) mapped.add(name);
-  }
-  return [...mapped];
 }

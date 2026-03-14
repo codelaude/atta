@@ -122,6 +122,8 @@ export function generateGettingStarted(adapter, answers) {
     lines.push('| `.atta/project/project-context.md` | Project conventions the reviewer reads |');
     lines.push('| `.atta/project/project-profile.md` | Team review priorities |');
     lines.push('| `.atta/team/ci-suppressions.md` | False positive management |');
+    lines.push('| `.atta/team/rules/` | Path-scoped coding rules (from tech detection) |');
+    lines.push('| `.atta/team/owasp-scope.md` | Pre-computed OWASP scope (customize as needed) |');
     lines.push('| `.atta/team/patterns/` | Project-specific review rules |');
     lines.push('');
     lines.push('### Suppression Workflow');

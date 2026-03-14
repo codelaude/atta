@@ -110,6 +110,22 @@ else
   fi
 fi
 
+# --- Review loading: Step 0b references canonical source ---
+REVIEW_SKILL="$WORK_DIR/.claude/skills/atta-review/SKILL.md"
+if [ -f "$REVIEW_SKILL" ]; then
+  if ! grep -Fq '.atta/team/rules/' "$REVIEW_SKILL"; then
+    echo "FAIL: atta-review SKILL.md Step 0b missing .atta/team/rules/ reference"
+    ERRORS=$((ERRORS + 1))
+  fi
+  # Verify no stale per-adapter paths as primary loading targets
+  for stale_path in '.github/instructions/atta-review' '.cursor/rules/atta-review' '.gemini/styleguide.md'; do
+    if grep -Fq "$stale_path" "$REVIEW_SKILL"; then
+      echo "FAIL: atta-review SKILL.md still references stale path: $stale_path"
+      ERRORS=$((ERRORS + 1))
+    fi
+  done
+fi
+
 # --- Skill flags checks (v2.7.1 Track C) ---
 
 # Check action skills have disable-model-invocation

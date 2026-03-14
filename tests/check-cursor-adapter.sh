@@ -216,6 +216,14 @@ done < <(find "$WORK_DIR/.cursor/agents" -name "*.md" -not -path "*/memory/*" -p
 
 # --- Hooks checks (v2.7.1 Track C) ---
 
+# Check hook scripts exist and are executable (referenced by hooks.json)
+for script in pre-bash-safety.sh stop-quality-gate.sh model-gate.sh; do
+  if [ ! -x "$WORK_DIR/.atta/scripts/hooks/$script" ]; then
+    echo "FAIL: .atta/scripts/hooks/$script missing or not executable"
+    ERRORS=$((ERRORS + 1))
+  fi
+done
+
 # Check hooks.json exists and is valid JSON
 if [ ! -f "$WORK_DIR/.cursor/hooks.json" ]; then
   echo "FAIL: .cursor/hooks.json missing"

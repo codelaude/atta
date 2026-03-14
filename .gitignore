@@ -10,6 +10,9 @@ package-lock.json
 # User-specific settings (generated per-project by atta init)
 .claude/settings.local.json
 
+# IDE settings
+.vscode/
+
 # Environment files
 .env
 .env.*

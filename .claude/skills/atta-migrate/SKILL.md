@@ -2,6 +2,7 @@
 name: atta-migrate
 description: Compatibility alias for migration operations. Routes to /atta-update Migration mode.
 disable-model-invocation: true
+model: haiku
 argument-hint: "[--from path] [--dry-run] [--interactive]"
 ---
 

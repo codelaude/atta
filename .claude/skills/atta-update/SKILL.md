@@ -2,6 +2,7 @@
 name: atta-update
 description: Check for and apply framework updates while preserving user customizations. Smart merge system that separates framework files from user content.
 disable-model-invocation: true
+model: haiku
 argument-hint: "[check|pull|rollback] [--dry-run] [--from path]"
 ---
 

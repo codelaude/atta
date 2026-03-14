@@ -1,6 +1,7 @@
 ---
 name: atta-tutorial
 description: Interactive 5-minute onboarding walkthrough for new users. Introduces the agent team, guides through a first task, and demonstrates quality checks. Run this when getting started with Atta.
+model: haiku
 argument-hint: "[--quick]"
 ---
 

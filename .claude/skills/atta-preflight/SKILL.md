@@ -2,6 +2,7 @@
 name: atta-preflight
 description: Run full pre-PR validation combining static analysis, lint checks, security scan, test execution, and code review into one workflow.
 disable-model-invocation: true
+model: haiku
 argument-hint: "[--auto-fix] [--skip-tests] [--skip-lint] [--skip-security] [--skip-review]"
 ---
 

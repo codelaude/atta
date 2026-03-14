@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import pc from 'picocolors';
 import { listSkills } from './claude-code.js';
 import { generateAgentsMd } from './agents-md.js';
-import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, checkSkillConflicts, createMemoryDirectory, generateHooks } from './shared.js';
+import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, checkSkillConflicts, createMemoryDirectory, generateHooks, writeHookScripts } from './shared.js';
 import { generateReviewRules, formatCursorBugbot, formatCursorMdc } from './review-guidance.js';
 import { generateRules, writeToolAgnosticRules, installCursorRules } from './rules-generator.js';
 
@@ -145,6 +145,10 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   const hooksConfig = generateHooks('cursor', options.detectedTechs);
   writeFileSync(join(cursorDir, 'hooks.json'), JSON.stringify(hooksConfig, null, 2) + '\n');
   results.files++;
+
+  // Write hook scripts to .atta/scripts/hooks/ (model-gate, pre-bash-safety, stop-quality-gate)
+  const scriptCount = writeHookScripts(targetDir);
+  results.files += scriptCount;
 
   if (!options.quiet) {
     console.log(`  ${pc.green('✓')} .cursor/hooks.json (enforcement hooks)`);

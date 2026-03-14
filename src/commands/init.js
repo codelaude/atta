@@ -262,7 +262,7 @@ function printWelcome(adapterName, adapter, answers, adapterOptions = {}, initSe
     if (initSeeds.testCmd.length > 0) parts.push(`${initSeeds.testCmd.length} test command(s)`);
     if (initSeeds.conventions.length > 0) parts.push(`${initSeeds.conventions.length} convention(s)`);
     console.log(pc.dim(`Found existing ${initSeeds.source} — detected ${parts.join(', ')}`));
-    console.log(pc.dim('These will be available to /atta when generating agents for your stack.'));
+    console.log(pc.dim('These conventions were detected and stored for use by future Atta features.'));
     console.log('');
   }
 

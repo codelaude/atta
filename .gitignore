@@ -5,6 +5,9 @@ node_modules/
 package-lock.json
 *.tgz
 
+# IDE settings (user-specific)
+.vscode/
+
 # Runtime & personal files (generated, not committed)
 .atta/local/
 

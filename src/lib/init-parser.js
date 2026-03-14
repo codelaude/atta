@@ -25,7 +25,7 @@ const INIT_FILES = {
  * Extracts build commands, test commands, and conventions as detection seeds.
  *
  * Seeds are advisory — Atta's own detection supplements rather than replaces them.
- * Returns an empty object if no init output exists, the file is Atta-generated,
+ * Returns null if no init output exists, the file is Atta-generated,
  * or parsing fails (graceful fallback).
  *
  * @param {string} targetDir - Project root directory

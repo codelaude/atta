@@ -113,7 +113,7 @@ fi
 # --- Review loading: Step 0b references canonical source ---
 REVIEW_SKILL="$WORK_DIR/.claude/skills/atta-review/SKILL.md"
 if [ -f "$REVIEW_SKILL" ]; then
-  if ! grep -q '\.atta/team/rules/' "$REVIEW_SKILL"; then
+  if ! grep -Fq '.atta/team/rules/' "$REVIEW_SKILL"; then
     echo "FAIL: atta-review SKILL.md Step 0b missing .atta/team/rules/ reference"
     ERRORS=$((ERRORS + 1))
   fi

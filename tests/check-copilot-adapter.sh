@@ -194,12 +194,21 @@ if 'version' not in data or data['version'] != 1:
 if 'hooks' not in data:
     print('FAIL: hooks.json missing top-level "hooks" key')
     sys.exit(1)
-for event in ['sessionStart', 'postToolUse', 'errorOccurred']:
+# Enforcement hooks: preToolUse (safety), agentStop (quality gate)
+for event in ['preToolUse', 'agentStop']:
     if event not in data['hooks']:
         print(f'FAIL: hooks.json missing event: {event}')
         sys.exit(1)
 PYEOF
 fi
+
+# Check hook scripts exist and are executable (referenced by hooks.json)
+for script in pre-bash-safety.sh stop-quality-gate.sh; do
+  if [ ! -x "$WORK_DIR/.atta/scripts/hooks/$script" ]; then
+    echo "FAIL: .atta/scripts/hooks/$script missing or not executable"
+    ERRORS=$((ERRORS + 1))
+  fi
+done
 
 if [ $ERRORS -eq 0 ]; then
   echo "PASS: Copilot adapter — structure + content correct ($SKILL_COUNT skills, $AGENT_COUNT agents, zero Claude-isms)"

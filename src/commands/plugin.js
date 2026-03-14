@@ -5,7 +5,7 @@ import * as p from '@clack/prompts';
 import pc from 'picocolors';
 import { readVersion, countFiles } from '../lib/fs-utils.js';
 import { listSkills } from '../adapters/claude-code.js';
-import { copyAgentFiles, rewriteSkillBody, generateHooksConfig, listAgentDefs } from '../adapters/shared.js';
+import { copyAgentFiles, rewriteSkillBody, generateHooksConfig, listAgentDefs, writeHookScripts } from '../adapters/shared.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -350,7 +350,7 @@ function generateCopilotPlugin(claudeRoot, attaRoot, outputBase) {
   files += agentCount;
   summary.push(`agents/ (${agentCount} .agent.md definitions)`);
 
-  // 3. Generate hooks.json (Copilot hook format — 6 events)
+  // 3. Generate hooks.json (Copilot enforcement hooks)
   const hooksDir = join(pluginDir, 'hooks');
   mkdirSync(hooksDir, { recursive: true });
 
@@ -358,7 +358,14 @@ function generateCopilotPlugin(claudeRoot, attaRoot, outputBase) {
 
   writeAndSync(join(hooksDir, 'hooks.json'), JSON.stringify(hooksJson, null, 2) + '\n');
   files++;
-  summary.push('hooks/hooks.json (Copilot hook format — 6 event placeholders)');
+  summary.push('hooks/hooks.json (Copilot enforcement hooks)');
+
+  // Write hook scripts referenced by hooks.json
+  const copilotScriptCount = writeHookScripts(pluginDir);
+  files += copilotScriptCount;
+  if (copilotScriptCount > 0) {
+    summary.push(`.atta/scripts/hooks/ (${copilotScriptCount} hook scripts)`);
+  }
 
   // 4. Generate instructions files
   const instructionsDir = join(pluginDir, 'instructions');
@@ -566,7 +573,7 @@ function generateCursorPlugin(claudeRoot, attaRoot, outputBase) {
   files += agentCount;
   summary.push(`agents/ (${agentCount} agent definitions)`);
 
-  // 4. Generate hooks.json (Cursor format — 19+ events available)
+  // 4. Generate hooks.json (Cursor enforcement hooks)
   const hooksDir = join(pluginDir, 'hooks');
   mkdirSync(hooksDir, { recursive: true });
 
@@ -574,7 +581,7 @@ function generateCursorPlugin(claudeRoot, attaRoot, outputBase) {
 
   writeAndSync(join(hooksDir, 'hooks.json'), JSON.stringify(hooksJson, null, 2) + '\n');
   files++;
-  summary.push('hooks/hooks.json (Cursor hook format — 10 event placeholders)');
+  summary.push('hooks/hooks.json (Cursor enforcement hooks)');
 
   // 5. Generate .cursor-plugin/plugin.json
   const manifestDir = join(pluginDir, '.cursor-plugin');

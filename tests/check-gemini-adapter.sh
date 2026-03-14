@@ -209,12 +209,21 @@ with open(sys.argv[1]) as f:
 if 'hooks' not in data:
     print('FAIL: hooks.json missing top-level "hooks" key')
     sys.exit(1)
-for event in ['SessionStart', 'BeforeTool', 'AfterTool', 'BeforeAgent']:
+# Enforcement hooks: BeforeTool (pre-bash safety)
+for event in ['BeforeTool']:
     if event not in data['hooks']:
         print(f'FAIL: hooks.json missing Gemini event: {event}')
         sys.exit(1)
 PYEOF
 fi
+
+# Check hook scripts exist and are executable (referenced by hooks.json)
+for script in pre-bash-safety.sh stop-quality-gate.sh; do
+  if [ ! -x "$WORK_DIR/.atta/scripts/hooks/$script" ]; then
+    echo "FAIL: .atta/scripts/hooks/$script missing or not executable"
+    ERRORS=$((ERRORS + 1))
+  fi
+done
 
 if [ $ERRORS -eq 0 ]; then
   echo "PASS: Gemini adapter — structure + content correct ($TOML_COUNT TOML commands, $AGENT_COUNT agents, zero Claude-isms)"

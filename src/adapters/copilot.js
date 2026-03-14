@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import pc from 'picocolors';
 import { listSkills } from './claude-code.js';
 import { generateAgentsMd } from './agents-md.js';
-import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, createMemoryDirectory, generateHooksConfig } from './shared.js';
+import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, createMemoryDirectory, generateHooks, writeHookScripts } from './shared.js';
 import { generateReviewRules, formatCopilot } from './review-guidance.js';
 import { generateRules, writeToolAgnosticRules, installCopilotRules } from './rules-generator.js';
 
@@ -186,18 +186,22 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
     }
   }
 
-  // Generate hooks.json (Copilot hook format — 6 events, placeholder for user customization)
+  // Always regenerate hooks.json — enforcement hooks may change with detectedTechs
   const hooksDir = join(targetDir, '.github', 'hooks');
-  const hooksJsonPath = join(hooksDir, 'hooks.json');
-  if (!existsSync(hooksJsonPath)) {
-    mkdirSync(hooksDir, { recursive: true });
-    const hooksConfig = generateHooksConfig('copilot');
-    writeFileSync(hooksJsonPath, JSON.stringify(hooksConfig, null, 2) + '\n');
-    results.files++;
+  mkdirSync(hooksDir, { recursive: true });
+  const hooksConfig = generateHooks('copilot', options.detectedTechs);
+  writeFileSync(join(hooksDir, 'hooks.json'), JSON.stringify(hooksConfig, null, 2) + '\n');
+  results.files++;
 
-    if (!options.quiet) {
-      console.log(`  ${pc.green('✓')} .github/hooks/hooks.json (6 event placeholders)`);
-    }
+  if (!options.quiet) {
+    console.log(`  ${pc.green('✓')} .github/hooks/hooks.json (enforcement hooks)`);
+  }
+
+  // Write hook scripts for command-type hooks (pre-bash-safety, stop-quality-gate)
+  const scriptCount = writeHookScripts(targetDir);
+  results.files += scriptCount;
+  if (!options.quiet && scriptCount > 0) {
+    console.log(`  ${pc.green('✓')} .atta/scripts/hooks/ (${scriptCount} hook scripts)`);
   }
 
   // Copy shared content to .atta/ (team, project, scripts, metadata)

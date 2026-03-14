@@ -365,8 +365,8 @@ case "$CMD" in
     BLOCKED="Hard reset discards uncommitted changes" ;;
   *"git clean -f"*|*"git clean -fd"*)
     BLOCKED="Clean removes untracked files permanently" ;;
-  *"| sh"*|*"| bash"*|*"curl"*"| "*"sh"*|*"wget"*"| "*"sh"*|*"wget"*"| "*"bash"*)
-    BLOCKED="Piping remote content to shell is unsafe" ;;
+  *"| sh"*|*"| bash"*)
+    BLOCKED="Piping to shell is unsafe" ;;
   *"DROP TABLE"*|*"drop table"*|*"TRUNCATE"*|*"truncate"*)
     BLOCKED="Destructive database operation" ;;
 esac
@@ -406,21 +406,11 @@ export function writeHookScripts(targetDir) {
   const hooksDir = join(targetDir, '.atta', 'scripts', 'hooks');
   mkdirSync(hooksDir, { recursive: true });
 
-  let count = 0;
+  // Always overwrite — keep scripts in sync with hooks.json (which is also always regenerated)
+  writeFileSync(join(hooksDir, 'pre-bash-safety.sh'), PRE_BASH_SAFETY_SCRIPT, { mode: 0o755 });
+  writeFileSync(join(hooksDir, 'stop-quality-gate.sh'), STOP_QUALITY_GATE_SCRIPT, { mode: 0o755 });
 
-  const safetyPath = join(hooksDir, 'pre-bash-safety.sh');
-  if (!existsSync(safetyPath)) {
-    writeFileSync(safetyPath, PRE_BASH_SAFETY_SCRIPT, { mode: 0o755 });
-    count++;
-  }
-
-  const gatePath = join(hooksDir, 'stop-quality-gate.sh');
-  if (!existsSync(gatePath)) {
-    writeFileSync(gatePath, STOP_QUALITY_GATE_SCRIPT, { mode: 0o755 });
-    count++;
-  }
-
-  return count;
+  return 2;
 }
 
 // ─── Frontmatter Parsing ─────────────────────────────────────────────

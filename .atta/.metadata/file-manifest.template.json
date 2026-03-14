@@ -1,5 +1,5 @@
 {
-  "description": "File manifest template for tracking framework vs user files in .claude/ directory. This is a data template, not a JSON Schema.",
+  "description": "File manifest template for tracking framework vs user files in .claude/ and .atta/ directories. This is a data template, not a JSON Schema.",
   "framework_version": "{{FRAMEWORK_VERSION}}",
   "user_version": "{{USER_VERSION}}",
   "manifest_created": "{{TIMESTAMP}}",
@@ -26,74 +26,130 @@
       "description": "Project initialization skill",
       "framework_hash": null
     },
-    "skills/migrate/SKILL.md": {
+    "skills/atta-migrate/SKILL.md": {
       "source": "framework",
       "customized": false,
       "safe_to_replace": true,
-      "description": "Migration skill",
+      "description": "v2-to-v3 migration skill",
       "framework_hash": null
     },
-    "skills/update/SKILL.md": {
+    "skills/atta-update/SKILL.md": {
       "source": "framework",
       "customized": false,
       "safe_to_replace": true,
       "description": "Update management skill",
       "framework_hash": null
     },
-    "skills/agent/SKILL.md": {
+    "skills/atta-agent/SKILL.md": {
       "source": "framework",
       "customized": false,
       "safe_to_replace": true,
       "description": "Agent invocation skill",
       "framework_hash": null
     },
-    "skills/librarian/SKILL.md": {
+    "skills/atta-librarian/SKILL.md": {
       "source": "framework",
       "customized": false,
       "safe_to_replace": true,
       "description": "Knowledge capture skill",
       "framework_hash": null
     },
-    "skills/lint/SKILL.md": {
+    "skills/atta-lint/SKILL.md": {
       "source": "framework",
       "customized": false,
       "safe_to_replace": true,
       "description": "Pattern-based linting skill",
       "framework_hash": null
     },
-    "skills/review/SKILL.md": {
+    "skills/atta-review/SKILL.md": {
       "source": "framework",
       "customized": false,
       "safe_to_replace": true,
       "description": "Code review skill",
       "framework_hash": null
     },
-    "skills/preflight/SKILL.md": {
+    "skills/atta-preflight/SKILL.md": {
       "source": "framework",
       "customized": false,
       "safe_to_replace": true,
       "description": "Pre-PR validation skill",
       "framework_hash": null
     },
-    "skills/team-lead/SKILL.md": {
+    "skills/atta-team-lead/SKILL.md": {
       "source": "framework",
       "customized": false,
       "safe_to_replace": true,
       "description": "Team lead coordination skill",
       "framework_hash": null
     },
-    "skills/tutorial/SKILL.md": {
+    "skills/atta-tutorial/SKILL.md": {
       "source": "framework",
       "customized": false,
       "safe_to_replace": true,
       "description": "Interactive onboarding tutorial skill",
       "framework_hash": null
     },
-    "skills/security-audit/SKILL.md": {
+    "skills/atta-security-audit/SKILL.md": {
       "source": "framework",
       "customized": false,
       "safe_to_replace": true,
       "description": "Security audit skill (OWASP, dependencies, secrets)",
+      "framework_hash": null
+    },
+    "skills/atta-collaborate/SKILL.md": {
+      "source": "framework",
+      "customized": false,
+      "safe_to_replace": true,
+      "description": "Multi-agent collaboration skill",
+      "framework_hash": null
+    },
+    "skills/atta-optimize/SKILL.md": {
+      "source": "framework",
+      "customized": false,
+      "safe_to_replace": true,
+      "description": "Prompt optimization and cross-tool enrichment skill",
+      "framework_hash": null
+    },
+    "skills/atta-profile/SKILL.md": {
+      "source": "framework",
+      "customized": false,
+      "safe_to_replace": true,
+      "description": "Developer profile preferences skill",
+      "framework_hash": null
+    },
+    "skills/atta-patterns/SKILL.md": {
+      "source": "framework",
+      "customized": false,
+      "safe_to_replace": true,
+      "description": "Pattern detection and learning skill",
+      "framework_hash": null
+    },
+    "skills/atta-ship/SKILL.md": {
+      "source": "framework",
+      "customized": false,
+      "safe_to_replace": true,
+      "description": "Completion workflow skill",
+      "framework_hash": null
+    },
+    "skills/atta-test/SKILL.md": {
+      "source": "framework",
+      "customized": false,
+      "safe_to_replace": true,
+      "description": "Testing skill with framework detection",
+      "framework_hash": null
+    },
+    "skills/atta-route/SKILL.md": {
+      "source": "framework",
+      "customized": false,
+      "safe_to_replace": true,
+      "description": "Agent routing protocol (hidden skill)",
+      "framework_hash": null
+    },
+    "skills/atta-checklist/SKILL.md": {
+      "source": "framework",
+      "customized": false,
+      "safe_to_replace": true,
+      "description": "Quality gate checklist (hidden skill)",
       "framework_hash": null
     },
     "team/templates/": {
@@ -101,6 +157,13 @@
       "customized": false,
       "safe_to_replace": true,
       "description": "PR and ACC templates",
+      "framework_hash": null
+    },
+    "team/model-registry.json": {
+      "source": "framework",
+      "customized": false,
+      "safe_to_replace": true,
+      "description": "Model assignments for skills and agents",
       "framework_hash": null
     },
     "agents/project-owner.md": {
@@ -120,7 +183,33 @@
       "source": "framework",
       "customized": false,
       "requires_merge": false,
-      "description": "Knowledge keeper agent",
+      "description": "Core knowledge keeper agent",
+      "framework_hash": null,
+      "user_hash": null,
+      "customizations": {
+        "personality_name": null,
+        "sections_modified": [],
+        "rules_added": false
+      }
+    },
+    "agents/code-reviewer.md": {
+      "source": "framework",
+      "customized": false,
+      "requires_merge": false,
+      "description": "Core code quality reviewer agent",
+      "framework_hash": null,
+      "user_hash": null,
+      "customizations": {
+        "personality_name": null,
+        "sections_modified": [],
+        "rules_added": false
+      }
+    },
+    "agents/architect.md": {
+      "source": "framework",
+      "customized": false,
+      "requires_merge": false,
+      "description": "Core system design and architecture agent",
       "framework_hash": null,
       "user_hash": null,
       "customizations": {
@@ -134,32 +223,6 @@
       "customized": false,
       "requires_merge": false,
       "description": "Guided learning agent (optional)",
-      "framework_hash": null,
-      "user_hash": null,
-      "customizations": {
-        "personality_name": null,
-        "sections_modified": [],
-        "rules_added": false
-      }
-    },
-    "agents/code-reviewer.md": {
-      "source": "framework",
-      "customized": false,
-      "requires_merge": false,
-      "description": "Code quality reviewer agent",
-      "framework_hash": null,
-      "user_hash": null,
-      "customizations": {
-        "personality_name": null,
-        "sections_modified": [],
-        "rules_added": false
-      }
-    },
-    "agents/architect.md": {
-      "source": "framework",
-      "customized": false,
-      "requires_merge": false,
-      "description": "System design and architecture agent",
       "framework_hash": null,
       "user_hash": null,
       "customizations": {
@@ -269,13 +332,15 @@
       "bootstrap/**/*",
       "docs/**/*",
       "skills/*/SKILL.md",
-      "team/templates/**/*"
+      "team/templates/**/*",
+      "team/model-registry.json"
     ],
     "tier_2_merge_required": [
       "agents/project-owner.md",
       "agents/librarian.md",
-      "agents/rubber-duck.md",
       "agents/code-reviewer.md",
+      "agents/architect.md",
+      "agents/rubber-duck.md",
       "agents/business-analyst.md",
       "agents/qa-validator.md",
       "agents/pr-manager.md"
@@ -298,5 +363,5 @@
       "skills/generated/**/*"
     ]
   },
-  "notes": "This manifest tracks which files are framework vs user content. Updated by /atta, /migrate, and /update skills."
+  "notes": "This manifest tracks which files are framework vs user content. Updated by /atta, /atta-migrate, and /atta-update skills."
 }

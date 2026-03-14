@@ -13,7 +13,7 @@ The hook script `.claude/hooks/session-track.sh` handles everything:
 1. **PostToolUse on Skill** → creates `session-{timestamp}-{uuid}.json` with skill name, args, status `"in_progress"`
 2. **Stop** → finds latest in-progress session, sets status `"completed"`, calculates duration, runs cleanup + context generation
 
-Hook configuration is generated in `.claude/settings.local.json` by the Claude Code adapter during `npx atta-dev init`.
+Hook configuration is generated in `.claude/hooks/hooks.json` by the Claude Code adapter during `npx atta-dev init`.
 
 ### Other Tools (No hooks — No session tracking)
 

@@ -350,7 +350,7 @@ function generateCopilotPlugin(claudeRoot, attaRoot, outputBase) {
   files += agentCount;
   summary.push(`agents/ (${agentCount} .agent.md definitions)`);
 
-  // 3. Generate hooks.json (Copilot hook format — 6 events)
+  // 3. Generate hooks.json (Copilot enforcement hooks)
   const hooksDir = join(pluginDir, 'hooks');
   mkdirSync(hooksDir, { recursive: true });
 
@@ -573,7 +573,7 @@ function generateCursorPlugin(claudeRoot, attaRoot, outputBase) {
   files += agentCount;
   summary.push(`agents/ (${agentCount} agent definitions)`);
 
-  // 4. Generate hooks.json (Cursor format — 19+ events available)
+  // 4. Generate hooks.json (Cursor enforcement hooks)
   const hooksDir = join(pluginDir, 'hooks');
   mkdirSync(hooksDir, { recursive: true });
 

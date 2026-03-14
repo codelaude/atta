@@ -80,7 +80,7 @@ const BUILD_PATTERNS = [
   /npm run build/,
   /yarn build/,
   /pnpm (?:run )?build/,
-  /make(?:\s+\w+)?$/,
+  /\bmake(?:\s+\w+)?$/,
   /cargo build/,
   /go build/,
   /gradle\s+build/,
@@ -181,8 +181,11 @@ const CONVENTION_HEADERS = [
  * @returns {string[]} Convention descriptions
  */
 function extractConventions(content) {
+  // Strip fenced code blocks first (same approach as extractCommands)
+  const stripped = content.replace(/```[\s\S]*?```/g, '');
+
   const conventions = [];
-  const lines = content.split('\n');
+  const lines = stripped.split('\n');
   let inConventionSection = false;
 
   for (const line of lines) {

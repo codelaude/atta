@@ -87,6 +87,40 @@ if [ "$TOML_COUNT" -eq 0 ]; then
   ERRORS=$((ERRORS + 1))
 fi
 
+# --- Skill flag handling in TOML (Track E) ---
+# TOML commands should NOT contain raw CC frontmatter fields
+while IFS= read -r -d '' toml; do
+  if grep -q "disable-model-invocation" "$toml"; then
+    # Should be embedded as natural language, not the raw field name
+    if grep -q "^disable-model-invocation:" "$toml"; then
+      echo "FAIL: $toml contains raw 'disable-model-invocation:' field (should be NL instruction)"
+      ERRORS=$((ERRORS + 1))
+    fi
+  fi
+  if grep -q "^allowed-tools:" "$toml"; then
+    echo "FAIL: $toml contains raw 'allowed-tools:' field (not a TOML field)"
+    ERRORS=$((ERRORS + 1))
+  fi
+done < <(find "$WORK_DIR/.gemini/commands" -name "*.toml" -print0 2>/dev/null)
+
+# Check that action skill TOML commands have NL instruction for disable-model-invocation
+# Derived from source SKILL.md frontmatter — not hardcoded, so new flagged skills are caught.
+CLAUDE_SKILLS_DIR="$(cd "$SCRIPT_DIR/../.claude/skills" 2>/dev/null && pwd)"
+if [ -d "$CLAUDE_SKILLS_DIR" ]; then
+  while IFS= read -r -d '' src_skill; do
+    SKILL_DIR_NAME="$(basename "$(dirname "$src_skill")")"
+    if head -10 "$src_skill" | grep -q "^disable-model-invocation: true"; then
+      TOML_FILE="$WORK_DIR/.gemini/commands/${SKILL_DIR_NAME}.toml"
+      if [ -f "$TOML_FILE" ]; then
+        if ! grep -q "Execute these instructions directly" "$TOML_FILE"; then
+          echo "FAIL: $TOML_FILE missing disable-model-invocation NL instruction"
+          ERRORS=$((ERRORS + 1))
+        fi
+      fi
+    fi
+  done < <(find "$CLAUDE_SKILLS_DIR" -name "SKILL.md" -print0 2>/dev/null)
+fi
+
 # Check agent definitions exist in .gemini/agents/
 if [ -d "$WORK_DIR/.gemini/agents" ]; then
   AGENT_COUNT=$(find "$WORK_DIR/.gemini/agents" -name "*.md" -not -path "*/memory/*" | wc -l | tr -d ' ')

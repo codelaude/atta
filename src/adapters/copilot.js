@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import pc from 'picocolors';
 import { listSkills } from './claude-code.js';
 import { generateAgentsMd } from './agents-md.js';
-import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, createMemoryDirectory, generateHooks, writeHookScripts } from './shared.js';
+import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, filterSkillFrontmatter, COPILOT_SKILL_FIELDS, checkSkillConflicts, createMemoryDirectory, generateHooks, writeHookScripts } from './shared.js';
 import { generateReviewRules, formatCopilot } from './review-guidance.js';
 import { generateRules, writeToolAgnosticRules, installCopilotRules } from './rules-generator.js';
 
@@ -18,7 +18,13 @@ import { generateRules, writeToolAgnosticRules, installCopilotRules } from './ru
  *
  * All skills use the atta-* namespace (e.g., /atta-review, /atta-lint) which avoids
  * conflicts with Copilot built-in commands (/review, /agent, /update).
+ *
+ * Skill frontmatter: Copilot supports name, description, license, disable-model-invocation,
+ * and user-invocable at runtime. Other CC-specific fields (allowed-tools, argument-hint,
+ * model, context, agent, mode) are stripped to avoid validator warnings.
  */
+
+// COPILOT_SKILL_FIELDS imported from shared.js (single source of truth)
 
 export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   const results = { files: 0 };
@@ -39,6 +45,7 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   const skillsDir = join(claudeRoot, 'skills');
   if (existsSync(skillsDir)) {
     const skills = listSkills(claudeRoot).filter((s) => s.userInvocable !== false);
+    checkSkillConflicts(skills, 'copilot', options);
     const githubSkillsDir = join(targetDir, '.github', 'skills');
 
     const rewriteConfig = {
@@ -58,12 +65,12 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
 
       let content = readFileSync(src, 'utf-8');
 
-      // Rewrite body content (after frontmatter) for Copilot compatibility (path rewrites)
+      // Rewrite frontmatter (strip unsupported fields) and body for Copilot compatibility
       const fmMatch = content.match(/^---\n[\s\S]*?\n---\n/);
       if (fmMatch) {
         const frontmatter = fmMatch[0];
         const body = content.slice(frontmatter.length);
-        content = frontmatter + rewriteSkillBody(body, rewriteConfig);
+        content = filterSkillFrontmatter(frontmatter, COPILOT_SKILL_FIELDS) + rewriteSkillBody(body, rewriteConfig);
       }
 
       writeFileSync(dest, content);

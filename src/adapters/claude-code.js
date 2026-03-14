@@ -11,7 +11,7 @@ import { join } from 'node:path';
 import pc from 'picocolors';
 import { generateAgentsMd } from './agents-md.js';
 import { readVersion, countFiles } from '../lib/fs-utils.js';
-import { copySharedContent, copyBootstrap, generateHooks } from './shared.js';
+import { copySharedContent, copyBootstrap, generateHooks, checkSkillConflicts } from './shared.js';
 import { generateReviewRules, formatClaudeCode } from './review-guidance.js';
 import { generateRules, writeToolAgnosticRules, installClaudeCodeRules } from './rules-generator.js';
 
@@ -47,6 +47,10 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
       console.log(`  ${pc.green('✓')} .claude/${dir}/ (${count} files)`);
     }
   }
+
+  // Check for naming conflicts with Claude Code built-in commands
+  const skills = listSkills(claudeRoot);
+  checkSkillConflicts(skills, 'claude-code', options);
 
   // Generate hooks.json for plugin manifest (hooks field must be a file path per spec)
   // Merges session-track.sh hooks with enforcement hooks from generateHooks()
@@ -224,7 +228,7 @@ export function generateClaudeMd(claudeRoot, attaRoot) {
     );
 }
 
-/** Parse SKILL.md frontmatter and return skill metadata */
+/** Parse SKILL.md frontmatter and return skill metadata including flags */
 export function listSkills(claudeRoot) {
   const skillsDir = join(claudeRoot, 'skills');
   if (!existsSync(skillsDir)) return [];
@@ -244,6 +248,10 @@ export function listSkills(claudeRoot) {
       description: fm.description || '',
       path: `.claude/skills/${entry.name}/SKILL.md`,
       userInvocable: fm['user-invocable'] !== 'false',
+      // Skill flags (used by adapters for cross-tool translation)
+      disableModelInvocation: fm['disable-model-invocation'] === 'true',
+      allowedTools: fm['allowed-tools'] || null,
+      argumentHint: fm['argument-hint'] || null,
     });
   }
 

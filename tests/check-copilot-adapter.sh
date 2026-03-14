@@ -48,6 +48,28 @@ while IFS= read -r -d '' skill; do
   fi
 done < <(find "$WORK_DIR/.github/skills" -name "SKILL.md" -print0 2>/dev/null)
 
+# --- Skill flag handling (Track E) ---
+# Copilot should preserve disable-model-invocation but strip allowed-tools and argument-hint
+while IFS= read -r -d '' skill; do
+  # Negative checks: CC-specific fields that cause validator warnings should be stripped
+  if head -15 "$skill" | grep -q "^allowed-tools:"; then
+    echo "FAIL: $skill contains 'allowed-tools:' (should be stripped for Copilot)"
+    ERRORS=$((ERRORS + 1))
+  fi
+  if head -15 "$skill" | grep -q "^argument-hint:"; then
+    echo "FAIL: $skill contains 'argument-hint:' (should be stripped for Copilot)"
+    ERRORS=$((ERRORS + 1))
+  fi
+  if head -15 "$skill" | grep -q "^model:"; then
+    echo "FAIL: $skill contains 'model:' (should be stripped for Copilot)"
+    ERRORS=$((ERRORS + 1))
+  fi
+  if head -15 "$skill" | grep -q "^context:"; then
+    echo "FAIL: $skill contains 'context:' (should be stripped for Copilot)"
+    ERRORS=$((ERRORS + 1))
+  fi
+done < <(find "$WORK_DIR/.github/skills" -name "SKILL.md" -print0 2>/dev/null)
+
 # Check agent definitions exist in .github/atta/agents/ with .agent.md extension
 if [ -d "$WORK_DIR/.github/atta/agents" ]; then
   AGENT_COUNT=$(find "$WORK_DIR/.github/atta/agents" -name "*.agent.md" -not -path "*/memory/*" 2>/dev/null | wc -l | tr -d ' ')

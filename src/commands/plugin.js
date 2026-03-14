@@ -5,7 +5,7 @@ import * as p from '@clack/prompts';
 import pc from 'picocolors';
 import { readVersion, countFiles } from '../lib/fs-utils.js';
 import { listSkills } from '../adapters/claude-code.js';
-import { copyAgentFiles, rewriteSkillBody, generateHooksConfig, listAgentDefs, writeHookScripts } from '../adapters/shared.js';
+import { copyAgentFiles, rewriteSkillBody, filterSkillFrontmatter, COPILOT_SKILL_FIELDS, CURSOR_SKILL_FIELDS, CODEX_SKILL_FIELDS, generateHooksConfig, listAgentDefs, writeHookScripts } from '../adapters/shared.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -284,7 +284,7 @@ function generateClaudeCodePlugin(claudeRoot, attaRoot, outputBase) {
 function generateCopilotPlugin(claudeRoot, attaRoot, outputBase) {
   const pluginDir = join(outputBase, 'copilot');
   const version = readVersion(attaRoot);
-  const skills = listSkills(claudeRoot);
+  const skills = listSkills(claudeRoot).filter((s) => s.userInvocable !== false);
   let files = 0;
   const summary = [];
 
@@ -314,12 +314,12 @@ function generateCopilotPlugin(claudeRoot, attaRoot, outputBase) {
 
     let content = readFileSync(src, 'utf-8');
 
-    // Rewrite body
+    // Rewrite frontmatter (strip unsupported fields) and body for Copilot
     const fmMatch = content.match(/^---\n[\s\S]*?\n---\n/);
     if (fmMatch) {
       const frontmatter = fmMatch[0];
       const body = content.slice(frontmatter.length);
-      content = frontmatter + rewriteSkillBody(body, rewriteConfig);
+      content = filterSkillFrontmatter(frontmatter, COPILOT_SKILL_FIELDS) + rewriteSkillBody(body, rewriteConfig);
     }
 
     writeAndSync(join(destDir, 'SKILL.md'), content);
@@ -447,7 +447,7 @@ function generateCopilotPlugin(claudeRoot, attaRoot, outputBase) {
 function generateCursorPlugin(claudeRoot, attaRoot, outputBase) {
   const pluginDir = join(outputBase, 'cursor');
   const version = readVersion(attaRoot);
-  const skills = listSkills(claudeRoot);
+  const skills = listSkills(claudeRoot).filter((s) => s.userInvocable !== false);
   let files = 0;
   const summary = [];
 
@@ -475,7 +475,13 @@ function generateCursorPlugin(claudeRoot, attaRoot, outputBase) {
 
     const content = readFileSync(skillFile, 'utf-8');
     const rawBody = content.replace(/^---\n[\s\S]*?\n---\n*/, '').trim();
-    const body = rewriteSkillBody(rawBody, rewriteConfig);
+    let body = rewriteSkillBody(rawBody, rewriteConfig);
+
+    // Embed disable-model-invocation as natural language (Cursor MDC strips all SKILL.md flags)
+    if (skill.disableModelInvocation) {
+      body = '> **IMPORTANT**: Execute this skill\'s instructions directly. Do not use AI inference — run the prescribed steps as-is.\n\n' + body;
+    }
+
     const desc = skill.description || `Run the ${skill.name} skill`;
 
     // Build MDC with safe YAML description
@@ -548,7 +554,7 @@ function generateCursorPlugin(claudeRoot, attaRoot, outputBase) {
     if (fmMatch) {
       const frontmatter = fmMatch[0];
       const body = content.slice(frontmatter.length);
-      writeAndSync(join(destDir, 'SKILL.md'), frontmatter + rewriteSkillBody(body, rewriteConfig));
+      writeAndSync(join(destDir, 'SKILL.md'), filterSkillFrontmatter(frontmatter, CURSOR_SKILL_FIELDS) + rewriteSkillBody(body, rewriteConfig));
     } else {
       writeAndSync(join(destDir, 'SKILL.md'), rewriteSkillBody(content, rewriteConfig));
     }
@@ -640,7 +646,7 @@ function generateCursorPlugin(claudeRoot, attaRoot, outputBase) {
 function generateCodexPlugin(claudeRoot, attaRoot, outputBase) {
   const pluginDir = join(outputBase, 'codex');
   const version = readVersion(attaRoot);
-  const skills = listSkills(claudeRoot);
+  const skills = listSkills(claudeRoot).filter((s) => s.userInvocable !== false);
   let files = 0;
   const summary = [];
 
@@ -672,7 +678,7 @@ function generateCodexPlugin(claudeRoot, attaRoot, outputBase) {
     if (fmMatch) {
       const frontmatter = fmMatch[0];
       const body = content.slice(frontmatter.length);
-      writeAndSync(join(destDir, 'SKILL.md'), frontmatter + rewriteSkillBody(body, rewriteConfig));
+      writeAndSync(join(destDir, 'SKILL.md'), filterSkillFrontmatter(frontmatter, CODEX_SKILL_FIELDS) + rewriteSkillBody(body, rewriteConfig));
     } else {
       writeAndSync(join(destDir, 'SKILL.md'), rewriteSkillBody(content, rewriteConfig));
     }

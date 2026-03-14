@@ -1,3 +1,20 @@
+---
+name: accessibility
+description: Web accessibility, WCAG compliance, and ARIA patterns. Use for accessibility audits, remediation guidance, and inclusive design.
+model: inherit
+tools:
+  - Read
+  - Grep
+  - Glob
+disallowedTools:
+  - Edit
+  - Write
+  - Bash
+  - Agent
+maxTurns: 20
+permissionMode: plan
+---
+
 # Agent: Accessibility (WCAG/ARIA Specialist)
 
 > Web accessibility, WCAG compliance, and inclusive design.

@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import pc from 'picocolors';
 import { listSkills } from './claude-code.js';
 import { generateAgentsMd } from './agents-md.js';
-import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, filterSkillFrontmatter, COPILOT_SKILL_FIELDS, checkSkillConflicts, createMemoryDirectory, generateHooks, writeHookScripts } from './shared.js';
+import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, filterSkillFrontmatter, COPILOT_SKILL_FIELDS, checkSkillConflicts, createMemoryDirectory, generateHooks, writeHookScripts, mapToolsToCopilot } from './shared.js';
 import { generateReviewRules, formatCopilot } from './review-guidance.js';
 import { generateRules, writeToolAgnosticRules, installCopilotRules } from './rules-generator.js';
 
@@ -98,10 +98,14 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
     {
       ...options,
       extension: '.agent.md',
-      transformFrontmatter: (fm) => ({
-        name: fm.name,
-        description: fm.description,
-      }),
+      transformFrontmatter: (fm) => {
+        const result = { name: fm.name, description: fm.description };
+        // Copilot supports native tool restriction via tools: [...]
+        if (fm.tools) {
+          result.tools = mapToolsToCopilot(fm.tools);
+        }
+        return result;
+      },
       transformBody: (body) => rewriteSkillBody(body, copilotAgentRewriteConfig),
     }
   );
@@ -250,4 +254,3 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
 
   return results;
 }
-

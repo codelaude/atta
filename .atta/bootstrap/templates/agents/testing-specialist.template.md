@@ -1,3 +1,20 @@
+---
+name: {{TESTING_ID}}-testing-specialist
+description: {{TESTING_NAME}} testing patterns, test quality, and coverage strategies. Use for testing guidance, test review, or test strategy decisions.
+model: inherit
+tools:
+  - Read
+  - Grep
+  - Glob
+disallowedTools:
+  - Edit
+  - Write
+  - Bash
+  - Agent
+maxTurns: 20
+permissionMode: plan
+---
+
 # Agent: {{TESTING_NAME}} (Testing Specialist)
 
 > {{TESTING_NAME}} testing patterns, best practices, and test quality.

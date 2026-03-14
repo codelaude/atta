@@ -5,7 +5,7 @@ import * as p from '@clack/prompts';
 import pc from 'picocolors';
 import { readVersion, countFiles } from '../lib/fs-utils.js';
 import { listSkills } from '../adapters/claude-code.js';
-import { copyAgentFiles, rewriteSkillBody, filterSkillFrontmatter, COPILOT_SKILL_FIELDS, CURSOR_SKILL_FIELDS, CODEX_SKILL_FIELDS, generateHooksConfig, listAgentDefs, writeHookScripts } from '../adapters/shared.js';
+import { copyAgentFiles, rewriteSkillBody, filterSkillFrontmatter, COPILOT_SKILL_FIELDS, CURSOR_SKILL_FIELDS, CODEX_SKILL_FIELDS, generateHooksConfig, listAgentDefs, writeHookScripts, mapToolsToCopilot } from '../adapters/shared.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -341,10 +341,13 @@ function generateCopilotPlugin(claudeRoot, attaRoot, outputBase) {
   const agentCount = copyAgentFiles(claudeRoot, agentsDir, {
     quiet: true,
     extension: '.agent.md',
-    transformFrontmatter: (fm) => ({
-      name: fm.name,
-      description: fm.description,
-    }),
+    transformFrontmatter: (fm) => {
+      const result = { name: fm.name, description: fm.description };
+      if (fm.tools) {
+        result.tools = mapToolsToCopilot(fm.tools);
+      }
+      return result;
+    },
     transformBody: (body) => rewriteSkillBody(body, copilotAgentRewriteConfig),
   });
   files += agentCount;
@@ -570,10 +573,16 @@ function generateCursorPlugin(claudeRoot, attaRoot, outputBase) {
   const agentsDir = join(pluginDir, 'agents');
   const agentCount = copyAgentFiles(claudeRoot, agentsDir, {
     quiet: true,
-    transformFrontmatter: (fm) => ({
-      name: fm.name,
-      description: fm.description,
-    }),
+    transformFrontmatter: (fm) => {
+      const result = { name: fm.name, description: fm.description };
+      if (fm.disallowedTools) {
+        const disallowed = Array.isArray(fm.disallowedTools) ? fm.disallowedTools : fm.disallowedTools.split(/,\s*/);
+        if (disallowed.some(t => t.trim() === 'Edit' || t.trim() === 'Write')) {
+          result.readonly = true;
+        }
+      }
+      return result;
+    },
     transformBody: (body) => rewriteSkillBody(body, rewriteConfig),
   });
   files += agentCount;

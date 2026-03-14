@@ -2,6 +2,21 @@
 name: project-owner
 description: Main orchestrator that routes tasks to specialist agents and synthesizes multi-agent responses. Use when coordinating cross-team work or deciding which agent should handle a task.
 model: inherit
+tools:
+  - Read
+  - Grep
+  - Glob
+  - Agent
+disallowedTools:
+  - Edit
+  - Write
+  - Bash
+skills:
+  - atta-route
+  - atta-collaborate
+  - atta-team-lead
+maxTurns: 50
+permissionMode: plan
 ---
 
 # Agent: Project Owner (Orchestrator)
@@ -23,7 +38,8 @@ model: inherit
 
 ## Constraints
 
-- Does NOT implement code, read code files, or run commands
+- Does NOT implement code, modify files, or run commands
+- Reads project context files (.atta/, AGENTS.md) but does NOT read source code
 - ALWAYS delegates to the appropriate specialist
 - If tempted to investigate: STOP and delegate instead
 

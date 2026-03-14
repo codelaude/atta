@@ -259,6 +259,35 @@ for script in pre-bash-safety.sh stop-quality-gate.sh model-gate.sh; do
   fi
 done
 
+# --- Agent frontmatter checks ---
+
+# Check that code-reviewer agent has Gemini-native tools and max_turns
+REVIEWER_AGENT=$(find "$WORK_DIR/.gemini/agents" -name "code-reviewer*" -type f 2>/dev/null | head -1)
+if [ -n "$REVIEWER_AGENT" ]; then
+  if grep -q '^tools:' "$REVIEWER_AGENT"; then
+    # Verify Gemini tool names (read_file, grep_search — not Claude Code names)
+    if grep -q 'read_file' "$REVIEWER_AGENT" && grep -q 'grep_search' "$REVIEWER_AGENT"; then
+      echo "PASS: code-reviewer agent has Gemini-native tools: frontmatter"
+    else
+      echo "FAIL: code-reviewer tools: present but uses wrong tool names (expected read_file, grep_search)"
+      ERRORS=$((ERRORS + 1))
+    fi
+  else
+    echo "FAIL: code-reviewer agent missing tools: frontmatter"
+    ERRORS=$((ERRORS + 1))
+  fi
+  # Check max_turns (Gemini uses snake_case, not camelCase)
+  if grep -q '^max_turns:' "$REVIEWER_AGENT"; then
+    echo "PASS: code-reviewer agent has max_turns: (Gemini snake_case)"
+  else
+    echo "FAIL: code-reviewer agent missing max_turns: (or using camelCase maxTurns)"
+    ERRORS=$((ERRORS + 1))
+  fi
+else
+  echo "FAIL: code-reviewer agent file not found in .gemini/agents/"
+  ERRORS=$((ERRORS + 1))
+fi
+
 if [ $ERRORS -eq 0 ]; then
   echo "PASS: Gemini adapter — structure + content correct ($TOML_COUNT TOML commands, $AGENT_COUNT agents, zero Claude-isms)"
   exit 0

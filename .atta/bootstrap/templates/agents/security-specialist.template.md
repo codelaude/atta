@@ -1,3 +1,22 @@
+---
+name: security-specialist
+description: Application security, OWASP Top 10, and secure coding patterns. Use for security audits, vulnerability assessment, and secure design guidance.
+model: inherit
+tools:
+  - Read
+  - Grep
+  - Glob
+disallowedTools:
+  - Edit
+  - Write
+  - Bash
+  - Agent
+skills:
+  - atta-security-audit
+maxTurns: 30
+permissionMode: plan
+---
+
 # Agent: Security Specialist (Application Security Reviewer)
 
 > Application security, OWASP Top 10, and secure coding patterns.

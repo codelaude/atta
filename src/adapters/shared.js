@@ -522,12 +522,13 @@ export function writeHookScripts(targetDir) {
 
 /**
  * Parse YAML frontmatter from an agent markdown file.
- * Handles flat key-value pairs only — multiline YAML values are rejected
- * with a clear error rather than silently truncated.
+ * Handles key-value pairs, block lists (  - item), inline flow lists ([a, b]),
+ * and scalar type conversion (booleans, numbers). Multiline YAML values are
+ * rejected with a clear error rather than silently truncated.
  *
  * @param {string} content - Full markdown content with optional frontmatter
- * @returns {{ frontmatter: Object<string,string>, body: string }}
- * @throws {Error} If frontmatter contains multiline YAML or malformed lines
+ * @returns {{ frontmatter: Object<string, string|string[]|boolean|number>, body: string }}
+ * @throws {Error} If frontmatter contains multiline YAML, orphan list items, or malformed lines
  */
 export function parseAgentFrontmatter(content) {
   // Normalize CRLF → LF for cross-platform compatibility (Windows-edited files)
@@ -546,26 +547,68 @@ export function parseAgentFrontmatter(content) {
   }
 
   const fm = {};
-  for (const line of match[1].split('\n')) {
+  const fmLines = match[1].split('\n');
+  let currentKey = null;
+
+  for (let i = 0; i < fmLines.length; i++) {
+    const line = fmLines[i];
     // Skip empty lines and YAML comments
     if (!line.trim() || line.trim().startsWith('#')) continue;
+
+    // YAML list item (  - value) — append to current key's array
+    // Only valid if the current key was declared as an array (empty value after colon)
+    const listMatch = line.match(/^\s+-\s+(.+)$/);
+    if (listMatch) {
+      if (currentKey && Array.isArray(fm[currentKey])) {
+        const itemValue = listMatch[1].trim();
+        // Strip quotes from list items
+        const qm = itemValue.match(/^(['"])(.*)\1$/);
+        fm[currentKey].push(qm ? qm[2] : itemValue);
+        continue;
+      }
+      throw new Error(
+        `Orphan list item in agent frontmatter: "${line.trim()}". ` +
+        `List items must follow a key declared as an array (e.g., "tools:" on its own line).`
+      );
+    }
 
     const kvMatch = line.match(/^([\w][\w-]*)\s*:\s*(.*)$/);
     if (!kvMatch) {
       throw new Error(
         `Malformed agent frontmatter line: "${line}". ` +
-        `Only single-line key: value pairs are supported.`
+        `Only key: value pairs and list items (  - value) are supported.`
       );
     }
 
+    currentKey = kvMatch[1];
     const value = kvMatch[2].trim();
 
     // Detect multiline YAML block indicators — fail fast instead of silent truncation
     if (/^[>|][+-]?$/.test(value)) {
       throw new Error(
         `Unsupported multiline YAML value for "${kvMatch[1]}" (found "${value}"). ` +
-        `Agent frontmatter only supports single-line key: value pairs.`
+        `Agent frontmatter only supports single-line values and lists.`
       );
+    }
+
+    // Empty value after colon — next lines may be list items
+    if (!value) {
+      fm[currentKey] = [];
+      continue;
+    }
+
+    // Inline flow list: key: [a, b, c]
+    const flowListMatch = value.match(/^\[(.*)\]$/);
+    if (flowListMatch) {
+      fm[currentKey] = flowListMatch[1]
+        .split(',')
+        .map(item => item.trim())
+        .filter(Boolean)
+        .map(item => {
+          const qm = item.match(/^(['"])(.*)\1$/);
+          return qm ? qm[2] : item;
+        });
+      continue;
     }
 
     // Strip surrounding quotes and unescape if present (both single and double)
@@ -576,9 +619,10 @@ export function parseAgentFrontmatter(content) {
       if (quoteMatch[1] === '"') {
         inner = inner.replace(/\\(["\\])/g, '$1');
       }
-      fm[kvMatch[1]] = inner;
+      fm[currentKey] = inner;
     } else {
-      fm[kvMatch[1]] = value;
+      // Convert YAML scalars: booleans and numbers (ensures round-trip with serializeFrontmatter)
+      fm[currentKey] = convertYamlScalar(value);
     }
   }
 
@@ -589,13 +633,27 @@ export function parseAgentFrontmatter(content) {
  * Serialize a frontmatter object back to YAML fences.
  * Values containing YAML-significant characters are double-quoted.
  *
- * @param {Object<string,string>} fm - Frontmatter key-value pairs
+ * @param {Object<string, string|string[]|boolean|number>} fm - Frontmatter key-value pairs (supports arrays, booleans, numbers)
  * @returns {string} YAML frontmatter block (with --- delimiters)
  */
 function serializeFrontmatter(fm) {
   const lines = ['---'];
   for (const [key, value] of Object.entries(fm)) {
-    lines.push(`${key}: ${yamlQuoteIfNeeded(value)}`);
+    if (Array.isArray(value)) {
+      if (value.length === 0) {
+        lines.push(`${key}: []`);
+      } else {
+        lines.push(`${key}:`);
+        for (const item of value) {
+          lines.push(`  - ${yamlQuoteIfNeeded(item)}`);
+        }
+      }
+    } else if (typeof value === 'boolean' || typeof value === 'number') {
+      // Booleans and numbers are emitted unquoted (YAML native types)
+      lines.push(`${key}: ${value}`);
+    } else {
+      lines.push(`${key}: ${yamlQuoteIfNeeded(value)}`);
+    }
   }
   lines.push('---');
   return lines.join('\n');
@@ -606,6 +664,19 @@ function serializeFrontmatter(fm) {
  * misinterpreted by a YAML parser (colon-space, space-hash, indicator
  * chars, boolean/null literals, leading/trailing whitespace, or is empty).
  */
+/**
+ * Convert unquoted YAML scalar strings to native JS types.
+ * Handles booleans (true/false/yes/no) and numbers.
+ * Returns the original string if no conversion applies.
+ */
+function convertYamlScalar(value) {
+  if (/^(true|yes|on)$/i.test(value)) return true;
+  if (/^(false|no|off)$/i.test(value)) return false;
+  if (/^-?\d+$/.test(value)) return parseInt(value, 10);
+  if (/^-?\d+\.\d+$/.test(value)) return parseFloat(value);
+  return value;
+}
+
 function yamlQuoteIfNeeded(value) {
   if (value === undefined || value === null) return '""';
   const str = String(value);
@@ -1119,4 +1190,49 @@ function countFiles(dir) {
     }
   }
   return count;
+}
+
+// ─── Cross-Tool Name Mappings ───────────────────────────────────────
+
+/**
+ * Map Claude Code tool names to Copilot tool names.
+ * Verified against GitHub docs (copilot/reference/custom-agents-configuration.md).
+ * Copilot accepts aliases case-insensitively; this map uses exact CC tool names as keys.
+ *
+ * @param {string[]|string} tools - Claude Code tool names
+ * @returns {string[]} Copilot tool names (deduplicated)
+ */
+export function mapToolsToCopilot(tools) {
+  const CC_TO_COPILOT = {
+    Read: 'read', Edit: 'edit', Write: 'edit',
+    Grep: 'search', Glob: 'search', Bash: 'execute', Agent: 'agent',
+  };
+  const list = Array.isArray(tools) ? tools : tools.split(/,\s*/);
+  const mapped = new Set();
+  for (const tool of list) {
+    const name = CC_TO_COPILOT[tool.trim()];
+    if (name) mapped.add(name);
+  }
+  return [...mapped];
+}
+
+/**
+ * Map Claude Code tool names to Gemini tool names.
+ * Verified against gemini-cli docs (docs/tools/file-system.md, docs/tools/shell.md).
+ *
+ * @param {string[]|string} tools - Claude Code tool names
+ * @returns {string[]} Gemini tool names (deduplicated)
+ */
+export function mapToolsToGemini(tools) {
+  const CC_TO_GEMINI = {
+    Read: 'read_file', Edit: 'replace', Write: 'write_file',
+    Grep: 'grep_search', Glob: 'glob', Bash: 'run_shell_command',
+  };
+  const list = Array.isArray(tools) ? tools : tools.split(/,\s*/);
+  const mapped = new Set();
+  for (const tool of list) {
+    const name = CC_TO_GEMINI[tool.trim()];
+    if (name) mapped.add(name);
+  }
+  return [...mapped];
 }

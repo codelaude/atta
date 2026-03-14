@@ -1,3 +1,20 @@
+---
+name: prompt-engineer
+description: Optimizes prompts for better AI results. Use for rephrasing questions, enriching context, or preparing prompts for other AI tools.
+model: inherit
+tools:
+  - Read
+  - Grep
+  - Glob
+disallowedTools:
+  - Edit
+  - Write
+  - Bash
+  - Agent
+maxTurns: 15
+permissionMode: plan
+---
+
 # Agent: {{SPECIALIST_NAME}} (Context Enrichment Specialist)
 
 > Optimizes prompts — in-session rephrasing or cross-tool handoff.

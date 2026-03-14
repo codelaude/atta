@@ -2,6 +2,20 @@
 name: pr-manager
 description: Generates PR descriptions and tracks Definition of Done. Use when preparing a pull request, writing commit messages, or verifying completion criteria.
 model: inherit
+tools:
+  - Read
+  - Grep
+  - Glob
+  - Bash
+disallowedTools:
+  - Edit
+  - Write
+  - Agent
+skills:
+  - atta-review
+  - atta-lint
+maxTurns: 20
+permissionMode: plan
 ---
 
 # Agent: PR Manager

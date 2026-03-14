@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import pc from 'picocolors';
 import { copySharedContent, copyBootstrap } from './shared.js';
 import { generateReviewRules, formatCIReview } from './review-guidance.js';
+import { generateRules, writeToolAgnosticRules } from './rules-generator.js';
 
 /**
  * GitHub Action adapter — generates `.github/workflows/atta-review.yml`.
@@ -76,6 +77,16 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
     console.log(`  ${pc.green('✓')} .atta/team/review-guidance.md (CI review context)`);
   }
 
+  // Generate path-scoped rules from detected tech stack
+  // These are the same rules that local adapters enforce — CI should too
+  const rules = generateRules(attaRoot, options.detectedTechs);
+  const rulesCount = writeToolAgnosticRules(targetDir, rules);
+  results.files += rulesCount;
+
+  if (!options.quiet && rulesCount > 0) {
+    console.log(`  ${pc.green('✓')} .atta/team/rules/ (${rulesCount} rule files)`);
+  }
+
   // Copy shared content to .atta/ (needed if this is a standalone install)
   const sharedCount = copySharedContent(attaRoot, targetDir, options);
   results.files += sharedCount;
@@ -102,13 +113,19 @@ function buildPromptBody() {
             3. All \`*.md\` files in \`.atta/team/patterns/\` — technology-specific conventions
             4. \`.atta/team/review-guidance.md\` — stack-specific review rules (if exists)
             5. \`.atta/team/ci-suppressions.md\` — known false positives (skip these)
+            6. All \`*.md\` files in \`.atta/team/rules/\` — path-scoped coding rules (enforce these; globs in frontmatter indicate which files each rule applies to)
+            7. \`.atta/team/owasp-scope.md\` — pre-computed OWASP scope (if exists; otherwise determine from project-context.md)
 
             Then review all files changed in this PR.
 
             **What to flag:**
             - Violations of conventions documented in the pattern files
-            - Security vulnerabilities relevant to the detected tech stack only.
-              Determine OWASP scope from project-context.md — for example:
+            - Violations of coding rules in .atta/team/rules/ — match rules to changed files using globs
+            - Security vulnerabilities scoped by .atta/team/owasp-scope.md.
+              If owasp-scope.md exists, use the three tiers:
+              "Applicable" — always check. "Deprioritized" — flag only clear vulnerabilities.
+              "Skipped" — not applicable, do not check.
+              If absent, determine OWASP scope from project-context.md — for example:
               skip XXE checks for REST-only APIs, skip CSRF for CLI tools,
               skip injection checks for static sites, skip auth checks for libraries.
             - Correctness bugs and logic errors with clear code evidence
@@ -117,6 +134,7 @@ function buildPromptBody() {
             **What NOT to flag:**
             - Patterns explicitly documented as correct in .atta/team/ files
             - Anything listed in .atta/team/ci-suppressions.md
+            - OWASP categories listed as "Skipped (not applicable)" in owasp-scope.md
             - Style preferences not in the project's own pattern files
             - Hypothetical or theoretical issues without concrete code evidence
             - Issues in vendored or generated files (node_modules, dist/, build/, *.min.js)
@@ -211,6 +229,10 @@ ${setupComment}
 #
 # Suppress false positives: .atta/team/ci-suppressions.md
 # Improve review quality:   run /atta in your project (detects stack + conventions)
+#
+# Feedback loop: when CI flags a real issue, capture the pattern with /atta-patterns
+# so future reviews catch similar issues earlier. When CI flags a false positive,
+# add it to .atta/team/ci-suppressions.md. Over time, CI reviews get smarter.
 
 name: Atta Code Review
 
@@ -280,6 +302,10 @@ ${setupComment}
 #
 # Suppress false positives: .atta/team/ci-suppressions.md
 # Improve review quality:   run /atta in your project (detects stack + conventions)
+#
+# Feedback loop: when CI flags a real issue, capture the pattern with /atta-patterns
+# so future reviews catch similar issues earlier. When CI flags a false positive,
+# add it to .atta/team/ci-suppressions.md. Over time, CI reviews get smarter.
 #
 # Note: uses appleboy/LLM-action (OpenAI-compatible endpoints).
 # For Claude (Anthropic/Bedrock/Vertex), use: atta init --adapter github-action

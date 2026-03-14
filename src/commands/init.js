@@ -14,6 +14,7 @@ import { generateGettingStarted } from '../guides/getting-started.js';
 import { printBanner } from '../banner.js';
 import { countFiles } from '../lib/fs-utils.js';
 import { parseInitOutput } from '../lib/init-parser.js';
+import { writeOwaspScope } from '../lib/owasp-scope.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -197,6 +198,12 @@ async function runInstall(targetDir, adapterName, dryRun, answers, adapterOption
 
     // Run the adapter
     results = adapter.install(CLAUDE_ROOT, ATTA_ROOT, targetDir, { quiet: true, ...adapterOptions, initSeeds });
+
+    // Generate pre-computed OWASP scope from detected tech stack (all adapters)
+    // Scopes security checks to relevant categories — avoids wasting CI tokens on irrelevant checks
+    // Handles undefined detectedTechs gracefully (defaults to conservative backend scope)
+    writeOwaspScope(targetDir, adapterOptions.detectedTechs, ATTA_ROOT);
+    results.files++;
 
     // Gitignore runtime & personal content; keep only team-shared files
     ensureAttaGitignored(targetDir, adapterName);

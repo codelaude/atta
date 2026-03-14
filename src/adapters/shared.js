@@ -880,9 +880,15 @@ export function copyAgentFiles(claudeRoot, destAgentsDir, options = {}) {
     processFile(join(srcAgentsDir, file.name), destAgentsDir, file.name);
   }
 
-  // Remove stale root agents from destination that are no longer selected
+  // Remove stale framework-provided root agents from destination that are no longer selected
   // (handles re-init with a narrower agent selection)
+  // Only delete agents that exist in the framework source — never touch user-created custom agents
   if (selectedAgents && existsSync(destAgentsDir)) {
+    const frameworkAgentIds = new Set(
+      readdirSync(srcAgentsDir, { withFileTypes: true })
+        .filter((f) => f.isFile() && f.name.endsWith('.md') && f.name !== 'INDEX.md' && f.name !== 'README.md')
+        .map((f) => f.name.replace(/\.md$/, ''))
+    );
     const existingFiles = readdirSync(destAgentsDir, { withFileTypes: true })
       .filter(
         (f) =>
@@ -893,7 +899,7 @@ export function copyAgentFiles(claudeRoot, destAgentsDir, options = {}) {
       );
     for (const file of existingFiles) {
       const agentId = file.name.slice(0, -extension.length);
-      if (!selectedAgents.includes(agentId)) {
+      if (frameworkAgentIds.has(agentId) && !selectedAgents.includes(agentId)) {
         unlinkSync(join(destAgentsDir, file.name));
       }
     }

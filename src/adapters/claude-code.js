@@ -50,15 +50,22 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   }
 
   // Filter agents based on selection (remove unselected optional agents)
+  // Only delete agents that exist in the framework source — never touch user-created custom agents
   if (options.selectedAgents) {
     const agentsDir = join(claudeDir, 'agents');
-    if (existsSync(agentsDir)) {
+    const srcAgentsDir = join(claudeRoot, 'agents');
+    if (existsSync(agentsDir) && existsSync(srcAgentsDir)) {
+      const frameworkAgentIds = new Set(
+        readdirSync(srcAgentsDir).filter(
+          (f) => f.endsWith('.md') && f !== 'INDEX.md' && f !== 'README.md'
+        ).map((f) => f.replace(/\.md$/, ''))
+      );
       const agentFiles = readdirSync(agentsDir).filter(
         (f) => f.endsWith('.md') && f !== 'INDEX.md' && f !== 'README.md'
       );
       for (const file of agentFiles) {
         const agentId = file.replace(/\.md$/, '');
-        if (!options.selectedAgents.includes(agentId)) {
+        if (frameworkAgentIds.has(agentId) && !options.selectedAgents.includes(agentId)) {
           unlinkSync(join(agentsDir, file));
           results.files--;
         }

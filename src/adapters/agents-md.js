@@ -13,7 +13,7 @@ import { readVersion } from '../lib/fs-utils.js';
  * @param {string} [options.skillPrefix='/'] - Prefix for skill invocation (e.g., '/' or '$')
  * @param {string} [options.agentBasePath='.claude/agents'] - Base path for agent files in output
  * @param {boolean} [options.includeHiddenSkills=false] - Include skills with user-invocable: false (Claude Code only)
- * @param {string[]} [options.selectedAgents] - Agent IDs that were installed. Omitted agents shown as "(not installed)".
+ * @param {string[]} [options.selectedAgents] - Agent IDs that were installed. Unselected agents are excluded from output.
  */
 export function generateAgentsMd(claudeRoot, attaRoot, options = {}) {
   const { skillPrefix = '/', agentBasePath = '.claude/agents', includeHiddenSkills = false, selectedAgents } = options;
@@ -126,7 +126,7 @@ export function generateAgentsMd(claudeRoot, attaRoot, options = {}) {
  * List agent definitions from framework source.
  * @param {string} claudeRoot - Path to .claude/ source (agents live here)
  * @param {string} agentBasePath - Base path prefix for agent files in output
- * @param {string[]} [selectedAgents] - Agent IDs that were installed. Unselected agents shown as "(not installed)".
+ * @param {string[]} [selectedAgents] - Agent IDs that were installed. Unselected agents are excluded from output.
  */
 function listAgents(claudeRoot, agentBasePath = '.claude/agents', selectedAgents) {
   const agentsDir = join(claudeRoot, 'agents');

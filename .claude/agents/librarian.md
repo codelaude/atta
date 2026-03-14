@@ -69,6 +69,7 @@ Route directives to scoped files based on `applies_to`. This reduces session-sta
 | `applies_to` value | Target file |
 |---------------------|-------------|
 | `code-reviewer` (or review/collaborate scope) | `directives-code-reviewer.md` |
+| `architect` (or design/architecture scope) | `directives-architect.md` |
 | `librarian` | `directives-librarian.md` |
 | Testing agents (`qa-validator`, `testing-specialist`, `e2e-testing-specialist`) | `directives-testing.md` |
 | Style/formatting agents (`styling-specialist`) or lint scope | `directives-style.md` |

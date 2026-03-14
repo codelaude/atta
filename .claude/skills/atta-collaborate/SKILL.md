@@ -97,7 +97,7 @@ Show available agents if not found.
 
 **Constraints:** Min 2, max 4 agents. If only 1 matches, add `code-reviewer`. Priority order: security > accessibility > framework > language > styling > testing > database > code-reviewer.
 
-**If no `/atta` specialists exist:** Fall back to `code-reviewer` + `qa-validator`. Note: `project-owner` is unsuitable (cannot read code). Show notice to run `/atta`.
+**If no `/atta` specialists exist:** Fall back to `code-reviewer` + `architect`. Note: `project-owner` is unsuitable (cannot read code). Show notice to run `/atta`.
 
 ---
 

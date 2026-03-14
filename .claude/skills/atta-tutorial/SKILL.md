@@ -105,7 +105,7 @@ Show the user:
 **How to invoke an agent** — use `/atta-agent` followed by the agent ID:
 
 - `/atta-agent project-owner` — Start here for any new task
-- `/atta-agent rubber-duck` — When you're stuck or thinking through a problem
+- `/atta-agent architect` — System design and architecture decisions
 - `/atta-agent librarian` — To capture a rule ("remember to always...")
 - `/atta-agent code-reviewer` — Direct code review
 
@@ -274,7 +274,7 @@ Display this (whether reached from the end of the tutorial, from the `--quick` f
 |---------|-------------|
 | `/atta-agent project-owner` | Route any task to the right specialist |
 | `/atta-team-lead [task]` | Decompose a feature into specialist tracks |
-| `/atta-agent rubber-duck` | Think through a problem with guided questions |
+| `/atta-agent architect` | System design and architecture decisions |
 
 ### Code Quality
 | Command | What it does |
@@ -294,9 +294,7 @@ Display this (whether reached from the end of the tutorial, from the `--quick` f
 |---------|-------------|
 | `/atta-agent [id]` | Invoke any agent directly |
 | `/atta-agent code-reviewer` | Direct code critique |
-| `/atta-agent qa-validator` | Validate feature requirements |
-| `/atta-agent pr-manager` | Generate a PR description |
-| `/atta-agent business-analyst` | Clarify requirements |
+| `/atta-agent architect` | Architecture decisions and blueprints |
 
 ### Keeping Agents Up to Date
 | Command | What it does |

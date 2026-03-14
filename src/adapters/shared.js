@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, cpSync, lstatSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, cpSync, lstatSync, readdirSync, readFileSync, writeFileSync, unlinkSync } from 'node:fs';
 import { join, dirname, relative } from 'node:path';
 import pc from 'picocolors';
 
@@ -829,10 +829,11 @@ export function filterSkillFrontmatter(frontmatterBlock, allowedFields) {
  * @param {string} [options.extension='.md'] - Output file extension (e.g., '.agent.md' for Copilot)
  * @param {function} [options.transformFrontmatter] - Transform frontmatter object before writing
  * @param {function} [options.transformBody] - Transform body text before writing
+ * @param {string[]} [options.selectedAgents] - Agent IDs to install (filters root agents). If omitted, all agents are copied.
  * @returns {number} Number of files copied
  */
 export function copyAgentFiles(claudeRoot, destAgentsDir, options = {}) {
-  const { extension = '.md', transformFrontmatter, transformBody } = options;
+  const { extension = '.md', transformFrontmatter, transformBody, selectedAgents } = options;
   const srcAgentsDir = join(claudeRoot, 'agents');
   if (!existsSync(srcAgentsDir)) return 0;
 
@@ -863,18 +864,45 @@ export function copyAgentFiles(claudeRoot, destAgentsDir, options = {}) {
     count++;
   }
 
-  // Core agents (root .md files, skip INDEX, README, and subdirectories)
+  // Root agents (core + optional .md files, skip INDEX, README, and subdirectories)
+  // When selectedAgents is provided, only copy agents in the list
   const rootFiles = readdirSync(srcAgentsDir, { withFileTypes: true })
     .filter(
       (f) =>
         f.isFile() &&
         f.name.endsWith('.md') &&
         f.name !== 'INDEX.md' &&
-        f.name !== 'README.md'
+        f.name !== 'README.md' &&
+        (!selectedAgents || selectedAgents.includes(f.name.replace(/\.md$/, '')))
     );
 
   for (const file of rootFiles) {
     processFile(join(srcAgentsDir, file.name), destAgentsDir, file.name);
+  }
+
+  // Remove stale framework-provided root agents from destination that are no longer selected
+  // (handles re-init with a narrower agent selection)
+  // Only delete agents that exist in the framework source — never touch user-created custom agents
+  if (selectedAgents && existsSync(destAgentsDir)) {
+    const frameworkAgentIds = new Set(
+      readdirSync(srcAgentsDir, { withFileTypes: true })
+        .filter((f) => f.isFile() && f.name.endsWith('.md') && f.name !== 'INDEX.md' && f.name !== 'README.md')
+        .map((f) => f.name.replace(/\.md$/, ''))
+    );
+    const existingFiles = readdirSync(destAgentsDir, { withFileTypes: true })
+      .filter(
+        (f) =>
+          f.isFile() &&
+          f.name.endsWith(extension) &&
+          f.name !== 'INDEX.md' &&
+          f.name !== 'README.md'
+      );
+    for (const file of existingFiles) {
+      const agentId = file.name.slice(0, -extension.length);
+      if (frameworkAgentIds.has(agentId) && !selectedAgents.includes(agentId)) {
+        unlinkSync(join(destAgentsDir, file.name));
+      }
+    }
   }
 
   // Coordinators
@@ -904,13 +932,16 @@ export function copyAgentFiles(claudeRoot, destAgentsDir, options = {}) {
 
 /**
  * List canonical agent files from .claude/agents/ with parsed frontmatter.
- * Returns flat array of { name, description, fileName } for all core agents.
+ * Returns flat array of { name, description, fileName } for all root agents (core + optional).
  * Used by adapters that need to generate tool-specific agent configs (e.g., Codex TOML).
  *
  * @param {string} claudeRoot - Path to .claude/ source
+ * @param {object} [options]
+ * @param {string[]} [options.selectedAgents] - Agent IDs to include. If omitted, all agents are returned.
  * @returns {Array<{ name: string, description: string, fileName: string }>}
  */
-export function listAgentDefs(claudeRoot) {
+export function listAgentDefs(claudeRoot, options = {}) {
+  const { selectedAgents } = options;
   const srcAgentsDir = join(claudeRoot, 'agents');
   if (!existsSync(srcAgentsDir)) return [];
 
@@ -921,7 +952,8 @@ export function listAgentDefs(claudeRoot) {
         f.isFile() &&
         f.name.endsWith('.md') &&
         f.name !== 'INDEX.md' &&
-        f.name !== 'README.md'
+        f.name !== 'README.md' &&
+        (!selectedAgents || selectedAgents.includes(f.name.replace(/\.md$/, '')))
     );
 
   for (const file of rootFiles) {

@@ -42,6 +42,7 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   const agentsMd = generateAgentsMd(claudeRoot, attaRoot, {
     skillPrefix: '@',
     agentBasePath: '.cursor/agents',
+    selectedAgents: options.selectedAgents,
   });
   writeFileSync(join(targetDir, 'AGENTS.md'), agentsMd);
   results.files++;
@@ -237,7 +238,7 @@ ${skillList}
 ## Agent Team
 
 Agents use a three-tier hierarchy:
-1. **Core Agents** — Always available (project-owner, code-reviewer, librarian, rubber-duck)
+1. **Core Agents** — Always available (project-owner, code-reviewer, librarian, architect)
 2. **Coordinators** — Generated per project (fe-team-lead, be-team-lead)
 3. **Specialists** — Generated from detected tech stack (run \`@atta\` to set up)
 

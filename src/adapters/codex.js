@@ -39,6 +39,7 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   const agentsMd = generateAgentsMd(claudeRoot, attaRoot, {
     skillPrefix: '$',
     agentBasePath: '.agents/agents',
+    selectedAgents: options.selectedAgents,
   });
   writeFileSync(join(targetDir, 'AGENTS.md'), agentsMd);
   results.files++;
@@ -103,7 +104,7 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   }
 
   // Generate .codex/config.toml with [agents.*] sections
-  const agentDefs = listAgentDefs(claudeRoot);
+  const agentDefs = listAgentDefs(claudeRoot, { selectedAgents: options.selectedAgents });
   if (agentDefs.length > 0) {
     const codexDir = join(targetDir, '.codex');
     mkdirSync(codexDir, { recursive: true });

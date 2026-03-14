@@ -23,7 +23,7 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   const results = { files: 0 };
 
   // Generate GEMINI.md (same content as AGENTS.md, adapted for Gemini context)
-  const geminiMd = generateGeminiMd(claudeRoot, attaRoot);
+  const geminiMd = generateGeminiMd(claudeRoot, attaRoot, options);
   writeFileSync(join(targetDir, 'GEMINI.md'), geminiMd);
   results.files++;
 
@@ -202,11 +202,12 @@ function skillToToml(skill, skillFile) {
  * Generate GEMINI.md — context file for Gemini CLI.
  * Based on AGENTS.md content with Gemini-specific framing and paths.
  */
-function generateGeminiMd(claudeRoot, attaRoot) {
+function generateGeminiMd(claudeRoot, attaRoot, options = {}) {
   // Reuse the AGENTS.md generator with Gemini-specific paths
   const agentsMd = generateAgentsMd(claudeRoot, attaRoot, {
     skillPrefix: '/',
     agentBasePath: '.gemini/agents',
+    selectedAgents: options.selectedAgents,
   });
 
   // Replace header for Gemini context

@@ -132,5 +132,5 @@ If a PR file for this branch already exists, ask the user whether to overwrite o
 - `/atta-preflight` - Run before `/atta-ship` to validate code quality
 - `/atta-review` - Code review only
 - `/atta-lint` - Quick pattern checks
-- `/atta-agent pr-manager` - PR description generation (standalone)
+- `/atta-agent pr-manager` - PR description generation (if installed)
 - `/atta-librarian` - Knowledge capture (standalone)

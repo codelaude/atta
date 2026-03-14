@@ -864,7 +864,7 @@ export function copyAgentFiles(claudeRoot, destAgentsDir, options = {}) {
     count++;
   }
 
-  // Core agents (root .md files, skip INDEX, README, and subdirectories)
+  // Root agents (core + optional .md files, skip INDEX, README, and subdirectories)
   // When selectedAgents is provided, only copy agents in the list
   const rootFiles = readdirSync(srcAgentsDir, { withFileTypes: true })
     .filter(
@@ -932,7 +932,7 @@ export function copyAgentFiles(claudeRoot, destAgentsDir, options = {}) {
 
 /**
  * List canonical agent files from .claude/agents/ with parsed frontmatter.
- * Returns flat array of { name, description, fileName } for all core agents.
+ * Returns flat array of { name, description, fileName } for all root agents (core + optional).
  * Used by adapters that need to generate tool-specific agent configs (e.g., Codex TOML).
  *
  * @param {string} claudeRoot - Path to .claude/ source

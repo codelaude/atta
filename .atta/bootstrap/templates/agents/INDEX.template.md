@@ -29,6 +29,17 @@ Use this to determine which agent handles what:
 | librarian | Knowledge capture and directives | `/agent librarian` |
 | architect | System design, ADRs, and blueprints | `/agent architect` |
 
+### Optional Agents (if installed)
+
+| Agent | Role | Invoke With |
+|-------|------|------------|
+| business-analyst | Requirements and acceptance criteria | `/agent business-analyst` |
+| qa-validator | Acceptance criteria validation | `/agent qa-validator` |
+| pr-manager | PR descriptions and completion tracking | `/agent pr-manager` |
+| rubber-duck | Guided learning and problem exploration | `/agent rubber-duck` |
+
+> Optional agents are selected during `atta init`. If not installed, invoking them falls back to the closest core agent.
+
 {{#if HAS_FRONTEND}}
 ### Frontend Team
 

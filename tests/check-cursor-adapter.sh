@@ -182,10 +182,14 @@ else
 import json, sys
 with open(sys.argv[1]) as f:
     data = json.load(f)
+if 'version' not in data or data['version'] != 1:
+    print('FAIL: hooks.json missing or wrong "version" field (expected 1)')
+    sys.exit(1)
 if 'hooks' not in data:
     print('FAIL: hooks.json missing top-level "hooks" key')
     sys.exit(1)
-for event in ['sessionStart', 'postToolUse', 'afterFileEdit', 'preCompact']:
+# Enforcement hooks: preToolUse (safety prompt), stop (quality gate prompt)
+for event in ['preToolUse', 'stop']:
     if event not in data['hooks']:
         print(f'FAIL: hooks.json missing event: {event}')
         sys.exit(1)

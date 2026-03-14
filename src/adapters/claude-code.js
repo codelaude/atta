@@ -7,11 +7,11 @@ import {
   readFileSync,
   readdirSync,
 } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { join } from 'node:path';
 import pc from 'picocolors';
 import { generateAgentsMd } from './agents-md.js';
 import { readVersion, countFiles } from '../lib/fs-utils.js';
-import { copySharedContent, copyBootstrap } from './shared.js';
+import { copySharedContent, copyBootstrap, generateHooks } from './shared.js';
 import { generateReviewRules, formatClaudeCode } from './review-guidance.js';
 import { generateRules, writeToolAgnosticRules, installClaudeCodeRules } from './rules-generator.js';
 
@@ -49,32 +49,35 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   }
 
   // Generate hooks.json for plugin manifest (hooks field must be a file path per spec)
+  // Merges session-track.sh hooks with enforcement hooks from generateHooks()
+  // Always regenerate hooks.json — enforcement hooks may change with detectedTechs
   const hooksDir = join(claudeDir, 'hooks');
   const hooksJsonPath = join(hooksDir, 'hooks.json');
-  if (!existsSync(hooksJsonPath)) {
-    mkdirSync(hooksDir, { recursive: true });
-    const hookCmd = '"$CLAUDE_PROJECT_DIR"/.claude/hooks/session-track.sh';
-    const hooksConfig = {
-      PostToolUse: [
-        {
-          matcher: 'Skill',
-          hooks: [{ type: 'command', command: hookCmd, async: true }],
-        },
-      ],
-      Stop: [
-        {
-          hooks: [{ type: 'command', command: hookCmd, async: true }],
-        },
-      ],
-    };
-    const tmpHooks = hooksJsonPath + '.tmp';
-    writeFileSync(tmpHooks, JSON.stringify(hooksConfig, null, 2) + '\n');
-    renameSync(tmpHooks, hooksJsonPath);
-    results.files++;
+  mkdirSync(hooksDir, { recursive: true });
 
-    if (!options.quiet) {
-      console.log(`  ${pc.green('✓')} .claude/hooks/hooks.json (session tracking hooks)`);
-    }
+  // Start with enforcement hooks from the data-driven generator
+  const enforcementConfig = generateHooks('claude-code', options.detectedTechs);
+  const hooks = enforcementConfig.hooks;
+
+  // Add session-track.sh hooks (preserved from existing behavior)
+  const hookCmd = '"$CLAUDE_PROJECT_DIR"/.claude/hooks/session-track.sh';
+  if (!hooks.PostToolUse) hooks.PostToolUse = [];
+  hooks.PostToolUse.push({
+    matcher: 'Skill',
+    hooks: [{ type: 'command', command: hookCmd, async: true }],
+  });
+  if (!hooks.Stop) hooks.Stop = [];
+  hooks.Stop.push({
+    hooks: [{ type: 'command', command: hookCmd, async: true }],
+  });
+
+  const tmpHooks = hooksJsonPath + '.tmp';
+  writeFileSync(tmpHooks, JSON.stringify({ hooks }, null, 2) + '\n');
+  renameSync(tmpHooks, hooksJsonPath);
+  results.files++;
+
+  if (!options.quiet) {
+    console.log(`  ${pc.green('✓')} .claude/hooks/hooks.json (session tracking + enforcement hooks)`);
   }
 
   // Copy shared content to .atta/
@@ -86,6 +89,7 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   results.files += bootstrapCount;
 
   // Generate default settings (only if none exist)
+  // Hooks are NOT included here — they live in .claude/hooks/hooks.json (plugin auto-merges)
   const settingsPath = join(claudeDir, 'settings.local.json');
   if (!existsSync(settingsPath)) {
     const defaultSettings = {
@@ -106,33 +110,6 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
           'Edit(./.atta/project/**)',
         ],
       },
-      hooks: {
-        PostToolUse: [
-          {
-            matcher: 'Skill',
-            hooks: [
-              {
-                type: 'command',
-                command:
-                  '"$CLAUDE_PROJECT_DIR"/.claude/hooks/session-track.sh',
-                async: true,
-              },
-            ],
-          },
-        ],
-        Stop: [
-          {
-            hooks: [
-              {
-                type: 'command',
-                command:
-                  '"$CLAUDE_PROJECT_DIR"/.claude/hooks/session-track.sh',
-                async: true,
-              },
-            ],
-          },
-        ],
-      },
     };
     const tmpSettings = settingsPath + '.tmp';
     writeFileSync(tmpSettings, JSON.stringify(defaultSettings, null, 2) + '\n');
@@ -141,69 +118,6 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
 
     if (!options.quiet) {
       console.log(`  ${pc.green('✓')} .claude/settings.local.json (default permissions)`);
-    }
-  } else {
-    // Existing settings — ensure hook config is present (safe merge, additive only)
-    try {
-      const existing = JSON.parse(readFileSync(settingsPath, 'utf-8'));
-      const hookCmd =
-        '"$CLAUDE_PROJECT_DIR"/.claude/hooks/session-track.sh';
-      let modified = false;
-
-      if (!existing.hooks) {
-        existing.hooks = {};
-      }
-
-      // Check if a hook command already exists anywhere in a hook array
-      const hasHookCmd = (entries) =>
-        Array.isArray(entries) &&
-        entries.some(
-          (entry) =>
-            entry &&
-            typeof entry === 'object' &&
-            Array.isArray(entry.hooks) &&
-            entry.hooks.some((h) => h.command === hookCmd)
-        );
-
-      // Add PostToolUse hook if session-track not present
-      if (!hasHookCmd(existing.hooks.PostToolUse)) {
-        if (!Array.isArray(existing.hooks.PostToolUse)) {
-          existing.hooks.PostToolUse = [];
-        }
-        existing.hooks.PostToolUse.push({
-          matcher: 'Skill',
-          hooks: [{ type: 'command', command: hookCmd, async: true }],
-        });
-        modified = true;
-      }
-
-      // Add Stop hook if session-track not present
-      if (!hasHookCmd(existing.hooks.Stop)) {
-        if (!Array.isArray(existing.hooks.Stop)) {
-          existing.hooks.Stop = [];
-        }
-        existing.hooks.Stop.push({
-          hooks: [{ type: 'command', command: hookCmd, async: true }],
-        });
-        modified = true;
-      }
-
-      if (modified) {
-        const tmpSettings = settingsPath + '.tmp';
-        writeFileSync(
-          tmpSettings,
-          JSON.stringify(existing, null, 2) + '\n'
-        );
-        renameSync(tmpSettings, settingsPath);
-
-        if (!options.quiet) {
-          console.log(
-            `  ${pc.green('✓')} .claude/settings.local.json (added session tracking hooks)`
-          );
-        }
-      }
-    } catch {
-      // Ignore — don't break install if settings can't be parsed
     }
   }
 

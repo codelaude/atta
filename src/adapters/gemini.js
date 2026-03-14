@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import pc from 'picocolors';
 import { listSkills } from './claude-code.js';
 import { generateAgentsMd } from './agents-md.js';
-import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, createMemoryDirectory, generateHooksConfig } from './shared.js';
+import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, createMemoryDirectory, generateHooks, writeHookScripts } from './shared.js';
 import { generateReviewRules, formatGeminiStyleguide, formatGeminiConfig } from './review-guidance.js';
 import { generateRules, writeToolAgnosticRules, installGeminiRules } from './rules-generator.js';
 
@@ -119,16 +119,20 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   createMemoryDirectory(join(targetDir, '.gemini', 'agents'), options);
   results.files++;
 
-  // Generate hooks.json (Gemini hook format — 10 events, placeholder for user customization)
-  const hooksJsonPath = join(geminiDir, 'hooks.json');
-  if (!existsSync(hooksJsonPath)) {
-    const hooksConfig = generateHooksConfig('gemini');
-    writeFileSync(hooksJsonPath, JSON.stringify(hooksConfig, null, 2) + '\n');
-    results.files++;
+  // Always regenerate hooks.json — enforcement hooks may change with detectedTechs
+  const hooksConfig = generateHooks('gemini', options.detectedTechs);
+  writeFileSync(join(geminiDir, 'hooks.json'), JSON.stringify(hooksConfig, null, 2) + '\n');
+  results.files++;
 
-    if (!options.quiet) {
-      console.log(`  ${pc.green('✓')} .gemini/hooks.json (10 event placeholders)`);
-    }
+  if (!options.quiet) {
+    console.log(`  ${pc.green('✓')} .gemini/hooks.json (enforcement hooks)`);
+  }
+
+  // Write hook scripts for command-type hooks (pre-bash-safety, stop-quality-gate)
+  const scriptCount = writeHookScripts(targetDir);
+  results.files += scriptCount;
+  if (!options.quiet && scriptCount > 0) {
+    console.log(`  ${pc.green('✓')} .atta/scripts/hooks/ (${scriptCount} hook scripts)`);
   }
 
   // Copy shared content to .atta/ (team, project, scripts, metadata)

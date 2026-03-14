@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import pc from 'picocolors';
 import { listSkills } from './claude-code.js';
 import { generateAgentsMd } from './agents-md.js';
-import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, createMemoryDirectory, listAgentDefs } from './shared.js';
+import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, createMemoryDirectory, listAgentDefs, generateHooks } from './shared.js';
 import { generateReviewRules, formatCodex } from './review-guidance.js';
 import { generateRules, writeToolAgnosticRules, installCodexRules } from './rules-generator.js';
 
@@ -169,6 +169,17 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
         console.log(`  ${pc.green('✓')} AGENTS.md (appended coding rules)`);
       }
     }
+  }
+
+  // Always regenerate hooks.json — enforcement hooks may change on re-init
+  const codexHooksDir = join(targetDir, '.codex');
+  mkdirSync(codexHooksDir, { recursive: true });
+  const codexHooksConfig = generateHooks('codex');
+  writeFileSync(join(codexHooksDir, 'hooks.json'), JSON.stringify(codexHooksConfig, null, 2) + '\n');
+  results.files++;
+
+  if (!options.quiet) {
+    console.log(`  ${pc.green('✓')} .codex/hooks.json (experimental hooks placeholder)`);
   }
 
   // Copy shared content to .atta/ (team, project, scripts, metadata)

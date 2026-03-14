@@ -145,8 +145,13 @@ if [ -f "$WORK_DIR/.claude/hooks/hooks.json" ]; then
 import json, sys
 with open(sys.argv[1]) as f:
     data = json.load(f)
-for event in ['PostToolUse', 'Stop']:
-    if event not in data:
+if 'hooks' not in data:
+    print('FAIL: hooks.json missing top-level "hooks" key')
+    sys.exit(1)
+hooks = data['hooks']
+# Enforcement hooks: PreToolUse (safety), Stop (quality gate + session-track), PostToolUse (session-track)
+for event in ['PreToolUse', 'Stop', 'PostToolUse']:
+    if event not in hooks:
         print(f'FAIL: hooks.json missing event: {event}')
         sys.exit(1)
 PYEOF

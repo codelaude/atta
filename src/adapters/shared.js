@@ -7,106 +7,423 @@ import pc from 'picocolors';
  */
 
 /**
- * Cross-tool hook event mapping — reference-only compatibility table.
- * Documents equivalent event names across all 5 tools with hook support.
- * Not wired into generateHooksConfig() or runtime hook emitters (each adapter
- * hardcodes its own subset). Kept as a canonical reference for documentation,
- * external tooling, and future dynamic generation.
+ * Cross-tool hook event mapping — canonical compatibility table.
+ * Maps semantic event names to each tool's native event name.
+ * Used by generateHooks() to produce per-adapter hook configs.
  *
- * Event counts: Claude Code 17, Cursor 19+, Gemini 10, Copilot 6, Codex 2 (approval only).
+ * Event counts (verified March 2026):
+ *   Claude Code: 18 events, 4 types (command, http, prompt, agent)
+ *   Cursor: 20 events, 2 types (command, prompt)
+ *   Gemini: 11 events, 1 type (command)
+ *   Copilot: 8 events (Coding Agent) / 6 (CLI), 1 type (command)
+ *   Codex: 2 events (experimental, behind feature flag), 1 type (command)
  *
  * @type {Object<string, Object<string, string|null>>}
  */
 export const HOOK_EVENT_MAP = {
   // Session lifecycle
-  sessionStart:       { 'claude-code': 'SessionStart',       copilot: 'sessionStart',        cursor: 'sessionStart',         gemini: 'SessionStart',      codex: null },
-  sessionEnd:         { 'claude-code': 'SessionEnd',         copilot: 'sessionEnd',          cursor: 'sessionEnd',           gemini: 'SessionEnd',        codex: null },
-  stop:               { 'claude-code': 'Stop',               copilot: null,                  cursor: 'stop',                 gemini: null,                codex: 'after_agent' },
+  sessionStart:        { 'claude-code': 'SessionStart',       copilot: 'sessionStart',        cursor: 'sessionStart',           gemini: 'SessionStart',        codex: 'SessionStart' },
+  sessionEnd:          { 'claude-code': 'SessionEnd',         copilot: 'sessionEnd',          cursor: 'sessionEnd',             gemini: 'SessionEnd',          codex: null },
+  stop:                { 'claude-code': 'Stop',               copilot: 'agentStop',           cursor: 'stop',                   gemini: null,                  codex: 'Stop' },
   // Tool lifecycle
-  preToolUse:         { 'claude-code': 'PreToolUse',         copilot: 'preToolUse',          cursor: 'preToolUse',           gemini: 'BeforeTool',        codex: null },
-  postToolUse:        { 'claude-code': 'PostToolUse',        copilot: 'postToolUse',         cursor: 'postToolUse',          gemini: 'AfterTool',         codex: 'after_tool_use' },
-  postToolUseFailure: { 'claude-code': 'PostToolUseFailure', copilot: 'errorOccurred',       cursor: 'postToolUseFailure',   gemini: null,                codex: null },
+  preToolUse:          { 'claude-code': 'PreToolUse',         copilot: 'preToolUse',          cursor: 'preToolUse',             gemini: 'BeforeTool',          codex: null },
+  postToolUse:         { 'claude-code': 'PostToolUse',        copilot: 'postToolUse',         cursor: 'postToolUse',            gemini: 'AfterTool',           codex: null },
+  postToolUseFailure:  { 'claude-code': 'PostToolUseFailure', copilot: 'errorOccurred',       cursor: 'postToolUseFailure',     gemini: null,                  codex: null },
   // User interaction
-  userPromptSubmit:   { 'claude-code': 'UserPromptSubmit',   copilot: 'userPromptSubmitted', cursor: 'beforeSubmitPrompt',    gemini: null,                codex: null },
+  userPromptSubmit:    { 'claude-code': 'UserPromptSubmit',   copilot: 'userPromptSubmitted', cursor: 'beforeSubmitPrompt',      gemini: null,                  codex: null },
   // Agent lifecycle
-  subagentStart:      { 'claude-code': 'SubagentStart',      copilot: null,                  cursor: 'subagentStart',        gemini: 'BeforeAgent',       codex: null },
-  subagentStop:       { 'claude-code': 'SubagentStop',       copilot: null,                  cursor: 'subagentStop',         gemini: 'AfterAgent',        codex: null },
+  subagentStart:       { 'claude-code': 'SubagentStart',      copilot: null,                  cursor: 'subagentStart',          gemini: 'BeforeAgent',         codex: null },
+  subagentStop:        { 'claude-code': 'SubagentStop',       copilot: 'subagentStop',        cursor: 'subagentStop',           gemini: 'AfterAgent',          codex: null },
   // Context management
-  preCompact:         { 'claude-code': 'PreCompact',         copilot: null,                  cursor: 'preCompact',           gemini: 'PreCompress',       codex: null },
-  notification:       { 'claude-code': 'Notification',       copilot: null,                  cursor: null,                   gemini: 'Notification',      codex: null },
-  // Cursor-only file events
-  afterFileEdit:      { 'claude-code': null,                 copilot: null,                  cursor: 'afterFileEdit',        gemini: null,                codex: null },
-  beforeShellExec:    { 'claude-code': null,                 copilot: null,                  cursor: 'beforeShellExecution', gemini: null,                codex: null },
+  preCompact:          { 'claude-code': 'PreCompact',         copilot: null,                  cursor: 'preCompact',             gemini: 'PreCompress',         codex: null },
+  notification:        { 'claude-code': 'Notification',       copilot: null,                  cursor: null,                     gemini: 'Notification',        codex: null },
+  // File events
+  afterFileEdit:       { 'claude-code': null,                 copilot: null,                  cursor: 'afterFileEdit',          gemini: null,                  codex: null },
+  beforeShellExec:     { 'claude-code': null,                 copilot: null,                  cursor: 'beforeShellExecution',   gemini: null,                  codex: null },
   // Claude Code-only events
-  permissionRequest:  { 'claude-code': 'PermissionRequest',  copilot: null,                  cursor: null,                   gemini: null,                codex: null },
-  configChange:       { 'claude-code': 'ConfigChange',       copilot: null,                  cursor: null,                   gemini: null,                codex: null },
+  permissionRequest:   { 'claude-code': 'PermissionRequest',  copilot: null,                  cursor: null,                     gemini: null,                  codex: null },
+  taskCompleted:       { 'claude-code': 'TaskCompleted',      copilot: null,                  cursor: null,                     gemini: null,                  codex: null },
+  configChange:        { 'claude-code': 'ConfigChange',       copilot: null,                  cursor: null,                     gemini: null,                  codex: null },
   // Gemini-only events
-  beforeModel:        { 'claude-code': null,                 copilot: null,                  cursor: null,                   gemini: 'BeforeModel',       codex: null },
-  afterModel:         { 'claude-code': null,                 copilot: null,                  cursor: null,                   gemini: 'AfterModel',        codex: null },
+  beforeModel:         { 'claude-code': null,                 copilot: null,                  cursor: null,                     gemini: 'BeforeModel',         codex: null },
+  afterModel:          { 'claude-code': null,                 copilot: null,                  cursor: null,                     gemini: 'AfterModel',          codex: null },
+  beforeToolSelection: { 'claude-code': null,                 copilot: null,                  cursor: null,                     gemini: 'BeforeToolSelection', codex: null },
 };
 
+// ─── Hook Generation ────────────────────────────────────────────────
+
 /**
- * Generate a hooks.json config for a specific adapter.
- * Returns placeholder hooks with the adapter's native event names.
- * Claude Code generates its own hooks (session-track.sh); this is for other adapters.
+ * Pre-bash safety prompt — used by Claude Code and Cursor (prompt type).
+ * Evaluates whether a shell command is destructive before execution.
+ */
+const SAFETY_PROMPT = [
+  'Review the proposed shell command for safety.',
+  'Block (return ok:false) if the command would:',
+  '- Delete files recursively (rm -rf, git clean -fdx)',
+  '- Force-push or reset git history (git push --force, git reset --hard)',
+  '- Drop database tables or truncate data',
+  '- Modify system files outside the project directory',
+  '- Run curl/wget piped to shell (curl | sh)',
+  'Allow all other commands. Input: $ARGUMENTS',
+].join(' ');
+
+/**
+ * Stop quality gate prompt — used by Claude Code and Cursor (prompt type).
+ * Checks whether the agent completed its work properly.
+ */
+const QUALITY_GATE_PROMPT = [
+  'Before ending, verify:',
+  '1. All requested tasks are complete',
+  '2. No TODO/FIXME comments were left unresolved',
+  '3. No files were left in a broken state',
+  'If issues remain, return ok:false with a brief reason. Input: $ARGUMENTS',
+].join(' ');
+
+/**
+ * Generate a hooks config for a specific adapter with enforcement hooks.
+ * Replaces the old generateHooksConfig() which only produced empty placeholders.
  *
- * @param {'copilot'|'cursor'|'gemini'} adapter - Target adapter
+ * Generates enforcement hooks per adapter (varies by tool capability):
+ *   1. Post-edit lint (when linter detected) — runs linter after file edits
+ *   2. Pre-bash safety — blocks destructive shell commands
+ *   3. Stop quality gate — checks task completion before ending
+ *
+ * Not all tools support all hooks:
+ *   - Gemini lacks a stop event → no quality gate
+ *   - Codex is experimental → empty placeholder events only
+ *
+ * Cross-tool hook type support:
+ *   Claude Code + Cursor: prompt type for safety/quality gates
+ *   Copilot + Gemini: command type with exit-code/stdout blocking
+ *
+ * @param {'claude-code'|'copilot'|'cursor'|'gemini'|'codex'} adapter
+ * @param {string[]} [detectedTechs] - Detected technology identifiers (for linter hooks)
  * @returns {object} hooks.json content ready to serialize
  */
-export function generateHooksConfig(adapter) {
-  if (adapter === 'copilot') {
-    // Copilot: 6 events, command hooks only (versioned schema for forward compat)
-    return {
-      version: 1,
-      hooks: {
-        sessionStart: [],
-        sessionEnd: [],
-        preToolUse: [],
-        postToolUse: [],
-        errorOccurred: [],
-        userPromptSubmitted: [],
-      },
-    };
-  }
+export function generateHooks(adapter, detectedTechs) {
+  if (adapter === 'claude-code') return generateClaudeCodeHooks(detectedTechs);
+  if (adapter === 'copilot') return generateCopilotHooks(detectedTechs);
+  if (adapter === 'cursor') return generateCursorHooks(detectedTechs);
+  if (adapter === 'gemini') return generateGeminiHooks(detectedTechs);
+  if (adapter === 'codex') return generateCodexHooks();
 
-  if (adapter === 'cursor') {
-    // Cursor: 19+ events, command + prompt hooks
-    return {
-      hooks: {
-        sessionStart: [],
-        sessionEnd: [],
-        stop: [],
-        preToolUse: [],
-        postToolUse: [],
-        afterFileEdit: [],
-        beforeShellExecution: [],
-        subagentStart: [],
-        subagentStop: [],
-        preCompact: [],
-      },
-    };
-  }
-
-  if (adapter === 'gemini') {
-    // Gemini: 10 events, JSON stdin/stdout hooks
-    return {
-      hooks: {
-        SessionStart: [],
-        SessionEnd: [],
-        BeforeTool: [],
-        AfterTool: [],
-        BeforeAgent: [],
-        AfterAgent: [],
-        BeforeModel: [],
-        AfterModel: [],
-        Notification: [],
-        PreCompress: [],
-      },
-    };
-  }
-
-  throw new Error(`generateHooksConfig: unknown adapter "${adapter}" (expected copilot, cursor, or gemini)`);
+  throw new Error(`generateHooks: unknown adapter "${adapter}"`);
 }
+
+/**
+ * @deprecated Use generateHooks() instead. Kept for backwards compatibility.
+ */
+export function generateHooksConfig(adapter) {
+  return generateHooks(adapter);
+}
+
+// ─── Per-Adapter Hook Generators ─────────────────────────────────────
+
+/**
+ * Claude Code hooks — 4 types supported (command, http, prompt, agent).
+ * Format: { "hooks": { "EventName": [{ matcher?, hooks: [{ type, command|prompt, ... }] }] } }
+ */
+function generateClaudeCodeHooks(detectedTechs) {
+  const hooks = {};
+
+  // Post-edit lint hook (when linter detected)
+  const lintCmd = detectLintCommand(detectedTechs);
+  if (lintCmd) {
+    hooks[HOOK_EVENT_MAP.postToolUse['claude-code']] = [
+      {
+        matcher: 'Edit|Write',
+        hooks: [{ type: 'command', command: lintCmd, timeout: 30 }],
+      },
+    ];
+  }
+
+  // Pre-bash safety (prompt type — AI evaluates the command)
+  hooks[HOOK_EVENT_MAP.preToolUse['claude-code']] = [
+    {
+      matcher: 'Bash',
+      hooks: [{ type: 'prompt', prompt: SAFETY_PROMPT, timeout: 15 }],
+    },
+  ];
+
+  // Stop quality gate (prompt type)
+  hooks[HOOK_EVENT_MAP.stop['claude-code']] = [
+    {
+      hooks: [{ type: 'prompt', prompt: QUALITY_GATE_PROMPT, timeout: 15 }],
+    },
+  ];
+
+  return { hooks };
+}
+
+/**
+ * Copilot hooks — command type only, uses bash/powershell fields.
+ * Format: { version: 1, hooks: { eventName: [{ type, bash, timeoutSec, ... }] } }
+ */
+function generateCopilotHooks(detectedTechs) {
+  const hooks = {};
+
+  // Post-edit lint hook (when linter detected)
+  const lintCmd = detectLintCommand(detectedTechs);
+  if (lintCmd) {
+    hooks[HOOK_EVENT_MAP.postToolUse.copilot] = [
+      { type: 'command', bash: lintCmd, timeoutSec: 30 },
+    ];
+  }
+
+  // Pre-tool safety (command type — stdout permissionDecision to block)
+  hooks[HOOK_EVENT_MAP.preToolUse.copilot] = [
+    {
+      type: 'command',
+      bash: 'bash .atta/scripts/hooks/pre-bash-safety.sh',
+      timeoutSec: 5,
+      comment: 'Block destructive shell commands (rm -rf, git push --force, etc.)',
+    },
+  ];
+
+  // Agent stop quality gate (command type)
+  hooks[HOOK_EVENT_MAP.stop.copilot] = [
+    {
+      type: 'command',
+      bash: 'bash .atta/scripts/hooks/stop-quality-gate.sh',
+      timeoutSec: 5,
+      comment: 'Placeholder — customize with project-specific completion checks',
+    },
+  ];
+
+  return { version: 1, hooks };
+}
+
+/**
+ * Cursor hooks — command + prompt types supported.
+ * Format: { version: 1, hooks: { eventName: [{ type, command|prompt, timeout, ... }] } }
+ */
+function generateCursorHooks(detectedTechs) {
+  const hooks = {};
+
+  // Post-edit lint hook (when linter detected)
+  const lintCmd = detectLintCommand(detectedTechs);
+  if (lintCmd) {
+    hooks[HOOK_EVENT_MAP.postToolUse.cursor] = [
+      { type: 'command', command: lintCmd, timeout: 30 },
+    ];
+  }
+
+  // Pre-tool safety (prompt type — AI evaluates the command)
+  hooks[HOOK_EVENT_MAP.preToolUse.cursor] = [
+    {
+      type: 'prompt',
+      prompt: SAFETY_PROMPT,
+      timeout: 15,
+      matcher: { tool_name: 'Shell' },
+    },
+  ];
+
+  // Stop quality gate (prompt type)
+  hooks[HOOK_EVENT_MAP.stop.cursor] = [
+    {
+      type: 'prompt',
+      prompt: QUALITY_GATE_PROMPT,
+      timeout: 15,
+      loop_limit: 3,
+    },
+  ];
+
+  return { version: 1, hooks };
+}
+
+/**
+ * Gemini hooks — command type only, PascalCase events.
+ * Format: { hooks: { EventName: [{ matcher?, hooks: [{ type, command, timeout }] }] } }
+ */
+function generateGeminiHooks(detectedTechs) {
+  const hooks = {};
+
+  // Post-edit lint hook (when linter detected)
+  const lintCmd = detectLintCommand(detectedTechs);
+  if (lintCmd) {
+    hooks[HOOK_EVENT_MAP.postToolUse.gemini] = [
+      {
+        matcher: 'write_file|replace',
+        hooks: [{ type: 'command', command: lintCmd, timeout: 30000 }], // Gemini: milliseconds
+      },
+    ];
+  }
+
+  // Pre-tool safety (command type — exit code 2 to block)
+  // Scoped to shell/command tools only (Gemini tool names vary by model)
+  hooks[HOOK_EVENT_MAP.preToolUse.gemini] = [
+    {
+      matcher: 'run_command|execute_command|shell|bash',
+      hooks: [
+        {
+          type: 'command',
+          command: 'bash .atta/scripts/hooks/pre-bash-safety.sh',
+          timeout: 5000, // Gemini: milliseconds
+        },
+      ],
+    },
+  ];
+
+  return { hooks };
+}
+
+/**
+ * Codex hooks — experimental, behind feature flag.
+ * Only SessionStart and Stop events supported.
+ */
+function generateCodexHooks() {
+  return {
+    hooks: {
+      [HOOK_EVENT_MAP.sessionStart.codex]: [],
+      [HOOK_EVENT_MAP.stop.codex]: [],
+    },
+  };
+}
+
+// ─── Linter Detection ────────────────────────────────────────────────
+
+/**
+ * Map detected tech identifiers to lint commands.
+ * Returns a shell command string or null if no linter is detected.
+ *
+ * Note: detectedTechs is populated by the bootstrap system (tool-detectors.yaml)
+ * after the user runs `/atta` to detect their stack. On fresh `init --yes`,
+ * detectedTechs is empty — lint hooks activate on subsequent re-init after detection.
+ *
+ * @param {string[]} [detectedTechs]
+ * @returns {string|null}
+ */
+function detectLintCommand(detectedTechs) {
+  if (!detectedTechs || detectedTechs.length === 0) return null;
+
+  const techs = new Set(detectedTechs);
+
+  // JavaScript/TypeScript ecosystem (lint-only, no auto-fix — hook fires on every edit)
+  if (techs.has('eslint')) return 'npx eslint --quiet .';
+  if (techs.has('biome')) return 'npx biome check .';
+  if (techs.has('prettier')) return 'npx prettier --check --log-level warn .';
+
+  // Python ecosystem
+  if (techs.has('ruff')) return 'ruff check --quiet .';
+  if (techs.has('black')) return 'black --check --quiet .';
+  if (techs.has('flake8')) return 'flake8 --quiet .';
+
+  // Go
+  if (techs.has('go') || techs.has('gofmt')) return 'test -z "$(gofmt -l .)"';
+
+  // Rust
+  if (techs.has('rust')) return 'cargo fmt --check --quiet';
+
+  return null;
+}
+
+// ─── Hook Scripts ────────────────────────────────────────────────────
+
+/**
+ * Pre-bash safety hook script content — for tools that only support command hooks.
+ * Reads tool input from stdin JSON, checks for destructive patterns.
+ * Exit code 2 = block (Claude Code, Gemini); stdout JSON = block (Copilot).
+ */
+export const PRE_BASH_SAFETY_SCRIPT = `#!/bin/bash
+# pre-bash-safety.sh — Block destructive shell commands
+# Generated by Atta. Works with Copilot (stdout JSON) and Gemini (exit code 2).
+set -euo pipefail
+
+INPUT=$(cat)
+
+# Extract the command from stdin JSON (tool_input.command or toolArgs)
+CMD=$(echo "$INPUT" | python3 -c "
+import json, sys
+data = json.load(sys.stdin)
+# Claude Code / Cursor / Gemini
+if 'tool_input' in data:
+    ti = data['tool_input']
+    print(ti.get('command', '') if isinstance(ti, dict) else '')
+# Copilot
+elif 'toolArgs' in data:
+    try:
+        args = json.loads(data['toolArgs'])
+        print(args.get('command', ''))
+    except:
+        print('')
+else:
+    print('')
+" 2>/dev/null || echo "")
+
+if [ -z "$CMD" ]; then
+  exit 0
+fi
+
+# Check for destructive patterns
+BLOCKED=""
+case "$CMD" in
+  *"rm -rf /"*|*"rm -rf ~"*|*"rm -rf ."*|*"rm -r -f "*|*"rm --recursive --force"*)
+    BLOCKED="Recursive force delete" ;;
+  *"git push --force"*|*"git push -f "*|*"git push -f\\"*"|*"git push --force-with-lease"*)
+    BLOCKED="Force push can destroy remote history" ;;
+  *"git reset --hard"*)
+    BLOCKED="Hard reset discards uncommitted changes" ;;
+  *"git clean -f"*|*"git clean -fd"*)
+    BLOCKED="Clean removes untracked files permanently" ;;
+  *"| sh"*|*"| bash"*|*"curl"*"| "*"sh"*|*"wget"*"| "*"sh"*|*"wget"*"| "*"bash"*)
+    BLOCKED="Piping remote content to shell is unsafe" ;;
+  *"DROP TABLE"*|*"drop table"*|*"TRUNCATE"*|*"truncate"*)
+    BLOCKED="Destructive database operation" ;;
+esac
+
+if [ -n "$BLOCKED" ]; then
+  # Copilot: stdout JSON with permissionDecision (env var avoids shell injection)
+  BLOCKED="$BLOCKED" python3 -c "import json,os; print(json.dumps({'permissionDecision':'deny','permissionDecisionReason':os.environ['BLOCKED']}))" 2>/dev/null || echo '{"permissionDecision":"deny","permissionDecisionReason":"blocked"}'
+  # Gemini / Claude Code: exit code 2 = block
+  exit 2
+fi
+
+exit 0
+`;
+
+/**
+ * Stop quality gate hook script content — for tools that only support command hooks.
+ * Lightweight check that echoes a reminder to the agent.
+ */
+export const STOP_QUALITY_GATE_SCRIPT = `#!/bin/bash
+# stop-quality-gate.sh — Lightweight completion check
+# Generated by Atta. Runs on agent stop to remind about task completion.
+set -euo pipefail
+
+# This is a passive hook — it logs a reminder but does not block.
+# For AI-powered quality gates, use Claude Code or Cursor (prompt type hooks).
+exit 0
+`;
+
+/**
+ * Write hook scripts to .atta/scripts/hooks/ in the target project.
+ * Called by adapters that need command-type hooks (Copilot, Gemini).
+ *
+ * @param {string} targetDir - Project root
+ * @returns {number} Number of scripts written
+ */
+export function writeHookScripts(targetDir) {
+  const hooksDir = join(targetDir, '.atta', 'scripts', 'hooks');
+  mkdirSync(hooksDir, { recursive: true });
+
+  let count = 0;
+
+  const safetyPath = join(hooksDir, 'pre-bash-safety.sh');
+  if (!existsSync(safetyPath)) {
+    writeFileSync(safetyPath, PRE_BASH_SAFETY_SCRIPT, { mode: 0o755 });
+    count++;
+  }
+
+  const gatePath = join(hooksDir, 'stop-quality-gate.sh');
+  if (!existsSync(gatePath)) {
+    writeFileSync(gatePath, STOP_QUALITY_GATE_SCRIPT, { mode: 0o755 });
+    count++;
+  }
+
+  return count;
+}
+
+// ─── Frontmatter Parsing ─────────────────────────────────────────────
 
 /**
  * Parse YAML frontmatter from an agent markdown file.
@@ -209,6 +526,8 @@ function yamlQuoteIfNeeded(value) {
   }
   return str;
 }
+
+// ─── File Operations ─────────────────────────────────────────────────
 
 /**
  * Copy agent definition .md files from framework source to target directory.

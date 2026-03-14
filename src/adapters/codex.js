@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import pc from 'picocolors';
 import { listSkills } from './claude-code.js';
 import { generateAgentsMd } from './agents-md.js';
-import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, createMemoryDirectory, listAgentDefs, generateHooks } from './shared.js';
+import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, filterSkillFrontmatter, CODEX_SKILL_FIELDS, checkSkillConflicts, createMemoryDirectory, listAgentDefs, generateHooks } from './shared.js';
 import { generateReviewRules, formatCodex } from './review-guidance.js';
 import { generateRules, writeToolAgnosticRules, installCodexRules } from './rules-generator.js';
 
@@ -14,10 +14,16 @@ import { generateRules, writeToolAgnosticRules, installCodexRules } from './rule
  * Skills are placed at .agents/skills/{name}/SKILL.md.
  * Agent definitions are placed at .agents/agents/{name}.md.
  * Skill activation via /skills menu or $skill-name mention.
+ *
+ * Skill frontmatter: Codex only reads name and description. All other fields
+ * (disable-model-invocation, allowed-tools, argument-hint, etc.) are stripped.
  */
+
+// CODEX_SKILL_FIELDS imported from shared.js (single source of truth)
 export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   const results = { files: 0 };
   const skills = listSkills(claudeRoot).filter((s) => s.userInvocable !== false);
+  checkSkillConflicts(skills, 'codex', options);
 
   // Codex uses $skill invocation — build commandMap dynamically: /atta-review → $atta-review
   const codexCommandMap = Object.fromEntries(
@@ -54,13 +60,13 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
 
       mkdirSync(join(agentsSkillsDir, skill.dirName), { recursive: true });
 
-      // Rewrite body content for Codex compatibility
+      // Rewrite frontmatter (strip to name+description) and body for Codex compatibility
       const content = readFileSync(src, 'utf-8');
       const fmMatch = content.match(/^---\n[\s\S]*?\n---\n/);
       if (fmMatch) {
         const frontmatter = fmMatch[0];
         const body = content.slice(frontmatter.length);
-        writeFileSync(dest, frontmatter + rewriteSkillBody(body, codexRewriteConfig));
+        writeFileSync(dest, filterSkillFrontmatter(frontmatter, CODEX_SKILL_FIELDS) + rewriteSkillBody(body, codexRewriteConfig));
       } else {
         writeFileSync(dest, rewriteSkillBody(content, codexRewriteConfig));
       }
@@ -174,7 +180,7 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   // Always regenerate hooks.json — enforcement hooks may change on re-init
   const codexHooksDir = join(targetDir, '.codex');
   mkdirSync(codexHooksDir, { recursive: true });
-  const codexHooksConfig = generateHooks('codex');
+  const codexHooksConfig = generateHooks('codex', options.detectedTechs);
   writeFileSync(join(codexHooksDir, 'hooks.json'), JSON.stringify(codexHooksConfig, null, 2) + '\n');
   results.files++;
 

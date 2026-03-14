@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import pc from 'picocolors';
 import { listSkills } from './claude-code.js';
 import { generateAgentsMd } from './agents-md.js';
-import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, createMemoryDirectory, generateHooks } from './shared.js';
+import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, checkSkillConflicts, createMemoryDirectory, generateHooks } from './shared.js';
 import { generateReviewRules, formatCursorBugbot, formatCursorMdc } from './review-guidance.js';
 import { generateRules, writeToolAgnosticRules, installCursorRules } from './rules-generator.js';
 
@@ -26,6 +26,7 @@ import { generateRules, writeToolAgnosticRules, installCursorRules } from './rul
 export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   const results = { files: 0 };
   const skills = listSkills(claudeRoot).filter((s) => s.userInvocable !== false);
+  checkSkillConflicts(skills, 'cursor', options);
 
   // Build commandMap dynamically: /atta-review → @atta-review (@ prefix for Cursor @-mentions)
   const cursorCommandMap = Object.fromEntries(
@@ -169,7 +170,13 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
 function skillToMdc(skill, skillFile, rewriteConfig) {
   const content = readFileSync(skillFile, 'utf-8');
   const rawBody = content.replace(/^---\n[\s\S]*?\n---\n*/, '').trim();
-  const body = rewriteSkillBody(rawBody, rewriteConfig);
+  let body = rewriteSkillBody(rawBody, rewriteConfig);
+
+  // Embed disable-model-invocation as natural language (Cursor MDC strips all SKILL.md flags)
+  if (skill.disableModelInvocation) {
+    body = '> **IMPORTANT**: Execute this skill\'s instructions directly. Do not use AI inference — run the prescribed steps as-is.\n\n' + body;
+  }
+
   const desc = skill.description || `Run the ${skill.name} skill`;
 
   const lines = [];

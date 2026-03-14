@@ -517,6 +517,128 @@ function yamlQuoteIfNeeded(value) {
   return str;
 }
 
+// ─── Skill Conflict Detection ────────────────────────────────────────
+
+/**
+ * Known built-in commands per tool that would conflict with custom skills.
+ * A conflicting name can silently break ALL custom commands in some tools
+ * (e.g., Claude Code — see GitHub issue #13586).
+ *
+ * Lists are intentionally minimal — only commands confirmed to cause conflicts.
+ * Atta skills use the atta-* prefix which avoids most collisions.
+ */
+const BUILTIN_COMMANDS = {
+  'claude-code': new Set([
+    'help', 'clear', 'compact', 'model', 'cost', 'status', 'login', 'logout',
+    'config', 'permissions', 'doctor', 'bug', 'init', 'review', 'memory',
+    'skill', 'agent', 'hooks', 'mcp', 'listen', 'vim', 'fast',
+  ]),
+  copilot: new Set([
+    'help', 'clear', 'review', 'agent', 'update', 'test', 'fix', 'explain',
+    'doc', 'generate', 'workspace', 'terminal',
+  ]),
+  cursor: new Set([
+    'help', 'clear', 'review', 'chat', 'edit', 'generate', 'fix', 'explain',
+    'doc', 'test', 'terminal', 'web',
+  ]),
+  codex: new Set([
+    'help', 'clear', 'model', 'approval', 'history',
+  ]),
+  gemini: new Set([
+    'help', 'clear', 'chat', 'memory', 'stats', 'tools', 'compress',
+    'restore', 'save',
+  ]),
+};
+
+/**
+ * Check for naming conflicts between custom skills and tool built-in commands.
+ * Emits non-blocking warnings to console. Does not prevent init.
+ *
+ * @param {Array<{name: string, dirName: string}>} skills - Skills from listSkills()
+ * @param {'claude-code'|'copilot'|'cursor'|'gemini'|'codex'} adapter - Target adapter
+ * @param {object} [options]
+ * @param {boolean} [options.quiet] - Suppress output
+ * @returns {string[]} Array of conflicting skill names (empty if none)
+ */
+export function checkSkillConflicts(skills, adapter, options = {}) {
+  const builtins = BUILTIN_COMMANDS[adapter];
+  if (!builtins) return [];
+
+  const conflicts = [];
+  for (const skill of skills) {
+    // Check both the directory name and the name field (may differ)
+    const namesToCheck = new Set([skill.dirName, skill.name]);
+    for (const name of namesToCheck) {
+      if (builtins.has(name)) {
+        conflicts.push(name);
+        if (!options.quiet) {
+          console.warn(
+            `  ${pc.yellow('⚠')} Skill "${name}" conflicts with ${adapter} built-in "/${name}" — may shadow built-in command`
+          );
+        }
+      }
+    }
+  }
+
+  return conflicts;
+}
+
+// ─── Skill Frontmatter Field Sets ────────────────────────────────────
+
+/**
+ * Frontmatter fields preserved per adapter when installing SKILL.md files.
+ * Fields outside these sets are stripped during install to avoid
+ * validator warnings (Copilot) or noise (Codex).
+ *
+ * Claude Code: no filtering needed (source IS the install, all fields native)
+ * Cursor: uses MDC conversion (all frontmatter stripped, NL embedding instead)
+ * Gemini: uses TOML conversion (all frontmatter stripped, NL embedding instead)
+ */
+
+/** Copilot: name, description, license (spec), disable-model-invocation, user-invocable (runtime) */
+export const COPILOT_SKILL_FIELDS = new Set([
+  'name', 'description', 'license',
+  'disable-model-invocation', 'user-invocable',
+]);
+
+/** Cursor: Agent Skills spec fields (strict validation rejects unknown fields) */
+export const CURSOR_SKILL_FIELDS = new Set([
+  'name', 'description', 'license',
+  'allowed-tools', 'metadata', 'model',
+  'disable-model-invocation', 'user-invocable',
+]);
+
+/** Codex: only reads name + description from SKILL.md frontmatter */
+export const CODEX_SKILL_FIELDS = new Set(['name', 'description']);
+
+// ─── Skill Frontmatter Filtering ─────────────────────────────────────
+
+/**
+ * Filter SKILL.md frontmatter to only include fields supported by a specific adapter.
+ * Takes the raw frontmatter block (including --- delimiters) and returns a filtered version.
+ *
+ * @param {string} frontmatterBlock - Raw frontmatter including --- delimiters and trailing newline
+ * @param {Set<string>} allowedFields - Set of field names to preserve
+ * @returns {string} Filtered frontmatter block with --- delimiters
+ */
+export function filterSkillFrontmatter(frontmatterBlock, allowedFields) {
+  const lines = frontmatterBlock.split('\n');
+  const filtered = ['---'];
+
+  for (const line of lines) {
+    if (line === '---' || line.trim() === '') continue;
+    const colonIdx = line.indexOf(':');
+    if (colonIdx === -1) continue;
+    const key = line.slice(0, colonIdx).trim();
+    if (allowedFields.has(key)) {
+      filtered.push(line);
+    }
+  }
+
+  filtered.push('---');
+  return filtered.join('\n') + '\n';
+}
+
 // ─── File Operations ─────────────────────────────────────────────────
 
 /**

@@ -58,6 +58,49 @@ while IFS= read -r -d '' mdc; do
   fi
 done < <(find "$WORK_DIR/.cursor/rules" -name "*.mdc" -print0 2>/dev/null)
 
+# --- Skill flag handling in MDC (Track E) ---
+# Cursor MDC should NOT contain raw CC frontmatter fields (they are stripped during conversion)
+while IFS= read -r -d '' mdc; do
+  if head -10 "$mdc" | grep -q "^disable-model-invocation:"; then
+    echo "FAIL: $mdc contains raw 'disable-model-invocation:' (should be stripped in MDC)"
+    ERRORS=$((ERRORS + 1))
+  fi
+  if head -10 "$mdc" | grep -q "^allowed-tools:"; then
+    echo "FAIL: $mdc contains raw 'allowed-tools:' (should be stripped in MDC)"
+    ERRORS=$((ERRORS + 1))
+  fi
+  if head -10 "$mdc" | grep -q "^argument-hint:"; then
+    echo "FAIL: $mdc contains raw 'argument-hint:' (should be stripped in MDC)"
+    ERRORS=$((ERRORS + 1))
+  fi
+  if head -10 "$mdc" | grep -q "^user-invocable:"; then
+    echo "FAIL: $mdc contains raw 'user-invocable:' (should be stripped in MDC)"
+    ERRORS=$((ERRORS + 1))
+  fi
+done < <(find "$WORK_DIR/.cursor/rules" -name "*.mdc" -print0 2>/dev/null)
+
+# Check that action skills have NL instruction for disable-model-invocation in MDC body
+# Derived from source SKILL.md frontmatter — not hardcoded, so new flagged skills are caught.
+# Note: 'atta' is excluded — atta.mdc is always-applied passive context (alwaysApply: true),
+# not an invocable skill, so disable-model-invocation semantics don't apply.
+CLAUDE_SKILLS_DIR="$(cd "$SCRIPT_DIR/../.claude/skills" 2>/dev/null && pwd)"
+if [ -d "$CLAUDE_SKILLS_DIR" ]; then
+  while IFS= read -r -d '' src_skill; do
+    SKILL_DIR_NAME="$(basename "$(dirname "$src_skill")")"
+    # Skip 'atta' — converted to always-applied context, not an individual MDC
+    [ "$SKILL_DIR_NAME" = "atta" ] && continue
+    if head -10 "$src_skill" | grep -q "^disable-model-invocation: true"; then
+      MDC_FILE="$WORK_DIR/.cursor/rules/${SKILL_DIR_NAME}.mdc"
+      if [ -f "$MDC_FILE" ]; then
+        if ! grep -q "Execute this skill" "$MDC_FILE"; then
+          echo "FAIL: $MDC_FILE missing disable-model-invocation NL instruction"
+          ERRORS=$((ERRORS + 1))
+        fi
+      fi
+    fi
+  done < <(find "$CLAUDE_SKILLS_DIR" -name "SKILL.md" -print0 2>/dev/null)
+fi
+
 # Check path-scoped rule files exist (at least security, always generated)
 if [ ! -s "$WORK_DIR/.cursor/rules/atta-security.mdc" ]; then
   echo "FAIL: .cursor/rules/atta-security.mdc missing or empty (path-scoped rules not generated)"

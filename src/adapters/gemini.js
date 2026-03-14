@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import pc from 'picocolors';
 import { listSkills } from './claude-code.js';
 import { generateAgentsMd } from './agents-md.js';
-import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, createMemoryDirectory, generateHooks, writeHookScripts } from './shared.js';
+import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, checkSkillConflicts, createMemoryDirectory, generateHooks, writeHookScripts } from './shared.js';
 import { generateReviewRules, formatGeminiStyleguide, formatGeminiConfig } from './review-guidance.js';
 import { generateRules, writeToolAgnosticRules, installGeminiRules } from './rules-generator.js';
 
@@ -35,6 +35,7 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   const skillsDir = join(claudeRoot, 'skills');
   if (existsSync(skillsDir)) {
     const skills = listSkills(claudeRoot).filter((s) => s.userInvocable !== false);
+    checkSkillConflicts(skills, 'gemini', options);
     const commandsDir = join(targetDir, '.gemini', 'commands');
     mkdirSync(commandsDir, { recursive: true });
 
@@ -163,7 +164,12 @@ function skillToToml(skill, skillFile) {
 
   // Extract body after frontmatter and apply rewrite
   const rawBody = content.replace(/^---\n[\s\S]*?\n---\n*/, '').trim();
-  const body = rewriteSkillBody(rawBody, GEMINI_REWRITE_CONFIG);
+  let body = rewriteSkillBody(rawBody, GEMINI_REWRITE_CONFIG);
+
+  // Embed disable-model-invocation as natural language (TOML has no equivalent flag)
+  if (skill.disableModelInvocation) {
+    body = 'IMPORTANT: Execute these instructions directly without additional AI reasoning.\n\n' + body;
+  }
 
   // Escape for TOML multi-line string (triple quotes)
   const escapedBody = body

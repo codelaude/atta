@@ -37,6 +37,10 @@ export function generateGettingStarted(adapter, answers) {
     lines.push(
       'This auto-detects your tech stack (100+ technologies) and generates specialist agents tailored to your frameworks, languages, and tools.'
     );
+    lines.push('');
+    lines.push(
+      '> **Tip**: For best results, run Claude Code\'s `/init` before `npx atta-dev init` — Atta detects existing CLAUDE.md conventions and reports what it found.'
+    );
   } else if (adapter === 'copilot') {
     lines.push('Open your project in Copilot CLI and run:');
     lines.push('');
@@ -46,6 +50,10 @@ export function generateGettingStarted(adapter, answers) {
     lines.push('');
     lines.push(
       'This auto-detects your tech stack and generates specialist agents tailored to your project. Skills are in `.github/skills/` and agents in `.github/atta/agents/`.'
+    );
+    lines.push('');
+    lines.push(
+      '> **Tip**: For best results, run Copilot\'s `/init` first to generate `.github/copilot-instructions.md`, then run `npx atta-dev init`. Atta detects existing conventions and reports what it found.'
     );
   } else if (adapter === 'codex') {
     lines.push('Open your project in Codex CLI and run:');

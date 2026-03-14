@@ -1,8 +1,12 @@
 .DS_Store
 .mcp.json
 node_modules/
+.npm-cache/
 package-lock.json
 *.tgz
+
+# IDE settings (user-specific)
+.vscode/
 
 # Runtime & personal files (generated, not committed)
 .atta/local/

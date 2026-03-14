@@ -13,6 +13,7 @@ import { runSetupPrompts, generateProfile } from '../prompts/setup.js';
 import { generateGettingStarted } from '../guides/getting-started.js';
 import { printBanner } from '../banner.js';
 import { countFiles } from '../lib/fs-utils.js';
+import { parseInitOutput } from '../lib/init-parser.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -176,6 +177,7 @@ async function runInstall(targetDir, adapterName, dryRun, answers, adapterOption
   s.start('Installing framework files...');
 
   let results;
+  let initSeeds = null;
   try {
     // Migrate pre-v2.7 layout if needed (move shared content from .claude/ to .atta/)
     if (needsMigration) {
@@ -190,8 +192,11 @@ async function runInstall(targetDir, adapterName, dryRun, answers, adapterOption
       migrateToV3(targetDir);
     }
 
+    // Parse existing init output (Phase 0.5: absorb native init conventions)
+    initSeeds = parseInitOutput(targetDir, adapterName);
+
     // Run the adapter
-    results = adapter.install(CLAUDE_ROOT, ATTA_ROOT, targetDir, { quiet: true, ...adapterOptions });
+    results = adapter.install(CLAUDE_ROOT, ATTA_ROOT, targetDir, { quiet: true, ...adapterOptions, initSeeds });
 
     // Gitignore runtime & personal content; keep only team-shared files
     ensureAttaGitignored(targetDir, adapterName);
@@ -243,12 +248,23 @@ async function runInstall(targetDir, adapterName, dryRun, answers, adapterOption
 
   // Print welcome summary
   console.log('');
-  printWelcome(adapterName, adapter, answers, adapterOptions);
+  printWelcome(adapterName, adapter, answers, adapterOptions, initSeeds);
 }
 
-function printWelcome(adapterName, adapter, answers, adapterOptions = {}) {
+function printWelcome(adapterName, adapter, answers, adapterOptions = {}, initSeeds = null) {
   console.log(pc.bold(pc.green('Setup complete!')));
   console.log('');
+
+  // Show init absorption summary if seeds were found
+  if (initSeeds) {
+    const parts = [];
+    if (initSeeds.buildCmd.length > 0) parts.push(`${initSeeds.buildCmd.length} build command(s)`);
+    if (initSeeds.testCmd.length > 0) parts.push(`${initSeeds.testCmd.length} test command(s)`);
+    if (initSeeds.conventions.length > 0) parts.push(`${initSeeds.conventions.length} convention(s)`);
+    console.log(pc.dim(`Found existing ${initSeeds.source} — detected ${parts.join(', ')}`));
+    console.log(pc.dim('These conventions were detected from your existing setup.'));
+    console.log('');
+  }
 
   // Quick reference
   console.log(pc.bold('Quick Reference'));

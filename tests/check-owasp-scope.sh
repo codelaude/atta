@@ -92,34 +92,34 @@ run_test "mixed-frontend-backend" \
   '["react", "express"]' \
   "types.includes('frontend') && types.includes('backend')"
 
-# ─── Test 8: Frontend-only → has deprioritized categories (low) ──────
+# ─── Test 9: Frontend-only → has deprioritized categories (low) ──────
 run_test "frontend-deprioritizes-some-owasp" \
   '["react"]' \
   "scope.deprioritized.some(d => d.code === 'A02') && scope.deprioritized.some(d => d.code === 'A09')"
 
-# ─── Test 9: Backend → all 10 categories applicable ─────────────────
+# ─── Test 10: Backend → all 10 categories applicable ────────────────
 run_test "backend-all-categories" \
   '["express"]' \
   "scope.applicable.length === 10 && scope.deprioritized.length === 0 && scope.skipped.length === 0"
 
-# ─── Test 10: Fullstack → all 10 categories applicable ──────────────
+# ─── Test 11: Fullstack → all 10 categories applicable ──────────────
 run_test "fullstack-all-categories" \
   '["nextjs"]' \
   "scope.applicable.length === 10 && scope.skipped.length === 0"
 
-# ─── Test 11: Unknown tech → defaults to backend (conservative) ─────
+# ─── Test 12: Unknown tech → defaults to backend (conservative) ─────
 run_test "unknown-tech-defaults-backend" \
   '["some-unknown-framework"]' \
   "types.includes('backend') && types.length === 1"
 
-# ─── Test 12: Merge rule — higher relevance wins ────────────────────
+# ─── Test 13: Merge rule — higher relevance wins ────────────────────
 # React (frontend) has A03 as HIGH. If combined with express (backend, also HIGH),
 # the merged result should be HIGH (not downgraded).
 run_test "merge-highest-wins" \
   '["react", "express"]' \
   "scope.applicable.some(a => a.code === 'A03' && a.level === 'high')"
 
-# ─── Test 13: writeOwaspScope produces a file ───────────────────────
+# ─── Test 14: writeOwaspScope produces a file ───────────────────────
 set +e
 result=$(node --input-type=module <<JSEOF
 import { writeOwaspScope } from '$REPO_ROOT/src/lib/owasp-scope.js';
@@ -155,7 +155,7 @@ else
   ERRORS=$((ERRORS + 1))
 fi
 
-# ─── Test 14: extractTechEntries reads real detection YAML ───────────
+# ─── Test 15: extractTechEntries reads real detection YAML ───────────
 set +e
 result=$(node --input-type=module <<JSEOF
 import { classifyProjectType } from '$REPO_ROOT/src/lib/owasp-scope.js';

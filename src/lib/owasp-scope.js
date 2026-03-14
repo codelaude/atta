@@ -6,8 +6,9 @@ import { join } from 'node:path';
  * applicable OWASP categories and writes a pre-computed scope file.
  *
  * Tech-agnostic: project type classification is derived from the detection
- * YAML files (frontend-detectors.yaml, backend-detectors.yaml, etc.) — not
- * hardcoded. Any tech added to detection is automatically classified.
+ * YAML files (frontend, backend, database detectors) — not hardcoded.
+ * Any tech in those three detector files is automatically classified.
+ * Tool/security/architectural detectors are not mapped to OWASP types.
  *
  * The scope file (.atta/team/owasp-scope.md) is read by:
  *   - CI reviewers (github-action adapter prompt)
@@ -51,7 +52,7 @@ const OWASP_CATEGORIES = {
 const DETECTOR_FILE_TO_TYPE = {
   'frontend-detectors.yaml': 'frontend',
   'backend-detectors.yaml': 'backend',
-  'database-detectors.yaml': 'database',
+  'database-detectors.yaml': 'backend', // database techs have backend-equivalent OWASP surface
   // tool-detectors.yaml and security-tools.yaml don't map to OWASP project types
   // architectural-detectors.yaml is handled separately (microservices, monorepo)
 };
@@ -355,7 +356,7 @@ export function formatOwaspScope(detectedTechs, attaRoot) {
   lines.push('- **Applicable**: always checked by CI and security audit');
   lines.push('- **Deprioritized**: lower priority but still flagged for clear vulnerabilities');
   lines.push('- **Skipped**: not applicable to this project type (e.g., no auth → skip A07)');
-  lines.push('- Edit this file to customize scope for your specific project needs');
+  lines.push('- Edit this file to customize scope (note: re-running `npx atta-dev init` will overwrite)');
   lines.push('- OWASP reference: https://owasp.org/Top10/2025/');
   lines.push('');
 

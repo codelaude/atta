@@ -23,7 +23,8 @@ for check in \
   check-cursor-adapter.sh \
   check-github-action-adapter.sh \
   check-plugin-generator.sh \
-  check-init-parser.sh
+  check-init-parser.sh \
+  check-owasp-scope.sh
 do
   echo "--- [CORE] Running $check ---"
   if bash "$SCRIPT_DIR/$check"; then

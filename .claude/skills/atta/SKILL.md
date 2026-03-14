@@ -2,6 +2,7 @@
 name: atta
 description: Interactive project setup that detects tech stack, asks clarifying questions, and generates tailored knowledge files and agent configuration. Run this when starting with a new project.
 disable-model-invocation: true
+model: haiku
 argument-hint: "[--rescan]"
 ---
 

@@ -1,6 +1,7 @@
 ---
 name: atta-profile
 description: View, update, and apply developer profile preferences. Manages working style, response preferences, and review priorities that shape how agents collaborate with you.
+model: haiku
 argument-hint: "[--update] [--complete] [--apply] [--ci-review]"
 ---
 

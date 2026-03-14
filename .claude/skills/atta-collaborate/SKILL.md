@@ -1,6 +1,7 @@
 ---
 name: atta-collaborate
 description: Multi-agent collaboration for cross-domain code review, architecture feedback, and design decisions. Invokes 2-4 specialist agents in parallel and synthesizes their findings with automated conflict detection.
+model: opus
 argument-hint: "[file|folder] [--agents a,b] [--mode review|feedback|decision] [--quick] [--skip-synthesis]"
 ---
 

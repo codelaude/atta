@@ -155,6 +155,57 @@ for skill in atta-review atta-preflight atta-test atta-agent atta-collaborate; d
   fi
 done
 
+# --- Model targeting checks (v3.0 Track H) ---
+
+# Check model-registry.json exists and is valid JSON with expected structure
+if [ ! -f "$WORK_DIR/.atta/team/model-registry.json" ]; then
+  echo "FAIL: .atta/team/model-registry.json missing"
+  ERRORS=$((ERRORS + 1))
+else
+  python3 - "$WORK_DIR/.atta/team/model-registry.json" <<'PYEOF' 2>/dev/null || ERRORS=$((ERRORS + 1))
+import json, sys
+with open(sys.argv[1]) as f:
+    reg = json.load(f)
+if 'tiers' not in reg:
+    print('FAIL: model-registry.json missing "tiers"')
+    sys.exit(1)
+if 'skills' not in reg:
+    print('FAIL: model-registry.json missing "skills"')
+    sys.exit(1)
+for tier in ['light', 'mid', 'full']:
+    if tier not in reg['tiers']:
+        print(f'FAIL: model-registry.json missing tier: {tier}')
+        sys.exit(1)
+PYEOF
+fi
+
+# Check Tier 0/1 skills have model: haiku
+for skill in atta atta-preflight atta-ship atta-test atta-update atta-patterns atta-migrate atta-profile atta-tutorial atta-lint atta-agent; do
+  SKILL_FILE="$WORK_DIR/.claude/skills/$skill/SKILL.md"
+  if [ -f "$SKILL_FILE" ] && ! head -10 "$SKILL_FILE" | grep -q "model: haiku"; then
+    echo "FAIL: $skill/SKILL.md missing 'model: haiku'"
+    ERRORS=$((ERRORS + 1))
+  fi
+done
+
+# Check Tier 3 skills have model: opus
+for skill in atta-security-audit atta-collaborate; do
+  SKILL_FILE="$WORK_DIR/.claude/skills/$skill/SKILL.md"
+  if [ -f "$SKILL_FILE" ] && ! head -10 "$SKILL_FILE" | grep -q "model: opus"; then
+    echo "FAIL: $skill/SKILL.md missing 'model: opus'"
+    ERRORS=$((ERRORS + 1))
+  fi
+done
+
+# Check Tier 2 skills do NOT have model: field (they use default/inherit)
+for skill in atta-review atta-optimize atta-librarian atta-team-lead atta-route atta-checklist; do
+  SKILL_FILE="$WORK_DIR/.claude/skills/$skill/SKILL.md"
+  if [ -f "$SKILL_FILE" ] && head -10 "$SKILL_FILE" | grep -q "^model:"; then
+    echo "FAIL: $skill/SKILL.md should NOT have model: field (Tier 2 = default)"
+    ERRORS=$((ERRORS + 1))
+  fi
+done
+
 # Check hooks.json is valid JSON with expected events
 if [ -f "$WORK_DIR/.claude/hooks/hooks.json" ]; then
   python3 - "$WORK_DIR/.claude/hooks/hooks.json" <<'PYEOF' 2>/dev/null || ERRORS=$((ERRORS + 1))

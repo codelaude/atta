@@ -252,7 +252,7 @@ PYEOF
 fi
 
 # Check hook scripts exist and are executable (referenced by hooks.json)
-for script in pre-bash-safety.sh stop-quality-gate.sh; do
+for script in pre-bash-safety.sh stop-quality-gate.sh model-gate.sh; do
   if [ ! -x "$WORK_DIR/.atta/scripts/hooks/$script" ]; then
     echo "FAIL: .atta/scripts/hooks/$script missing or not executable"
     ERRORS=$((ERRORS + 1))

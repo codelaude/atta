@@ -1,5 +1,5 @@
 ---
-name: {{STYLING_NAME}}-styling-specialist
+name: {{STYLING_ID}}-styling-specialist
 description: {{STYLING_NAME}} styling patterns, responsive design, and CSS best practices. Use for styling guidance and CSS architecture decisions.
 model: inherit
 tools:

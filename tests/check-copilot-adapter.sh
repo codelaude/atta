@@ -249,6 +249,9 @@ if [ -n "$REVIEWER_AGENT" ]; then
     echo "FAIL: code-reviewer agent missing tools: frontmatter"
     ERRORS=$((ERRORS + 1))
   fi
+else
+  echo "FAIL: code-reviewer agent file not found in .github/atta/agents/"
+  ERRORS=$((ERRORS + 1))
 fi
 
 if [ $ERRORS -eq 0 ]; then

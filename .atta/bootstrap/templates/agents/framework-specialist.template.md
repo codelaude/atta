@@ -1,5 +1,5 @@
 ---
-name: {{FRAMEWORK_IDENTIFIER}}-specialist
+name: {{FRAMEWORK_ID}}-specialist
 description: {{FRAMEWORK_NAME}} patterns, architecture, and best practices. Use for {{FRAMEWORK_NAME}}-specific guidance.
 model: inherit
 tools:

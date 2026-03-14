@@ -1,5 +1,5 @@
 ---
-name: {{LANGUAGE_IDENTIFIER}}-specialist
+name: {{LANGUAGE_ID}}-specialist
 description: {{LANGUAGE_NAME}} idioms, type system, and best practices. Use for {{LANGUAGE_NAME}}-specific guidance.
 model: inherit
 tools:

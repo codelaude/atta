@@ -526,8 +526,8 @@ export function writeHookScripts(targetDir) {
  * with a clear error rather than silently truncated.
  *
  * @param {string} content - Full markdown content with optional frontmatter
- * @returns {{ frontmatter: Object<string,string>, body: string }}
- * @throws {Error} If frontmatter contains multiline YAML or malformed lines
+ * @returns {{ frontmatter: Object<string, string|string[]|boolean|number>, body: string }}
+ * @throws {Error} If frontmatter contains multiline YAML, orphan list items, or malformed lines
  */
 export function parseAgentFrontmatter(content) {
   // Normalize CRLF → LF for cross-platform compatibility (Windows-edited files)
@@ -631,7 +631,7 @@ export function parseAgentFrontmatter(content) {
  * Serialize a frontmatter object back to YAML fences.
  * Values containing YAML-significant characters are double-quoted.
  *
- * @param {Object<string,string>} fm - Frontmatter key-value pairs
+ * @param {Object<string, string|string[]|boolean|number>} fm - Frontmatter key-value pairs (supports arrays, booleans, numbers)
  * @returns {string} YAML frontmatter block (with --- delimiters)
  */
 function serializeFrontmatter(fm) {

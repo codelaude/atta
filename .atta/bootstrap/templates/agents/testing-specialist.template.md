@@ -1,5 +1,5 @@
 ---
-name: {{TESTING_NAME}}-testing-specialist
+name: {{TESTING_ID}}-testing-specialist
 description: {{TESTING_NAME}} testing patterns, test quality, and coverage strategies. Use for testing guidance, test review, or test strategy decisions.
 model: inherit
 tools:

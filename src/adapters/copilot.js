@@ -265,7 +265,7 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
 function mapToolsToCopilot(tools) {
   // Verified against GitHub docs (copilot/reference/custom-agents-configuration.md)
   // Primary aliases: read, edit, search, execute, agent, web, todo
-  // Claude Code names (Read, Edit, Grep, etc.) are accepted as aliases (case-insensitive)
+  // Copilot accepts aliases case-insensitively; this map uses exact CC tool names as keys
   const CC_TO_COPILOT = {
     Read: 'read',
     Edit: 'edit',

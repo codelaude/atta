@@ -1,5 +1,5 @@
 ---
-name: {{DATABASE_NAME}}-database-specialist
+name: {{DATABASE_ID}}-database-specialist
 description: {{DATABASE_NAME}} database schemas, queries, migrations, and performance. Use for database design guidance and query optimization.
 model: inherit
 tools:

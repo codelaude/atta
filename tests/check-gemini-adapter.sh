@@ -283,6 +283,9 @@ if [ -n "$REVIEWER_AGENT" ]; then
     echo "FAIL: code-reviewer agent missing max_turns: (or using camelCase maxTurns)"
     ERRORS=$((ERRORS + 1))
   fi
+else
+  echo "FAIL: code-reviewer agent file not found in .gemini/agents/"
+  ERRORS=$((ERRORS + 1))
 fi
 
 if [ $ERRORS -eq 0 ]; then

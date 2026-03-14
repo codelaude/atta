@@ -1,5 +1,5 @@
 ---
-name: {{E2E_FRAMEWORK_NAME}}-e2e-specialist
+name: {{E2E_FRAMEWORK_ID}}-e2e-specialist
 description: {{E2E_FRAMEWORK_NAME}} end-to-end testing patterns, user journey validation, and test reliability. Use for E2E test strategy and flakiness debugging.
 model: inherit
 tools:

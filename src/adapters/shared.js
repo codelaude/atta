@@ -433,7 +433,7 @@ set -euo pipefail
 INPUT=$(cat)
 
 # Extract skill name and args from stdin JSON
-read -r SKILL ARGS <<< $(echo "$INPUT" | python3 -c "
+read -r SKILL ARGS <<< "$(echo "$INPUT" | python3 -c "
 import json, sys
 data = json.load(sys.stdin)
 ti = data.get('tool_input', {})
@@ -449,7 +449,7 @@ elif 'toolArgs' in data:
         args = ta.get('args', '')
     except: pass
 print(f'{skill} {args}')
-" 2>/dev/null || echo " ")
+" 2>/dev/null || echo " ")"
 
 [ -z "\$SKILL" ] && exit 0
 
@@ -471,7 +471,7 @@ fi
 REGISTRY=".atta/team/model-registry.json"
 [ ! -f "\$REGISTRY" ] && exit 0
 
-read -r TIER MODEL_NAME <<< $(REGISTRY="\$REGISTRY" SKILL="\$SKILL" ADAPTER="\$ADAPTER" python3 -c "
+read -r TIER MODEL_NAME <<< "$(REGISTRY="\$REGISTRY" SKILL="\$SKILL" ADAPTER="\$ADAPTER" python3 -c "
 import json, os
 with open(os.environ['REGISTRY']) as f:
     reg = json.load(f)
@@ -483,7 +483,7 @@ else:
     adapter = os.environ.get('ADAPTER', '') or 'claude-code'
     model_name = reg.get('tiers', {}).get(tier, {}).get(adapter, tier)
     print(f'{tier} {model_name}')
-" 2>/dev/null || echo "")
+" 2>/dev/null || echo "")"
 
 # No tier recommendation -> allow
 [ -z "\$TIER" ] && exit 0
@@ -501,7 +501,7 @@ exit 0
 
 /**
  * Write hook scripts to .atta/scripts/hooks/ in the target project.
- * Called by adapters that need command-type hooks (Copilot, Gemini).
+ * Called by adapters that need command-type hooks (Copilot, Cursor, Gemini).
  *
  * @param {string} targetDir - Project root
  * @returns {number} Number of scripts written

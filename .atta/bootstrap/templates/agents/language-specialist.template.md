@@ -1,3 +1,20 @@
+---
+name: {{LANGUAGE_IDENTIFIER}}-specialist
+description: {{LANGUAGE_NAME}} idioms, type system, and best practices. Use for {{LANGUAGE_NAME}}-specific guidance.
+model: inherit
+tools:
+  - Read
+  - Grep
+  - Glob
+disallowedTools:
+  - Edit
+  - Write
+  - Bash
+  - Agent
+maxTurns: 20
+permissionMode: plan
+---
+
 # Agent: {{LANGUAGE_NAME}} (Language Specialist)
 
 > {{LANGUAGE_NAME}} idioms, patterns, and best practices.

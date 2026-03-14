@@ -232,6 +232,25 @@ for script in pre-bash-safety.sh stop-quality-gate.sh model-gate.sh; do
   fi
 done
 
+# --- Agent frontmatter checks ---
+
+# Check that code-reviewer agent has tools in frontmatter (Copilot-native tool restriction)
+REVIEWER_AGENT=$(find "$WORK_DIR/.github/atta/agents" -name "code-reviewer*" -type f 2>/dev/null | head -1)
+if [ -n "$REVIEWER_AGENT" ]; then
+  if grep -q '^tools:' "$REVIEWER_AGENT"; then
+    # Verify Copilot tool names (not Claude Code names)
+    if grep -q '\- read' "$REVIEWER_AGENT" || grep -q "'read'" "$REVIEWER_AGENT"; then
+      echo "PASS: code-reviewer agent has Copilot-native tools: frontmatter"
+    else
+      echo "FAIL: code-reviewer tools: present but doesn't contain Copilot tool names"
+      ERRORS=$((ERRORS + 1))
+    fi
+  else
+    echo "FAIL: code-reviewer agent missing tools: frontmatter"
+    ERRORS=$((ERRORS + 1))
+  fi
+fi
+
 if [ $ERRORS -eq 0 ]; then
   echo "PASS: Copilot adapter — structure + content correct ($SKILL_COUNT skills, $AGENT_COUNT agents, zero Claude-isms)"
   exit 0

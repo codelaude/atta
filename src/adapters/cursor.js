@@ -120,10 +120,17 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
     join(targetDir, '.cursor', 'agents'),
     {
       ...options,
-      transformFrontmatter: (fm) => ({
-        name: fm.name,
-        description: fm.description,
-      }),
+      transformFrontmatter: (fm) => {
+        const result = { name: fm.name, description: fm.description };
+        // Cursor supports readonly: derive from disallowedTools containing Edit/Write
+        if (fm.disallowedTools) {
+          const disallowed = Array.isArray(fm.disallowedTools) ? fm.disallowedTools : fm.disallowedTools.split(/,\s*/);
+          if (disallowed.some(t => t.trim() === 'Edit' || t.trim() === 'Write')) {
+            result.readonly = true;
+          }
+        }
+        return result;
+      },
       transformBody: (body) => rewriteSkillBody(body, cursorRewriteConfig),
     }
   );

@@ -546,26 +546,68 @@ export function parseAgentFrontmatter(content) {
   }
 
   const fm = {};
-  for (const line of match[1].split('\n')) {
+  const fmLines = match[1].split('\n');
+  let currentKey = null;
+
+  for (let i = 0; i < fmLines.length; i++) {
+    const line = fmLines[i];
     // Skip empty lines and YAML comments
     if (!line.trim() || line.trim().startsWith('#')) continue;
+
+    // YAML list item (  - value) — append to current key's array
+    // Only valid if the current key was declared as an array (empty value after colon)
+    const listMatch = line.match(/^\s+-\s+(.+)$/);
+    if (listMatch) {
+      if (currentKey && Array.isArray(fm[currentKey])) {
+        const itemValue = listMatch[1].trim();
+        // Strip quotes from list items
+        const qm = itemValue.match(/^(['"])(.*)\1$/);
+        fm[currentKey].push(qm ? qm[2] : itemValue);
+        continue;
+      }
+      throw new Error(
+        `Orphan list item in agent frontmatter: "${line.trim()}". ` +
+        `List items must follow a key declared as an array (e.g., "tools:" on its own line).`
+      );
+    }
 
     const kvMatch = line.match(/^([\w][\w-]*)\s*:\s*(.*)$/);
     if (!kvMatch) {
       throw new Error(
         `Malformed agent frontmatter line: "${line}". ` +
-        `Only single-line key: value pairs are supported.`
+        `Only key: value pairs and list items (  - value) are supported.`
       );
     }
 
+    currentKey = kvMatch[1];
     const value = kvMatch[2].trim();
 
     // Detect multiline YAML block indicators — fail fast instead of silent truncation
     if (/^[>|][+-]?$/.test(value)) {
       throw new Error(
         `Unsupported multiline YAML value for "${kvMatch[1]}" (found "${value}"). ` +
-        `Agent frontmatter only supports single-line key: value pairs.`
+        `Agent frontmatter only supports single-line values and lists.`
       );
+    }
+
+    // Empty value after colon — next lines may be list items
+    if (!value) {
+      fm[currentKey] = [];
+      continue;
+    }
+
+    // Inline flow list: key: [a, b, c]
+    const flowListMatch = value.match(/^\[(.*)\]$/);
+    if (flowListMatch) {
+      fm[currentKey] = flowListMatch[1]
+        .split(',')
+        .map(item => item.trim())
+        .filter(Boolean)
+        .map(item => {
+          const qm = item.match(/^(['"])(.*)\1$/);
+          return qm ? qm[2] : item;
+        });
+      continue;
     }
 
     // Strip surrounding quotes and unescape if present (both single and double)
@@ -576,9 +618,9 @@ export function parseAgentFrontmatter(content) {
       if (quoteMatch[1] === '"') {
         inner = inner.replace(/\\(["\\])/g, '$1');
       }
-      fm[kvMatch[1]] = inner;
+      fm[currentKey] = inner;
     } else {
-      fm[kvMatch[1]] = value;
+      fm[currentKey] = value;
     }
   }
 
@@ -595,7 +637,21 @@ export function parseAgentFrontmatter(content) {
 function serializeFrontmatter(fm) {
   const lines = ['---'];
   for (const [key, value] of Object.entries(fm)) {
-    lines.push(`${key}: ${yamlQuoteIfNeeded(value)}`);
+    if (Array.isArray(value)) {
+      if (value.length === 0) {
+        lines.push(`${key}: []`);
+      } else {
+        lines.push(`${key}:`);
+        for (const item of value) {
+          lines.push(`  - ${yamlQuoteIfNeeded(item)}`);
+        }
+      }
+    } else if (typeof value === 'boolean' || typeof value === 'number') {
+      // Booleans and numbers are emitted unquoted (YAML native types)
+      lines.push(`${key}: ${value}`);
+    } else {
+      lines.push(`${key}: ${yamlQuoteIfNeeded(value)}`);
+    }
   }
   lines.push('---');
   return lines.join('\n');

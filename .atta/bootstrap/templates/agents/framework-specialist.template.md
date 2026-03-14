@@ -1,3 +1,20 @@
+---
+name: {{FRAMEWORK_IDENTIFIER}}-specialist
+description: {{FRAMEWORK_NAME}} patterns, architecture, and best practices. Use for {{FRAMEWORK_NAME}}-specific guidance.
+model: inherit
+tools:
+  - Read
+  - Grep
+  - Glob
+disallowedTools:
+  - Edit
+  - Write
+  - Bash
+  - Agent
+maxTurns: 20
+permissionMode: plan
+---
+
 # Agent: {{FRAMEWORK_NAME}} ({{FRAMEWORK_TYPE}} Framework Specialist)
 
 > {{FRAMEWORK_NAME}} patterns, architecture, and best practices.

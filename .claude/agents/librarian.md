@@ -2,6 +2,17 @@
 name: librarian
 description: Captures directives, logs corrections, and maintains pattern knowledge. Use when the user says "remember", "always", "never", or when logging corrections and managing persistent rules.
 model: inherit
+tools:
+  - Read
+  - Grep
+  - Glob
+  - Edit
+  - Write
+  - Bash
+skills:
+  - atta-librarian
+  - atta-patterns
+maxTurns: 20
 ---
 
 # Agent: Librarian (Knowledge Keeper)

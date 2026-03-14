@@ -1,3 +1,20 @@
+---
+name: {{STYLING_NAME}}-styling-specialist
+description: {{STYLING_NAME}} styling patterns, responsive design, and CSS best practices. Use for styling guidance and CSS architecture decisions.
+model: inherit
+tools:
+  - Read
+  - Grep
+  - Glob
+disallowedTools:
+  - Edit
+  - Write
+  - Bash
+  - Agent
+maxTurns: 20
+permissionMode: plan
+---
+
 # Agent: {{STYLING_NAME}} (Styling Specialist)
 
 > {{STYLING_NAME}} patterns, responsive design, and styling best practices.

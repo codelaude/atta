@@ -98,10 +98,14 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
     {
       ...options,
       extension: '.agent.md',
-      transformFrontmatter: (fm) => ({
-        name: fm.name,
-        description: fm.description,
-      }),
+      transformFrontmatter: (fm) => {
+        const result = { name: fm.name, description: fm.description };
+        // Copilot supports native tool restriction via tools: [...]
+        if (fm.tools) {
+          result.tools = mapToolsToCopilot(fm.tools);
+        }
+        return result;
+      },
       transformBody: (body) => rewriteSkillBody(body, copilotAgentRewriteConfig),
     }
   );
@@ -249,5 +253,35 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   }
 
   return results;
+}
+
+/**
+ * Map Claude Code tool names to Copilot tool names.
+ * Copilot uses lowercase names: read, edit, search, agent, etc.
+ *
+ * @param {string[]|string} tools - Claude Code tool names
+ * @returns {string[]} Copilot tool names
+ */
+function mapToolsToCopilot(tools) {
+  // Verified against GitHub docs (copilot/reference/custom-agents-configuration.md)
+  // Primary aliases: read, edit, search, execute, agent, web, todo
+  // Claude Code names (Read, Edit, Grep, etc.) are accepted as aliases (case-insensitive)
+  const CC_TO_COPILOT = {
+    Read: 'read',
+    Edit: 'edit',
+    Write: 'edit',     // Write is an alias for edit
+    Grep: 'search',
+    Glob: 'search',    // Glob is an alias for search
+    Bash: 'execute',   // Primary alias (not run_in_terminal)
+    Agent: 'agent',
+  };
+
+  const list = Array.isArray(tools) ? tools : tools.split(/,\s*/);
+  const mapped = new Set();
+  for (const tool of list) {
+    const copilotName = CC_TO_COPILOT[tool.trim()];
+    if (copilotName) mapped.add(copilotName);
+  }
+  return [...mapped];
 }
 

@@ -2,6 +2,21 @@
 name: qa-validator
 description: Validates implementations against acceptance criteria. Use when checking if code meets requirements, creating test scenarios, or performing QA validation.
 model: inherit
+tools:
+  - Read
+  - Grep
+  - Glob
+  - Bash
+  - Agent
+disallowedTools:
+  - Edit
+  - Write
+skills:
+  - atta-review
+  - atta-lint
+  - atta-test
+maxTurns: 30
+permissionMode: plan
 ---
 
 # Agent: QA Validator

@@ -2,6 +2,21 @@
 name: code-reviewer
 description: Reviews code for quality, security, and best practices. Use when reviewing code changes, checking for pattern violations, or performing cross-domain code review.
 model: inherit
+tools:
+  - Read
+  - Grep
+  - Glob
+  - Agent
+disallowedTools:
+  - Edit
+  - Write
+  - Bash
+skills:
+  - atta-review
+  - atta-lint
+  - atta-security-audit
+maxTurns: 30
+permissionMode: plan
 ---
 
 # Agent: Code Reviewer

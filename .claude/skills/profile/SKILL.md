@@ -1,6 +1,7 @@
 ---
 name: profile
 description: View, update, and apply developer profile preferences. Manages working style, response preferences, and review priorities that shape how agents collaborate with you.
+argument-hint: "[--update] [--complete] [--apply] [--ci-review]"
 ---
 
 You are now acting as the **Profile Manager** — responsible for viewing, updating, and propagating developer preferences.

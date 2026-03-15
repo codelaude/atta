@@ -74,6 +74,12 @@ if [ ! -f "$WORK_DIR/.agents/agents/memory/directives.md" ]; then
   ERRORS=$((ERRORS + 1))
 fi
 
+# Check AGENTS.md contains review guidelines section
+if ! grep -q "## Review Guidelines" "$WORK_DIR/AGENTS.md"; then
+  echo "FAIL: AGENTS.md missing '## Review Guidelines' section"
+  ERRORS=$((ERRORS + 1))
+fi
+
 # --- Content contract checks (adapter hardening) ---
 
 SKILLS_DIR="$WORK_DIR/.agents/skills"
@@ -108,8 +114,69 @@ if ! grep -q '\$review\|\$atta\|\$agent' "$WORK_DIR/AGENTS.md"; then
   ERRORS=$((ERRORS + 1))
 fi
 
+# Check: .codex/config.toml exists with [agents.*] sections
+if [ ! -s "$WORK_DIR/.codex/config.toml" ]; then
+  echo "FAIL: .codex/config.toml missing or empty"
+  ERRORS=$((ERRORS + 1))
+else
+  # Validate TOML is parseable and has agent sections
+  # Use || to prevent set -e from exiting the script on python3 failure
+  if ! python3 - "$WORK_DIR/.codex/config.toml" <<'PYEOF'
+import sys
+try:
+    import tomllib
+except ImportError:
+    try:
+        import tomli as tomllib
+    except ImportError:
+        print('FAIL: No TOML parser available. Install Python 3.11+ (tomllib) or the "tomli" package.')
+        sys.exit(1)
+
+path = sys.argv[1]
+try:
+    with open(path, 'rb') as f:
+        data = tomllib.load(f)
+except Exception as e:
+    print(f'FAIL: {path} is not valid TOML: {e}')
+    sys.exit(1)
+
+if 'agents' not in data:
+    print('FAIL: config.toml missing [agents] section')
+    sys.exit(1)
+
+agents = data['agents']
+if len(agents) == 0:
+    print('FAIL: config.toml has no agent definitions')
+    sys.exit(1)
+
+# Each agent must have description and config_file
+for name, agent in agents.items():
+    if 'description' not in agent or not agent['description'].strip():
+        print(f'FAIL: agents.{name} missing or empty description')
+        sys.exit(1)
+    if 'config_file' not in agent or not agent['config_file'].strip():
+        print(f'FAIL: agents.{name} missing or empty config_file')
+        sys.exit(1)
+PYEOF
+  then
+    ERRORS=$((ERRORS + 1))
+  fi
+fi
+
+# Check: agent .md files have valid frontmatter (no model: inherit)
+while IFS= read -r -d '' agent; do
+  if ! head -5 "$agent" | grep -q "^name:"; then
+    echo "FAIL: $agent missing 'name:' frontmatter"
+    ERRORS=$((ERRORS + 1))
+  fi
+  if head -5 "$agent" | grep -q "^model: inherit"; then
+    echo "FAIL: $agent contains 'model: inherit' (Claude Code-specific)"
+    ERRORS=$((ERRORS + 1))
+  fi
+done < <(find "$WORK_DIR/.agents/agents" -name "*.md" -not -path "*/memory/*" -print0 2>/dev/null)
+
 if [ $ERRORS -eq 0 ]; then
-  echo "PASS: Codex adapter — structure + content correct ($SKILL_COUNT skills, $AGENT_COUNT agents, zero Claude-isms)"
+  echo "PASS: Codex adapter — structure + content correct ($SKILL_COUNT skills, $AGENT_COUNT agents, config.toml, zero Claude-isms)"
   exit 0
 else
   echo "FAIL: $ERRORS errors found"

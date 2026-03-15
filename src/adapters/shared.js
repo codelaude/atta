@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, cpSync, lstatSync, readdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, cpSync, lstatSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, dirname, relative } from 'node:path';
 import pc from 'picocolors';
 
@@ -7,19 +7,254 @@ import pc from 'picocolors';
  */
 
 /**
+ * Cross-tool hook event mapping — reference-only compatibility table.
+ * Documents equivalent event names across all 5 tools with hook support.
+ * Not wired into generateHooksConfig() or runtime hook emitters (each adapter
+ * hardcodes its own subset). Kept as a canonical reference for documentation,
+ * external tooling, and future dynamic generation.
+ *
+ * Event counts: Claude Code 17, Cursor 19+, Gemini 10, Copilot 6, Codex 2 (approval only).
+ *
+ * @type {Object<string, Object<string, string|null>>}
+ */
+export const HOOK_EVENT_MAP = {
+  // Session lifecycle
+  sessionStart:       { 'claude-code': 'SessionStart',       copilot: 'sessionStart',        cursor: 'sessionStart',         gemini: 'SessionStart',      codex: null },
+  sessionEnd:         { 'claude-code': 'SessionEnd',         copilot: 'sessionEnd',          cursor: 'sessionEnd',           gemini: 'SessionEnd',        codex: null },
+  stop:               { 'claude-code': 'Stop',               copilot: null,                  cursor: 'stop',                 gemini: null,                codex: 'after_agent' },
+  // Tool lifecycle
+  preToolUse:         { 'claude-code': 'PreToolUse',         copilot: 'preToolUse',          cursor: 'preToolUse',           gemini: 'BeforeTool',        codex: null },
+  postToolUse:        { 'claude-code': 'PostToolUse',        copilot: 'postToolUse',         cursor: 'postToolUse',          gemini: 'AfterTool',         codex: 'after_tool_use' },
+  postToolUseFailure: { 'claude-code': 'PostToolUseFailure', copilot: 'errorOccurred',       cursor: 'postToolUseFailure',   gemini: null,                codex: null },
+  // User interaction
+  userPromptSubmit:   { 'claude-code': 'UserPromptSubmit',   copilot: 'userPromptSubmitted', cursor: 'beforeSubmitPrompt',    gemini: null,                codex: null },
+  // Agent lifecycle
+  subagentStart:      { 'claude-code': 'SubagentStart',      copilot: null,                  cursor: 'subagentStart',        gemini: 'BeforeAgent',       codex: null },
+  subagentStop:       { 'claude-code': 'SubagentStop',       copilot: null,                  cursor: 'subagentStop',         gemini: 'AfterAgent',        codex: null },
+  // Context management
+  preCompact:         { 'claude-code': 'PreCompact',         copilot: null,                  cursor: 'preCompact',           gemini: 'PreCompress',       codex: null },
+  notification:       { 'claude-code': 'Notification',       copilot: null,                  cursor: null,                   gemini: 'Notification',      codex: null },
+  // Cursor-only file events
+  afterFileEdit:      { 'claude-code': null,                 copilot: null,                  cursor: 'afterFileEdit',        gemini: null,                codex: null },
+  beforeShellExec:    { 'claude-code': null,                 copilot: null,                  cursor: 'beforeShellExecution', gemini: null,                codex: null },
+  // Claude Code-only events
+  permissionRequest:  { 'claude-code': 'PermissionRequest',  copilot: null,                  cursor: null,                   gemini: null,                codex: null },
+  configChange:       { 'claude-code': 'ConfigChange',       copilot: null,                  cursor: null,                   gemini: null,                codex: null },
+  // Gemini-only events
+  beforeModel:        { 'claude-code': null,                 copilot: null,                  cursor: null,                   gemini: 'BeforeModel',       codex: null },
+  afterModel:         { 'claude-code': null,                 copilot: null,                  cursor: null,                   gemini: 'AfterModel',        codex: null },
+};
+
+/**
+ * Generate a hooks.json config for a specific adapter.
+ * Returns placeholder hooks with the adapter's native event names.
+ * Claude Code generates its own hooks (session-track.sh); this is for other adapters.
+ *
+ * @param {'copilot'|'cursor'|'gemini'} adapter - Target adapter
+ * @returns {object} hooks.json content ready to serialize
+ */
+export function generateHooksConfig(adapter) {
+  if (adapter === 'copilot') {
+    // Copilot: 6 events, command hooks only (versioned schema for forward compat)
+    return {
+      version: 1,
+      hooks: {
+        sessionStart: [],
+        sessionEnd: [],
+        preToolUse: [],
+        postToolUse: [],
+        errorOccurred: [],
+        userPromptSubmitted: [],
+      },
+    };
+  }
+
+  if (adapter === 'cursor') {
+    // Cursor: 19+ events, command + prompt hooks
+    return {
+      hooks: {
+        sessionStart: [],
+        sessionEnd: [],
+        stop: [],
+        preToolUse: [],
+        postToolUse: [],
+        afterFileEdit: [],
+        beforeShellExecution: [],
+        subagentStart: [],
+        subagentStop: [],
+        preCompact: [],
+      },
+    };
+  }
+
+  if (adapter === 'gemini') {
+    // Gemini: 10 events, JSON stdin/stdout hooks
+    return {
+      hooks: {
+        SessionStart: [],
+        SessionEnd: [],
+        BeforeTool: [],
+        AfterTool: [],
+        BeforeAgent: [],
+        AfterAgent: [],
+        BeforeModel: [],
+        AfterModel: [],
+        Notification: [],
+        PreCompress: [],
+      },
+    };
+  }
+
+  throw new Error(`generateHooksConfig: unknown adapter "${adapter}" (expected copilot, cursor, or gemini)`);
+}
+
+/**
+ * Parse YAML frontmatter from an agent markdown file.
+ * Handles flat key-value pairs only — multiline YAML values are rejected
+ * with a clear error rather than silently truncated.
+ *
+ * @param {string} content - Full markdown content with optional frontmatter
+ * @returns {{ frontmatter: Object<string,string>, body: string }}
+ * @throws {Error} If frontmatter contains multiline YAML or malformed lines
+ */
+export function parseAgentFrontmatter(content) {
+  // Normalize CRLF → LF for cross-platform compatibility (Windows-edited files)
+  const normalized = content.replace(/\r\n/g, '\n');
+
+  // Trailing body is optional — frontmatter-only agent files are valid
+  const match = normalized.match(/^---\n([\s\S]*?)\n---(?:\n([\s\S]*))?$/);
+  if (!match) {
+    // Detect unterminated frontmatter — file starts with `---` but has no closing fence
+    if (normalized.startsWith('---\n') || normalized === '---') {
+      throw new Error(
+        'Unterminated or malformed agent frontmatter: missing closing "---" fence.'
+      );
+    }
+    return { frontmatter: {}, body: normalized };
+  }
+
+  const fm = {};
+  for (const line of match[1].split('\n')) {
+    // Skip empty lines and YAML comments
+    if (!line.trim() || line.trim().startsWith('#')) continue;
+
+    const kvMatch = line.match(/^([\w][\w-]*)\s*:\s*(.*)$/);
+    if (!kvMatch) {
+      throw new Error(
+        `Malformed agent frontmatter line: "${line}". ` +
+        `Only single-line key: value pairs are supported.`
+      );
+    }
+
+    const value = kvMatch[2].trim();
+
+    // Detect multiline YAML block indicators — fail fast instead of silent truncation
+    if (/^[>|][+-]?$/.test(value)) {
+      throw new Error(
+        `Unsupported multiline YAML value for "${kvMatch[1]}" (found "${value}"). ` +
+        `Agent frontmatter only supports single-line key: value pairs.`
+      );
+    }
+
+    // Strip surrounding quotes and unescape if present (both single and double)
+    const quoteMatch = value.match(/^(['"])(.*)\1$/);
+    if (quoteMatch) {
+      let inner = quoteMatch[2];
+      // Double-quoted values: unescape \" and \\ (matches yamlQuoteIfNeeded output)
+      if (quoteMatch[1] === '"') {
+        inner = inner.replace(/\\(["\\])/g, '$1');
+      }
+      fm[kvMatch[1]] = inner;
+    } else {
+      fm[kvMatch[1]] = value;
+    }
+  }
+
+  return { frontmatter: fm, body: match[2] || '' };
+}
+
+/**
+ * Serialize a frontmatter object back to YAML fences.
+ * Values containing YAML-significant characters are double-quoted.
+ *
+ * @param {Object<string,string>} fm - Frontmatter key-value pairs
+ * @returns {string} YAML frontmatter block (with --- delimiters)
+ */
+function serializeFrontmatter(fm) {
+  const lines = ['---'];
+  for (const [key, value] of Object.entries(fm)) {
+    lines.push(`${key}: ${yamlQuoteIfNeeded(value)}`);
+  }
+  lines.push('---');
+  return lines.join('\n');
+}
+
+/**
+ * Quote a YAML scalar value if it contains characters that would be
+ * misinterpreted by a YAML parser (colon-space, space-hash, indicator
+ * chars, boolean/null literals, leading/trailing whitespace, or is empty).
+ */
+function yamlQuoteIfNeeded(value) {
+  if (value === undefined || value === null) return '""';
+  const str = String(value);
+  if (
+    str === '' ||
+    str !== str.trim() ||
+    /: /.test(str) || /:$/.test(str) ||
+    / #/.test(str) ||
+    /^[!&*'"@`|>{}\[\],%?-]/.test(str) ||
+    /^(true|false|null|yes|no|on|off|~)$/i.test(str)
+  ) {
+    return '"' + str.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"';
+  }
+  return str;
+}
+
+/**
  * Copy agent definition .md files from framework source to target directory.
  * Copies core agents, coordinators, and specialists.
+ * Optionally transforms frontmatter and body per adapter.
  *
  * @param {string} claudeRoot - Path to .claude/ source (agents live here)
  * @param {string} destAgentsDir - Target directory for agent files
- * @param {object} [options] - Options (quiet: boolean)
+ * @param {object} [options] - Options
+ * @param {boolean} [options.quiet] - Suppress console output
+ * @param {string} [options.extension='.md'] - Output file extension (e.g., '.agent.md' for Copilot)
+ * @param {function} [options.transformFrontmatter] - Transform frontmatter object before writing
+ * @param {function} [options.transformBody] - Transform body text before writing
  * @returns {number} Number of files copied
  */
 export function copyAgentFiles(claudeRoot, destAgentsDir, options = {}) {
+  const { extension = '.md', transformFrontmatter, transformBody } = options;
   const srcAgentsDir = join(claudeRoot, 'agents');
   if (!existsSync(srcAgentsDir)) return 0;
 
+  const hasTransform = transformFrontmatter || transformBody || extension !== '.md';
   let count = 0;
+
+  /**
+   * Process a single agent file: copy verbatim or transform frontmatter/body.
+   */
+  function processFile(srcPath, destDir, fileName) {
+    const baseName = fileName.replace(/\.md$/, '');
+    const destFileName = baseName + extension;
+    const destPath = join(destDir, destFileName);
+
+    mkdirSync(destDir, { recursive: true });
+
+    if (!hasTransform) {
+      cpSync(srcPath, destPath);
+    } else {
+      const content = readFileSync(srcPath, 'utf-8');
+      const { frontmatter, body } = parseAgentFrontmatter(content);
+
+      const newFm = transformFrontmatter ? transformFrontmatter(frontmatter) : frontmatter;
+      const newBody = transformBody ? transformBody(body) : body;
+
+      writeFileSync(destPath, serializeFrontmatter(newFm) + '\n' + newBody);
+    }
+    count++;
+  }
 
   // Core agents (root .md files, skip INDEX, README, and subdirectories)
   const rootFiles = readdirSync(srcAgentsDir, { withFileTypes: true })
@@ -31,12 +266,8 @@ export function copyAgentFiles(claudeRoot, destAgentsDir, options = {}) {
         f.name !== 'README.md'
     );
 
-  if (rootFiles.length > 0) {
-    mkdirSync(destAgentsDir, { recursive: true });
-    for (const file of rootFiles) {
-      cpSync(join(srcAgentsDir, file.name), join(destAgentsDir, file.name));
-      count++;
-    }
+  for (const file of rootFiles) {
+    processFile(join(srcAgentsDir, file.name), destAgentsDir, file.name);
   }
 
   // Coordinators
@@ -45,15 +276,8 @@ export function copyAgentFiles(claudeRoot, destAgentsDir, options = {}) {
     const coordFiles = readdirSync(coordDir).filter(
       (f) => f.endsWith('.md') && f !== 'README.md'
     );
-    if (coordFiles.length > 0) {
-      mkdirSync(join(destAgentsDir, 'coordinators'), { recursive: true });
-      for (const file of coordFiles) {
-        cpSync(
-          join(coordDir, file),
-          join(destAgentsDir, 'coordinators', file)
-        );
-        count++;
-      }
+    for (const file of coordFiles) {
+      processFile(join(coordDir, file), join(destAgentsDir, 'coordinators'), file);
     }
   }
 
@@ -63,19 +287,47 @@ export function copyAgentFiles(claudeRoot, destAgentsDir, options = {}) {
     const specFiles = readdirSync(specDir).filter(
       (f) => f.endsWith('.md') && f !== 'README.md'
     );
-    if (specFiles.length > 0) {
-      mkdirSync(join(destAgentsDir, 'specialists'), { recursive: true });
-      for (const file of specFiles) {
-        cpSync(
-          join(specDir, file),
-          join(destAgentsDir, 'specialists', file)
-        );
-        count++;
-      }
+    for (const file of specFiles) {
+      processFile(join(specDir, file), join(destAgentsDir, 'specialists'), file);
     }
   }
 
   return count;
+}
+
+/**
+ * List canonical agent files from .claude/agents/ with parsed frontmatter.
+ * Returns flat array of { name, description, fileName } for all core agents.
+ * Used by adapters that need to generate tool-specific agent configs (e.g., Codex TOML).
+ *
+ * @param {string} claudeRoot - Path to .claude/ source
+ * @returns {Array<{ name: string, description: string, fileName: string }>}
+ */
+export function listAgentDefs(claudeRoot) {
+  const srcAgentsDir = join(claudeRoot, 'agents');
+  if (!existsSync(srcAgentsDir)) return [];
+
+  const agents = [];
+  const rootFiles = readdirSync(srcAgentsDir, { withFileTypes: true })
+    .filter(
+      (f) =>
+        f.isFile() &&
+        f.name.endsWith('.md') &&
+        f.name !== 'INDEX.md' &&
+        f.name !== 'README.md'
+    );
+
+  for (const file of rootFiles) {
+    const content = readFileSync(join(srcAgentsDir, file.name), 'utf-8');
+    const { frontmatter } = parseAgentFrontmatter(content);
+    agents.push({
+      name: frontmatter.name || file.name.replace(/\.md$/, ''),
+      description: frontmatter.description || '',
+      fileName: file.name,
+    });
+  }
+
+  return agents;
 }
 
 /**

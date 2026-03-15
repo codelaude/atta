@@ -3,7 +3,8 @@ import { join } from 'node:path';
 import pc from 'picocolors';
 import { listSkills } from './claude-code.js';
 import { generateAgentsMd } from './agents-md.js';
-import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, createMemoryDirectory } from './shared.js';
+import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, createMemoryDirectory, generateHooksConfig } from './shared.js';
+import { generateReviewRules, formatGeminiStyleguide, formatGeminiConfig } from './review-guidance.js';
 
 /**
  * Gemini CLI adapter — generates GEMINI.md, .gemini/commands/, and .gemini/agents/.
@@ -52,11 +53,45 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
     }
   }
 
-  // Copy agent definitions to .gemini/agents/
+  // Generate review guidance files
+  const reviewRules = generateReviewRules(attaRoot, options.detectedTechs);
+
+  // .gemini/styleguide.md — natural language review rules
+  const geminiDir = join(targetDir, '.gemini');
+  mkdirSync(geminiDir, { recursive: true });
+  const styleguideContent = formatGeminiStyleguide(reviewRules);
+  writeFileSync(join(geminiDir, 'styleguide.md'), styleguideContent);
+  results.files++;
+
+  // .gemini/config.yaml — severity thresholds
+  const configContent = formatGeminiConfig();
+  writeFileSync(join(geminiDir, 'config.yaml'), configContent);
+  results.files++;
+
+  if (!options.quiet) {
+    console.log(`  ${pc.green('✓')} .gemini/styleguide.md + .gemini/config.yaml (review guidance)`);
+  }
+
+  // Copy agent definitions to .gemini/agents/ with Gemini-specific frontmatter:
+  // - name + description only (model: inherit is Claude Code-specific)
+  // - Body: rewrite paths and resolve {attaDir} placeholders (Gemini is static, no AI resolves them)
+  const geminiAgentRewriteConfig = {
+    agentsPath: '.gemini/agents',
+    memoryPath: '.gemini/agents/memory',
+    commandMap: {},
+    resolveAttaPlaceholders: true,
+  };
   const agentCount = copyAgentFiles(
     claudeRoot,
     join(targetDir, '.gemini', 'agents'),
-    options
+    {
+      ...options,
+      transformFrontmatter: (fm) => ({
+        name: fm.name,
+        description: fm.description,
+      }),
+      transformBody: (body) => rewriteSkillBody(body, geminiAgentRewriteConfig),
+    }
   );
   results.files += agentCount;
 
@@ -69,6 +104,18 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   // Create memory directory with directives placeholder
   createMemoryDirectory(join(targetDir, '.gemini', 'agents'), options);
   results.files++;
+
+  // Generate hooks.json (Gemini hook format — 10 events, placeholder for user customization)
+  const hooksJsonPath = join(geminiDir, 'hooks.json');
+  if (!existsSync(hooksJsonPath)) {
+    const hooksConfig = generateHooksConfig('gemini');
+    writeFileSync(hooksJsonPath, JSON.stringify(hooksConfig, null, 2) + '\n');
+    results.files++;
+
+    if (!options.quiet) {
+      console.log(`  ${pc.green('✓')} .gemini/hooks.json (10 event placeholders)`);
+    }
+  }
 
   // Copy shared content to .atta/ (knowledge, project, scripts, metadata, context)
   const sharedCount = copySharedContent(attaRoot, targetDir, options);

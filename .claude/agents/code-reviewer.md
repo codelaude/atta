@@ -1,3 +1,9 @@
+---
+name: code-reviewer
+description: Reviews code for quality, security, and best practices. Use when reviewing code changes, checking for pattern violations, or performing cross-domain code review.
+model: inherit
+---
+
 # Agent: Code Reviewer
 
 > Cross-domain code review pulling from all specialist knowledge.

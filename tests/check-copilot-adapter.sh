@@ -48,14 +48,37 @@ while IFS= read -r -d '' skill; do
   fi
 done < <(find "$WORK_DIR/.github/skills" -name "SKILL.md" -print0 2>/dev/null)
 
-# Check agent definitions exist in .github/atta/agents/
+# Check agent definitions exist in .github/atta/agents/ with .agent.md extension
 if [ -d "$WORK_DIR/.github/atta/agents" ]; then
-  AGENT_COUNT=$(find "$WORK_DIR/.github/atta/agents" -name "*.md" -not -path "*/memory/*" | wc -l | tr -d ' ')
+  AGENT_COUNT=$(find "$WORK_DIR/.github/atta/agents" -name "*.agent.md" -not -path "*/memory/*" 2>/dev/null | wc -l | tr -d ' ')
 else
   AGENT_COUNT=0
 fi
 if [ "$AGENT_COUNT" -eq 0 ]; then
-  echo "FAIL: No agent definitions in .github/atta/agents/"
+  echo "FAIL: No .agent.md definitions in .github/atta/agents/"
+  ERRORS=$((ERRORS + 1))
+fi
+
+# Check: agent files have valid YAML frontmatter (name + description, no model: inherit)
+while IFS= read -r -d '' agent; do
+  if ! head -5 "$agent" | grep -q "^name:"; then
+    echo "FAIL: $agent missing 'name:' frontmatter"
+    ERRORS=$((ERRORS + 1))
+  fi
+  if ! head -5 "$agent" | grep -q "^description:"; then
+    echo "FAIL: $agent missing 'description:' frontmatter"
+    ERRORS=$((ERRORS + 1))
+  fi
+  if head -5 "$agent" | grep -q "^model: inherit"; then
+    echo "FAIL: $agent contains 'model: inherit' (Claude Code-specific, should be stripped)"
+    ERRORS=$((ERRORS + 1))
+  fi
+done < <(find "$WORK_DIR/.github/atta/agents" -name "*.agent.md" -not -path "*/memory/*" -print0 2>/dev/null)
+
+# Check: no plain .md agent files (should all be .agent.md)
+PLAIN_MD=$(find "$WORK_DIR/.github/atta/agents" -maxdepth 1 -name "*.md" -not -name "*.agent.md" -not -path "*/memory/*" 2>/dev/null | wc -l | tr -d ' ')
+if [ "$PLAIN_MD" -gt 0 ]; then
+  echo "FAIL: $PLAIN_MD plain .md files found (should be .agent.md)"
   ERRORS=$((ERRORS + 1))
 fi
 
@@ -87,6 +110,23 @@ for ifile in atta-skills.instructions.md atta-agents.instructions.md atta-memory
     ERRORS=$((ERRORS + 1))
   fi
 done
+
+# Check review guidance instructions file exists and has frontmatter
+if [ ! -s "$WORK_DIR/.github/instructions/atta-review.instructions.md" ]; then
+  echo "FAIL: .github/instructions/atta-review.instructions.md missing or empty"
+  ERRORS=$((ERRORS + 1))
+else
+  if ! head -3 "$WORK_DIR/.github/instructions/atta-review.instructions.md" | grep -q "^applyTo:"; then
+    echo "FAIL: atta-review.instructions.md missing 'applyTo:' frontmatter"
+    ERRORS=$((ERRORS + 1))
+  fi
+  # Verify under 4K char limit
+  REVIEW_SIZE=$(wc -c < "$WORK_DIR/.github/instructions/atta-review.instructions.md" | tr -d ' ')
+  if [ "$REVIEW_SIZE" -gt 4000 ]; then
+    echo "FAIL: atta-review.instructions.md exceeds 4000 char limit ($REVIEW_SIZE chars)"
+    ERRORS=$((ERRORS + 1))
+  fi
+fi
 
 # --- Content contract checks (adapter hardening) ---
 
@@ -135,6 +175,30 @@ if [ -f "$SKILLS_DIR/atta-update/SKILL.md" ]; then
     echo "FAIL: atta-update/SKILL.md frontmatter not renamed"
     ERRORS=$((ERRORS + 1))
   fi
+fi
+
+# --- Hooks checks (v2.7.1 Track C) ---
+
+# Check hooks.json exists and is valid JSON
+if [ ! -f "$WORK_DIR/.github/hooks/hooks.json" ]; then
+  echo "FAIL: .github/hooks/hooks.json missing"
+  ERRORS=$((ERRORS + 1))
+else
+  python3 - "$WORK_DIR/.github/hooks/hooks.json" <<'PYEOF' 2>/dev/null || ERRORS=$((ERRORS + 1))
+import json, sys
+with open(sys.argv[1]) as f:
+    data = json.load(f)
+if 'version' not in data or data['version'] != 1:
+    print('FAIL: hooks.json missing or wrong "version" field (expected 1)')
+    sys.exit(1)
+if 'hooks' not in data:
+    print('FAIL: hooks.json missing top-level "hooks" key')
+    sys.exit(1)
+for event in ['sessionStart', 'postToolUse', 'errorOccurred']:
+    if event not in data['hooks']:
+        print(f'FAIL: hooks.json missing event: {event}')
+        sys.exit(1)
+PYEOF
 fi
 
 if [ $ERRORS -eq 0 ]; then

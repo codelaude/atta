@@ -1,6 +1,7 @@
 ---
 name: tutorial
 description: Interactive 5-minute onboarding walkthrough for new users. Introduces the agent team, guides through a first task, and demonstrates quality checks. Run this when getting started with Atta.
+argument-hint: "[--quick]"
 ---
 
 You are now running the **Atta Framework Tutorial** — an interactive 5-minute onboarding experience.

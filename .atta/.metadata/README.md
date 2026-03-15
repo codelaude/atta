@@ -6,13 +6,13 @@ This directory contains system metadata for the adaptive bootstrap system.
 
 ### `version`
 Contains the current user's version of the `.claude/` system.
-- **Current version**: 2.7.0
+- **Current version**: 2.7.1
 - **Used by**: `/atta` and `/migrate` skills for version detection
 - **Note**: This is the user's version, which may have customizations
 
 ### `framework-version` (introduced in v2.1)
 Contains the framework version that was last applied.
-- **Current version**: 2.7.0
+- **Current version**: 2.7.1
 - **Used by**: `/update` skill to check for framework updates
 - **Note**: This is separate from user version to track framework updates independently
 
@@ -114,6 +114,7 @@ Template for the file-manifest.json structure.
 
 ## Version History
 
+- **2.7.1**: Multi-Tool Plugin Distribution + Review Guidance + Format Alignment — review guidance extraction (8 formatters × 6 adapters), plugin generator for 4 marketplace targets, cross-tool hook event mapping, SKILL.md frontmatter flags, agent YAML frontmatter with adapter transforms, preflight static analysis step, cross-reviewed by Codex + Copilot
 - **2.7.0** (2026-03-03): .atta/ Architecture + Developer Profile + Cursor Adapter — tool-agnostic shared content architecture, dual-root adapters, `/profile` skill (two-layer propagation), `/optimize` skill (cross-tool context enrichment), architectural pattern extraction, staleness detection, `/preflight --auto-fix` iterative fix loop, Cursor adapter (5th adapter), CI review adapter (6th adapter), ~70 path migrations, migration detection
 - **2.6.1**: Preflight Gap Closure — security deduplication, performance + bug/logic review dimensions, OWASP expansion, dev publish skill
 - **2.6.0**: Enhanced Testing — PR template detection in `/atta`, E2E testing detection (5 frameworks), E2E specialist agent + patterns, `/test` skill with `--e2e`/`--coverage`/`--watch`

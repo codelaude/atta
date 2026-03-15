@@ -83,6 +83,32 @@ if [ ! -f "$WORK_DIR/.cursor/agents/memory/directives.md" ]; then
   ERRORS=$((ERRORS + 1))
 fi
 
+# Check BUGBOT.md exists and has blocking/non-blocking sections
+if [ ! -s "$WORK_DIR/.cursor/BUGBOT.md" ]; then
+  echo "FAIL: .cursor/BUGBOT.md missing or empty"
+  ERRORS=$((ERRORS + 1))
+else
+  if ! grep -q "## Blocking" "$WORK_DIR/.cursor/BUGBOT.md"; then
+    echo "FAIL: BUGBOT.md missing '## Blocking' section"
+    ERRORS=$((ERRORS + 1))
+  fi
+  if ! grep -q "## Non-blocking" "$WORK_DIR/.cursor/BUGBOT.md"; then
+    echo "FAIL: BUGBOT.md missing '## Non-blocking' section"
+    ERRORS=$((ERRORS + 1))
+  fi
+fi
+
+# Check atta-review.mdc exists with review guidance
+if [ ! -s "$WORK_DIR/.cursor/rules/atta-review.mdc" ]; then
+  echo "FAIL: .cursor/rules/atta-review.mdc missing or empty"
+  ERRORS=$((ERRORS + 1))
+else
+  if ! grep -q "## Always Check" "$WORK_DIR/.cursor/rules/atta-review.mdc"; then
+    echo "FAIL: atta-review.mdc missing '## Always Check' section"
+    ERRORS=$((ERRORS + 1))
+  fi
+fi
+
 # --- Content contract checks (adapter hardening) ---
 
 RULES_DIR="$WORK_DIR/.cursor/rules"
@@ -115,6 +141,43 @@ fi
 if ! grep -q '@atta-review\|@atta-agent\|@atta-atta' "$WORK_DIR/AGENTS.md"; then
   echo "FAIL: AGENTS.md does not use @atta- prefix for commands"
   ERRORS=$((ERRORS + 1))
+fi
+
+# Check: agent files have valid frontmatter (name + description, no model: inherit)
+while IFS= read -r -d '' agent; do
+  if ! head -5 "$agent" | grep -q "^name:"; then
+    echo "FAIL: $agent missing 'name:' frontmatter"
+    ERRORS=$((ERRORS + 1))
+  fi
+  if ! head -5 "$agent" | grep -q "^description:"; then
+    echo "FAIL: $agent missing 'description:' frontmatter"
+    ERRORS=$((ERRORS + 1))
+  fi
+  if head -5 "$agent" | grep -q "^model: inherit"; then
+    echo "FAIL: $agent contains 'model: inherit' (Claude Code-specific)"
+    ERRORS=$((ERRORS + 1))
+  fi
+done < <(find "$WORK_DIR/.cursor/agents" -name "*.md" -not -path "*/memory/*" -print0 2>/dev/null)
+
+# --- Hooks checks (v2.7.1 Track C) ---
+
+# Check hooks.json exists and is valid JSON
+if [ ! -f "$WORK_DIR/.cursor/hooks.json" ]; then
+  echo "FAIL: .cursor/hooks.json missing"
+  ERRORS=$((ERRORS + 1))
+else
+  python3 - "$WORK_DIR/.cursor/hooks.json" <<'PYEOF' 2>/dev/null || ERRORS=$((ERRORS + 1))
+import json, sys
+with open(sys.argv[1]) as f:
+    data = json.load(f)
+if 'hooks' not in data:
+    print('FAIL: hooks.json missing top-level "hooks" key')
+    sys.exit(1)
+for event in ['sessionStart', 'postToolUse', 'afterFileEdit', 'preCompact']:
+    if event not in data['hooks']:
+        print(f'FAIL: hooks.json missing event: {event}')
+        sys.exit(1)
+PYEOF
 fi
 
 if [ $ERRORS -eq 0 ]; then

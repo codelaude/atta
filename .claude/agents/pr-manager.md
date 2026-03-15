@@ -1,3 +1,9 @@
+---
+name: pr-manager
+description: Generates PR descriptions and tracks Definition of Done. Use when preparing a pull request, writing commit messages, or verifying completion criteria.
+model: inherit
+---
+
 # Agent: PR Manager
 
 > Generates PR descriptions and tracks Definition of Done.

@@ -113,6 +113,27 @@ if [ ! -f "$WORK_DIR/.gemini/agents/memory/directives.md" ]; then
   ERRORS=$((ERRORS + 1))
 fi
 
+# Check review guidance files exist
+if [ ! -s "$WORK_DIR/.gemini/styleguide.md" ]; then
+  echo "FAIL: .gemini/styleguide.md missing or empty"
+  ERRORS=$((ERRORS + 1))
+else
+  if ! grep -q "## Always Check" "$WORK_DIR/.gemini/styleguide.md"; then
+    echo "FAIL: styleguide.md missing '## Always Check' section"
+    ERRORS=$((ERRORS + 1))
+  fi
+fi
+
+if [ ! -s "$WORK_DIR/.gemini/config.yaml" ]; then
+  echo "FAIL: .gemini/config.yaml missing or empty"
+  ERRORS=$((ERRORS + 1))
+else
+  if ! grep -q "comment_severity_threshold" "$WORK_DIR/.gemini/config.yaml"; then
+    echo "FAIL: config.yaml missing comment_severity_threshold"
+    ERRORS=$((ERRORS + 1))
+  fi
+fi
+
 # --- Content contract checks (adapter hardening) ---
 
 COMMANDS_DIR="$WORK_DIR/.gemini/commands"
@@ -147,6 +168,52 @@ if [ "$PLACEHOLDER_COUNT" -gt 0 ]; then
   echo "FAIL: $PLACEHOLDER_COUNT command files still contain unresolved placeholders"
   { grep -rl "{attaDir}\|{agentsDir}\|{bootstrapDir}\|{knowledgeDir}\|{metadataDir}" "$COMMANDS_DIR" 2>/dev/null || true; } | sed 's|.*/commands/||'
   ERRORS=$((ERRORS + 1))
+fi
+
+# Check: agent files have valid frontmatter (name + description, no model: inherit)
+AGENTS_DIR="$WORK_DIR/.gemini/agents"
+while IFS= read -r -d '' agent; do
+  if ! head -5 "$agent" | grep -q "^name:"; then
+    echo "FAIL: $agent missing 'name:' frontmatter"
+    ERRORS=$((ERRORS + 1))
+  fi
+  if ! head -5 "$agent" | grep -q "^description:"; then
+    echo "FAIL: $agent missing 'description:' frontmatter"
+    ERRORS=$((ERRORS + 1))
+  fi
+  if head -5 "$agent" | grep -q "^model: inherit"; then
+    echo "FAIL: $agent contains 'model: inherit' (Claude Code-specific)"
+    ERRORS=$((ERRORS + 1))
+  fi
+done < <(find "$AGENTS_DIR" -name "*.md" -not -path "*/memory/*" -print0 2>/dev/null)
+
+# Check: zero unresolved {attaDir} placeholders in agent files
+AGENT_PLACEHOLDER_COUNT=$({ grep -rl "{attaDir}\|{agentsDir}\|{bootstrapDir}\|{knowledgeDir}\|{metadataDir}" "$AGENTS_DIR" 2>/dev/null || true; } | { grep -v "/memory/" || true; } | wc -l | tr -d ' ')
+if [ "$AGENT_PLACEHOLDER_COUNT" -gt 0 ]; then
+  echo "FAIL: $AGENT_PLACEHOLDER_COUNT agent files still contain unresolved placeholders"
+  { grep -rl "{attaDir}\|{agentsDir}\|{bootstrapDir}\|{knowledgeDir}\|{metadataDir}" "$AGENTS_DIR" 2>/dev/null || true; } | { grep -v "/memory/" || true; } | sed 's|.*/agents/||'
+  ERRORS=$((ERRORS + 1))
+fi
+
+# --- Hooks checks (v2.7.1 Track C) ---
+
+# Check hooks.json exists and is valid JSON with Gemini event names
+if [ ! -f "$WORK_DIR/.gemini/hooks.json" ]; then
+  echo "FAIL: .gemini/hooks.json missing"
+  ERRORS=$((ERRORS + 1))
+else
+  python3 - "$WORK_DIR/.gemini/hooks.json" <<'PYEOF' 2>/dev/null || ERRORS=$((ERRORS + 1))
+import json, sys
+with open(sys.argv[1]) as f:
+    data = json.load(f)
+if 'hooks' not in data:
+    print('FAIL: hooks.json missing top-level "hooks" key')
+    sys.exit(1)
+for event in ['SessionStart', 'BeforeTool', 'AfterTool', 'BeforeAgent']:
+    if event not in data['hooks']:
+        print(f'FAIL: hooks.json missing Gemini event: {event}')
+        sys.exit(1)
+PYEOF
 fi
 
 if [ $ERRORS -eq 0 ]; then

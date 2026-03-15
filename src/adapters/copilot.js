@@ -3,7 +3,8 @@ import { join } from 'node:path';
 import pc from 'picocolors';
 import { listSkills } from './claude-code.js';
 import { generateAgentsMd } from './agents-md.js';
-import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, createMemoryDirectory } from './shared.js';
+import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, createMemoryDirectory, generateHooksConfig } from './shared.js';
+import { generateReviewRules, formatCopilot } from './review-guidance.js';
 
 /**
  * Copilot CLI adapter — generates .github/skills/, .github/atta/agents/, and AGENTS.md.
@@ -47,17 +48,17 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
     console.log(`  ${pc.green('✓')} AGENTS.md`);
   }
 
+  // Build command map for body rewriting (renamed skills — used by both skills and agents)
+  const copilotCommandMap = {};
+  for (const [orig, renamed] of Object.entries(SKILL_RENAMES)) {
+    copilotCommandMap[orig] = `/${renamed}`;
+  }
+
   // Copy skills to .github/skills/ (renaming conflicting ones)
   const skillsDir = join(claudeRoot, 'skills');
   if (existsSync(skillsDir)) {
     const skills = listSkills(claudeRoot);
     const githubSkillsDir = join(targetDir, '.github', 'skills');
-
-    // Build command map for body rewriting (all renamed skills + standard rewrites)
-    const copilotCommandMap = {};
-    for (const [orig, renamed] of Object.entries(SKILL_RENAMES)) {
-      copilotCommandMap[orig] = `/${renamed}`;
-    }
 
     const rewriteConfig = {
       agentsPath: '.github/atta/agents',
@@ -108,17 +109,34 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
     }
   }
 
-  // Copy agent definitions to .github/atta/agents/ (avoids .github/agents/ namespace conflict)
+  // Copy agent definitions to .github/atta/agents/ with Copilot-specific format:
+  // - Extension: .agent.md (Copilot ignores plain .md in agent directories)
+  // - Frontmatter: name + description only (omit model: inherit — not a Copilot field)
+  // - Body: rewrite Claude-isms (paths, commands) for Copilot
+  const copilotAgentRewriteConfig = {
+    agentsPath: '.github/atta/agents',
+    memoryPath: '.github/atta/agents/memory',
+    commandMap: copilotCommandMap,
+  };
+
   const agentCount = copyAgentFiles(
     claudeRoot,
     join(targetDir, '.github', 'atta', 'agents'),
-    options
+    {
+      ...options,
+      extension: '.agent.md',
+      transformFrontmatter: (fm) => ({
+        name: fm.name,
+        description: fm.description,
+      }),
+      transformBody: (body) => rewriteSkillBody(body, copilotAgentRewriteConfig),
+    }
   );
   results.files += agentCount;
 
   if (!options.quiet && agentCount > 0) {
     console.log(
-      `  ${pc.green('✓')} .github/atta/agents/ (${agentCount} agent definitions)`
+      `  ${pc.green('✓')} .github/atta/agents/ (${agentCount} .agent.md definitions)`
     );
   }
 
@@ -155,7 +173,7 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   writeFileSync(join(instructionsDir, 'atta-agents.instructions.md'), [
     '# Atta Agents',
     '',
-    'Agent definitions are in `.github/atta/agents/` as markdown files.',
+    'Agent definitions are in `.github/atta/agents/*.agent.md`.',
     'Invoke agents via `/atta-agent <id>` (e.g., `/atta-agent project-owner`).',
     '',
     '## Agent Directory',
@@ -184,6 +202,30 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
 
   if (!options.quiet) {
     console.log(`  ${pc.green('✓')} .github/instructions/ (3 instruction files)`);
+  }
+
+  // Generate review guidance (.github/instructions/atta-review.instructions.md)
+  const reviewRules = generateReviewRules(attaRoot, options.detectedTechs);
+  const reviewContent = formatCopilot(reviewRules);
+  writeFileSync(join(instructionsDir, 'atta-review.instructions.md'), reviewContent);
+  results.files++;
+
+  if (!options.quiet) {
+    console.log(`  ${pc.green('✓')} .github/instructions/atta-review.instructions.md (review guidance, ${reviewContent.length} chars)`);
+  }
+
+  // Generate hooks.json (Copilot hook format — 6 events, placeholder for user customization)
+  const hooksDir = join(targetDir, '.github', 'hooks');
+  const hooksJsonPath = join(hooksDir, 'hooks.json');
+  if (!existsSync(hooksJsonPath)) {
+    mkdirSync(hooksDir, { recursive: true });
+    const hooksConfig = generateHooksConfig('copilot');
+    writeFileSync(hooksJsonPath, JSON.stringify(hooksConfig, null, 2) + '\n');
+    results.files++;
+
+    if (!options.quiet) {
+      console.log(`  ${pc.green('✓')} .github/hooks/hooks.json (6 event placeholders)`);
+    }
   }
 
   // Copy shared content to .atta/ (knowledge, project, scripts, metadata, context)
@@ -220,7 +262,7 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
     '',
     '## Agent Definitions',
     '',
-    'Agent definitions: `.github/atta/agents/*.md`',
+    'Agent definitions: `.github/atta/agents/*.agent.md`',
     'Agent memory: `.github/atta/agents/memory/directives.md`',
     'Invoke agents via `/atta-agent <id>` (e.g., `/atta-agent project-owner`).',
     '',

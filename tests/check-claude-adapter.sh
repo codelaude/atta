@@ -24,6 +24,7 @@ for path in \
   ".claude/skills/atta/SKILL.md" \
   ".claude/agents/project-owner.md" \
   ".claude/agents/code-reviewer.md" \
+  ".claude/hooks/hooks.json" \
   ".claude-plugin/plugin.json" \
   "GETTING-STARTED.md"
 do
@@ -55,12 +56,18 @@ import json, sys
 path = sys.argv[1]
 with open(path) as f:
     data = json.load(f)
-for field in ['name', 'version', 'description', 'skills']:
+for field in ['name', 'version', 'description', 'skills', 'agents', 'hooks']:
     if field not in data:
         print(f'FAIL: plugin.json missing field: {field}')
         sys.exit(1)
-if len(data['skills']) < 3:
-    print(f'FAIL: plugin.json has fewer than 3 skills ({len(data["skills"])})')
+# skills/agents are directory path strings
+for field in ['skills', 'agents']:
+    if not isinstance(data[field], str) or not data[field].endswith('/'):
+        print(f'FAIL: plugin.json {field} should be a path string ending with / (got: {data[field]!r})')
+        sys.exit(1)
+# hooks is a file path string (per plugin spec: hooks points to a .json file)
+if not isinstance(data['hooks'], str) or not data['hooks'].endswith('.json'):
+    print(f'FAIL: plugin.json hooks should be a file path ending with .json (got: {data["hooks"]!r})')
     sys.exit(1)
 PYEOF
 fi
@@ -82,6 +89,67 @@ fi
 if [ ! -d "$WORK_DIR/.atta/scripts" ]; then
   echo "FAIL: .atta/scripts/ directory missing"
   ERRORS=$((ERRORS + 1))
+fi
+
+# Check REVIEW.md exists and has expected sections
+if [ ! -s "$WORK_DIR/REVIEW.md" ]; then
+  echo "FAIL: REVIEW.md missing or empty"
+  ERRORS=$((ERRORS + 1))
+else
+  if ! grep -q "## Always check" "$WORK_DIR/REVIEW.md"; then
+    echo "FAIL: REVIEW.md missing '## Always check' section"
+    ERRORS=$((ERRORS + 1))
+  fi
+  if ! grep -q "## Style" "$WORK_DIR/REVIEW.md"; then
+    echo "FAIL: REVIEW.md missing '## Style' section"
+    ERRORS=$((ERRORS + 1))
+  fi
+  if ! grep -q "## Skip" "$WORK_DIR/REVIEW.md"; then
+    echo "FAIL: REVIEW.md missing '## Skip' section"
+    ERRORS=$((ERRORS + 1))
+  fi
+fi
+
+# --- Skill flags checks (v2.7.1 Track C) ---
+
+# Check action skills have disable-model-invocation
+for skill in preflight test ship update migrate atta patterns; do
+  SKILL_FILE="$WORK_DIR/.claude/skills/$skill/SKILL.md"
+  if [ -f "$SKILL_FILE" ] && ! head -10 "$SKILL_FILE" | grep -q "disable-model-invocation: true"; then
+    echo "FAIL: $skill/SKILL.md missing 'disable-model-invocation: true'"
+    ERRORS=$((ERRORS + 1))
+  fi
+done
+
+# Check read-only skills have allowed-tools
+for skill in review lint security-audit; do
+  SKILL_FILE="$WORK_DIR/.claude/skills/$skill/SKILL.md"
+  if [ -f "$SKILL_FILE" ] && ! head -10 "$SKILL_FILE" | grep -q "allowed-tools:"; then
+    echo "FAIL: $skill/SKILL.md missing 'allowed-tools:'"
+    ERRORS=$((ERRORS + 1))
+  fi
+done
+
+# Check skills have argument-hint
+for skill in review preflight test agent collaborate; do
+  SKILL_FILE="$WORK_DIR/.claude/skills/$skill/SKILL.md"
+  if [ -f "$SKILL_FILE" ] && ! head -10 "$SKILL_FILE" | grep -q "argument-hint:"; then
+    echo "FAIL: $skill/SKILL.md missing 'argument-hint:'"
+    ERRORS=$((ERRORS + 1))
+  fi
+done
+
+# Check hooks.json is valid JSON with expected events
+if [ -f "$WORK_DIR/.claude/hooks/hooks.json" ]; then
+  python3 - "$WORK_DIR/.claude/hooks/hooks.json" <<'PYEOF' 2>/dev/null || ERRORS=$((ERRORS + 1))
+import json, sys
+with open(sys.argv[1]) as f:
+    data = json.load(f)
+for event in ['PostToolUse', 'Stop']:
+    if event not in data:
+        print(f'FAIL: hooks.json missing event: {event}')
+        sys.exit(1)
+PYEOF
 fi
 
 # Count total files

@@ -347,19 +347,36 @@ Result:
    generated_content = substitute_variables(template_content, variables)
    ```
 
-4. **Append Developer Preferences** (see [Profile Injection](#profile-injection-post-processing) below):
+4. **Prepend YAML frontmatter**:
+   ```javascript
+   // Build frontmatter from mapping metadata.
+   // name: mapping key (e.g., "vue", "fe-team-lead")
+   // description: derive from template title or variables
+   //              (e.g., "Vue.js frontend framework specialist")
+   // model: inherit (always — Claude Code resolves this at runtime)
+   frontmatter = `---\nname: ${agent_key}\ndescription: ${agent_description}\nmodel: inherit\n---\n`
+   generated_content = frontmatter + generated_content
+   ```
+
+   > **Formatting rules**: Frontmatter values MUST be single-line plain scalars.
+   > Do NOT use multiline YAML (`>`, `|`), block sequences, or nested objects.
+   > Values containing `: `, ` #`, or YAML-special leading chars (`!`, `*`, `{`, `[`, etc.)
+   > must be double-quoted. Non-Claude adapters parse this with a simple key-value regex
+   > and will reject unsupported syntax during `atta init`.
+
+5. **Append Developer Preferences** (see [Profile Injection](#profile-injection-post-processing) below):
    ```javascript
    if (profile_preferences) {
      generated_content += profile_preferences_section
    }
    ```
 
-5. **Write agent file**:
+6. **Write agent file**:
    ```javascript
    write_file(mapping.output, generated_content)
    ```
 
-6. **Update manifest**:
+7. **Update manifest**:
    ```javascript
    manifest.generated_files.push({
      file: mapping.output,
@@ -727,6 +744,7 @@ The `/atta` skill should:
    ```javascript
    for each agent in agents_to_generate:
      generated_agent = load_template_and_substitute_variables(agent)
+     generated_agent = prepend_yaml_frontmatter(agent.name, agent.description, generated_agent)
      write_file(agent.output, generated_agent)
    ```
 

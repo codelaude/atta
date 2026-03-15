@@ -1,15 +1,17 @@
 ---
 name: preflight
-description: Run full pre-PR validation combining lint checks, security scan, test execution, and code review into one workflow.
+description: Run full pre-PR validation combining static analysis, lint checks, security scan, test execution, and code review into one workflow.
+disable-model-invocation: true
+argument-hint: "[--auto-fix] [--skip-tests] [--skip-lint] [--skip-security] [--skip-review]"
 ---
 
-You are now running a **preflight check** - a comprehensive pre-PR validation that combines all quality checks into one workflow.
+You are now running a **preflight check** - a comprehensive pre-PR validation that combines static analysis, lint, security, tests, and code review into one workflow.
 
 ## How to Use
 
 ```
-/preflight                    # Full preflight (lint + security + tests + review)
-/preflight --auto-fix         # Run preflight, then fix lint/review failures one check at a time
+/preflight                    # Full preflight (static analysis + lint + security + tests + review)
+/preflight --auto-fix         # Run preflight, then fix issues one check at a time
 /preflight --skip-tests       # Skip test execution
 /preflight --skip-lint        # Skip lint checks
 /preflight --skip-security    # Skip security scan
@@ -20,11 +22,12 @@ You are now running a **preflight check** - a comprehensive pre-PR validation th
 
 ## Auto-Fix Mode
 
-When run with `--auto-fix`, preflight enters an iterative fix loop after identifying failures.
+When run with `--auto-fix`, preflight enters an iterative fix loop after identifying issues.
 
 ### What gets fixed
+- **Static analysis findings** — unused imports, inconsistent values (missing test files are flagged but not auto-authored)
 - **Lint failures** — whitespace, formatting, pattern violations
-- **Review findings** — LOW and MEDIUM severity items with clear remediation (missing null checks, unused imports, obvious code quality issues)
+- **Review findings** — LOW and MEDIUM severity items with clear remediation (missing null checks, obvious code quality issues)
 
 ### What does NOT get auto-fixed
 - Test failures (too complex — diagnose and fix manually)
@@ -35,8 +38,8 @@ When run with `--auto-fix`, preflight enters an iterative fix loop after identif
 
 1. Run all preflight checks (same as normal mode)
 2. If all pass → "Ready for PR" (same as normal)
-3. If lint or review failures exist → for each failing check, one at a time:
-   - Analyze the failure output
+3. If static analysis findings, lint failures, or review findings exist → for each check with issues, one at a time:
+   - Analyze the check output
    - Propose specific fixes (file + line + change description)
    - **Wait for your approval before applying**
    - On approval: apply fixes, re-run that check only
@@ -50,11 +53,20 @@ When run with `--auto-fix`, preflight enters an iterative fix loop after identif
 ```markdown
 ## Auto-Fix Round 1
 
-**Lint**: 2 issues found
-  - auth.js:42 — trailing whitespace
-  - utils.ts:17 — unused import `lodash`
+**Static Analysis**: 1 issue found
+  - utils.ts:3 — unused import `lodash` (HIGH)
 
-Proposed fixes: Apply both?
+Proposed fix: Remove unused import?
+> [awaiting approval]
+
+[After approval]
+
+Static Analysis re-run: PASSED
+
+**Lint**: 1 issue found
+  - auth.js:42 — trailing whitespace
+
+Proposed fix: Remove trailing whitespace?
 > [awaiting approval]
 
 [After approval]
@@ -101,6 +113,34 @@ If `$FILES` is empty, also check unstaged changes:
 FILES=$(git diff --name-only)
 ```
 If still empty, trigger the "Cannot Resolve Changed Files" recovery.
+
+### Step 1.5: Static Analysis (New Files Only)
+
+Derive the new-file subset using the same base-branch range from Step 1 with `--diff-filter=A` for tracked/staged/committed files (for example: `git diff --diff-filter=A --name-only origin/main...HEAD`). When Step 1 falls back to local diffs, or if you want to ensure untracked files are also analyzed, additionally collect untracked files via `git ls-files --others --exclude-standard` and include them in the new-file set. Run these quick checks on new files before the full review:
+
+**Unused imports** — scan for imported symbols not referenced in the file body:
+- JS/TS: named (`import { X }`), default (`import X`), namespace (`import * as NS`), and aliased (`import { X as Y }`) — check the *bound identifier* (Y, not X) for usage after the import block
+- Python: `from module import X`, `import module`, and aliased forms (`as Y`) — check the bound name
+- When confident the import is unused, report as HIGH (signals unfinished refactoring). If unsure due to complex patterns (re-exports, side-effect imports), downgrade to MEDIUM or skip.
+
+**Cross-file consistency** — for new files that reference values also found in existing files:
+- URLs, version strings, config keys: verify they match the canonical source (e.g., `package.json`, central config)
+- Directory paths or conventions: verify they match patterns already established in the codebase
+- Counts or feature claims in user-facing strings: verify they match the actual generated/configured output
+
+**Platform portability** — scan for common cross-platform footguns in JS/TS:
+- `.split('/')` on file paths → prefer `path.basename()`, `path.parse()`, or other `path` APIs; use `path.posix` when handling git/repo-relative paths (which always use `/`)
+- Unquoted variable interpolation in shell command strings → paths with spaces will break
+
+**Shell script safety** — for `.sh` files with `set -euo pipefail`:
+- `find <dir>` in a pipeline → aborts if dir doesn't exist; guard with `[ -d "$dir" ]` or `|| true`
+- `grep` in a pipeline → aborts on zero matches; use `|| true` or `{ grep ... || true; }`
+
+**Test coverage** — if the new-file subset includes a new module, command, or entry point:
+- Check whether a corresponding test file exists or is being added in the same changeset
+- Report as MEDIUM if missing — new modules without tests are a regression risk
+
+Report as a separate **Static Analysis** row in the summary table (Step 6), using HIGH/MEDIUM severities for prioritization. Static analysis findings do **not** block preflight on their own (unlike Lint critical patterns or Security critical findings) — they are informational and feed into the overall status alongside Review findings. If there are no new files in the changeset, report "N/A — no new files" and move on.
 
 ### Step 2: Lint Check
 
@@ -153,6 +193,7 @@ Report all findings but don't block unless CRITICAL issues are found.
 
 | Check | Status | Details |
 |-------|--------|---------|
+| Static Analysis | X high, X medium (or N/A — no new files) | New files analyzed |
 | Lint | Passed | No critical issues |
 | Security | Passed | No critical vulnerabilities |
 | Tests | Passed | X tests, 0 failures |
@@ -165,7 +206,7 @@ Report all findings but don't block unless CRITICAL issues are found.
 
 | Flag | Effect |
 |------|--------|
-| `--auto-fix` | After running checks, attempt to fix lint and review failures one check at a time (user confirms each fix) |
+| `--auto-fix` | After running checks, attempt to fix static analysis findings, lint failures, and review findings one check at a time (user confirms each fix) |
 | `--skip-tests` | Skip test execution |
 | `--skip-lint` | Skip lint pattern checks |
 | `--skip-security` | Skip security scan (not recommended for PRs touching auth, API, or user input) |

@@ -3,7 +3,8 @@ import { join } from 'node:path';
 import pc from 'picocolors';
 import { listSkills } from './claude-code.js';
 import { generateAgentsMd } from './agents-md.js';
-import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, createMemoryDirectory } from './shared.js';
+import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, createMemoryDirectory, generateHooksConfig } from './shared.js';
+import { generateReviewRules, formatCursorBugbot, formatCursorMdc } from './review-guidance.js';
 
 /**
  * Cursor adapter — generates AGENTS.md, .cursor/rules/*.mdc, and .cursor/agents/.
@@ -64,11 +65,40 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
     }
   }
 
+  // Generate review guidance files
+  const reviewRules = generateReviewRules(attaRoot, options.detectedTechs);
+
+  // .cursor/BUGBOT.md — BugBot PR review (conditional rules)
+  const bugbotContent = formatCursorBugbot(reviewRules);
+  mkdirSync(join(targetDir, '.cursor'), { recursive: true });
+  writeFileSync(join(targetDir, '.cursor', 'BUGBOT.md'), bugbotContent);
+  results.files++;
+
+  // .cursor/rules/atta-review.mdc — agent/chat review context
+  const reviewMdc = formatCursorMdc(reviewRules);
+  const rulesDir2 = join(targetDir, '.cursor', 'rules');
+  mkdirSync(rulesDir2, { recursive: true });
+  writeFileSync(join(rulesDir2, 'atta-review.mdc'), reviewMdc);
+  results.files++;
+
+  if (!options.quiet) {
+    console.log(`  ${pc.green('✓')} .cursor/BUGBOT.md + .cursor/rules/atta-review.mdc (review guidance)`);
+  }
+
   // Copy agent definitions to .cursor/agents/
+  // Cursor also discovers .claude/agents/ natively, but we generate copies
+  // with rewritten paths for standalone Cursor projects (no .claude/ present).
   const agentCount = copyAgentFiles(
     claudeRoot,
     join(targetDir, '.cursor', 'agents'),
-    options
+    {
+      ...options,
+      transformFrontmatter: (fm) => ({
+        name: fm.name,
+        description: fm.description,
+      }),
+      transformBody: (body) => rewriteSkillBody(body, CURSOR_REWRITE_CONFIG),
+    }
   );
   results.files += agentCount;
 
@@ -81,6 +111,20 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   // Create memory directory with directives placeholder
   createMemoryDirectory(join(targetDir, '.cursor', 'agents'), options);
   results.files++;
+
+  // Generate hooks.json (Cursor hook format — 19+ events, placeholder for user customization)
+  const cursorDir = join(targetDir, '.cursor');
+  const hooksJsonPath = join(cursorDir, 'hooks.json');
+  if (!existsSync(hooksJsonPath)) {
+    mkdirSync(cursorDir, { recursive: true });
+    const hooksConfig = generateHooksConfig('cursor');
+    writeFileSync(hooksJsonPath, JSON.stringify(hooksConfig, null, 2) + '\n');
+    results.files++;
+
+    if (!options.quiet) {
+      console.log(`  ${pc.green('✓')} .cursor/hooks.json (10 event placeholders)`);
+    }
+  }
 
   // Copy shared content to .atta/ (knowledge, project, scripts, metadata, context)
   const sharedCount = copySharedContent(attaRoot, targetDir, options);

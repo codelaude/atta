@@ -1,3 +1,9 @@
+---
+name: project-owner
+description: Main orchestrator that routes tasks to specialist agents and synthesizes multi-agent responses. Use when coordinating cross-team work or deciding which agent should handle a task.
+model: inherit
+---
+
 # Agent: Project Owner (Orchestrator)
 
 > Routes tasks to specialists and synthesizes multi-agent responses.

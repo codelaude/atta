@@ -1,6 +1,8 @@
 ---
 name: test
 description: Run tests with auto-detection, E2E support, coverage analysis, and watch mode.
+disable-model-invocation: true
+argument-hint: "[path] [--e2e] [--coverage] [--watch]"
 ---
 
 You are running the project's test suite with intelligent framework detection.

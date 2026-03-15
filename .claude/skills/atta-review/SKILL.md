@@ -183,9 +183,9 @@ Categorize each finding by **severity** (CRITICAL / HIGH / MEDIUM / LOW) and **c
 | `--quiet` | Show only **CRITICAL/HIGH severity** with **HIGH confidence** (quietest mode) |
 | `--quick` | Only run CRITICAL automated checks, skip domain-specific review, output pass/fail summary only |
 
-Flags compose: `--strict --quick` runs CRITICAL automated checks only, showing only HIGH confidence findings.
+`--quick` takes precedence on output format: when combined with `--strict` or `--quiet`, the confidence/severity filters still apply to which findings are checked, but output remains pass/fail summary only — no findings table or hidden-count footer.
 
-When `--strict` or `--quiet` is active, note filtered count at bottom: *"X additional findings hidden (use default mode to see all)"*
+When `--strict` or `--quiet` is used **without** `--quick`, note filtered count at bottom: *"X additional findings hidden (use default mode to see all)"*
 
 ### Step 5b: Log Anti-Pattern Findings (Silent)
 

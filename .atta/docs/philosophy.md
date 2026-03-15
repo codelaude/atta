@@ -156,10 +156,10 @@ The `.claude/` and `.atta/` directories together are the source of truth. Design
 
 | Layer | Claude Code | Copilot | Codex | Gemini | Cursor |
 |-------|-------------|---------|-------|--------|--------|
-| Agents | Sub-agents with routing | `.agent.md` delegation | `config.toml` routing | `.md` agents | AGENTS.md |
+| Agents | Sub-agents with routing | `.agent.md` delegation | `config.toml` routing | `.md` agents | `.cursor/agents/` |
 | Skills | `/atta-*` slash commands | `/atta-*` commands | `$atta-*` prefix | `/atta-*` TOML commands | `@atta-*` rules |
 | Knowledge | Pattern files | Pattern files | Pattern files | Pattern files | Pattern files |
-| Memory | Librarian agent | Instruction files | `AGENTS.md` | `GEMINI.md` | `.cursor/rules/` |
+| Memory | Librarian agent | Instruction files | `AGENTS.md` | `GEMINI.md` | `.cursor/agents/memory/` |
 | Rules | `.claude/rules/` | `.github/instructions/` | `AGENTS.md` | `.gemini/styleguide.md` | `.cursor/rules/` |
 
 **The knowledge base is the most portable layer.** Start with patterns, then layer routing and specialists.

@@ -533,9 +533,9 @@ def normalize(s):
 current_norm = normalize(current_model)
 
 # Extract keyword patterns from registry model names.
-# 'Claude Opus 4.6 or GPT-5.4' → ['opus', 'gpt 5 4']
-# 'haiku' → ['haiku']
-# We extract the distinctive model family word (opus, sonnet, haiku, gpt, flash, pro)
+# 'Claude Opus 4.6 or GPT-5.4' → keywords ['opus'] + full labels ['claude opus 4 6', 'gpt 5 4']
+# 'haiku' → keywords ['haiku'] + full label ['haiku']
+# Keywords are distinctive family words; full normalized labels handle version-specific matching
 def extract_keywords(label):
     label_lower = label.lower()
     # Split on ' or ' for multi-option labels
@@ -553,9 +553,9 @@ def extract_keywords(label):
 
 # Determine current model tier by checking against registry tier labels
 tier_rank = {'light': 1, 'mid': 2, 'full': 3}
-current_tier = 'light'  # default: cheapest, won't block
+current_tier = None  # None = unrecognized
 
-for check_tier in ['full', 'mid']:
+for check_tier in ['full', 'mid', 'light']:
     label = reg.get('tiers', {}).get(check_tier, {}).get(adapter, '')
     if not label:
         continue
@@ -564,17 +564,19 @@ for check_tier in ['full', 'mid']:
         if kw and kw in current_norm:
             current_tier = check_tier
             break
-    if current_tier != 'light':
+    if current_tier is not None:
         break
 
-# Compare
-current_rank = tier_rank.get(current_tier, 0)
-skill_rank = tier_rank.get(tier, 0)
-
-if current_rank > skill_rank:
-    print(f'block|{tier}|{model_name}|{current_tier}')
+if current_tier is None:
+    # Model detected but unrecognized — warn, don't silently allow
+    print(f'unknown|{tier}|{model_name}|')
 else:
-    print('allow|||')
+    current_rank = tier_rank.get(current_tier, 0)
+    skill_rank = tier_rank.get(tier, 0)
+    if current_rank > skill_rank:
+        print(f'block|{tier}|{model_name}|{current_tier}')
+    else:
+        print('allow|||')
 " 2>/dev/null || echo "skip|||")"
 
 case "\$RESULT" in
@@ -590,6 +592,10 @@ case "\$RESULT" in
     ;;
   warn)
     echo "[model-gate] /\$SKILL is a lightweight skill — consider using \$MODEL_NAME for cost savings." >&2
+    exit 0
+    ;;
+  unknown)
+    echo "[model-gate] Unrecognized model '\$CURRENT_MODEL' — cannot verify tier for /\$SKILL (\$TIER). Allowing, but consider using \$MODEL_NAME." >&2
     exit 0
     ;;
   *)

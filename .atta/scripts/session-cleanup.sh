@@ -3,8 +3,9 @@
 # Session Cleanup Script
 # Keeps only the 10 most recent session files
 # Usage:
-#   .atta/scripts/session-cleanup.sh                         # Auto-detect (.atta/local/.sessions)
-#   .atta/scripts/session-cleanup.sh /path/to/sessionsRoot   # Explicit sessions root (e.g. .claude)
+#   .atta/scripts/session-cleanup.sh .claude                  # Claude Code (sessions in .claude/.sessions/)
+#   .atta/scripts/session-cleanup.sh /path/to/sessionsRoot   # Explicit sessions root
+#   .atta/scripts/session-cleanup.sh                         # Fallback (.atta/local — usually no-op)
 
 set -euo pipefail
 

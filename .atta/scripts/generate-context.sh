@@ -35,7 +35,7 @@ if [ ! -d "$SESSIONS_DIR" ]; then
 
 *Auto-generated — do not edit manually.*
 
-No recent sessions found. Run a skill (e.g., `/atta`, `/tutorial`) to start tracking.
+No recent sessions found. Run a skill (e.g., `/atta`, `/atta-tutorial`) to start tracking.
 EOF
   exit 0
 fi

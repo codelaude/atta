@@ -354,15 +354,19 @@ Result:
    // description: derive from template title or variables
    //              (e.g., "Vue.js frontend framework specialist")
    // model: inherit (always — Claude Code resolves this at runtime)
-   frontmatter = `---\nname: ${agent_key}\ndescription: ${agent_description}\nmodel: inherit\n---\n`
-   generated_content = frontmatter + generated_content
+   // Templates already include frontmatter with name/description/model.
+   // If the template has no frontmatter, prepend a minimal block:
+   if (!generated_content.startsWith('---')) {
+     frontmatter = `---\nname: ${agent_key}\ndescription: ${agent_description}\nmodel: inherit\n---\n`
+     generated_content = frontmatter + generated_content
+   }
    ```
 
-   > **Formatting rules**: Frontmatter values MUST be single-line plain scalars.
-   > Do NOT use multiline YAML (`>`, `|`), block sequences, or nested objects.
+   > **Formatting rules**: Frontmatter supports single-line scalars and block sequences (lists).
+   > Multiline YAML (`>`, `|`) and nested objects are NOT supported.
    > Values containing `: `, ` #`, or YAML-special leading chars (`!`, `*`, `{`, `[`, etc.)
-   > must be double-quoted. Non-Claude adapters parse this with a simple key-value regex
-   > and will reject unsupported syntax during `atta init`.
+   > must be double-quoted. The parser (`parseAgentFrontmatter` in `shared.js`) handles
+   > key-value pairs, block lists (`  - item`), and inline flow lists (`[a, b]`).
 
 5. **Append Developer Preferences** (see [Profile Injection](#profile-injection-post-processing) below):
    ```javascript

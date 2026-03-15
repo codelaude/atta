@@ -18,6 +18,7 @@ From file generation to enforcement infrastructure generation. 14 tracks, 13 PRs
 - Skill flags: `disable-model-invocation`, `allowed-tools`, `argument-hint` with cross-tool translation
 - Model targeting via `model-registry.json` (3-tier skill classification: light/mid/full) and `model:` frontmatter in SKILL.md
 - **Blocking `model-gate.sh` hook**: detects the current model (Copilot `$COPILOT_MODEL`, Cursor stdin JSON, Gemini `$GEMINI_MODEL`) and blocks skills running on costlier models than needed — `--bypass` flag or `ATTA_MODEL_GATE=off` env var to override
+- **Hook profiles** via `ATTA_HOOKS` env var: `strict`/`standard` (all hooks), `minimal` (safety only), `off` (skip all enforcement) — see [Model Targeting](model-targeting.md)
 
 **Agent System**
 - **4 core + 4 optional agents**: core (project-owner, code-reviewer, librarian, architect) always installed; optional (business-analyst, qa-validator, pr-manager, rubber-duck) selected during init

@@ -32,3 +32,5 @@ The `model-gate.sh` hook enforces model selection — it **blocks** skills runni
 > Estimates based on typical usage with recommended model tiers. Actual costs depend on codebase size, number of files reviewed, and conversation length. Subscription plans (Claude Pro/Max) count against usage budgets rather than per-token billing.
 
 **Key takeaway:** Most daily skills (`/atta-lint`, `/atta-agent`, `/atta-preflight`) run on Haiku at ~$0.01-0.03 per invocation. Only security audit and multi-agent collaboration need Opus. Setup (`/atta`) runs once on Haiku and costs ~$0.05-0.10.
+
+**Reducing output tokens:** Use `--strict` with `/atta-review` to show only HIGH confidence findings, or `--quiet` for CRITICAL/HIGH severity + HIGH confidence only. These flags reduce output tokens by filtering speculative findings.

@@ -2,7 +2,7 @@
 name: atta-review
 description: Comprehensive code review with automated pattern checks. Use when reviewing changed files against framework, language, styling, accessibility, performance, and testing conventions.
 allowed-tools: Read, Grep, Glob, Bash(git:*), Bash(bash .atta/scripts/pattern-log.sh:*), Bash(bash .atta/scripts/pattern-analyze.sh:*)
-argument-hint: "[file|folder] [--quick]"
+argument-hint: "[file|folder] [--quick] [--strict] [--quiet]"
 ---
 
 You are now acting as the **Code Reviewer** with automated pattern checking capabilities.
@@ -14,6 +14,8 @@ You are now acting as the **Code Reviewer** with automated pattern checking capa
 /atta-review src/components/UserProfile.tsx  # Review specific file
 /atta-review src/components/search          # Review folder
 /atta-review --quick src/auth/login.ts      # Quick review (critical only)
+/atta-review --strict                       # HIGH confidence findings only
+/atta-review --quiet                        # CRITICAL/HIGH severity + HIGH confidence only
 ```
 
 ---
@@ -135,30 +137,59 @@ After automated checks, review for these language-agnostic concerns. For tech-sp
 
 ### Step 5: Generate Review Output
 
-Categorize each finding by severity: **CRITICAL** / **HIGH** / **MEDIUM** / **LOW**.
+Categorize each finding by **severity** (CRITICAL / HIGH / MEDIUM / LOW) and **confidence** (HIGH / MEDIUM / LOW).
+
+#### Confidence Criteria
+
+| Confidence | Definition | Examples |
+|------------|------------|---------|
+| **HIGH** | Pattern is unambiguous, context confirms the issue | `eval()` with user input, missing error handling on `catch`, SQL string concatenation, hardcoded credentials |
+| **MEDIUM** | Pattern suggests issue but context is unclear | Possible resource leak (depends on framework lifecycle), missing null check (may be guarded upstream) |
+| **LOW** | Speculative — could be intentional, convention-dependent, or framework-handled | "consider memoization" without profiling data, style preferences, "might want to add tests" |
+
+> Automated checks (Step 3) are always HIGH confidence — they match unambiguous patterns.
+> Domain-specific findings (Step 4) get confidence based on how certain you are the issue is real in context.
+
+#### Output Format
 
 ```markdown
 ## Code Review: [target]
 
+### Findings
+| Severity | Confidence | File:Line | Finding | Recommendation |
+|----------|------------|-----------|---------|----------------|
+| CRITICAL | HIGH       | src/auth.ts:42 | SQL injection via string concatenation | Use parameterized queries |
+| MEDIUM   | LOW        | src/utils.ts:15 | Unused import | Verify — may be used dynamically |
+
 ### Summary
-| Category | Status | Findings |
-|----------|--------|----------|
-| Automated Checks | X passed / X failed | — |
-| Framework Patterns | [status] | X critical, X high, X medium |
-| TypeScript | [status] | X critical, X high, X medium |
-| SCSS | [status] | X critical, X high, X medium |
-| Accessibility | [status] | X critical, X high, X medium |
-| Performance | [status] | X critical, X high, X medium |
-| Security | [status] | X critical, X high, X medium |
-| Bug & Logic | [status] | X critical, X high, X medium |
-| Testing | [status] | X critical, X high, X medium |
+| Category | Status | Findings (HIGH conf) | Findings (MED/LOW conf) |
+|----------|--------|:---:|:---:|
+| Automated Checks | X passed / X failed | X | — |
+| Security | [status] | X | X |
+| Performance | [status] | X | X |
+| Bug & Logic | [status] | X | X |
+| Accessibility | [status] | X | X |
+| Testing | [status] | X | X |
 
 **Verdict:** [APPROVED / CHANGES REQUESTED / NEEDS DISCUSSION]
 ```
 
+#### Flag Filtering
+
+| Flag | Behavior |
+|------|----------|
+| (default) | Show all findings with Confidence column visible |
+| `--strict` | Show only **HIGH confidence** findings (hides MEDIUM/LOW confidence) |
+| `--quiet` | Show only **CRITICAL/HIGH severity** with **HIGH confidence** (quietest mode) |
+| `--quick` | Only run CRITICAL automated checks, skip domain-specific review, output pass/fail summary only |
+
+`--quick` takes precedence on output format: when combined with `--strict` or `--quiet`, the confidence/severity filters still apply to which findings are checked, but output remains pass/fail summary only — no findings table or hidden-count footer.
+
+When `--strict` or `--quiet` is used **without** `--quick`, note filtered count at bottom: *"X additional findings hidden (use default mode to see all)"*
+
 ### Step 5b: Log Anti-Pattern Findings (Silent)
 
-For each **CRITICAL** or **HIGH** finding, log to the pattern detection system:
+For each **CRITICAL** or **HIGH** finding **at HIGH confidence**, log to the pattern detection system:
 
 ```bash
 bash .atta/scripts/pattern-log.sh {attaDir} << 'PAYLOAD'
@@ -168,29 +199,22 @@ PAYLOAD
 
 After logging all findings, run: `bash .atta/scripts/pattern-analyze.sh {attaDir}`
 
-> Skip if no CRITICAL/HIGH findings or if `pattern-log.sh` is not available.
+> Skip if no CRITICAL/HIGH findings at HIGH confidence, or if `pattern-log.sh` is not available.
 
 ---
 
 ## Review Verdicts
 
+Verdict is based on **HIGH confidence** findings only. MEDIUM/LOW confidence findings inform but do not block.
+
 ### APPROVED
-All checks pass. No critical or high issues. Optional suggestions only.
+All checks pass. No critical or high-severity findings at HIGH confidence. Optional suggestions only.
 
 ### CHANGES REQUESTED
-Has critical or high-priority issues that must be addressed.
+Has critical or high-severity issues **at HIGH confidence** that must be addressed.
 
 ### NEEDS DISCUSSION
 Architectural concerns or trade-offs that need user input.
-
----
-
-## Quick Review Mode
-
-When `--quick` flag is used:
-- Only run CRITICAL automated checks
-- Skip domain-specific deep review
-- Output pass/fail summary only
 
 ---
 

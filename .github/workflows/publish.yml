@@ -41,6 +41,12 @@ jobs:
             echo "version=$CURRENT" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Upgrade npm for OIDC trusted publishing
+        if: steps.version.outputs.skip == 'false'
+        run: |
+          npm install -g npm@^11.5.1
+          npm --version
+
       - name: Install dependencies
         if: steps.version.outputs.skip == 'false'
         run: npm install
@@ -62,4 +68,25 @@ jobs:
           else
             git tag "$TAG"
             git push origin "$TAG"
+          fi
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="v$(node -p 'require("./package.json").version')"
+          API_STDERR=$(mktemp)
+          HTTP_CODE=$(gh api "repos/${{ github.repository }}/releases/tags/$TAG" \
+            --silent --include 2>"$API_STDERR" | head -1 | awk '{print $2}') || true
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "Release $TAG already exists, skipping."
+          elif [ "$HTTP_CODE" = "404" ]; then
+            gh release create "$TAG" \
+              --verify-tag \
+              --title "$TAG" \
+              --generate-notes
+          else
+            echo "::error::Unexpected response ($HTTP_CODE) checking release $TAG"
+            cat "$API_STDERR" >&2
+            exit 1
           fi

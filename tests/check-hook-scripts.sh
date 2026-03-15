@@ -80,7 +80,7 @@ assert_exit_and_deny() {
     ERRORS=$((ERRORS + 1))
     return
   fi
-  if echo "$HOOK_STDOUT" | grep -q '"deny"'; then
+  if echo "$HOOK_STDOUT" | grep -q '"permissionDecision".*"deny"'; then
     echo "PASS: $name"
   else
     echo "FAIL: $name — expected deny in stdout, got: $HOOK_STDOUT"
@@ -118,9 +118,9 @@ assert_exit_and_deny "model-gate: light skill on full model → exit 2 + deny" 2
 run_hook "model-gate.sh" '{"tool_input":{"skill":"atta-lint"}}' "ATTA_ADAPTER=copilot" "COPILOT_MODEL=Claude Haiku 4.5"
 assert_exit "model-gate: light skill on light model → exit 0" 0
 
-# Test 7: Mid skill on full model → exit 2
+# Test 7: Mid skill on full model → exit 2 + deny stdout
 run_hook "model-gate.sh" '{"tool_input":{"skill":"atta-review"}}' "ATTA_ADAPTER=copilot" "COPILOT_MODEL=Claude Opus 4.6"
-assert_exit "model-gate: mid skill on full model → exit 2" 2
+assert_exit_and_deny "model-gate: mid skill on full model → exit 2 + deny" 2
 
 # Test 8: Unrecognized model → exit 0 (warn on stderr)
 run_hook "model-gate.sh" '{"tool_input":{"skill":"atta-lint"}}' "ATTA_ADAPTER=copilot" "COPILOT_MODEL=some-unknown-model-v99"

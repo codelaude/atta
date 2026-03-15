@@ -146,9 +146,8 @@ ATTA_HOOKS=off npx atta-dev init   # Skip all enforcement during init
 | `pre-bash-safety.sh` | Runs | Runs | Skips |
 | `model-gate.sh` | Runs | Skips | Skips |
 | `stop-quality-gate.sh` | Runs | Skips | Skips |
-| `session-track.sh` | Runs | Runs | Runs |
 
-**Claude Code and Cursor** use **prompt-type hooks** for safety and quality gates — these are AI-evaluated and not controlled by `ATTA_HOOKS`. The model-gate is a command-type hook on all tools and respects `ATTA_HOOKS` everywhere.
+**Claude Code and Cursor** use **prompt-type hooks** for safety and quality gates — these are AI-evaluated and not controlled by `ATTA_HOOKS`. The model-gate is a command-type hook on Copilot, Cursor, and Gemini and respects `ATTA_HOOKS` on those tools. Claude Code handles model routing natively via `model:` frontmatter.
 
 | Hook | Copilot / Gemini | Cursor | Claude Code |
 |------|-----------------|--------|-------------|

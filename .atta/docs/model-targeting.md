@@ -11,7 +11,7 @@ Not every skill needs the most expensive model. Model targeting assigns each ski
 | Tier | Claude Code Model | Use Case | Skills |
 |------|------------------|----------|--------|
 | **Light** | Haiku | Deterministic, scripted, or simple tasks | `/atta`, `/atta-preflight`, `/atta-lint`, `/atta-agent`, `/atta-test`, `/atta-ship`, `/atta-update`, `/atta-patterns`, `/atta-migrate`, `/atta-profile`, `/atta-tutorial` |
-| **Mid** | Sonnet | Code review, analysis, synthesis | `/atta-review`, `/atta-optimize`, `/atta-librarian`, `/atta-team-lead`, `atta-route`, `atta-checklist` (hidden) |
+| **Mid** | Sonnet | Code review, analysis, synthesis | `/atta-review`, `/atta-optimize`, `/atta-librarian`, `/atta-team-lead`, `/atta-route`, `/atta-checklist` (hidden) |
 | **Full** | Opus | Security audit, multi-agent orchestration | `/atta-security-audit`, `/atta-collaborate` |
 
 ## How It Works

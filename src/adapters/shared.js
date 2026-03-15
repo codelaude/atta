@@ -543,7 +543,7 @@ def extract_keywords(label):
     keywords = []
     for part in parts:
         norm = normalize(part)
-        # Extract the key model identifier (opus, sonnet, haiku, flash, pro, gpt-X)
+        # Extract distinctive model family keywords (avoids ambiguous words like 'pro')
         for kw in ['opus', 'sonnet', 'haiku', 'flash']:
             if kw in norm:
                 keywords.append(kw)
@@ -579,8 +579,13 @@ else:
 
 case "\$RESULT" in
   block)
+    REASON="[model-gate] /\$SKILL is a \$TIER-tier skill but you're on \$CURRENT_MODEL (\$CURRENT_TIER tier). Switch to \$MODEL_NAME or use --bypass."
     echo "[model-gate] BLOCKED: /\$SKILL is a \$TIER-tier skill but you're running on \$CURRENT_MODEL (\$CURRENT_TIER tier)." >&2
     echo "[model-gate] Switch to \$MODEL_NAME or re-run with --bypass to override." >&2
+    # Copilot: stdout JSON with permissionDecision (env var avoids shell injection)
+    if [ "\$ADAPTER" = "copilot" ]; then
+      REASON="\$REASON" python3 -c "import json,os; print(json.dumps({'permissionDecision':'deny','permissionDecisionReason':os.environ['REASON']}))" 2>/dev/null || echo '{"permissionDecision":"deny","permissionDecisionReason":"model tier mismatch"}'
+    fi
     exit 2
     ;;
   warn)

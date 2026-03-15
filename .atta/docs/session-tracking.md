@@ -111,7 +111,7 @@ The hook script `.claude/hooks/session-track.sh` handles the full lifecycle:
 
 Hook configuration is generated in `.claude/hooks/hooks.json` by the Claude Code adapter during `npx atta-dev init`.
 
-**Other tools** (Copilot, Codex, Gemini) do not support hooks — session tracking is Claude Code only.
+**Other tools** (Copilot, Cursor, Gemini) support enforcement hooks but not session tracking hooks — session tracking is Claude Code only.
 
 ## Pattern Detection (v2.5)
 

@@ -191,10 +191,14 @@ routes:
         - pages/_document.ts
         - pages/_document.js
         - pages/_document.jsx
+        - src/pages/_document.tsx
+        - src/pages/_document.ts
+        - src/pages/_document.js
+        - src/pages/_document.jsx
     metadata:
       type: architectural_pattern
       category: routes
-      description: "Next.js Pages Router (pages/ directory with custom App)"
+      description: "Next.js Pages Router (pages/ directory with custom App or Document)"
 
   - name: Centralized Router
     identifier: centralized-router

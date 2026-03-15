@@ -131,11 +131,12 @@ OTHERWISE: "No learning data yet."}
 You are one of {N} agents reviewing the same code. Format output per the finding schema below.
 
 ### Finding Table Format
-| agent_id | domain | severity | file:line | finding | recommendation | conflicts_with |
+| agent_id | domain | severity | confidence | file:line | finding | recommendation | conflicts_with |
 
 - agent_id: Your agent ID (e.g., security-specialist, accessibility)
 - domain: framework, language, styling, accessibility, security, testing, architecture, performance, database
 - severity: CRITICAL (must fix), HIGH (should fix), MEDIUM (fix in sprint), LOW (track), INFO (observation)
+- confidence: HIGH (unambiguous pattern, context confirms), MEDIUM (pattern suggests but context unclear), LOW (speculative, may be intentional)
 - file:line: File path and line (e.g., src/UserProfile.tsx:42), or "general"
 - finding: One-sentence issue description
 - recommendation: One-sentence actionable fix
@@ -146,9 +147,9 @@ You are one of {N} agents reviewing the same code. Format output per the finding
 ### Context
 [1-2 sentences: what was examined and from which perspective]
 ### Findings
-| agent_id | domain | severity | file:line | finding | recommendation | conflicts_with |
-|----------|--------|----------|-----------|---------|----------------|----------------|
-| [rows]   |        |          |           |         |                |                |
+| agent_id | domain | severity | confidence | file:line | finding | recommendation | conflicts_with |
+|----------|--------|----------|------------|-----------|---------|----------------|----------------|
+| [rows]   |        |          |            |           |         |                |                |
 ### Summary
 - **Critical**: N | **High**: N | **Medium**: N | **Low**: N | **Info**: N
 - **Verdict**: APPROVED / CHANGES REQUESTED / NEEDS DISCUSSION
@@ -191,7 +192,20 @@ For feedback/decision modes: substitute `file:line` → `aspect`, `severity` →
 
 ### 5c. Consensus items: findings from 2+ agents at same location with compatible recommendations.
 
+> Different findings at the same file:line are not consensus — each retains its original agent confidence. Consensus requires compatible recommendations for the same issue.
+
 ### 5d. Dedup: keep higher severity, combine recommendations, note all reporting agents.
+
+### 5e. Consensus-Based Confidence
+
+After dedup, assign confidence to synthesized findings:
+
+| Condition | Confidence |
+|-----------|------------|
+| 2+ agents report the same finding (consensus) | **HIGH** — regardless of individual agent confidence |
+| 1 agent, HIGH individual confidence | **HIGH** — strong pattern match, no ambiguity |
+| 1 agent, MEDIUM individual confidence | **MEDIUM** |
+| 1 agent, LOW individual confidence | **LOW** |
 
 ---
 
@@ -200,7 +214,7 @@ For feedback/decision modes: substitute `file:line` → `aspect`, `severity` →
 Output a **Collaboration Report** with these sections:
 
 1. **Session Summary** — mode, agents, files reviewed, total findings, consensus count, conflicts count
-2. **Consensus Findings** (if any) — table: Severity, File, Finding, Recommendation, Reported By
+2. **Consensus Findings** (if any) — table: Severity, Confidence, File, Finding, Recommendation, Reported By
 3. **Specialist Findings** — per-agent tables (unique findings not in consensus)
 4. **Conflicts Detected** (if any) — per conflict: both agents' recommendations + reasoning, affected file, resolution options, suggested resolution
 5. **Action Items** — prioritized table: #, Action, Severity, Domains, Source

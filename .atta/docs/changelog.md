@@ -37,6 +37,8 @@ From file generation to enforcement infrastructure generation. 14 tracks, 13 PRs
 - 6 new YAML detectors: co-located/separate test organization, Next.js App Router/Pages Router (with `src/` prefix support), pnpm and npm/yarn workspaces — all using existing detection mechanisms
 
 **Review & Validation**
+- **Confidence-scored reviews**: each `/atta-review` finding gets HIGH/MEDIUM/LOW confidence based on clear criteria. `--strict` shows HIGH confidence only, `--quiet` shows CRITICAL/HIGH severity + HIGH confidence. Verdicts based on HIGH confidence findings only.
+- **Consensus-based confidence** in `/atta-collaborate`: findings from 2+ agents automatically score HIGH confidence
 - Canonical rule loading for `/atta-review` — reads from `.atta/team/rules/` (single source of truth), falls back to `REVIEW.md`
 - Language-agnostic Steps 3-4 in review skill
 - Init absorption (Phase 0.5): parses existing `CLAUDE.md` / `copilot-instructions.md` output before Atta install, with sentinel detection to prevent feedback loops

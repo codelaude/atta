@@ -465,6 +465,28 @@ package_managers:
       type: package_manager
       language: csharp
 
+# Workspace Configuration
+workspaces:
+  - name: pnpm Workspaces
+    identifier: pnpm-workspaces
+    detection:
+      files:
+        - pnpm-workspace.yaml
+    metadata:
+      type: workspace
+      language: nodejs
+
+  - name: npm/yarn Workspaces
+    identifier: npm-workspaces
+    detection:
+      files:
+        - package.json
+      content_match:
+        package.json: "workspaces"
+    metadata:
+      type: workspace
+      language: nodejs
+
 # Monorepo Tools
 monorepo:
   # Nx

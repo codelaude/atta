@@ -114,6 +114,33 @@ components:
       category: components
       description: "Co-located components (index + styles per folder)"
 
+# Test Organization Patterns
+tests:
+  - name: Co-located Tests
+    identifier: colocated-tests
+    detection:
+      file_patterns:
+        - "src/**/*.test.{ts,tsx,js,jsx}"
+        - "src/**/*.spec.{ts,tsx,js,jsx}"
+        - "app/**/*.test.{ts,tsx,js,jsx}"
+        - "app/**/*.spec.{ts,tsx,js,jsx}"
+    metadata:
+      type: architectural_pattern
+      category: tests
+      description: "Tests co-located alongside source files"
+
+  - name: Separate Test Directory
+    identifier: separate-tests
+    detection:
+      directory_exists:
+        - __tests__
+        - tests
+        - test
+    metadata:
+      type: architectural_pattern
+      category: tests
+      description: "Tests in dedicated directory (__tests__/, tests/, or test/)"
+
 # Route Patterns
 routes:
   - name: File-Based Routing
@@ -130,6 +157,48 @@ routes:
       type: architectural_pattern
       category: routes
       description: "File-based routing (pages/ or app/)"
+
+  - name: Next.js App Router
+    identifier: nextjs-app-router
+    detection:
+      files:
+        - app/layout.tsx
+        - app/layout.ts
+        - app/layout.js
+        - app/layout.jsx
+        - src/app/layout.tsx
+        - src/app/layout.ts
+        - src/app/layout.js
+        - src/app/layout.jsx
+    metadata:
+      type: architectural_pattern
+      category: routes
+      description: "Next.js App Router (app/ directory with root layout)"
+
+  - name: Next.js Pages Router
+    identifier: nextjs-pages-router
+    detection:
+      files:
+        - pages/_app.tsx
+        - pages/_app.ts
+        - pages/_app.js
+        - pages/_app.jsx
+        - src/pages/_app.tsx
+        - src/pages/_app.ts
+        - src/pages/_app.js
+        - src/pages/_app.jsx
+        - pages/_document.tsx
+        - pages/_document.ts
+        - pages/_document.js
+        - pages/_document.jsx
+        - src/pages/_document.tsx
+        - src/pages/_document.ts
+        - src/pages/_document.js
+        - src/pages/_document.jsx
+    metadata:
+      type: architectural_pattern
+      category: routes
+      description: "Next.js Pages Router (pages/ directory with custom App or Document)"
 
   - name: Centralized Router
     identifier: centralized-router

@@ -132,7 +132,7 @@ content = header
 if lines:
     content += '\n'.join(lines)
 else:
-    content += 'No recent sessions found. Run a skill (e.g., \`/atta\`, \`/tutorial\`) to start tracking.'
+    content += 'No recent sessions found. Run a skill (e.g., \`/atta\`, \`/atta-tutorial\`) to start tracking.'
 
 # Append pattern detection summary (if corrections file exists)
 if os.path.isfile(patterns_file):
@@ -147,7 +147,7 @@ if os.path.isfile(patterns_file):
             content += '\n\n## Patterns Detected\n\n'
             content += '- %d correction(s) across %d pattern(s)\n' % (total, unique)
             if ready > 0:
-                content += '- **%d pattern(s) ready for promotion** (run \`/patterns suggest\`)\n' % ready
+                content += '- **%d pattern(s) ready for promotion** (run \`/atta-patterns suggest\`)\n' % ready
     except (json.JSONDecodeError, IOError):
         pass
 

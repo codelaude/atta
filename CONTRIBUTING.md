@@ -30,17 +30,17 @@ bash .atta/scripts/validate-framework.sh
 
 ```
 .claude/          # Discovery-required content (committed)
-  agents/         # Core agent definitions
-  skills/         # Skill definitions (slash commands)
-  hooks/          # Claude Code hooks
+  agents/         # Core + optional agent definitions (4 core, 4 optional)
+  skills/         # Skill definitions (19 skills, all atta-* namespace)
+  hooks/          # Claude Code hooks (session-track.sh)
 .atta/            # Shared content (committed, tool-agnostic)
   bootstrap/      # Tech detection YAML + templates
   docs/           # Documentation
-  knowledge/      # Knowledge templates and schemas
+  team/           # Patterns, templates, model registry, review guidance, CI suppressions
+  local/          # Developer profile, context, sessions (runtime/personal)
+  project/        # Project context and profile
   scripts/        # Shell scripts (validation, session cleanup, pattern detection)
   .metadata/      # Version and framework info
-  .context/       # Pattern detection data
-  .sessions/      # Session tracking schema
 src/              # npm package source (CLI, adapters, commands)
 bin/              # CLI entry point
 ```
@@ -63,9 +63,10 @@ bin/              # CLI entry point
 
 ### SKILL.md Files
 
-- YAML frontmatter with `name` and `description`
-- Session tracking blocks (A, B, C) for skills that modify state
-- Error handling section with session finalization reminder
+- YAML frontmatter with `name` and `description` (all skills use `atta-*` namespace)
+- Optional frontmatter: `model`, `disable-model-invocation`, `allowed-tools`, `user-invocable`, `argument-hint`
+- Session tracking is automatic via hooks — no in-skill boilerplate needed
+- Error handling section with recovery options
 
 ## Making Changes
 

@@ -86,7 +86,7 @@ Adapt structure to target tool conventions.
 ## Delegates To
 
 - **{{TEAM_LEAD}}** — task too broad to enrich meaningfully
-- **code-reviewer** — review prompts (suggest `/review` instead)
+- **code-reviewer** — review prompts (suggest `/atta-review` instead)
 
 ## Knowledge Base
 

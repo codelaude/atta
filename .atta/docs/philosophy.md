@@ -55,6 +55,8 @@ Coordinators (team leads) are generated based on what's detected:
 
 No manual configuration needed — the system shapes itself to match your project.
 
+> **v3.0 update:** The agent architecture now follows a lean 4+4 model. Four **core agents** (project-owner, code-reviewer, librarian, architect) are always present. Four **optional agents** (business-analyst, qa-validator, pr-manager, rubber-duck) are selected during init based on project needs and developer preferences.
+
 ## How It Grows
 
 Atta starts minimal and compounds through use. The developer is the gatekeeper at every step.
@@ -107,11 +109,11 @@ Dynamic context is lost when the conversation ends. Static files are permanent.
 The hierarchy ensures:
 - **Specialists** have deep knowledge in their domain
 - **Coordinators** orchestrate multi-specialist features
-- **Core agents** handle cross-cutting concerns (QA, librarian, etc.)
+- **Core agents** handle cross-cutting concerns (code review, knowledge management, architecture)
 
 ### Why Bootstrap System (v2.0)?
 
-**Universality.** Hardcoding agents for Vue/TypeScript/SCSS works great... for Vue/TypeScript/SCSS projects.
+**Universality.** Hardcoding agents for a single stack works great... for that one stack.
 
 The bootstrap system makes the architecture **tech-agnostic**:
 - Supports any framework, language, or database
@@ -152,12 +154,13 @@ The `.claude/` and `.atta/` directories together are the source of truth. Design
 
 ### Cross-Tool Compatibility
 
-| Layer | Claude Code | GitHub Copilot | OpenAI Codex |
-|-------|-------------|----------------|--------------|
-| Agents | Sub-agents with routing | Skills + delegation | Sub-agents + routing |
-| Skills | Native slash commands | Skills (CLI/IDE) | Skills + orchestration |
-| Knowledge | Pattern files | Pattern files | Pattern files |
-| Memory | Librarian agent | Instruction file | Skill + file |
+| Layer | Claude Code | Copilot | Codex | Gemini | Cursor |
+|-------|-------------|---------|-------|--------|--------|
+| Agents | Sub-agents with routing | `.agent.md` delegation | `config.toml` routing | `.md` agents | AGENTS.md |
+| Skills | `/atta-*` slash commands | `/atta-*` commands | `$atta-*` prefix | `/atta-*` TOML commands | `@atta-*` rules |
+| Knowledge | Pattern files | Pattern files | Pattern files | Pattern files | Pattern files |
+| Memory | Librarian agent | Instruction files | `AGENTS.md` | `GEMINI.md` | `.cursor/rules/` |
+| Rules | `.claude/rules/` | `.github/instructions/` | `AGENTS.md` | `.gemini/styleguide.md` | `.cursor/rules/` |
 
 **The knowledge base is the most portable layer.** Start with patterns, then layer routing and specialists.
 

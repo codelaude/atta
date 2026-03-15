@@ -61,8 +61,8 @@ Correction events are logged to `{claudeDir}/.context/corrections.jsonl` by the 
 | Source | When Used |
 |--------|-----------|
 | `librarian` | Auto-captured by librarian agent from correction trigger phrases |
-| `manual` | Explicitly logged by user via `/patterns log` |
-| `skill-annotation` | Auto-logged by `/review` or `/collaborate` for anti-pattern findings |
+| `manual` | Explicitly logged by user via `/atta-patterns log` |
+| `skill-annotation` | Auto-logged by `/atta-review` or `/atta-collaborate` for anti-pattern findings |
 
 ## Domain Values
 
@@ -86,7 +86,7 @@ The `outcome` field tracks whether the user accepted or rejected a suggestion. I
 |-------|---------|-----------|
 | `accepted` | User accepted the suggestion or finding | Any skill or script that explicitly sets `outcome: "accepted"` (no implicit default) |
 | `rejected` | User corrected or disagreed with the suggestion | Librarian (when correction triggers fire) or any logger that explicitly sets `outcome: "rejected"` |
-| *(absent)* | Legacy event or no explicit verdict (treated as neutral) | Pre-v2.5 events, manual logs, `pattern-log.sh` when `outcome` is omitted, current `/review` and `/collaborate` when they don't pass `outcome` |
+| *(absent)* | Legacy event or no explicit verdict (treated as neutral) | Pre-v2.5 events, manual logs, `pattern-log.sh` when `outcome` is omitted, current `/atta-review` and `/atta-collaborate` when they don't pass `outcome` |
 
 **`agentId` vs `context.agent`**: The `agentId` field identifies the agent whose suggestion is being evaluated. This may differ from `context.agent` (the agent active when the event was logged). Example: the librarian logs a rejection of code-reviewer's suggestion — `context.agent` is `librarian`, `agentId` is `code-reviewer`. When `agentId` is absent, analysis falls back to `context.agent`.
 

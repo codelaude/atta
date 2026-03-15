@@ -78,7 +78,7 @@ Since v2.5.3, session tracking is handled automatically by **Claude Code hooks**
 ### 1. You run a skill
 
 ```bash
-/review
+/atta-review
 ```
 
 ### 2. Hook creates session file
@@ -109,7 +109,7 @@ The hook script `.claude/hooks/session-track.sh` handles the full lifecycle:
 | `PostToolUse` (Skill) | Create session JSON with status `in_progress` |
 | `Stop` | Finalize latest in-progress session, run cleanup + context generation |
 
-Hook configuration is generated in `.claude/settings.local.json` by the Claude Code adapter during `npx atta-dev init`.
+Hook configuration is generated in `.claude/hooks/hooks.json` by the Claude Code adapter during `npx atta-dev init`.
 
 **Other tools** (Copilot, Codex, Gemini) do not support hooks — session tracking is Claude Code only.
 
@@ -118,7 +118,7 @@ Hook configuration is generated in `.claude/settings.local.json` by the Claude C
 Session history enables the pattern detection system:
 - Correction logging and aggregation
 - Per-agent acceptance rates and learning profiles
-- `/patterns dashboard` with velocity trends and recommendations
+- `/atta-patterns dashboard` with velocity trends and recommendations
 - Pattern promotion from corrections to directives or pattern files
 
 See [Changelog](changelog.md) for full details on the v2.5 pattern detection system.
@@ -140,7 +140,7 @@ If you prefer not to use session tracking, you can:
    rm -rf {claudeDir}/.sessions/*.json
    ```
 
-2. **Remove the hook**: Delete the `session-track.sh` entry from `.claude/settings.local.json`
+2. **Remove the hook**: Delete the `session-track.sh` entry from `.claude/hooks/hooks.json`
 
 Note: Disabling session tracking will prevent pattern detection features from working.
 
@@ -202,7 +202,7 @@ A: No. Session tracking requires Claude Code hooks. Other tools skip tracking en
 ## See Also
 
 - **[Bootstrap System](bootstrap-system.md)** - How agent generation works
-- **[Multi-Agent Collaboration](collaboration.md)** - How `/collaborate` uses session tracking
+- **[Multi-Agent Collaboration](collaboration.md)** - How `/atta-collaborate` uses session tracking
 - **[MCP Setup](mcp-setup.md)** - Configure Model Context Protocol
 - **[Extending the System](extending.md)** - Add custom agents
 - **[Design Philosophy](philosophy.md)** - Framework principles

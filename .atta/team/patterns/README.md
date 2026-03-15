@@ -32,4 +32,4 @@ You can also create pattern files manually following this structure:
 [Code examples specific to your project]
 ```
 
-The Librarian agent (`/agent librarian`) can also propose updates to pattern files based on learnings captured during development.
+The Librarian agent (`/atta-agent librarian`) can also propose updates to pattern files based on learnings captured during development.

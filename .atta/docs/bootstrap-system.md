@@ -1,6 +1,6 @@
 # Bootstrap System
 
-The core innovation in v2.x is **dynamic agent generation**. Instead of hardcoding agents for Vue/SCSS/TypeScript, the system detects your tech stack and generates specialized agents from universal templates.
+The core innovation is **dynamic agent generation**. Instead of hardcoding agents for a specific stack, the system detects your tech stack and generates specialized agents from universal templates.
 
 ## How It Works
 
@@ -34,7 +34,7 @@ The core innovation in v2.x is **dynamic agent generation**. Instead of hardcodi
 ## Supported Tech Stacks
 
 ### Frontend Frameworks
-- Vue.js (2.x, 3.x), React (16+, 18+), Angular (2+, 14+)
+- React (16+, 18+), Next.js, Angular (2+, 14+), Vue.js (2.x, 3.x)
 - Svelte, Solid.js, Astro, Next.js, Nuxt, Remix
 - Qwik, Preact, Alpine.js
 
@@ -67,56 +67,55 @@ The core innovation in v2.x is **dynamic agent generation**. Instead of hardcodi
 
 ## What Gets Generated
 
-**For a Vue + Django + PostgreSQL project:**
+**For a React + Express + PostgreSQL project:**
 ```
 .claude/agents/coordinators/
-  ├── fe-team-lead.md          (coordinates Vue + TypeScript + SCSS)
-  └── be-team-lead.md          (coordinates Python + Django + PostgreSQL)
+  ├── fe-team-lead.md          (coordinates React + TypeScript + Tailwind)
+  └── be-team-lead.md          (coordinates Node.js + Express + PostgreSQL)
 
 .claude/agents/specialists/
-  ├── vue.md                   (from framework-specialist template)
+  ├── react.md                 (from framework-specialist template)
   ├── typescript.md            (from language-specialist template)
-  ├── scss.md                  (from styling-specialist template)
+  ├── tailwind.md              (from styling-specialist template)
   ├── accessibility.md         (from accessibility template)
   ├── security-specialist.md   (from security-specialist template, when security tooling is detected)
-  ├── python.md                (from language-specialist template)
-  ├── django.md                (from framework-specialist template)
+  ├── express.md               (from framework-specialist template)
   ├── postgresql.md            (from database-specialist template)
-  ├── jest.md                  (from testing-specialist template, FE)
-  └── pytest.md                (from testing-specialist template, BE)
+  └── vitest.md                (from testing-specialist template)
 
 .atta/team/patterns/
-  ├── vue-patterns.md          (Composition API, reactivity, component structure)
-  ├── python-patterns.md       (PEP 8, type hints, error handling)
-  ├── django-patterns.md       (ORM, views, templates, DRF)
+  ├── react-patterns.md        (Hooks, Context, component composition)
+  ├── typescript-patterns.md   (strict typing, generics, error handling)
+  ├── express-patterns.md      (Middleware, routing, error handling)
   ├── security-patterns.md     (OWASP Top 10 (2025), secrets, injection defenses)
   └── postgresql-patterns.md   (Query optimization, indexing, transactions)
 
 .atta/project/
-  └── mcp-config.json          (Documentation MCP: Vue + Django docs,
+  └── mcp-config.json          (Documentation MCP: React + Express docs,
                                 Database MCP: PostgreSQL connection,
                                 Browser MCP: accessibility testing)
 ```
 
-**For a React + Express + MongoDB project:**
+**For a Django + Vue + MongoDB project:**
 ```
 .claude/agents/coordinators/
-  ├── fe-team-lead.md          (coordinates React + TypeScript + Tailwind)
-  └── be-team-lead.md          (coordinates Node.js + Express + MongoDB)
+  ├── fe-team-lead.md          (coordinates Vue + TypeScript + SCSS)
+  └── be-team-lead.md          (coordinates Python + Django + MongoDB)
 
 .claude/agents/specialists/
-  ├── react.md
+  ├── vue.md
   ├── typescript.md
-  ├── tailwind.md
+  ├── scss.md
   ├── accessibility.md
   ├── security-specialist.md
-  ├── express.md
+  ├── python.md
+  ├── django.md
   ├── mongodb.md
-  └── jest.md                  (handles Vitest/Jest, from testing-specialist template)
+  └── pytest.md                (from testing-specialist template)
 
 .atta/team/patterns/
-  ├── react-patterns.md        (Hooks, Context, component composition)
-  ├── express-patterns.md      (Middleware, routing, error handling)
+  ├── vue-patterns.md          (Composition API, reactivity, component structure)
+  ├── django-patterns.md       (ORM, views, templates, DRF)
   ├── security-patterns.md     (OWASP checks, secrets management, API hardening)
   └── mongodb-patterns.md      (Schema design, aggregation, indexing)
 ```
@@ -152,24 +151,24 @@ Shared sections live in `_common.md` — constraints, key rules, anti-patterns, 
 Variables come from detection + mappings:
 ```yaml
 # agent-mappings.yaml
-vue:
+react:
   template: framework-specialist.template.md
-  output: agents/specialists/vue.md
+  output: agents/specialists/react.md
   variables:
-    FRAMEWORK_NAME: "Vue.js"
-    FRAMEWORK_TYPE: "reactive component"
-    STYLING_SPECIALIST: "scss / tailwind"
-    TESTING_SPECIALIST: "jest / vitest"
+    FRAMEWORK_NAME: "React"
+    FRAMEWORK_TYPE: "component-based"
+    STYLING_SPECIALIST: "tailwind / css-modules"
+    TESTING_SPECIALIST: "vitest / jest"
   rules:
-    - "Use Composition API with `<script setup>` for Vue 3"
-    - "Use `ref()` for primitives, `reactive()` for objects"
+    - "Use functional components with hooks"
+    - "Use `useState` for local state, Context or state library for shared state"
   anti_patterns:
-    - pattern: "Using Options API in new Vue 3 code"
-      fix: "Use Composition API with script setup"
+    - pattern: "Using class components in new code"
+      fix: "Use functional components with hooks"
       severity: "HIGH"
 ```
 
-**Result:** Fully customized Vue specialist with project-specific rules.
+**Result:** Fully customized React specialist with project-specific rules.
 
 ## See Also
 

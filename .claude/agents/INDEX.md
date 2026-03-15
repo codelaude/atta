@@ -19,7 +19,7 @@ A virtual software development team with specialized agents that provide experti
 The agent structure adapts to your project:
 - **Core Agents**: Always available (project-owner, code-reviewer, librarian, architect)
 - **Coordinators**: Generated if frontend/backend detected (fe-team-lead, be-team-lead)
-- **Specialists**: Generated based on detected technologies (Vue, React, Django, Java, PostgreSQL, etc.)
+- **Specialists**: Generated based on detected technologies (React, Angular, Django, Spring Boot, PostgreSQL, etc.)
 
 **Your current agent structure will appear here after running `/atta`.**
 
@@ -44,7 +44,7 @@ Optional Agents (selected during init)
 
 Coordinators (generated per project)
 ├── FE Team Lead          (if frontend detected)
-│   ├── [Framework]       (Vue, React, Angular, etc.)
+│   ├── [Framework]       (React, Angular, Next.js, etc.)
 │   ├── [Language]        (TypeScript, JavaScript)
 │   ├── [Styling]         (SCSS, Tailwind, CSS-in-JS)
 │   ├── [Testing]         (Jest, Vitest, Cypress)

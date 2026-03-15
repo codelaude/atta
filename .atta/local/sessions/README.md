@@ -1,7 +1,7 @@
 # Session Tracking System
 
 ## Overview
-Tracks skill invocations and agent usage across sessions to enable future features like analytics, cost tracking, and pattern detection.
+Tracks skill invocations and agent usage across sessions. Enables pattern detection (shipped in v2.5) and serves as foundation for future analytics.
 
 ## Structure
 
@@ -65,11 +65,11 @@ Each session file contains:
 - Older sessions automatically deleted
 - Lightweight tracking (no conversation logs)
 
-## Future Integration Points
-- Token/cost tracking (v3.5)
-- Pattern detection (v2.5)
-- Learning system (v2.5)
-- Usage analytics (v3.5)
+## Integration Points
+- Pattern detection and correction logging (shipped in v2.5)
+- Agent adaptation and learning profiles (shipped in v2.5)
+- Token/cost tracking (planned)
+- Usage analytics (planned)
 
 ## Privacy
 - No conversation content stored

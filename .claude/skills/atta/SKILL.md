@@ -2,6 +2,7 @@
 name: atta
 description: Interactive project setup that detects tech stack, asks clarifying questions, and generates tailored knowledge files and agent configuration. Run this when starting with a new project.
 disable-model-invocation: true
+model: haiku
 argument-hint: "[--rescan]"
 ---
 
@@ -30,8 +31,9 @@ Determine which AI tool is running this skill by checking which directories exis
 | Path variable | Claude Code | Copilot (`.github/skills/`) | Codex (`.agents/skills/`) | Gemini (`.gemini/commands/`) |
 |---------------|-------------|---------------------------|-------------------------|---------------------------|
 | `{bootstrapDir}` | `.atta/bootstrap` | `.atta/bootstrap` | `.atta/bootstrap` | `.atta/bootstrap` |
-| `{knowledgeDir}` | `.atta/knowledge` | `.atta/knowledge` | `.atta/knowledge` | `.atta/knowledge` |
+| `{teamDir}` | `.atta/team` | `.atta/team` | `.atta/team` | `.atta/team` |
 | `{agentsDir}` | `.claude/agents` | `.github/atta/agents` | `.agents/agents` | `.gemini/agents` |
+| `{localDir}` | `.atta/local` | `.atta/local` | `.atta/local` | `.atta/local` |
 | `{metadataDir}` | `.atta/.metadata` | `.atta/.metadata` | `.atta/.metadata` | `.atta/.metadata` |
 
 **Sub-detect non-Claude adapter** (if `.atta/bootstrap/` was found):
@@ -39,7 +41,7 @@ Determine which AI tool is running this skill by checking which directories exis
 - Else if `.agents/skills/` exists → Codex → agents go to `.agents/agents/`
 - Else if `.gemini/commands/` exists → Gemini → agents go to `.gemini/agents/`
 
-**All paths below use these variables.** Substitute `.atta/bootstrap/` → `{bootstrapDir}/`, `.atta/knowledge/` → `{knowledgeDir}/`, `.claude/agents/` → `{agentsDir}/`, `.atta/.metadata/` → `{metadataDir}/`.
+**All paths below use these variables.** Substitute `.atta/bootstrap/` → `{bootstrapDir}/`, `.atta/team/` → `{teamDir}/`, `.atta/local/` → `{localDir}/`, `.claude/agents/` → `{agentsDir}/`, `.atta/.metadata/` → `{metadataDir}/`.
 
 ---
 
@@ -188,7 +190,7 @@ Each pattern file: key rules from existing code, anti-patterns, conventions, doc
 
 ### PR Template (conditional)
 
-If a PR template was detected: overwrite `.atta/knowledge/templates/pr-template.md` with a mapped version keeping Atta frontmatter + structure, adding the project template verbatim in a code block, a section mapping table, and instructions to format PR descriptions matching the project's structure while preserving Atta content.
+If a PR template was detected: overwrite `.atta/team/templates/pr-template.md` with a mapped version keeping Atta frontmatter + structure, adding the project template verbatim in a code block, a section mapping table, and instructions to format PR descriptions matching the project's structure while preserving Atta content.
 
 If no PR template detected: do nothing (default `pr-template.md` is already in place).
 
@@ -260,7 +262,7 @@ Also write `.atta/.metadata/framework-version` and `.atta/.metadata/update-histo
 
 ## Phase 9: Report
 
-Display initialization summary: files created/updated, active agents table, quick start commands (`/agent fe-team-lead`, `/review`, `/preflight`), next steps (`/atta --rescan`, `/agent librarian`).
+Display initialization summary: files created/updated, active agents table, quick start commands (`/atta-agent fe-team-lead`, `/atta-review`, `/atta-preflight`), next steps (`/atta --rescan`, `/atta-agent librarian`).
 
 ---
 
@@ -268,7 +270,7 @@ Display initialization summary: files created/updated, active agents table, quic
 
 Skip interview (reuse `project-context.md`). Re-detect: tech stack, architectural patterns (preserve manual additions), PR templates. Update pattern files. Preserve manual edits.
 
-**Profile sync**: If either profile file has checked items, run `/profile --apply` logic (Steps 5-6) — write `## Preferences` to `project-context.md`.
+**Profile sync**: If either profile file has checked items, run `/atta-profile --apply` logic (Steps 5-6) — write `## Preferences` to `project-context.md`.
 
 **Staleness reset**: Record mtimes of detection source files in `generated-manifest.json` `detection_sources`.
 
@@ -289,10 +291,10 @@ Report what changed.
 
 ## Related Skills
 
-- `/agent librarian` — Capture additional patterns and directives
-- `/agent fe-team-lead` / `/agent be-team-lead` — Task decomposition
-- `/review` — Review against generated patterns
-- `/preflight` — Full pre-PR validation
+- `/atta-agent librarian` — Capture additional patterns and directives
+- `/atta-agent fe-team-lead` / `/atta-agent be-team-lead` — Task decomposition
+- `/atta-review` — Review against generated patterns
+- `/atta-preflight` — Full pre-PR validation
 
 ---
 

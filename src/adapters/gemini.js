@@ -3,8 +3,9 @@ import { join } from 'node:path';
 import pc from 'picocolors';
 import { listSkills } from './claude-code.js';
 import { generateAgentsMd } from './agents-md.js';
-import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, createMemoryDirectory, generateHooksConfig } from './shared.js';
+import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, checkSkillConflicts, createMemoryDirectory, generateHooks, writeHookScripts, mapToolsToGemini } from './shared.js';
 import { generateReviewRules, formatGeminiStyleguide, formatGeminiConfig } from './review-guidance.js';
+import { generateRules, writeToolAgnosticRules, installGeminiRules } from './rules-generator.js';
 
 /**
  * Gemini CLI adapter — generates GEMINI.md, .gemini/commands/, and .gemini/agents/.
@@ -22,7 +23,7 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   const results = { files: 0 };
 
   // Generate GEMINI.md (same content as AGENTS.md, adapted for Gemini context)
-  const geminiMd = generateGeminiMd(claudeRoot, attaRoot);
+  const geminiMd = generateGeminiMd(claudeRoot, attaRoot, options);
   writeFileSync(join(targetDir, 'GEMINI.md'), geminiMd);
   results.files++;
 
@@ -33,7 +34,8 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   // Convert skills to TOML commands at .gemini/commands/
   const skillsDir = join(claudeRoot, 'skills');
   if (existsSync(skillsDir)) {
-    const skills = listSkills(claudeRoot);
+    const skills = listSkills(claudeRoot).filter((s) => s.userInvocable !== false);
+    checkSkillConflicts(skills, 'gemini', options);
     const commandsDir = join(targetDir, '.gemini', 'commands');
     mkdirSync(commandsDir, { recursive: true });
 
@@ -72,6 +74,19 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
     console.log(`  ${pc.green('✓')} .gemini/styleguide.md + .gemini/config.yaml (review guidance)`);
   }
 
+  // Generate path-scoped rules (merged into .gemini/styleguide.md + .atta/team/rules/)
+  const rules = generateRules(attaRoot, options.detectedTechs);
+  if (rules.length > 0) {
+    const agnosticCount = writeToolAgnosticRules(targetDir, rules);
+    installGeminiRules(targetDir, rules);
+    results.files += agnosticCount;
+
+    if (!options.quiet) {
+      console.log(`  ${pc.green('✓')} .atta/team/rules/ (${agnosticCount} rule files)`);
+      console.log(`  ${pc.green('✓')} .gemini/styleguide.md (appended coding rules)`);
+    }
+  }
+
   // Copy agent definitions to .gemini/agents/ with Gemini-specific frontmatter:
   // - name + description only (model: inherit is Claude Code-specific)
   // - Body: rewrite paths and resolve {attaDir} placeholders (Gemini is static, no AI resolves them)
@@ -86,10 +101,17 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
     join(targetDir, '.gemini', 'agents'),
     {
       ...options,
-      transformFrontmatter: (fm) => ({
-        name: fm.name,
-        description: fm.description,
-      }),
+      transformFrontmatter: (fm) => {
+        const result = { name: fm.name, description: fm.description };
+        // Gemini supports native tool restriction + max_turns
+        if (fm.tools) {
+          result.tools = mapToolsToGemini(fm.tools);
+        }
+        if (fm.maxTurns) {
+          result.max_turns = fm.maxTurns; // Gemini uses snake_case
+        }
+        return result;
+      },
       transformBody: (body) => rewriteSkillBody(body, geminiAgentRewriteConfig),
     }
   );
@@ -105,19 +127,23 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   createMemoryDirectory(join(targetDir, '.gemini', 'agents'), options);
   results.files++;
 
-  // Generate hooks.json (Gemini hook format — 10 events, placeholder for user customization)
-  const hooksJsonPath = join(geminiDir, 'hooks.json');
-  if (!existsSync(hooksJsonPath)) {
-    const hooksConfig = generateHooksConfig('gemini');
-    writeFileSync(hooksJsonPath, JSON.stringify(hooksConfig, null, 2) + '\n');
-    results.files++;
+  // Always regenerate hooks.json — enforcement hooks may change with detectedTechs
+  const hooksConfig = generateHooks('gemini', options.detectedTechs);
+  writeFileSync(join(geminiDir, 'hooks.json'), JSON.stringify(hooksConfig, null, 2) + '\n');
+  results.files++;
 
-    if (!options.quiet) {
-      console.log(`  ${pc.green('✓')} .gemini/hooks.json (10 event placeholders)`);
-    }
+  if (!options.quiet) {
+    console.log(`  ${pc.green('✓')} .gemini/hooks.json (enforcement hooks)`);
   }
 
-  // Copy shared content to .atta/ (knowledge, project, scripts, metadata, context)
+  // Write hook scripts for command-type hooks (pre-bash-safety, stop-quality-gate)
+  const scriptCount = writeHookScripts(targetDir);
+  results.files += scriptCount;
+  if (!options.quiet && scriptCount > 0) {
+    console.log(`  ${pc.green('✓')} .atta/scripts/hooks/ (${scriptCount} hook scripts)`);
+  }
+
+  // Copy shared content to .atta/ (team, project, scripts, metadata)
   const sharedCount = copySharedContent(attaRoot, targetDir, options);
   results.files += sharedCount;
 
@@ -145,7 +171,12 @@ function skillToToml(skill, skillFile) {
 
   // Extract body after frontmatter and apply rewrite
   const rawBody = content.replace(/^---\n[\s\S]*?\n---\n*/, '').trim();
-  const body = rewriteSkillBody(rawBody, GEMINI_REWRITE_CONFIG);
+  let body = rewriteSkillBody(rawBody, GEMINI_REWRITE_CONFIG);
+
+  // Embed disable-model-invocation as natural language (TOML has no equivalent flag)
+  if (skill.disableModelInvocation) {
+    body = 'IMPORTANT: Execute these instructions directly without additional AI reasoning.\n\n' + body;
+  }
 
   // Escape for TOML multi-line string (triple quotes)
   const escapedBody = body
@@ -171,11 +202,12 @@ function skillToToml(skill, skillFile) {
  * Generate GEMINI.md — context file for Gemini CLI.
  * Based on AGENTS.md content with Gemini-specific framing and paths.
  */
-function generateGeminiMd(claudeRoot, attaRoot) {
+function generateGeminiMd(claudeRoot, attaRoot, options = {}) {
   // Reuse the AGENTS.md generator with Gemini-specific paths
   const agentsMd = generateAgentsMd(claudeRoot, attaRoot, {
     skillPrefix: '/',
     agentBasePath: '.gemini/agents',
+    selectedAgents: options.selectedAgents,
   });
 
   // Replace header for Gemini context
@@ -186,4 +218,3 @@ function generateGeminiMd(claudeRoot, attaRoot) {
       '> Context file for Gemini CLI. Generated by [Atta](https://github.com/codelaude/atta).\n>\n> This file is loaded automatically as project context. It provides your agent team context.'
     );
 }
-

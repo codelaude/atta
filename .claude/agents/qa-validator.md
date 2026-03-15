@@ -2,6 +2,21 @@
 name: qa-validator
 description: Validates implementations against acceptance criteria. Use when checking if code meets requirements, creating test scenarios, or performing QA validation.
 model: inherit
+tools:
+  - Read
+  - Grep
+  - Glob
+  - Bash
+  - Agent
+disallowedTools:
+  - Edit
+  - Write
+skills:
+  - atta-review
+  - atta-lint
+  - atta-test
+maxTurns: 30
+permissionMode: plan
 ---
 
 # Agent: QA Validator
@@ -17,7 +32,7 @@ model: inherit
 
 ## Workflow
 
-1. Get ACCs from business-analyst or `.atta/knowledge/accs/`
+1. Get ACCs from business-analyst or `.atta/local/accs/`
 2. Create test scenarios per ACC
 3. Validate implementation against each
 4. Report: pass/fail per ACC + issues + recommendation

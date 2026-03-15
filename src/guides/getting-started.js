@@ -11,12 +11,8 @@ export function generateGettingStarted(adapter, answers) {
     'github-action': 'GitHub Action',
   }[adapter] || 'your AI tool';
 
-  // Codex uses $ prefix, Cursor uses @atta- prefix, all others use /
-  const p = adapter === 'codex' ? '$' : adapter === 'cursor' ? '@atta-' : '/';
-
-  // Copilot renames skills that conflict with built-in commands
-  const agent = adapter === 'copilot' ? 'atta-agent' : 'agent';
-  const review = adapter === 'copilot' ? 'atta-review' : 'review';
+  // Codex uses $ prefix, Cursor uses @ prefix, all others use /
+  const p = adapter === 'codex' ? '$' : adapter === 'cursor' ? '@' : '/';
 
   const lines = [];
 
@@ -41,6 +37,10 @@ export function generateGettingStarted(adapter, answers) {
     lines.push(
       'This auto-detects your tech stack (100+ technologies) and generates specialist agents tailored to your frameworks, languages, and tools.'
     );
+    lines.push('');
+    lines.push(
+      '> **Tip**: For best results, run Claude Code\'s `/init` before `npx atta-dev init` — Atta detects existing CLAUDE.md conventions and reports what it found.'
+    );
   } else if (adapter === 'copilot') {
     lines.push('Open your project in Copilot CLI and run:');
     lines.push('');
@@ -51,6 +51,10 @@ export function generateGettingStarted(adapter, answers) {
     lines.push(
       'This auto-detects your tech stack and generates specialist agents tailored to your project. Skills are in `.github/skills/` and agents in `.github/atta/agents/`.'
     );
+    lines.push('');
+    lines.push(
+      '> **Tip**: For best results, run Copilot\'s `/init` first to generate `.github/copilot-instructions.md`, then run `npx atta-dev init`. Atta detects existing conventions and reports what it found.'
+    );
   } else if (adapter === 'codex') {
     lines.push('Open your project in Codex CLI and run:');
     lines.push('');
@@ -59,7 +63,7 @@ export function generateGettingStarted(adapter, answers) {
     lines.push('```');
     lines.push('');
     lines.push(
-      'This auto-detects your tech stack and generates specialist agents tailored to your project. Skills are in `.agents/skills/` and agents in `.agents/agents/`. Invoke skills with `$review`, `$preflight`, etc.'
+      'This auto-detects your tech stack and generates specialist agents tailored to your project. Skills are in `.agents/skills/` and agents in `.agents/agents/`. Invoke skills with `$atta-review`, `$atta-preflight`, etc.'
     );
   } else if (adapter === 'gemini') {
     lines.push('Open your project in Gemini CLI and run:');
@@ -69,13 +73,13 @@ export function generateGettingStarted(adapter, answers) {
     lines.push('```');
     lines.push('');
     lines.push(
-      'This auto-detects your tech stack and generates specialist agents tailored to your project. `GEMINI.md` provides context and TOML commands in `.gemini/commands/` register as slash commands (e.g., `/review`, `/preflight`).'
+      'This auto-detects your tech stack and generates specialist agents tailored to your project. `GEMINI.md` provides context and TOML commands in `.gemini/commands/` register as slash commands (e.g., `/atta-review`, `/atta-preflight`).'
     );
   } else if (adapter === 'cursor') {
     lines.push('Open your project in Cursor and type in chat:');
     lines.push('');
     lines.push('```');
-    lines.push('@atta-atta');
+    lines.push('@atta');
     lines.push('```');
     lines.push('');
     lines.push(
@@ -95,7 +99,7 @@ export function generateGettingStarted(adapter, answers) {
     lines.push('## 2. Take the Tutorial (5 min)');
     lines.push('');
     lines.push('```');
-    lines.push(`${p}tutorial`);
+    lines.push(`${p}atta-tutorial`);
     lines.push('```');
     lines.push('');
     lines.push(
@@ -103,7 +107,7 @@ export function generateGettingStarted(adapter, answers) {
     );
     lines.push('');
     lines.push('```');
-    lines.push(`${p}tutorial --quick    # Just the reference card`);
+    lines.push(`${p}atta-tutorial --quick    # Just the reference card`);
     lines.push('```');
     lines.push('');
   }
@@ -117,14 +121,16 @@ export function generateGettingStarted(adapter, answers) {
     lines.push('| `.github/workflows/atta-review.yml` | Workflow that triggers on PRs |');
     lines.push('| `.atta/project/project-context.md` | Project conventions the reviewer reads |');
     lines.push('| `.atta/project/project-profile.md` | Team review priorities |');
-    lines.push('| `.atta/knowledge/ci-suppressions.md` | False positive management |');
-    lines.push('| `.atta/knowledge/patterns/` | Project-specific review rules |');
+    lines.push('| `.atta/team/ci-suppressions.md` | False positive management |');
+    lines.push('| `.atta/team/rules/` | Path-scoped coding rules (from tech detection) |');
+    lines.push('| `.atta/team/owasp-scope.md` | Pre-computed OWASP scope (customize as needed) |');
+    lines.push('| `.atta/team/patterns/` | Project-specific review rules |');
     lines.push('');
     lines.push('### Suppression Workflow');
     lines.push('');
     lines.push('1. CI flags issues on your PR');
     lines.push('2. Triage locally with your AI tool — verify real vs false positive');
-    lines.push('3. Add false positives to `.atta/knowledge/ci-suppressions.md`');
+    lines.push('3. Add false positives to `.atta/team/ci-suppressions.md`');
     lines.push('4. Commit on the PR branch — reviewer sees the change');
     lines.push('5. On merge, all future PRs benefit from the suppression');
     lines.push('');
@@ -135,27 +141,27 @@ export function generateGettingStarted(adapter, answers) {
     lines.push('');
     lines.push('| Command | What it does |');
     lines.push('|---------|-------------|');
-    lines.push(`| \`${p}${agent} project-owner\` | Route any task to the right specialist |`);
-    lines.push(`| \`${p}team-lead [task]\` | Decompose a feature into specialist tracks |`);
-    lines.push(`| \`${p}${agent} rubber-duck\` | Think through a problem with guided questions |`);
+    lines.push(`| \`${p}atta-agent project-owner\` | Route any task to the right specialist |`);
+    lines.push(`| \`${p}atta-team-lead [task]\` | Decompose a feature into specialist tracks |`);
+    lines.push(`| \`${p}atta-agent architect\` | System design and architecture decisions |`);
     lines.push('');
 
     lines.push('### Code Quality');
     lines.push('');
     lines.push('| Command | What it does |');
     lines.push('|---------|-------------|');
-    lines.push(`| \`${p}lint [file]\` | Fast pattern check |`);
-    lines.push(`| \`${p}${review}\` | Deep code review against conventions |`);
-    lines.push(`| \`${p}security-audit\` | OWASP Top 10 vulnerability scan |`);
-    lines.push(`| \`${p}preflight\` | Full pre-PR validation (lint + review + security + tests) |`);
+    lines.push(`| \`${p}atta-lint [file]\` | Fast pattern check |`);
+    lines.push(`| \`${p}atta-review\` | Deep code review against conventions |`);
+    lines.push(`| \`${p}atta-security-audit\` | OWASP Top 10 vulnerability scan |`);
+    lines.push(`| \`${p}atta-preflight\` | Full pre-PR validation (lint + review + security + tests) |`);
     lines.push('');
 
     lines.push('### Knowledge & Memory');
     lines.push('');
     lines.push('| Command | What it does |');
     lines.push('|---------|-------------|');
-    lines.push(`| \`${p}librarian\` | Capture rules and preferences across sessions |`);
-    lines.push(`| \`${p}collaborate\` | Multi-agent review (2-4 specialists in parallel) |`);
+    lines.push(`| \`${p}atta-librarian\` | Capture rules and preferences across sessions |`);
+    lines.push(`| \`${p}atta-collaborate\` | Multi-agent review (2-4 specialists in parallel) |`);
     lines.push('');
   }
 
@@ -172,7 +178,7 @@ export function generateGettingStarted(adapter, answers) {
     );
   }
   lines.push('');
-  lines.push('Personal prefs (gitignored): `.atta/knowledge/developer-profile.md`');
+  lines.push('Personal prefs (gitignored): `.atta/local/developer-profile.md`');
   lines.push('Team conventions (committed): `.atta/project/project-profile.md`');
   lines.push('');
 
@@ -201,7 +207,7 @@ export function generateGettingStarted(adapter, answers) {
   lines.push('## Keeping Updated');
   lines.push('');
   lines.push('```');
-  lines.push(`${p}update              # Check for framework updates`);
+  lines.push(`${p}atta-update         # Check for framework updates`);
   lines.push(`${p}atta --rescan       # Re-detect tech stack changes`);
   lines.push('```');
   lines.push('');

@@ -28,9 +28,9 @@ const results = install(claudeRoot, attaRoot, targetDir, { quiet: true });
 
 const checks = [
   [join(targetDir, '.github', 'workflows', 'atta-review.yml'), 'workflow file'],
-  [join(targetDir, '.atta', 'knowledge', 'ci-suppressions.md'), 'ci-suppressions.md'],
-  [join(targetDir, '.atta', 'knowledge', 'review-guidance.md'), 'review-guidance.md'],
-  [join(targetDir, '.atta', 'knowledge'), 'shared knowledge/'],
+  [join(targetDir, '.atta', 'team', 'ci-suppressions.md'), 'ci-suppressions.md'],
+  [join(targetDir, '.atta', 'team', 'review-guidance.md'), 'review-guidance.md'],
+  [join(targetDir, '.atta', 'team'), 'shared team/'],
   [join(targetDir, '.atta', 'bootstrap'), 'shared bootstrap/'],
 ];
 
@@ -55,8 +55,8 @@ const contentChecks = [
   ['prompt:', 'prompt field'],
   ['anthropic_api_key:', 'API key reference'],
   ['.atta/project/project-context.md', 'project-context.md reference'],
-  ['.atta/knowledge/ci-suppressions.md', 'suppressions reference'],
-  ['.atta/knowledge/review-guidance.md', 'review-guidance.md reference'],
+  ['.atta/team/ci-suppressions.md', 'suppressions reference'],
+  ['.atta/team/review-guidance.md', 'review-guidance.md reference'],
   ['pull_request:', 'PR trigger'],
   ['ready_for_review', 'ready_for_review trigger'],
 ];
@@ -87,7 +87,7 @@ NODEEOF
 
 # Idempotency check: write sentinel content to ci-suppressions.md, re-run, verify not overwritten
 SENTINEL="# sentinel-do-not-overwrite"
-echo "$SENTINEL" >> "$WORK_DIR/.atta/knowledge/ci-suppressions.md"
+echo "$SENTINEL" >> "$WORK_DIR/.atta/team/ci-suppressions.md"
 
 ATTA_REPO_ROOT="$REPO_ROOT" ATTA_WORK_DIR="$WORK_DIR" node --input-type=module <<'NODEEOF2'
 import { install } from './src/adapters/github-action.js';
@@ -97,7 +97,7 @@ const targetDir  = process.env.ATTA_WORK_DIR;
 install(claudeRoot, attaRoot, targetDir, { quiet: true });
 NODEEOF2
 
-if grep -qF "$SENTINEL" "$WORK_DIR/.atta/knowledge/ci-suppressions.md"; then
+if grep -qF "$SENTINEL" "$WORK_DIR/.atta/team/ci-suppressions.md"; then
   echo "PASS: ci-suppressions.md preserved on re-run (not overwritten)"
 else
   echo "FAIL: ci-suppressions.md was overwritten on re-run"

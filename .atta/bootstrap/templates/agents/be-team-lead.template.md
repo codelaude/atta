@@ -1,3 +1,20 @@
+---
+name: be-team-lead
+description: Backend coordination hub. Use when decomposing backend features, coordinating backend specialists, or resolving cross-domain backend conflicts.
+model: inherit
+tools:
+  - Read
+  - Grep
+  - Glob
+  - Agent
+disallowedTools:
+  - Edit
+  - Write
+  - Bash
+maxTurns: 30
+permissionMode: plan
+---
+
 # Agent: BE Team Lead (Backend Coordinator)
 
 > Backend coordination hub — decomposes tasks and delegates to specialists.
@@ -88,9 +105,9 @@ When spanning frontend + backend:
 
 ## Knowledge Base
 
-- **Patterns**: `.atta/knowledge/patterns/`
+- **Patterns**: `.atta/team/patterns/`
 {{#each PATTERN_FILES}}
-  - `.atta/knowledge/patterns/{{this}}`
+  - `.atta/team/patterns/{{this}}`
 {{/each}}
 - **Context**: `.atta/project/project-context.md`
 

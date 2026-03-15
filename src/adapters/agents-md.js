@@ -12,12 +12,14 @@ import { readVersion } from '../lib/fs-utils.js';
  * @param {object} [options] - Adapter-specific options
  * @param {string} [options.skillPrefix='/'] - Prefix for skill invocation (e.g., '/' or '$')
  * @param {string} [options.agentBasePath='.claude/agents'] - Base path for agent files in output
- * @param {Object<string,string>} [options.skillRenames={}] - Map of original→renamed skill names for conflict avoidance
+ * @param {boolean} [options.includeHiddenSkills=false] - Include skills with user-invocable: false (Claude Code only)
+ * @param {string[]} [options.selectedAgents] - Agent IDs that were installed. Unselected agents are excluded from output.
  */
 export function generateAgentsMd(claudeRoot, attaRoot, options = {}) {
-  const { skillPrefix = '/', agentBasePath = '.claude/agents', skillRenames = {} } = options;
-  const skills = listSkills(claudeRoot);
-  const agents = listAgents(claudeRoot, agentBasePath);
+  const { skillPrefix = '/', agentBasePath = '.claude/agents', includeHiddenSkills = false, selectedAgents } = options;
+  const allSkills = listSkills(claudeRoot);
+  const skills = includeHiddenSkills ? allSkills : allSkills.filter((s) => s.userInvocable !== false);
+  const agents = listAgents(claudeRoot, agentBasePath, selectedAgents);
   const version = readVersion(attaRoot);
 
   const lines = [];
@@ -44,7 +46,7 @@ export function generateAgentsMd(claudeRoot, attaRoot, options = {}) {
   lines.push('Atta uses a three-tier agent hierarchy:');
   lines.push('');
   lines.push(
-    '1. **Core Agents** — Universal, always available (project-owner, librarian, rubber-duck, code-reviewer)'
+    '1. **Core Agents** — Always available (project-owner, code-reviewer, librarian, architect)'
   );
   lines.push(
     '2. **Coordinators** — Generated per project (fe-team-lead, be-team-lead)'
@@ -75,19 +77,32 @@ export function generateAgentsMd(claudeRoot, attaRoot, options = {}) {
     lines.push('| Command | Description |');
     lines.push('|---------|-------------|');
     for (const skill of skills) {
-      const displayName = skillRenames[skill.dirName] || skill.name;
-      lines.push(`| \`${skillPrefix}${displayName}\` | ${skill.description} |`);
+      lines.push(`| \`${skillPrefix}${skill.name}\` | ${skill.description} |`);
     }
     lines.push('');
   }
 
   // Code Style
-  lines.push('## Code Style');
-  lines.push('');
-  lines.push(
-    `Use \`${skillPrefix}${skillRenames['review'] || 'review'}\` for comprehensive code review or \`${skillPrefix}${skillRenames['lint'] || 'lint'}\` for quick pattern checks. These skills enforce project-specific conventions detected from your tech stack.`
-  );
-  lines.push('');
+  const reviewSkill = skills.find((s) => s.name === 'atta-review');
+  const lintSkill = skills.find((s) => s.name === 'atta-lint');
+  if (reviewSkill || lintSkill) {
+    lines.push('## Code Style');
+    lines.push('');
+    if (reviewSkill && lintSkill) {
+      lines.push(
+        `Use \`${skillPrefix}${reviewSkill.name}\` for comprehensive code review or \`${skillPrefix}${lintSkill.name}\` for quick pattern checks. These skills enforce project-specific conventions detected from your tech stack.`
+      );
+    } else if (reviewSkill) {
+      lines.push(
+        `Use \`${skillPrefix}${reviewSkill.name}\` for comprehensive code review. It enforces project-specific conventions detected from your tech stack.`
+      );
+    } else {
+      lines.push(
+        `Use \`${skillPrefix}${lintSkill.name}\` for quick pattern checks against project-specific conventions detected from your tech stack.`
+      );
+    }
+    lines.push('');
+  }
 
   // Key Principles
   lines.push('## Key Principles');
@@ -111,16 +126,19 @@ export function generateAgentsMd(claudeRoot, attaRoot, options = {}) {
  * List agent definitions from framework source.
  * @param {string} claudeRoot - Path to .claude/ source (agents live here)
  * @param {string} agentBasePath - Base path prefix for agent files in output
+ * @param {string[]} [selectedAgents] - Agent IDs that were installed. Unselected agents are excluded from output.
  */
-function listAgents(claudeRoot, agentBasePath = '.claude/agents') {
+function listAgents(claudeRoot, agentBasePath = '.claude/agents', selectedAgents) {
   const agentsDir = join(claudeRoot, 'agents');
   if (!existsSync(agentsDir)) return [];
 
   const agents = [];
 
-  // Core agents (root .md files, skip INDEX and README)
+  // Root agents (.md files, skip INDEX and README)
+  // When selectedAgents is provided, only include installed agents
   const rootFiles = readdirSync(agentsDir).filter(
-    (f) => f.endsWith('.md') && f !== 'INDEX.md' && f !== 'README.md'
+    (f) => f.endsWith('.md') && f !== 'INDEX.md' && f !== 'README.md' &&
+      (!selectedAgents || selectedAgents.includes(f.replace('.md', '')))
   );
   for (const file of rootFiles) {
     const name = file.replace('.md', '');

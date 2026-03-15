@@ -3,17 +3,19 @@
 # Session Cleanup Script
 # Keeps only the 10 most recent session files
 # Usage:
-#   .atta/scripts/session-cleanup.sh                         # Auto-detect (.atta/.sessions)
-#   .atta/scripts/session-cleanup.sh /path/to/sessionsRoot   # Explicit sessions root (e.g. .claude)
+#   .atta/scripts/session-cleanup.sh .claude                  # Claude Code (sessions in .claude/.sessions/)
+#   .atta/scripts/session-cleanup.sh /path/to/sessionsRoot   # Explicit sessions root
+#   .atta/scripts/session-cleanup.sh                         # Fallback (.atta/local — usually no-op)
 
 set -euo pipefail
 
 # Load shared utilities
 source "$(dirname "${BASH_SOURCE[0]}")/lib/_common.sh"
 
-# sessionsRoot: directory containing .sessions/ (default: .atta)
-# Sessions stay in {claudeDir} on Claude Code — pass $REAL_CLAUDE_DIR from the hook.
-SESSIONS_ROOT="${1:-.atta}"
+# sessionsRoot: parent of .sessions/ where session JSONs live.
+# Claude Code: pass $REAL_CLAUDE_DIR → .claude/.sessions/
+# Default (.atta/local) is a no-op fallback — session JSONs live in {claudeDir}.
+SESSIONS_ROOT="${1:-.atta/local}"
 SESSIONS_DIR="$SESSIONS_ROOT/.sessions"
 MAX_SESSIONS=10
 

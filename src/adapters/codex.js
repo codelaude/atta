@@ -3,8 +3,9 @@ import { join } from 'node:path';
 import pc from 'picocolors';
 import { listSkills } from './claude-code.js';
 import { generateAgentsMd } from './agents-md.js';
-import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, createMemoryDirectory, listAgentDefs } from './shared.js';
+import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, filterSkillFrontmatter, CODEX_SKILL_FIELDS, checkSkillConflicts, createMemoryDirectory, listAgentDefs, generateHooks } from './shared.js';
 import { generateReviewRules, formatCodex } from './review-guidance.js';
+import { generateRules, writeToolAgnosticRules, installCodexRules } from './rules-generator.js';
 
 /**
  * Codex CLI adapter — generates .agents/skills/, .agents/agents/, and AGENTS.md.
@@ -13,14 +14,32 @@ import { generateReviewRules, formatCodex } from './review-guidance.js';
  * Skills are placed at .agents/skills/{name}/SKILL.md.
  * Agent definitions are placed at .agents/agents/{name}.md.
  * Skill activation via /skills menu or $skill-name mention.
+ *
+ * Skill frontmatter: Codex only reads name and description. All other fields
+ * (disable-model-invocation, allowed-tools, argument-hint, etc.) are stripped.
  */
+
+// CODEX_SKILL_FIELDS imported from shared.js (single source of truth)
 export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   const results = { files: 0 };
+  const skills = listSkills(claudeRoot).filter((s) => s.userInvocable !== false);
+  checkSkillConflicts(skills, 'codex', options);
+
+  // Codex uses $skill invocation — build commandMap dynamically: /atta-review → $atta-review
+  const codexCommandMap = Object.fromEntries(
+    skills.map((s) => [s.dirName, `$${s.dirName}`])
+  );
+  const codexRewriteConfig = {
+    agentsPath: '.agents/agents',
+    memoryPath: '.agents/agents/memory',
+    commandMap: codexCommandMap,
+  };
 
   // Generate AGENTS.md with Codex-specific paths and $ prefix
   const agentsMd = generateAgentsMd(claudeRoot, attaRoot, {
     skillPrefix: '$',
     agentBasePath: '.agents/agents',
+    selectedAgents: options.selectedAgents,
   });
   writeFileSync(join(targetDir, 'AGENTS.md'), agentsMd);
   results.files++;
@@ -29,38 +48,10 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
     console.log(`  ${pc.green('✓')} AGENTS.md`);
   }
 
-  // Codex uses $skill invocation — rewrite /command → $command (used by both skills and agents)
-  const codexCommandMap = {
-    review: '$review',
-    agent: '$agent',
-    atta: '$atta',
-    preflight: '$preflight',
-    lint: '$lint',
-    test: '$test',
-    collaborate: '$collaborate',
-    'team-lead': '$team-lead',
-    librarian: '$librarian',
-    patterns: '$patterns',
-    profile: '$profile',
-    'security-audit': '$security-audit',
-    ship: '$ship',
-    tutorial: '$tutorial',
-    optimize: '$optimize',
-    update: '$update',
-    migrate: '$migrate',
-  };
-
   // Copy skills to .agents/skills/
   const skillsDir = join(claudeRoot, 'skills');
   if (existsSync(skillsDir)) {
-    const skills = listSkills(claudeRoot);
     const agentsSkillsDir = join(targetDir, '.agents', 'skills');
-
-    const rewriteConfig = {
-      agentsPath: '.agents/agents',
-      memoryPath: '.agents/agents/memory',
-      commandMap: codexCommandMap,
-    };
 
     for (const skill of skills) {
       const src = join(skillsDir, skill.dirName, 'SKILL.md');
@@ -70,15 +61,15 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
 
       mkdirSync(join(agentsSkillsDir, skill.dirName), { recursive: true });
 
-      // Rewrite body content for Codex compatibility
+      // Rewrite frontmatter (strip to name+description) and body for Codex compatibility
       const content = readFileSync(src, 'utf-8');
       const fmMatch = content.match(/^---\n[\s\S]*?\n---\n/);
       if (fmMatch) {
         const frontmatter = fmMatch[0];
         const body = content.slice(frontmatter.length);
-        writeFileSync(dest, frontmatter + rewriteSkillBody(body, rewriteConfig));
+        writeFileSync(dest, filterSkillFrontmatter(frontmatter, CODEX_SKILL_FIELDS) + rewriteSkillBody(body, codexRewriteConfig));
       } else {
-        writeFileSync(dest, rewriteSkillBody(content, rewriteConfig));
+        writeFileSync(dest, rewriteSkillBody(content, codexRewriteConfig));
       }
 
       results.files++;
@@ -92,12 +83,6 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   }
 
   // Copy agent definitions to .agents/agents/ (rewrite body for Codex paths)
-  const codexAgentRewriteConfig = {
-    agentsPath: '.agents/agents',
-    memoryPath: '.agents/agents/memory',
-    commandMap: codexCommandMap,
-  };
-
   const agentCount = copyAgentFiles(
     claudeRoot,
     join(targetDir, '.agents', 'agents'),
@@ -107,7 +92,7 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
         name: fm.name,
         description: fm.description,
       }),
-      transformBody: (body) => rewriteSkillBody(body, codexAgentRewriteConfig),
+      transformBody: (body) => rewriteSkillBody(body, codexRewriteConfig),
     }
   );
   results.files += agentCount;
@@ -119,7 +104,7 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   }
 
   // Generate .codex/config.toml with [agents.*] sections
-  const agentDefs = listAgentDefs(claudeRoot);
+  const agentDefs = listAgentDefs(claudeRoot, { selectedAgents: options.selectedAgents });
   if (agentDefs.length > 0) {
     const codexDir = join(targetDir, '.codex');
     mkdirSync(codexDir, { recursive: true });
@@ -178,7 +163,33 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
     console.log(`  ${pc.green('✓')} AGENTS.md (appended review guidelines)`);
   }
 
-  // Copy shared content to .atta/ (knowledge, project, scripts, metadata, context)
+  // Generate path-scoped rules (appended to AGENTS.md + .atta/team/rules/)
+  const rules = generateRules(attaRoot, options.detectedTechs);
+  if (rules.length > 0) {
+    const agnosticCount = writeToolAgnosticRules(targetDir, rules);
+    const nativeCount = installCodexRules(targetDir, rules);
+    results.files += agnosticCount;
+
+    if (!options.quiet) {
+      console.log(`  ${pc.green('✓')} .atta/team/rules/ (${agnosticCount} rule files)`);
+      if (nativeCount > 0) {
+        console.log(`  ${pc.green('✓')} AGENTS.md (appended coding rules)`);
+      }
+    }
+  }
+
+  // Always regenerate hooks.json — enforcement hooks may change on re-init
+  const codexHooksDir = join(targetDir, '.codex');
+  mkdirSync(codexHooksDir, { recursive: true });
+  const codexHooksConfig = generateHooks('codex', options.detectedTechs);
+  writeFileSync(join(codexHooksDir, 'hooks.json'), JSON.stringify(codexHooksConfig, null, 2) + '\n');
+  results.files++;
+
+  if (!options.quiet) {
+    console.log(`  ${pc.green('✓')} .codex/hooks.json (experimental hooks placeholder)`);
+  }
+
+  // Copy shared content to .atta/ (team, project, scripts, metadata)
   const sharedCount = copySharedContent(attaRoot, targetDir, options);
   results.files += sharedCount;
 

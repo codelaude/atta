@@ -1,14 +1,21 @@
 .DS_Store
 .mcp.json
 node_modules/
+.npm-cache/
 package-lock.json
 *.tgz
 
-# Generated context files (keep README, ignore generated content)
-.atta/.context/recent.md
+# IDE settings (user-specific)
+.vscode/
+
+# Runtime & personal files (generated, not committed)
+.atta/local/
 
 # User-specific settings (generated per-project by atta init)
 .claude/settings.local.json
+
+# IDE settings
+.vscode/
 
 # Environment files
 .env

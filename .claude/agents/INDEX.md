@@ -17,9 +17,9 @@ A virtual software development team with specialized agents that provide experti
 ## Agent Hierarchy (Auto-Generated)
 
 The agent structure adapts to your project:
-- **Core Agents**: Universal, always available (project-owner, librarian, rubber-duck, etc.)
+- **Core Agents**: Always available (project-owner, code-reviewer, librarian, architect)
 - **Coordinators**: Generated if frontend/backend detected (fe-team-lead, be-team-lead)
-- **Specialists**: Generated based on detected technologies (Vue, React, Django, Java, PostgreSQL, etc.)
+- **Specialists**: Generated based on detected technologies (React, Angular, Django, Spring Boot, PostgreSQL, etc.)
 
 **Your current agent structure will appear here after running `/atta`.**
 
@@ -30,18 +30,21 @@ The agent structure adapts to your project:
 Until you run `/atta`, here's the expected structure:
 
 ```
-Core Agents (universal)
+Core Agents (always installed)
 ├── Project Owner         (orchestrator)
-├── Librarian             (persistent memory)
-├── Rubber Duck           (guided learning)
 ├── Code Reviewer         (quality reviewer)
+├── Librarian             (persistent memory)
+└── Architect             (system design & blueprints)
+
+Optional Agents (selected during init)
 ├── Business Analyst      (requirements)
 ├── QA Validator          (acceptance criteria)
-└── PR Manager            (PR descriptions)
+├── PR Manager            (PR descriptions)
+└── Rubber Duck           (guided learning)
 
 Coordinators (generated per project)
 ├── FE Team Lead          (if frontend detected)
-│   ├── [Framework]       (Vue, React, Angular, etc.)
+│   ├── [Framework]       (React, Angular, Next.js, etc.)
 │   ├── [Language]        (TypeScript, JavaScript)
 │   ├── [Styling]         (SCSS, Tailwind, CSS-in-JS)
 │   ├── [Testing]         (Jest, Vitest, Cypress)
@@ -107,7 +110,7 @@ If you're not using the `/atta` system and want to manually configure agents:
 - **Agents guide, they don't auto-generate** code (except when explicitly requested)
 - **Stateless** invocations (except Librarian-captured directives)
 - **Conflicts escalate to user** for final decision
-- **Knowledge-driven**: all agents reference `.atta/knowledge/` patterns
+- **Knowledge-driven**: all agents reference `.atta/team/` patterns
 - **Constraints are real**: Each agent has boundaries on what it can/cannot do
 
 ---
@@ -118,8 +121,8 @@ If you're not using the `/atta` system and want to manually configure agents:
 - **Coordinators**: `.claude/agents/coordinators/<team-lead>.md`
 - **Specialists**: `.claude/agents/specialists/<specialist>.md`
 - **Skills** (slash commands): `.claude/skills/`
-- **Knowledge base**: `.atta/knowledge/`
-- **Pattern files**: `.atta/knowledge/patterns/`
+- **Knowledge base**: `.atta/team/`
+- **Pattern files**: `.atta/team/patterns/`
 - **Project context**: `.atta/project/project-context.md`
 
 ---

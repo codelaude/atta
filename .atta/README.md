@@ -8,12 +8,11 @@ This directory contains tool-agnostic content shared across all AI coding tool a
 |-----------|---------|
 | `bootstrap/` | Tech stack detection YAML, templates, mappings |
 | `docs/` | User-facing documentation |
-| `knowledge/` | Patterns, templates, developer profile, ACCs |
+| `team/` | Patterns, templates (incl. ACC template), review guidance, CI suppressions |
+| `local/` | Developer profile, context, sessions, generated ACCs (runtime/personal) |
 | `project/` | Project context and CI profile (`project-context.md`, `project-profile.md`) |
 | `scripts/` | Shell scripts (context generation, pattern analysis) |
-| `.context/` | Runtime corrections, patterns, staleness data |
 | `.metadata/` | Version, framework info, manifests |
-| `.sessions/` | Session tracking schema and templates |
 
 ## Why `.atta/`?
 

@@ -37,9 +37,9 @@
 
 ## common.knowledge_base
 
-- **Patterns**: `.atta/knowledge/patterns/`
+- **Patterns**: `.atta/team/patterns/`
   {{#if PATTERN_FILE}}
-  - `.atta/knowledge/patterns/{{PATTERN_FILE}}`
+  - `.atta/team/patterns/{{PATTERN_FILE}}`
   {{/if}}
 - **Docs**:
 {{#each DOCUMENTATION_URLS}}

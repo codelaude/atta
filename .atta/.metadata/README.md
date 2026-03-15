@@ -6,14 +6,14 @@ This directory contains system metadata for the adaptive bootstrap system.
 
 ### `version`
 Contains the current user's version of the `.claude/` system.
-- **Current version**: 2.7.1
-- **Used by**: `/atta` and `/migrate` skills for version detection
+- **Current version**: 3.0.0
+- **Used by**: `/atta` and `/atta-migrate` skills for version detection
 - **Note**: This is the user's version, which may have customizations
 
 ### `framework-version` (introduced in v2.1)
 Contains the framework version that was last applied.
-- **Current version**: 2.7.1
-- **Used by**: `/update` skill to check for framework updates
+- **Current version**: 3.0.0
+- **Used by**: `/atta-update` skill to check for framework updates
 - **Note**: This is separate from user version to track framework updates independently
 
 ### `last-init` (generated)
@@ -25,7 +25,7 @@ Timestamp of the last `/atta` execution.
 ### `generated-manifest.json` (generated)
 Complete manifest of all generated files from the bootstrap system.
 - **Purpose**: Track which files were auto-generated
-- **Used by**: `/atta --rescan` and `/migrate` for cleanup and updates
+- **Used by**: `/atta --rescan` and `/atta-migrate` for cleanup and updates
 - **Structure**:
   ```json
   {
@@ -43,10 +43,10 @@ Complete manifest of all generated files from the bootstrap system.
   ```
 
 ### `file-manifest.json` (introduced in v2.1)
-Tracks all files in `.claude/` and their source (framework/generated/user).
+Tracks all files in `.claude/` and `.atta/` and their source (framework/generated/user).
 - **Purpose**: Enable safe framework updates that preserve customizations
-- **Used by**: `/update` skill to classify files and detect customizations
-- **Created by**: `/atta` on new projects, `/migrate --add-update-system` on existing v2.0 projects
+- **Used by**: `/atta-update` skill to classify files and detect customizations (skill renamed from `/update` in v3.0)
+- **Created by**: `/atta` on new projects, `/atta-migrate` on existing projects (skill renamed from `/migrate` in v3.0)
 - **Structure**:
   ```json
   {
@@ -88,7 +88,7 @@ Tracks all files in `.claude/` and their source (framework/generated/user).
 ### `update-history.json` (introduced in v2.1)
 Records history of all framework updates applied.
 - **Purpose**: Track update history and provide rollback information
-- **Used by**: `/update` skill to log updates and `/update --history` to display
+- **Used by**: `/atta-update` skill to log updates and `/atta-update --history` to display
 - **Structure**:
   ```json
   {
@@ -114,13 +114,14 @@ Template for the file-manifest.json structure.
 
 ## Version History
 
-- **2.7.1**: Multi-Tool Plugin Distribution + Review Guidance + Format Alignment — review guidance extraction (8 formatters × 6 adapters), plugin generator for 4 marketplace targets, cross-tool hook event mapping, SKILL.md frontmatter flags, agent YAML frontmatter with adapter transforms, preflight static analysis step, cross-reviewed by Codex + Copilot
+- **3.0.0** (2026-03-14): Enforcement Infrastructure — dir restructure (team/local split), 17 skills renamed to `atta-*` namespace + 2 hidden skills, 4 core + 4 optional agents, new architect agent, rich agent frontmatter (14 fields, cross-tool enforcement), path-scoped rules (5 adapter formats), data-driven enforcement hooks, model targeting (`model-registry.json`), rules-aware CI review, init absorption, `/atta-migrate` rewrite
+- **2.7.1**: Multi-Tool Plugin Distribution + Review Guidance + Format Alignment — review guidance extraction (8 formatters × 6 adapters), plugin generator for 4 marketplace targets, cross-tool hook event mapping, SKILL.md frontmatter flags, agent YAML frontmatter with adapter transforms, preflight static analysis step
 - **2.7.0** (2026-03-03): .atta/ Architecture + Developer Profile + Cursor Adapter — tool-agnostic shared content architecture, dual-root adapters, `/profile` skill (two-layer propagation), `/optimize` skill (cross-tool context enrichment), architectural pattern extraction, staleness detection, `/preflight --auto-fix` iterative fix loop, Cursor adapter (5th adapter), CI review adapter (6th adapter), ~70 path migrations, migration detection
 - **2.6.1**: Preflight Gap Closure — security deduplication, performance + bug/logic review dimensions, OWASP expansion, dev publish skill
 - **2.6.0**: Enhanced Testing — PR template detection in `/atta`, E2E testing detection (5 frameworks), E2E specialist agent + patterns, `/test` skill with `--e2e`/`--coverage`/`--watch`
 - **2.5.4**: Pre-v2.6 Cleanup — code deduplication, script performance, `/ship` skill, PR workflow refactor, docs refresh, pre-publish fixes
 - **2.5.3**: Context Diet Pass 2 + Session Tracking Hooks — hook-based session tracking (replaced ~1,000 lines of in-skill boilerplate), compressed remaining skills (~880 lines), triaged v2.5.1 open items
-- **2.5.2**: Context Diet — reduced SKILL.md and agent definition context footprint by ~55%, removed legacy agents, cross-AI reviewed
+- **2.5.2**: Context Diet — reduced SKILL.md and agent definition context footprint by ~55%, removed legacy agents
 - **2.5.1**: OSS readiness audit — security hardening, community files, npm packaging
 - **2.5.0** (2026-02-23): Pattern detection system (8 tracks) — correction logging, aggregation, `/patterns` skill (7 subcommands), agent adaptation with acceptance rates, learning dashboard with trends and recommendations, schema v1.1.0
 - **2.4.3**: npm distribution (`npx atta-dev init`), cross-tool adapters (Claude Code, Copilot, Codex, Gemini), capability matrix, automated check suite

@@ -23,7 +23,7 @@ import { join } from 'node:path';
  * Map technology detection names to pattern template filenames.
  * Keys are the tech identifiers used in detection YAML; values are template basenames.
  */
-const TECH_TO_TEMPLATE = {
+export const TECH_TO_TEMPLATE = {
   typescript: 'typescript-patterns',
   react: 'react-patterns',
   vue: 'vue-patterns',
@@ -53,7 +53,7 @@ const TECH_TO_TEMPLATE = {
  * @param {string} templatePath - Absolute path to a pattern template .md file
  * @returns {{ keyRules: string[], antiPatterns: Array<{see: string, do: string, severity: string}> }}
  */
-function extractFromTemplate(templatePath) {
+export function extractFromTemplate(templatePath) {
   const content = readFileSync(templatePath, 'utf-8').replace(/\r\n/g, '\n');
   const keyRules = [];
   const antiPatterns = [];
@@ -508,7 +508,7 @@ export function formatCIReview(rules) {
 // ─── Helpers ────────────────────────────────────────────────────────
 
 /** Convert tech identifier to display name (e.g., 'spring-boot' → 'Spring Boot') */
-function formatTechName(tech) {
+export function formatTechName(tech) {
   const special = {
     typescript: 'TypeScript',
     javascript: 'JavaScript',

@@ -1,3 +1,20 @@
+---
+name: fe-team-lead
+description: Frontend coordination hub. Use when decomposing UI features, coordinating frontend specialists, or resolving cross-domain frontend conflicts.
+model: inherit
+tools:
+  - Read
+  - Grep
+  - Glob
+  - Agent
+disallowedTools:
+  - Edit
+  - Write
+  - Bash
+maxTurns: 30
+permissionMode: plan
+---
+
 # Agent: FE Team Lead (Frontend Coordinator)
 
 > Frontend coordination hub — decomposes UI features and delegates to specialists.
@@ -98,9 +115,9 @@ When spanning frontend + backend:
 
 ## Knowledge Base
 
-- **Patterns**: `.atta/knowledge/patterns/`
+- **Patterns**: `.atta/team/patterns/`
 {{#each PATTERN_FILES}}
-  - `.atta/knowledge/patterns/{{this}}`
+  - `.atta/team/patterns/{{this}}`
 {{/each}}
 - **Context**: `.atta/project/project-context.md`
 - **Accessibility**: WAI-ARIA APG, WCAG (via accessibility specialist)

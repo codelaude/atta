@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
 # Recent Work Context Generator
-# Reads last 5 session files and produces .context/recent.md
+# Reads last 5 session files and produces local/context/recent.md
 # Usage:
 #   .atta/scripts/generate-context.sh                                    # Auto-detect (.atta/)
 #   .atta/scripts/generate-context.sh <sessionsRoot> [attaRoot]          # Explicit roots
 #     sessionsRoot: directory containing .sessions/ (e.g. .claude on Claude Code)
-#     attaRoot:     directory containing .context/ and .metadata/ (default: .atta)
+#     attaRoot:     directory containing local/context/ and .metadata/ (default: .atta)
 
 set -euo pipefail
 
@@ -15,13 +15,13 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib/_common.sh"
 
 # sessionsRoot: where session JSON files live (may differ from attaRoot on Claude Code)
 SESSIONS_ROOT="${1:-.atta}"
-# attaRoot: where .context/ and .metadata/ live (always .atta in v2.7+)
+# attaRoot: where local/context/ and .metadata/ live (always .atta in v2.7+)
 ATTA_DIR="${2:-}"
 resolve_atta_dir
 validate_atta_dir
 
 SESSIONS_DIR="$SESSIONS_ROOT/.sessions"
-CONTEXT_DIR="$ATTA_DIR/.context"
+CONTEXT_DIR="$ATTA_DIR/local/context"
 OUTPUT_FILE="$CONTEXT_DIR/recent.md"
 MAX_RECENT=5
 
@@ -35,7 +35,7 @@ if [ ! -d "$SESSIONS_DIR" ]; then
 
 *Auto-generated — do not edit manually.*
 
-No recent sessions found. Run a skill (e.g., `/atta`, `/tutorial`) to start tracking.
+No recent sessions found. Run a skill (e.g., `/atta`, `/atta-tutorial`) to start tracking.
 EOF
   exit 0
 fi
@@ -132,7 +132,7 @@ content = header
 if lines:
     content += '\n'.join(lines)
 else:
-    content += 'No recent sessions found. Run a skill (e.g., \`/atta\`, \`/tutorial\`) to start tracking.'
+    content += 'No recent sessions found. Run a skill (e.g., \`/atta\`, \`/atta-tutorial\`) to start tracking.'
 
 # Append pattern detection summary (if corrections file exists)
 if os.path.isfile(patterns_file):
@@ -147,7 +147,7 @@ if os.path.isfile(patterns_file):
             content += '\n\n## Patterns Detected\n\n'
             content += '- %d correction(s) across %d pattern(s)\n' % (total, unique)
             if ready > 0:
-                content += '- **%d pattern(s) ready for promotion** (run \`/patterns suggest\`)\n' % ready
+                content += '- **%d pattern(s) ready for promotion** (run \`/atta-patterns suggest\`)\n' % ready
     except (json.JSONDecodeError, IOError):
         pass
 

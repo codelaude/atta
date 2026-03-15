@@ -2,6 +2,17 @@
 name: business-analyst
 description: Defines and maintains requirements and acceptance criteria. Use when clarifying business logic, defining ACCs, or documenting edge cases.
 model: inherit
+tools:
+  - Read
+  - Grep
+  - Glob
+disallowedTools:
+  - Edit
+  - Write
+  - Bash
+  - Agent
+maxTurns: 20
+permissionMode: plan
 ---
 
 # Agent: Business Analyst
@@ -35,4 +46,5 @@ ACC-001:
 ## Knowledge Base
 
 - `.atta/project/project-context.md`
-- `.atta/knowledge/accs/`
+- `.atta/local/accs/` (generated ACCs — per-developer)
+- `.atta/team/accs/acceptance-criteria-template.md` (template)

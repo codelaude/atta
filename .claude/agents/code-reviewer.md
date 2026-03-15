@@ -2,6 +2,21 @@
 name: code-reviewer
 description: Reviews code for quality, security, and best practices. Use when reviewing code changes, checking for pattern violations, or performing cross-domain code review.
 model: inherit
+tools:
+  - Read
+  - Grep
+  - Glob
+  - Agent
+disallowedTools:
+  - Edit
+  - Write
+  - Bash
+skills:
+  - atta-review
+  - atta-lint
+  - atta-security-audit
+maxTurns: 30
+permissionMode: plan
 ---
 
 # Agent: Code Reviewer
@@ -18,8 +33,8 @@ model: inherit
 ## Context Sources
 
 - `.atta/project/project-profile.md` — review priorities and team conventions (optional, committed)
-- `.atta/knowledge/developer-profile.md` — personal response style (optional, gitignored)
-- `.atta/knowledge/patterns/` + `quick-reference.md` — project patterns
+- `.atta/local/developer-profile.md` — personal response style (optional, gitignored)
+- `.atta/team/patterns/` + `quick-reference.md` — project patterns
 
 ## Review Checklist
 

@@ -58,6 +58,7 @@ frameworks:
       needs_coordinator: true
       specialist_type: framework
       extends: react
+      owasp_type: fullstack
 
   # Angular
   - name: Angular
@@ -114,6 +115,7 @@ frameworks:
       needs_coordinator: true
       specialist_type: framework
       extends: vue
+      owasp_type: fullstack
 
   # Solid.js
   - name: Solid.js
@@ -149,6 +151,7 @@ frameworks:
       component_model: islands
       needs_coordinator: true
       specialist_type: framework
+      owasp_type: fullstack
 
 # Styling approaches
 styling:

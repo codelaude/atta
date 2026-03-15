@@ -48,6 +48,28 @@ while IFS= read -r -d '' skill; do
   fi
 done < <(find "$WORK_DIR/.github/skills" -name "SKILL.md" -print0 2>/dev/null)
 
+# --- Skill flag handling (Track E) ---
+# Copilot should preserve disable-model-invocation but strip allowed-tools and argument-hint
+while IFS= read -r -d '' skill; do
+  # Negative checks: CC-specific fields that cause validator warnings should be stripped
+  if head -15 "$skill" | grep -q "^allowed-tools:"; then
+    echo "FAIL: $skill contains 'allowed-tools:' (should be stripped for Copilot)"
+    ERRORS=$((ERRORS + 1))
+  fi
+  if head -15 "$skill" | grep -q "^argument-hint:"; then
+    echo "FAIL: $skill contains 'argument-hint:' (should be stripped for Copilot)"
+    ERRORS=$((ERRORS + 1))
+  fi
+  if head -15 "$skill" | grep -q "^model:"; then
+    echo "FAIL: $skill contains 'model:' (should be stripped for Copilot)"
+    ERRORS=$((ERRORS + 1))
+  fi
+  if head -15 "$skill" | grep -q "^context:"; then
+    echo "FAIL: $skill contains 'context:' (should be stripped for Copilot)"
+    ERRORS=$((ERRORS + 1))
+  fi
+done < <(find "$WORK_DIR/.github/skills" -name "SKILL.md" -print0 2>/dev/null)
+
 # Check agent definitions exist in .github/atta/agents/ with .agent.md extension
 if [ -d "$WORK_DIR/.github/atta/agents" ]; then
   AGENT_COUNT=$(find "$WORK_DIR/.github/atta/agents" -name "*.agent.md" -not -path "*/memory/*" 2>/dev/null | wc -l | tr -d ' ')
@@ -194,11 +216,42 @@ if 'version' not in data or data['version'] != 1:
 if 'hooks' not in data:
     print('FAIL: hooks.json missing top-level "hooks" key')
     sys.exit(1)
-for event in ['sessionStart', 'postToolUse', 'errorOccurred']:
+# Enforcement hooks: preToolUse (safety), agentStop (quality gate)
+for event in ['preToolUse', 'agentStop']:
     if event not in data['hooks']:
         print(f'FAIL: hooks.json missing event: {event}')
         sys.exit(1)
 PYEOF
+fi
+
+# Check hook scripts exist and are executable (referenced by hooks.json)
+for script in pre-bash-safety.sh stop-quality-gate.sh model-gate.sh; do
+  if [ ! -x "$WORK_DIR/.atta/scripts/hooks/$script" ]; then
+    echo "FAIL: .atta/scripts/hooks/$script missing or not executable"
+    ERRORS=$((ERRORS + 1))
+  fi
+done
+
+# --- Agent frontmatter checks ---
+
+# Check that code-reviewer agent has tools in frontmatter (Copilot-native tool restriction)
+REVIEWER_AGENT=$(find "$WORK_DIR/.github/atta/agents" -name "code-reviewer*" -type f 2>/dev/null | head -1)
+if [ -n "$REVIEWER_AGENT" ]; then
+  if grep -q '^tools:' "$REVIEWER_AGENT"; then
+    # Verify Copilot tool names (not Claude Code names)
+    if grep -q '\- read' "$REVIEWER_AGENT" || grep -q "'read'" "$REVIEWER_AGENT"; then
+      echo "PASS: code-reviewer agent has Copilot-native tools: frontmatter"
+    else
+      echo "FAIL: code-reviewer tools: present but doesn't contain Copilot tool names"
+      ERRORS=$((ERRORS + 1))
+    fi
+  else
+    echo "FAIL: code-reviewer agent missing tools: frontmatter"
+    ERRORS=$((ERRORS + 1))
+  fi
+else
+  echo "FAIL: code-reviewer agent file not found in .github/atta/agents/"
+  ERRORS=$((ERRORS + 1))
 fi
 
 if [ $ERRORS -eq 0 ]; then

@@ -12,7 +12,7 @@ Atta supports six adapters. Five install interactive AI tool configurations; one
 |--------|-------------|-------------|-----------|------------|--------|
 | **Instruction file** | `CLAUDE.md` | `AGENTS.md` + `.github/copilot-instructions.md` | `AGENTS.md` (multi-level) | `GEMINI.md` (hierarchical) | `AGENTS.md` |
 | **Skill location** | `.claude/skills/*/SKILL.md` | `.github/skills/*/SKILL.md` | `.agents/skills/*/SKILL.md` | `.gemini/commands/*.toml` | `.cursor/rules/atta-*.mdc` |
-| **Skill invocation** | `/skill-name` | `/skill-name` | `$skill-name` | `/command-name` | `@atta-skill-name` |
+| **Skill invocation** | `/atta-skill-name` | `/atta-skill-name` | `$atta-skill-name` | `/atta-command-name` | `@atta-skill-name` |
 | **Skill format** | Markdown + YAML frontmatter | Markdown + YAML frontmatter | Markdown + YAML frontmatter | TOML (description + prompt) | MDC (Markdown + YAML frontmatter) |
 | **Agent definitions** | `.claude/agents/*.md` | `.github/atta/agents/*.md` | `.agents/agents/*.md` | `.gemini/agents/*.md` | `.cursor/agents/*.md` |
 | **Bootstrap assets** | `.atta/bootstrap/` | `.atta/bootstrap/` | `.atta/bootstrap/` | `.atta/bootstrap/` | `.atta/bootstrap/` |
@@ -37,7 +37,7 @@ project/
 │   │   ├── session-track.sh      # Session tracking hook
 │   │   └── hooks.json            # Hook event definitions
 │   ├── skills/*/SKILL.md         # Skill definitions (frontmatter flags)
-│   └── settings.local.json       # Hook config + permissions
+│   └── settings.local.json       # Permissions
 ├── .atta/                        # Tool-agnostic shared content
 │   ├── bootstrap/                # Tech detection + templates
 │   ├── team/
@@ -62,6 +62,9 @@ project/
 - **Pattern detection**: Corrections logged and analyzed over time
 - **Developer profile**: Two-layer propagation (generation-time + runtime)
 - **Context generation**: `generate-context.sh` produces `local/context/recent.md`
+- **Enforcement hooks**: lint-on-edit, pre-bash safety, stop quality gate
+- **Path-scoped rules**: Tech-specific coding rules in `.claude/rules/*.md`
+- **Model targeting**: `model-registry.json` + `model:` frontmatter + `model-gate.sh` hook
 
 ### Limitations
 - None significant — this is the reference implementation
@@ -118,20 +121,13 @@ Skills use progressive loading: metadata (name + description) loaded first, full
 - **Implicit**: Model auto-selects based on `description` field match
 - Controlled by frontmatter: `user-invokable: true`, `disable-model-invocation: false`
 
-### Built-in Conflicts & Renames
+### Naming
 
-Copilot has built-in commands that conflict with some Atta skill names. The adapter automatically renames these:
-
-| Original | Renamed | Reason |
-|----------|---------|--------|
-| `/review` | `/atta-review` | Copilot has built-in `/review` |
-| `/agent` | `/atta-agent` | Copilot has built-in `/agent` for its native agent system |
-
-The SKILL.md files are copied with updated frontmatter `name:` fields. The AGENTS.md command table also reflects the renamed commands.
+Since v3.0, all skills use the `atta-*` namespace by default (e.g., `/atta-review`, `/atta-agent`). This eliminates built-in conflicts across all adapters — no per-adapter rename maps needed.
 
 ### What Works (Validated March 2026)
 - Instruction files loaded and merged (AGENTS.md + copilot-instructions.md)
-- Skills discovered from `.github/skills/` (17/17 skills found)
+- Skills discovered from `.github/skills/` (19 skills found, `atta-*` namespace)
 - Agent definitions available at `.github/atta/agents/`
 - `/atta-agent` skill resolves agent files from `.github/atta/agents/` path
 - Slash command invocation
@@ -148,7 +144,7 @@ The SKILL.md files are copied with updated frontmatter `name:` fields. The AGENT
 
 ```yaml
 ---
-name: review
+name: atta-review
 description: Comprehensive code review with automated pattern checks.
 user-invokable: true
 ---
@@ -195,7 +191,7 @@ Size limit: 32 KiB combined across all AGENTS.md files (configurable via `projec
 
 **IMPORTANT**: Codex uses `$skill-name`, NOT `/skill-name`.
 
-- **Explicit**: `$skill-name` prefix in prompt (e.g., `$review src/auth.ts`)
+- **Explicit**: `$atta-skill-name` prefix in prompt (e.g., `$atta-review src/auth.ts`)
 - **Browser**: `/skills` command opens skill picker
 - **Implicit**: Model auto-selects based on description (configurable via `allow_implicit_invocation`)
 - Slash commands (`/`) are reserved for 26 built-in commands only
@@ -204,15 +200,15 @@ Size limit: 32 KiB combined across all AGENTS.md files (configurable via `projec
 - AGENTS.md loaded as system prompt context
 - Skills discovered from `.agents/skills/`
 - Agent definitions available at `.agents/agents/`
-- `$agent` skill resolves agent files from `.agents/agents/` path
-- `$skill-name` invocation
+- `$atta-agent` skill resolves agent files from `.agents/agents/` path
+- `$atta-skill-name` invocation
 - `/skills` browser for discovery
 - Implicit skill matching
 
 ### Limitations
 - No session tracking
 - No pattern detection or learning
-- `$` prefix differs from other tools (users may try `/` first)
+- `$` prefix differs from other tools (users may try `/` first). All skills use `atta-*` namespace.
 - 32 KiB size cap on combined instruction files
 - If two skills share a name, neither overrides the other
 
@@ -220,7 +216,7 @@ Size limit: 32 KiB combined across all AGENTS.md files (configurable via `projec
 
 ```yaml
 ---
-name: review
+name: atta-review
 description: Comprehensive code review with automated pattern checks.
 ---
 ```
@@ -290,7 +286,7 @@ Also supports `!{shell command}` execution and `@{file/path}` content embedding.
 - GEMINI.md loaded as project context
 - Custom commands from `.gemini/commands/*.toml`
 - Agent definitions available at `.gemini/agents/`
-- `/agent` skill (via TOML command) resolves agent files from `.gemini/agents/` path
+- `/atta-agent` skill (via TOML command) resolves agent files from `.gemini/agents/` path
 - Slash command invocation (`/command-name`)
 - Argument passing via `{{args}}`
 - `/memory` commands for context management
@@ -364,10 +360,10 @@ Atta generates:
 Cursor has no custom slash command system. Skills are invoked by @-mentioning the rule file in chat:
 
 ```
-@atta-review      Code review against conventions
-@atta-preflight   Full pre-PR validation
-@atta-atta        Set up agents for your stack
-@atta-test        Run and analyze tests
+@atta-review       Code review against conventions
+@atta-preflight    Full pre-PR validation
+@atta              Set up agents for your stack
+@atta-test         Run and analyze tests
 ```
 
 Cursor may also apply skills intelligently based on the `description` field without explicit @-mention.
@@ -392,7 +388,7 @@ Full SKILL.md body content here.
 - Skills available as @-mentionable rules in `.cursor/rules/`
 - Agent definitions available at `.cursor/agents/`
 - Intelligent skill application via description matching
-- `@atta-atta` bootstrap generates agents for detected stack
+- `@atta` bootstrap generates agents for detected stack
 
 ### Limitations
 - No session tracking (no hook support)
@@ -405,7 +401,7 @@ Full SKILL.md body content here.
 
 ```yaml
 ---
-name: review
+name: atta-review
 description: Comprehensive code review with automated pattern checks.
 ---
 ```
@@ -444,7 +440,7 @@ This gives the CI reviewer the same context as your local agents — resulting i
 
 ### Design Constraints
 
-- **Read-only CI**: the action never writes to `.atta/` — all learning happens locally via `/patterns`, then committed normally
+- **Read-only CI**: the action never writes to `.atta/` — all learning happens locally via `/atta-patterns`, then committed normally
 - **Human-gated suppressions**: every suppression lands in a PR diff for human approval before merging to main
 - **Knowledge files as source of truth**: context is committed to the repo, not embedded in the YAML workflow
 - **User-configured structure**: runner, permissions, and action version are user-controlled; Atta owns the `prompt:` section
@@ -456,7 +452,7 @@ This gives the CI reviewer the same context as your local agents — resulting i
 3. Author adds it to `.atta/team/ci-suppressions.md` in the PR branch
 4. Human reviewer approves or rejects the suppression in the PR diff
 5. On merge, suppressions land on `main` — all future PRs benefit
-6. Over time, use `/patterns promote` to replace raw suppressions with understood patterns
+6. Over time, use `/atta-patterns promote` to replace raw suppressions with understood patterns
 
 ### Limitations
 
@@ -476,7 +472,7 @@ This gives the CI reviewer the same context as your local agents — resulting i
 | Agent definitions | Yes | Yes | Yes | Yes | Yes |
 | Agent invocation | Yes | Yes | Yes | Yes | Via AGENTS.md |
 | Skill execution | Yes | Yes | Yes | Yes | Yes |
-| Skill commands | `/name` | `/name` | `$name` | `/name` | `@atta-name` |
+| Skill commands | `/atta-name` | `/atta-name` | `$atta-name` | `/atta-name` | `@atta-name` |
 | Review guidance | REVIEW.md | .instructions.md | AGENTS.md appendix | styleguide.md + config.yaml | BUGBOT.md + .mdc |
 | Hooks config | Yes (17 events) | Placeholders (6) | — | Placeholders (10) | Placeholders (10) |
 | Plugin manifest | plugin.json | — | — | — | — |
@@ -486,9 +482,11 @@ This gives the CI reviewer the same context as your local agents — resulting i
 | Context generation | Yes | — | — | — | — |
 | Implicit skill match | — | Yes | Yes | — | Yes (via description) |
 | Custom instructions | CLAUDE.md | Multi-source | Multi-level | Hierarchical | AGENTS.md |
+| Path-scoped rules | `.claude/rules/` | `.github/instructions/` | `AGENTS.md` | `.gemini/styleguide.md` | `.cursor/rules/` |
+| Model targeting | Yes (native frontmatter) | Blocking (hook) | N/A | Blocking (hook) | Blocking (hook) |
 | Update system | Yes | — | — | — | — |
 
-**Legend**: Yes = full support, Gen-time = generation-time only (via `/atta`), Placeholders = hook config generated but requires tool-native support, — = not available
+**Legend**: Yes = full support, Gen-time = generation-time only (via `/atta`), Blocking = hook detects model and blocks if tier mismatch, Placeholders = hook config generated but requires tool-native support, — = not available
 
 ---
 
@@ -496,11 +494,11 @@ This gives the CI reviewer the same context as your local agents — resulting i
 
 ### Cross-Adapter
 - Skills that reference `.atta/scripts/` (pattern logging, context generation) won't work outside Claude Code
-- The `/agent` skill searches multiple adapter paths — it will find definitions regardless of which adapter was used
+- The `/atta-agent` skill searches multiple adapter paths — it will find definitions regardless of which adapter was used
 
 ### Copilot-Specific
 - **`.github/agents/` is reserved**: Copilot's native agent system uses `.github/agents/` with YAML frontmatter. Atta agents go to `.github/atta/agents/` instead.
-- **Built-in skill conflicts**: `/review` and `/agent` are Copilot built-ins. Atta renames these to `/atta-review` and `/atta-agent` during install.
+- **No naming conflicts**: Since v3.0, all skills use `atta-*` namespace — no collisions with Copilot built-ins.
 - Home-directory instructions (`~/.copilot/copilot-instructions.md`) has a reporting bug — `/instructions` doesn't list it as a source even though it's consumed (as of Feb 2026)
 
 ### Codex-Specific
@@ -519,7 +517,7 @@ This gives the CI reviewer the same context as your local agents — resulting i
 
 ---
 
-## Directory Layout (v2.7+)
+## Directory Layout (v3.0+)
 
 Atta uses a **dual-root** layout: tool-specific files go to `.claude/`, everything else goes to `.atta/`.
 
@@ -604,5 +602,5 @@ The `.atta/local/sessions/` directory contains **framework docs** (schema, templ
 
 ---
 
-*Last updated: 2026-03-11. Based on tool documentation, dry-run testing, and live smoke tests.*
-*Validated against: Copilot CLI GA (Feb 2026), Codex CLI, Gemini CLI. Cursor: documentation-only (dry-run). v2.7.1: review guidance, hooks config, plugin manifest, agent transforms added across all adapters.*
+*Last updated: 2026-03-14. Based on tool documentation, dry-run testing, and live smoke tests.*
+*Validated against: Copilot CLI GA (Feb 2026), Codex CLI, Gemini CLI. Cursor: documentation-only (dry-run). v3.0.0: skill rename (atta-* namespace), 4 core + 4 optional agents, rich frontmatter, path-scoped rules, enforcement hooks, model targeting.*

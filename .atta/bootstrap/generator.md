@@ -13,7 +13,7 @@
 
 ## Overview
 
-The bootstrap system transforms the `.claude/` framework into an adaptive system that generates appropriate agents for ANY tech stack.
+The bootstrap system transforms the framework into an adaptive system that generates appropriate agents for ANY tech stack, across all supported AI tools.
 
 **Architecture**:
 ```
@@ -237,7 +237,7 @@ for (const [id, mapping] of Object.entries(utility_agents)):
   generation_queue.push({ id, mapping })
 ```
 
-Currently: `prompt-engineer` (context enrichment specialist for `/optimize`).
+Currently: `prompt-engineer` (context enrichment specialist for `/atta-optimize`).
 
 ### Agent Generation Queue
 

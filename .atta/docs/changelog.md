@@ -4,6 +4,47 @@ Full version history for the Atta framework.
 
 ---
 
+## v3.0.0 (2026-03-14) — Enforcement Infrastructure
+
+From file generation to enforcement infrastructure generation. 14 tracks, 13 PRs.
+
+**Directory Restructure**
+- `.atta/` split into `team/` (committed, shared) and `local/` (gitignored, personal)
+- Clear separation: team patterns, templates, and CI suppressions committed; developer profile, context, and sessions local
+
+**Skill System**
+- 17 skills renamed to `atta-*` namespace (`/review` → `/atta-review`, etc.) — prevents collisions with tool built-ins across all adapters
+- 2 hidden skills (`atta-route`, `atta-checklist`) with `user-invocable: false` — background knowledge loaded when relevant
+- Skill flags: `disable-model-invocation`, `allowed-tools`, `argument-hint` with cross-tool translation
+- Model targeting via `model-registry.json` (3-tier skill classification: light/mid/full) and `model:` frontmatter in SKILL.md
+- **Blocking `model-gate.sh` hook**: detects the current model (Copilot `$COPILOT_MODEL`, Cursor stdin JSON, Gemini `$GEMINI_MODEL`) and blocks skills running on costlier models than needed — `--bypass` flag or `ATTA_MODEL_GATE=off` env var to override
+
+**Agent System**
+- **4 core + 4 optional agents**: core (project-owner, code-reviewer, librarian, architect) always installed; optional (business-analyst, qa-validator, pr-manager, rubber-duck) selected during init
+- **New architect agent**: system design, ADR creation, technology selection, scalability analysis — designs AND implements from blueprints
+- Rich agent frontmatter with 14 Claude Code fields (`tools`, `skills`, `memory`, `hooks`, `permissionMode`, `maxTurns`, `mcpServers`, `isolation`, `background`, `color`, etc.)
+- Cross-tool enforcement: Claude Code and Copilot read frontmatter natively; Cursor, Codex, and Gemini get body-text fallbacks
+- Agent selection multiselect during `npx atta-dev init`
+
+**Enforcement Infrastructure**
+- **Path-scoped coding rules**: tech-specific rules generated to `.atta/team/rules/` from detection, then formatted per adapter (Claude Code `.claude/rules/*.md`, Copilot `.github/instructions/`, Cursor `.cursor/rules/*.mdc`, Gemini `.gemini/styleguide.md`, Codex `AGENTS.md`)
+- **Data-driven enforcement hooks**: lint-on-edit, pre-bash safety, stop quality gate — generated from `HOOK_EVENT_MAP` with cross-tool degradation
+- **Rules-aware CI review**: CI adapter reads `.atta/team/rules/` and pre-computed `.atta/team/owasp-scope.md` for stack-scoped security checks
+- **Feedback loop**: CI findings → local `/atta-patterns` refinement → committed rules → better CI
+
+**Review & Validation**
+- Canonical rule loading for `/atta-review` — reads from `.atta/team/rules/` (single source of truth), falls back to `REVIEW.md`
+- Language-agnostic Steps 3-4 in review skill
+- Init absorption (Phase 0.5): parses existing `CLAUDE.md` / `copilot-instructions.md` output before Atta install, with sentinel detection to prevent feedback loops
+
+**Migration & Distribution**
+- `/atta-migrate` rewritten as real migration skill: skill reference renames in user-edited files, directory restructure verification, user customization recovery, completeness checks
+- Cross-tool skill rename during migration (handles `/`, `$`, `@` prefixes per adapter)
+- Backup-before-change, dry-run-before-apply, idempotent
+- Two-step flow: `npx atta init` (mechanical) + `/atta-migrate` (intelligent)
+
+---
+
 ## v2.7.1 — Multi-Tool Plugin Distribution + Review Guidance + Format Alignment
 
 Review guidance generation, plugin marketplace distribution, and cross-tool format alignment across all 6 adapters.
@@ -27,7 +68,7 @@ Review guidance generation, plugin marketplace distribution, and cross-tool form
 **Preflight Static Analysis**
 - **Step 1.5**: New static analysis step in `/preflight` — unused imports, cross-file consistency, platform portability, shell script safety, test coverage
 
-**Cross-Review Fixes** (Codex 7 findings + Copilot 8 comments, 2 rounds)
+**Bug Fixes**
 - TOML bare-key safety for agent names (plugin.js + codex.js)
 - Gemini event count corrected from 12 → 10 (shared.js, gemini.js)
 - Unknown adapter in `generateHooksConfig()` now throws instead of silent empty return
@@ -172,14 +213,13 @@ Reduces context window footprint of SKILL.md files and agent definitions.
 - **Core agent definitions**: 367 → 279 lines (24% reduction across 7 agents) — removed "Framing:" personality lines, verbose Developer Preferences, redundant Knowledge Base sections
 - **`recent.md` opt-in**: No longer auto-injected into agent context; read only when user requests session continuity
 - **Legacy agents removed**: Deleted `.claude/agents/legacy/` directory (8 files, v1.0 reference agents never loaded by system) and all references
-- **Cross-AI review**: Claude → Codex cross-review caught 4 issues (rescan data gap, agent path ambiguity, skip-synthesis contract, manifest compression) — all fixed
 - **Net reduction**: ~1,060 lines removed across 10+ files
 
 ---
 
 ## v2.5.1 — OSS Readiness
 
-Security hardening, community files, and npm packaging improvements from 3-way cross-review audit (Claude + Codex + Copilot).
+Security hardening, community files, and npm packaging improvements.
 
 - **Community files**: LICENSE (MIT), CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, issue/PR templates
 - **Security hardening**: `sys.argv[]` for data passing in all shell scripts (no interpolation), path containment with `pwd -P` resolution (fixes absolute-path and symlink bypasses), UUID-based correction IDs
@@ -208,7 +248,6 @@ Security hardening, community files, and npm packaging improvements from 3-way c
 - Capability matrix (YAML + JSON Schema) mapping features across 6 AI tools with 3-tier degradation
 - Automated check suite: 6 scripts (5 core + 1 optional) validating adapter outputs and schema
 - Gemini CLI adapter: TOML command generation from SKILL.md, extension manifest, context file
-- Cross-AI review: 12 findings identified and resolved across Claude, Codex (GPT-5), and GitHub Copilot
 - Agent developer preferences: agents read developer profile generated during install
 
 ## v2.4.2 — Rename & Version Cleanup
@@ -283,14 +322,18 @@ Security hardening, community files, and npm packaging improvements from 3-way c
 
 ---
 
-## By the Numbers (v2.7)
+## By the Numbers (v3.0)
 
 - **100+ Technology Detectors** across frontend, backend, databases, security tools, architecture
 - **11 Universal Agent Templates** with `_common.md` shared partial that generate project-specific specialists (+ E2E, prompt engineer)
 - **6 Detection Rule Files** covering frontend, backend, databases, tools, security, and architecture
 - **21+ Pattern File Templates** for different tech stacks (+ E2E testing, prompt patterns)
-- **17 Skills** (slash commands), `/patterns` with 7 subcommands, `/test` with 3 flags
-- **3-Tier Agent Architecture** (7 core + 2 coordinators + N specialists)
+- **19 Skills** — 17 user-invocable + 2 hidden (`atta-route`, `atta-checklist`), all namespaced `atta-*`
+- **4 Core + 4 Optional Agents** with rich frontmatter (14 fields), plus coordinators and N specialists
+- **6 Adapters** — Claude Code, Copilot, Codex, Gemini, Cursor, GitHub Action (CI)
+- **Path-Scoped Rules** generated in 5 native adapter formats from single source
+- **Model Registry** with 3-tier skill classification (light/mid/full)
+- **Enforcement Hooks** — lint-on-edit, pre-bash safety, stop quality gate with cross-tool degradation
 - **51 Framework Validation Assertions** (pattern detection, agent adaptation, learning dashboard)
 - **100% Configuration-Driven** — add new tech via YAML, no code changes
 

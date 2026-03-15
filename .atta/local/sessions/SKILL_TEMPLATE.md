@@ -8,7 +8,7 @@ See `TRACKING_GUIDE.md` for details on the hook-based approach.
 
 ```markdown
 ---
-name: your-skill-name
+name: atta-your-skill
 description: Your skill description
 ---
 
@@ -17,8 +17,8 @@ You are now acting as **Your Skill**.
 ## How to Use
 
 \`\`\`
-/your-skill              # Default usage
-/your-skill --flag       # With flags
+/atta-your-skill              # Default usage
+/atta-your-skill --flag       # With flags
 \`\`\`
 
 ## Execution Steps

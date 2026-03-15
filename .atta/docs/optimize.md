@@ -12,10 +12,10 @@ The prompt optimizer enriches your prompts with project context for better resul
 ## Quick Start
 
 ```
-/optimize Add a dark mode toggle to the settings page
-/optimize --rephrase How should I structure the auth module
-/optimize --target codex Refactor the auth module to use JWT
-/optimize --target chatgpt Explain how our routing works and suggest improvements
+/atta-optimize Add a dark mode toggle to the settings page
+/atta-optimize --rephrase How should I structure the auth module
+/atta-optimize --target codex Refactor the auth module to use JWT
+/atta-optimize --target chatgpt Explain how our routing works and suggest improvements
 ```
 
 ## How It Works
@@ -51,24 +51,24 @@ It does **not** inject Atta internals, session data, secrets, or full pattern fi
 
 ## Prerequisites
 
-Run `/atta` first to generate `project-context.md`. Without it, `/optimize` has no context to inject.
+Run `/atta` first to generate `project-context.md`. Without it, `/atta-optimize` has no context to inject.
 
-For better results, also run `/profile --update` to set your preferences — they'll be included in enriched prompts.
+For better results, also run `/atta-profile --update` to set your preferences — they'll be included in enriched prompts.
 
 ## Examples
 
 ### Rephrasing in the current session
 
 ```
-/optimize --rephrase How should I structure the auth module
+/atta-optimize --rephrase How should I structure the auth module
 ```
 
-If your first attempt at asking this question got a generic answer, `/optimize` restructures the prompt with your project's architectural patterns, tech stack, and conventions — so the next response is grounded in your actual project.
+If your first attempt at asking this question got a generic answer, `/atta-optimize` restructures the prompt with your project's architectural patterns, tech stack, and conventions — so the next response is grounded in your actual project.
 
 ### Enriching for Codex
 
 ```
-/optimize --target codex Add pagination to the user list API endpoint
+/atta-optimize --target codex Add pagination to the user list API endpoint
 ```
 
 Produces a prompt with file paths, API conventions from your project, and explicit "modify file X" instructions that Codex works best with.
@@ -76,13 +76,13 @@ Produces a prompt with file paths, API conventions from your project, and explic
 ### Enriching for ChatGPT
 
 ```
-/optimize --target chatgpt Review our authentication flow and suggest improvements
+/atta-optimize --target chatgpt Review our authentication flow and suggest improvements
 ```
 
 Produces a self-contained prompt with full tech stack, auth-related patterns, and architectural context — since ChatGPT has no access to your repo.
 
 ## Related
 
-- [`/atta`](bootstrap-system.md) — Generates the project context that `/optimize` reads
-- [`/profile`](profile.md) — Sets preferences included in enriched prompts
-- [`/agent prompt-engineer`](../skills/agent/SKILL.md) — The underlying agent for custom workflows
+- [`/atta`](bootstrap-system.md) — Generates the project context that `/atta-optimize` reads
+- [`/atta-profile`](profile.md) — Sets preferences included in enriched prompts
+- `/atta-agent prompt-engineer` — The underlying agent for custom workflows (see [Bootstrap System](bootstrap-system.md) for agent generation)

@@ -4,7 +4,7 @@
   <em>Named after the leafcutter ant genus, where colonies of specialists build together.</em>
 </p>
 
-A multi-agent system for AI-assisted development that guides, reviews, and validates your work — instead of writing code for you. Supports any tech stack: Vue, React, Angular, Python/Django, Java/Spring Boot, Go, Rust, and [100+ more](https://github.com/codelaude/atta/blob/main/.atta/docs/bootstrap-system.md).
+A multi-agent system for AI-assisted development that guides, reviews, and validates your work — instead of writing code for you. Supports any tech stack: React, Next.js, Angular, Python/Django, Java/Spring Boot, Go, Rust, and [100+ more](https://github.com/codelaude/atta/blob/main/.atta/docs/bootstrap-system.md).
 
 ## Requirements
 
@@ -24,7 +24,7 @@ A multi-agent system for AI-assisted development that guides, reviews, and valid
 npx atta-dev init
 ```
 
-Installs the framework, asks a few questions, and configures everything for your AI tool (Claude Code, Copilot CLI, Codex CLI, or Gemini CLI).
+Installs the framework, asks a few questions, and configures everything for your AI tool (Claude Code, Copilot CLI, Codex CLI, Gemini CLI, or Cursor).
 
 **Option B — manual:**
 
@@ -36,19 +36,19 @@ Copy both the `.claude/` and `.atta/` directories into your project root, then r
 
 The interactive setup interviews you about your project, auto-detects your tech stack, generates specialist agents and pattern files, and optionally configures MCP servers.
 
-> **New here?** Run `/tutorial` for a 5-minute guided walkthrough before diving in.
+> **New here?** Run `/atta-tutorial` for a 5-minute guided walkthrough before diving in.
 
 ### 2. Start working
 
 ```
-/agent fe-team-lead    Build a searchable dropdown component
-/agent vue             How should I structure props for this?
-/agent accessibility   Check keyboard navigation
-/agent be-team-lead    Design REST API for user management
-/agent architect       Design the auth module architecture
-/review                Review my changed files
-/preflight             Run full pre-PR validation
-/ship                  Generate PR description and finalize
+/atta-agent fe-team-lead    Build a searchable dropdown component
+/atta-agent react           How should I structure props for this?
+/atta-agent accessibility   Check keyboard navigation
+/atta-agent be-team-lead    Design REST API for user management
+/atta-agent architect       Design the auth module architecture
+/atta-review                Review my changed files
+/atta-preflight             Run full pre-PR validation
+/atta-ship                  Generate PR description and finalize
 ```
 
 ## Skills (Slash Commands)
@@ -56,22 +56,22 @@ The interactive setup interviews you about your project, auto-detects your tech 
 | Command | What it does |
 |---------|-------------|
 | `/atta` | Interactive project setup — detects 100+ technologies, generates agents, configures MCPs |
-| `/update` | Safe framework updates — auto-selects upgrade/migration mode from metadata |
-| `/migrate` | Compatibility alias for `/update --mode migration` |
-| `/agent <id>` | Invoke any specialist (e.g., `/agent vue`, `/agent django`) |
-| `/team-lead` | Decompose a feature into specialist tasks |
-| `/collaborate` | Multi-agent collaboration — 2-4 specialists in parallel with conflict detection |
-| `/review` | Multi-domain code review with severity-rated findings (includes security) |
-| `/security-audit` | OWASP Top 10 security scan — vulnerabilities, secrets, dependencies |
-| `/test` | Run tests with auto-detection — `--e2e`, `--coverage`, `--watch` flags |
-| `/lint` | Pattern-based checks against project rules |
-| `/profile` | View/update developer preferences — collaboration style, review priorities, response format |
-| `/optimize` | Optimize prompts for better results — rephrase in-session or enrich for cross-tool handoff |
-| `/preflight` | Full pre-PR pipeline: lint + security + test + review |
-| `/ship` | Completion workflow — tests, ACC validation, PR description, learnings |
-| `/tutorial` | Interactive 5-minute onboarding walkthrough |
-| `/patterns` | Pattern detection and learning — analyze corrections, suggest promotions, track agent adaptation |
-| `/librarian` | Capture a directive or extract learnings |
+| `/atta-update` | Safe framework updates — auto-selects upgrade/migration mode from metadata |
+| `/atta-migrate` | Migration skill — agent frontmatter upgrades, skill renames, model registry |
+| `/atta-agent <id>` | Invoke any specialist (e.g., `/atta-agent react`, `/atta-agent django`) |
+| `/atta-team-lead` | Decompose a feature into specialist tasks |
+| `/atta-collaborate` | Multi-agent collaboration — 2-4 specialists in parallel with conflict detection |
+| `/atta-review` | Multi-domain code review with severity-rated findings (includes security) |
+| `/atta-security-audit` | OWASP Top 10 security scan — vulnerabilities, secrets, dependencies |
+| `/atta-test` | Run tests with auto-detection — `--e2e`, `--coverage`, `--watch` flags |
+| `/atta-lint` | Pattern-based checks against project rules |
+| `/atta-profile` | View/update developer preferences — collaboration style, review priorities, response format |
+| `/atta-optimize` | Optimize prompts for better results — rephrase in-session or enrich for cross-tool handoff |
+| `/atta-preflight` | Full pre-PR pipeline: lint + security + test + review |
+| `/atta-ship` | Completion workflow — tests, ACC validation, PR description, learnings |
+| `/atta-tutorial` | Interactive 5-minute onboarding walkthrough |
+| `/atta-patterns` | Pattern detection and learning — analyze corrections, suggest promotions, track agent adaptation |
+| `/atta-librarian` | Capture a directive or extract learnings |
 
 ## What Atta Is Not
 
@@ -85,24 +85,27 @@ See [Design Philosophy](https://github.com/codelaude/atta/blob/main/.atta/docs/p
 
 ## How It Works
 
-A three-tier agent hierarchy, dynamically generated for your project:
+An agent hierarchy, dynamically generated for your project:
 
 ```
-Core Agents (universal, always present)
+Core Agents (always installed)
 ├── Project Owner       Routes tasks to the right specialist
 ├── Code Reviewer       Quality review across all domains
 ├── Librarian           Persistent memory and directives
-├── Rubber Duck         Guided learning (asks questions, not answers)
-├── QA Validator        Acceptance criteria validation
+└── Architect           System design, ADRs, and implementation blueprints
+
+Optional Agents (selected during init)
 ├── Business Analyst    Requirements analysis
-└── PR Manager          PR descriptions
+├── QA Validator        Acceptance criteria validation
+├── PR Manager          PR descriptions
+└── Rubber Duck         Guided learning (asks questions, not answers)
 
 Coordinators (generated per project)
 ├── FE Team Lead        Coordinates frontend specialists
 └── BE Team Lead        Coordinates backend specialists
 
 Specialists (generated from your tech stack)
-├── Framework           Vue, React, Angular, Django, Spring Boot, ...
+├── Framework           React, Next.js, Angular, Django, Spring Boot, ...
 ├── Language            TypeScript, Python, Java, Go, Rust, ...
 ├── Styling             SCSS, Tailwind, CSS-in-JS, ...
 ├── Database            PostgreSQL, MongoDB, Redis, ...
@@ -117,8 +120,10 @@ Every agent has constraints — what it does **and what it doesn't do**. Constra
 ## Key Features
 
 - **Universal Bootstrap** — 100+ technologies detected, plus architectural patterns (structure, components, routing, API, state). Generates project-specific agents and pattern files from YAML configuration. Staleness detection warns when project has drifted since last scan.
-- **Multi-Agent Collaboration** — `/collaborate` invokes 2-4 specialists in parallel with three-layer conflict detection.
-- **Security Built In** — OWASP Top 10 (2025), `/security-audit`, and security checks in `/review` and `/preflight`.
+- **Multi-Agent Collaboration** — `/atta-collaborate` invokes 2-4 specialists in parallel with three-layer conflict detection.
+- **Security Built In** — OWASP Top 10 (2025), `/atta-security-audit`, and security checks in `/atta-review` and `/atta-preflight`.
+- **Enforcement Infrastructure** — Path-scoped coding rules generated per adapter format, data-driven hooks (lint-on-edit, pre-bash safety), model targeting via registry, rules-aware CI review.
+- **Cross-Tool Support** — 6 adapters (Claude Code, Copilot, Codex, Gemini, Cursor, GitHub Action CI) with graceful degradation. All skills namespaced `atta-*` to prevent collisions.
 - **MCP Integration** — Smart recommendations based on detected stack (docs, database, browser MCPs).
 - **Developer Profile** — Set your working preferences once; agents adapt to your collaboration style, review priorities, and response format.
 - **Guided Learning** — Rubber Duck teaches by asking questions. Librarian captures rules that persist across sessions.
@@ -132,14 +137,17 @@ Start here, then dive deeper:
 | Doc | What you'll learn |
 |-----|-------------------|
 | **[Bootstrap System](https://github.com/codelaude/atta/blob/main/.atta/docs/bootstrap-system.md)** | How tech detection and agent generation works |
-| **[Multi-Agent Collaboration](https://github.com/codelaude/atta/blob/main/.atta/docs/collaboration.md)** | How `/collaborate` works — modes, conflict detection, finding schema |
+| **[Multi-Agent Collaboration](https://github.com/codelaude/atta/blob/main/.atta/docs/collaboration.md)** | How `/atta-collaborate` works — modes, conflict detection, finding schema |
 | **[MCP Setup Guide](https://github.com/codelaude/atta/blob/main/.atta/docs/mcp-setup.md)** | Configure Model Context Protocol servers |
 | **[Session Tracking](https://github.com/codelaude/atta/blob/main/.atta/docs/session-tracking.md)** | What's tracked, privacy, retention policy |
-| **[Developer Profile](https://github.com/codelaude/atta/blob/main/.atta/docs/profile.md)** | How `/profile` works — modes, preferences, propagation |
-| **[Prompt Optimizer](https://github.com/codelaude/atta/blob/main/.atta/docs/optimize.md)** | How `/optimize` works — cross-tool context enrichment |
+| **[Developer Profile](https://github.com/codelaude/atta/blob/main/.atta/docs/profile.md)** | How `/atta-profile` works — modes, preferences, propagation |
+| **[Prompt Optimizer](https://github.com/codelaude/atta/blob/main/.atta/docs/optimize.md)** | How `/atta-optimize` works — cross-tool context enrichment |
 | **[Extending the System](https://github.com/codelaude/atta/blob/main/.atta/docs/extending.md)** | Add new technologies and custom agents via YAML |
+| **[Path-Scoped Rules](https://github.com/codelaude/atta/blob/main/.atta/docs/rules.md)** | How coding rules are generated and formatted per adapter |
+| **[Model Targeting](https://github.com/codelaude/atta/blob/main/.atta/docs/model-targeting.md)** | Tier system, model registry, cost optimization |
+| **[Migration Guide](https://github.com/codelaude/atta/blob/main/.atta/docs/migration.md)** | Upgrading from v2.x to v3.0 |
 | **[Updating](https://github.com/codelaude/atta/blob/main/.atta/docs/updating.md)** | How to update without losing customizations |
-| **[Token Usage & Cost](https://github.com/codelaude/atta/blob/main/.atta/docs/token-usage.md)** | Estimated tokens and cost per skill |
+| **[Token Usage & Cost](https://github.com/codelaude/atta/blob/main/.atta/docs/token-usage.md)** | Estimated tokens and cost per skill, model tier breakdown |
 | **[Design Philosophy](https://github.com/codelaude/atta/blob/main/.atta/docs/philosophy.md)** | Why this exists, core principles, how the system grows |
 | **[CI Review](https://github.com/codelaude/atta/blob/main/.atta/docs/ci-review.md)** | GitHub Action CI adapter — setup, multi-provider auth, suppression workflow |
 | **[Changelog](https://github.com/codelaude/atta/blob/main/.atta/docs/changelog.md)** | Full version history |

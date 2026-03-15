@@ -1,177 +1,20 @@
-# Session Tracking Integration - Complete Example
+# Session Tracking Integration - How It Works
 
-This document shows a before/after comparison of integrating session tracking into a skill.
+This document explains how session tracking works in the current hook-based architecture (since v2.5.3).
 
-## Before: Simple Agent Skill (No Tracking)
+## How Session Tracking Works
 
-```markdown
----
-name: agent
-description: Invoke a specialized agent by ID
----
+Since v2.5.3, session tracking is **fully automatic** — handled by Claude Code hooks. Skills have zero tracking code.
 
-# Agent Invocation Skill
+### The Flow
 
-Usage:
-```
-/agent code-reviewer "Review this component for accessibility issues"
-/agent testing-specialist "Suggest test cases for the login flow"
-```
+1. **You run a skill** (e.g., `/atta-agent code-reviewer "Review this component"`)
+2. **`PostToolUse` hook fires** — creates a session JSON file in `{claudeDir}/.sessions/`
+3. **Skill executes normally** — no tracking overhead
+4. **`Stop` hook fires on exit** — finalizes the session (status, duration, cleanup)
 
-## Step 1: Parse Arguments
+### What Gets Recorded
 
-Extract agent name and task from arguments.
-
-## Step 2: Locate Agent File
-
-Find the agent in `.claude/agents/{agent-name}.md`
-
-## Step 3: Invoke Agent
-
-Use Task tool to invoke the agent with the user's task.
-
-## Step 4: Report Results
-
-Show the agent's response to the user.
-```
-
----
-
-## After: With Session Tracking
-
-```markdown
----
-name: agent
-description: Invoke a specialized agent by ID
----
-
-# Agent Invocation Skill
-
-Usage:
-```
-/agent code-reviewer "Review this component for accessibility issues"
-/agent testing-specialist "Suggest test cases for the login flow"
-```
-
----
-
-## 🔍 Session Tracking - Start
-
-**Create session file:**
-
-First, get the claudeDir from settings (usually ".claude", or a custom value from settings.json).
-
-Generate timestamp and UUID:
-```bash
-TIMESTAMP=$(date -u +%Y-%m-%d-%H%M%S)
-UUID=$(uuidgen | tr '[:upper:]' '[:lower:]')
-```
-
-Write session file `{claudeDir}/.sessions/session-$TIMESTAMP.json`:
-
-```json
-{
-  "schemaVersion": "1.0.0",
-  "sessionId": "$UUID",
-  "timestamp": "2026-02-16T22:35:00.000Z",
-  "startedBy": "user",
-  "skill": {
-    "name": "agent",
-    "args": "code-reviewer \"Review this component\"",
-    "status": "in_progress"
-  },
-  "agents": [],
-  "metadata": {
-    "projectPath": "/path/to/your/project",
-    "claudeDir": ".claude",
-    "duration": null,
-    "tokensUsed": null,
-    "costUSD": null
-  }
-}
-```
-
-**Store session filename for later:** `SESSION_FILE=session-$TIMESTAMP.json`
-
----
-
-## Step 1: Parse Arguments
-
-Extract agent name and task from arguments.
-
-Example: `code-reviewer "Review this component"`
-- Agent: `code-reviewer`
-- Task: `Review this component`
-
----
-
-## Step 2: Locate Agent File
-
-Find the agent in `.claude/agents/specialists/{agent-name}.md` (or `.claude/agents/{agent-name}.md` for core agents)
-
-Path: `.claude/agents/code-reviewer.md`
-
----
-
-## Step 3: Invoke Agent
-
-**Before invoking, update session to track agent:**
-
-Edit `{claudeDir}/.sessions/$SESSION_FILE`:
-
-Add to "agents" array:
-```json
-{
-  "name": "code-reviewer",
-  "role": "universal",
-  "invokedAt": "2026-02-16T22:35:02.000Z",
-  "status": "in_progress"
-}
-```
-
-**Now invoke the agent:**
-
-Use Task tool to invoke the agent with the user's task.
-
-**After agent completes, update its status:**
-
-Edit `{claudeDir}/.sessions/$SESSION_FILE`:
-
-Find the agent entry in "agents" array and update:
-```json
-{
-  "name": "code-reviewer",
-  "role": "universal",
-  "invokedAt": "2026-02-16T22:35:02.000Z",
-  "status": "completed"  // Changed from "in_progress"
-}
-```
-
----
-
-## Step 4: Report Results
-
-Show the agent's response to the user.
-
----
-
-## ✅ Session Tracking - Finalize
-
-**Calculate duration:**
-```bash
-END_TIME=$(date +%s)
-DURATION=$(( (END_TIME - START_TIME) * 1000 ))  # Convert to milliseconds
-```
-
-**Update session status:**
-
-Edit `{claudeDir}/.sessions/$SESSION_FILE`:
-
-Changes:
-1. `"status": "in_progress"` → `"status": "completed"`
-2. `"duration": null` → `"duration": $DURATION`
-
-Final session file:
 ```json
 {
   "schemaVersion": "1.0.0",
@@ -179,7 +22,7 @@ Final session file:
   "timestamp": "2026-02-16T22:35:00.000Z",
   "startedBy": "user",
   "skill": {
-    "name": "agent",
+    "name": "atta-agent",
     "args": "code-reviewer \"Review this component\"",
     "status": "completed"
   },
@@ -201,70 +44,57 @@ Final session file:
 }
 ```
 
-**Run cleanup:**
-```bash
-.atta/scripts/session-cleanup.sh
-```
+### Automatic Cleanup
+
+The `Stop` hook runs `.atta/scripts/session-cleanup.sh` which keeps only the last 10 sessions. No manual intervention needed.
 
 ---
 
+## For Custom Skills
+
+If you're writing a custom skill, **you don't need to add any session tracking code**. The hooks handle everything automatically.
+
+Your skill template should look like:
+
+```markdown
+---
+name: atta-your-skill
+description: Your skill description
+---
+
+## Step 1: ...
+## Step 2: ...
 ```
 
-## Key Differences
+That's it. The hook sees the `Skill` tool invocation and creates/finalizes the session.
 
-| Aspect | Before | After |
-|--------|--------|-------|
-| **Setup** | None | Create session file at start |
-| **Agent tracking** | Not tracked | Add agent to session before/after invoke |
-| **Finalization** | None | Update status, duration, run cleanup |
-| **Data captured** | None | Timestamp, skill name, agents used, duration |
+---
 
-## Benefits of Tracking
-
-1. **Analytics**: See which agents are used most frequently
-2. **Performance**: Identify slow-running skills
-3. **Debugging**: Track what happened in failed sessions
-4. **Learning**: Foundation for pattern detection (v2.5)
-5. **Cost tracking**: Placeholder for future token/cost monitoring (v3.5)
-
-## Testing the Integration
-
-Run the skill and verify:
+## Verifying Session Tracking
 
 ```bash
-# Run the skill
-/agent code-reviewer "Review component"
+# Run a skill
+/atta-agent code-reviewer "Review component"
 
 # Check session was created
 ls -lh {claudeDir}/.sessions/session-*.json
 
 # Verify content
-cat {claudeDir}/.sessions/session-2026-02-16-223500.json
+cat {claudeDir}/.sessions/session-*.json | python3 -m json.tool
 
-# Run it 11 more times and verify cleanup keeps only 10
-for i in {1..11}; do
-  /agent testing-specialist "Task $i"
-  sleep 1
-done
-
-# Should only have 10 sessions
-ls {claudeDir}/.sessions/session-*.json | wc -l  # Should output: 10
+# Verify cleanup keeps only 10
+ls {claudeDir}/.sessions/session-*.json | wc -l  # Should output: ≤ 10
 ```
 
-## Common Pitfalls
+---
 
-1. **Forgetting to finalize**: Always update session status, even if skill fails
-2. **Not running cleanup**: Sessions will accumulate indefinitely
-3. **Wrong timestamp format**: Use ISO 8601 format consistently
-4. **Missing agent status updates**: Update both when starting and completing
-5. **Hardcoded paths**: Use relative paths from project root
+## Benefits
 
-## Next Steps
+1. **Analytics**: See which agents are used most frequently
+2. **Performance**: Identify slow-running skills
+3. **Debugging**: Track what happened in failed sessions
+4. **Pattern detection**: Foundation for correction logging and agent learning (shipped in v2.5)
 
-After integrating session tracking:
+## Platform Support
 
-1. ✅ Test the integration thoroughly
-2. ✅ Update skill documentation to mention tracking
-3. ✅ Monitor `{claudeDir}/.sessions/` to verify cleanup works
-4. 🔜 In v2.5: Use session data for pattern detection
-5. 🔜 In v3.5: Add token/cost tracking to sessions
+Session tracking is **Claude Code only** — it requires the `PostToolUse` and `Stop` hook events. Other tools (Copilot, Codex, Gemini, Cursor) skip tracking entirely. Skills still work — only the tracking side-effects are skipped.

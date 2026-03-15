@@ -116,6 +116,50 @@ Re-run init — done. No code changes needed.
 | **Gemini** | `model-gate.sh` reads `$GEMINI_MODEL` if set; blocks or falls back to advisory warning. |
 | **Codex** | N/A — Codex uses its own model, no hook support. |
 
+## Hook Profiles (`ATTA_HOOKS`)
+
+Control enforcement level without editing hook scripts. Set the `ATTA_HOOKS` environment variable:
+
+| Profile | Behavior |
+|---------|----------|
+| `strict` | All hooks active, no warnings suppressed (same as `standard` currently — reserved for future expansion) |
+| `standard` (default) | All hooks active — model-gate blocks tier mismatches, pre-bash-safety blocks destructive commands |
+| `minimal` | Only CRITICAL hooks run (pre-bash-safety). Model-gate and stop-quality-gate skip. |
+| `off` | All enforcement hooks skip. Session tracking (if present) still runs. |
+
+**Usage:**
+
+```bash
+# In your shell profile (~/.zshrc, ~/.bashrc):
+export ATTA_HOOKS=minimal    # Only safety hooks, no model gating
+
+# Or per-session:
+ATTA_HOOKS=off npx atta-dev init   # Skip all enforcement during init
+```
+
+**Which hooks are affected:**
+
+`ATTA_HOOKS` controls **command-type hooks** (bash scripts in `.atta/scripts/hooks/`). These are used by Copilot, Gemini, and partially by Cursor:
+
+| Hook Script | `strict` / `standard` | `minimal` | `off` |
+|-------------|----------------------|-----------|-------|
+| `pre-bash-safety.sh` | Runs | Runs | Skips |
+| `model-gate.sh` | Runs | Skips | Skips |
+| `stop-quality-gate.sh` | Runs | Skips | Skips |
+| `session-track.sh` | Runs | Runs | Runs |
+
+**Claude Code and Cursor** use **prompt-type hooks** for safety and quality gates — these are AI-evaluated and not controlled by `ATTA_HOOKS`. The model-gate is a command-type hook on all tools and respects `ATTA_HOOKS` everywhere.
+
+| Hook | Copilot / Gemini | Cursor | Claude Code |
+|------|-----------------|--------|-------------|
+| Safety gate | Command script (profile-controlled) | Prompt hook (always active) | Prompt hook (always active) |
+| Model gate | Command script (profile-controlled) | Command script (profile-controlled) | N/A (native `model:` frontmatter) |
+| Quality gate | Command script (profile-controlled) | Prompt hook (always active) | Prompt hook (always active) |
+
+> **Note:** `ATTA_MODEL_GATE=off` disables only the model gate. `ATTA_HOOKS=off` disables all command-type enforcement hooks. Use whichever fits your need.
+>
+> Unrecognized values (e.g., a typo like `ATTA_HOOKS=offf`) are treated as `standard` — fail-closed by design.
+
 ## Cost Impact
 
 With model targeting, a typical daily workflow costs significantly less:

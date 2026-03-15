@@ -32,6 +32,9 @@ From file generation to enforcement infrastructure generation. 14 tracks, 13 PRs
 - **Rules-aware CI review**: CI adapter reads `.atta/team/rules/` and pre-computed `.atta/team/owasp-scope.md` for stack-scoped security checks
 - **Feedback loop**: CI findings → local `/atta-patterns` refinement → committed rules → better CI
 
+**Detection**
+- 6 new YAML detectors: co-located/separate test organization, Next.js App Router/Pages Router (with `src/` prefix support), pnpm and npm/yarn workspaces — all using existing detection mechanisms
+
 **Review & Validation**
 - Canonical rule loading for `/atta-review` — reads from `.atta/team/rules/` (single source of truth), falls back to `REVIEW.md`
 - Language-agnostic Steps 3-4 in review skill

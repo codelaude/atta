@@ -54,7 +54,7 @@ export const TECH_TO_TEMPLATE = {
  * @returns {{ keyRules: string[], antiPatterns: Array<{see: string, do: string, severity: string}> }}
  */
 export function extractFromTemplate(templatePath) {
-  const content = readFileSync(templatePath, 'utf-8');
+  const content = readFileSync(templatePath, 'utf-8').replace(/\r\n/g, '\n');
   const keyRules = [];
   const antiPatterns = [];
 
@@ -111,7 +111,7 @@ export function generateReviewRules(attaRoot, detectedTechs) {
   const universal = { alwaysCheck: [], style: [], skip: [] };
 
   if (existsSync(universalTemplate)) {
-    const content = readFileSync(universalTemplate, 'utf-8');
+    const content = readFileSync(universalTemplate, 'utf-8').replace(/\r\n/g, '\n');
 
     // Extract Always Check section
     const alwaysMatch = content.match(/## Always Check \(Universal\)\n([\s\S]*?)(?=\n## )/);

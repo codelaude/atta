@@ -2,8 +2,8 @@ import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import pc from 'picocolors';
 import { listSkills } from './claude-code.js';
-import { generateAgentsMd } from './agents-md.js';
-import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, checkSkillConflicts, createMemoryDirectory, generateHooks, writeHookScripts } from './shared.js';
+import { generateAgentsMd, generateAgentConstraints } from './agents-md.js';
+import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, checkSkillConflicts, createMemoryDirectory, generateHooks, writeHookScripts, writeAgentConstraints } from './shared.js';
 import { generateReviewRules, formatCursorBugbot, formatCursorMdc } from './review-guidance.js';
 import { generateRules, writeToolAgnosticRules, installCursorRules } from './rules-generator.js';
 
@@ -154,9 +154,16 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   writeFileSync(join(cursorDir, 'hooks.json'), JSON.stringify(hooksConfig, null, 2) + '\n');
   results.files++;
 
-  // Write hook scripts to .atta/scripts/hooks/ (model-gate, pre-bash-safety, stop-quality-gate)
+  // Write hook scripts to .atta/scripts/hooks/ (model-gate, pre-bash-safety, stop-quality-gate, agent-enforce)
   const scriptCount = writeHookScripts(targetDir);
   results.files += scriptCount;
+
+  // Write agent constraints manifest for enforcement hooks
+  const constraints = generateAgentConstraints(claudeRoot, options.selectedAgents);
+  if (Object.keys(constraints).length) {
+    writeAgentConstraints(targetDir, constraints);
+    results.files++;
+  }
 
   if (!options.quiet) {
     console.log(`  ${pc.green('✓')} .cursor/hooks.json (enforcement hooks)`);

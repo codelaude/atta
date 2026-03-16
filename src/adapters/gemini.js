@@ -2,8 +2,8 @@ import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import pc from 'picocolors';
 import { listSkills } from './claude-code.js';
-import { generateAgentsMd } from './agents-md.js';
-import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, checkSkillConflicts, createMemoryDirectory, generateHooks, writeHookScripts, mapToolsToGemini } from './shared.js';
+import { generateAgentsMd, generateAgentConstraints } from './agents-md.js';
+import { copyAgentFiles, copyBootstrap, copySharedContent, rewriteSkillBody, checkSkillConflicts, createMemoryDirectory, generateHooks, writeHookScripts, writeAgentConstraints, mapToolsToGemini } from './shared.js';
 import { generateReviewRules, formatGeminiStyleguide, formatGeminiConfig } from './review-guidance.js';
 import { generateRules, writeToolAgnosticRules, installGeminiRules } from './rules-generator.js';
 
@@ -143,11 +143,18 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
     console.log(`  ${pc.green('✓')} .gemini/settings.json (enforcement hooks)`);
   }
 
-  // Write hook scripts for command-type hooks (pre-bash-safety, stop-quality-gate)
+  // Write hook scripts for command-type hooks (pre-bash-safety, stop-quality-gate, agent-enforce)
   const scriptCount = writeHookScripts(targetDir);
   results.files += scriptCount;
   if (!options.quiet && scriptCount > 0) {
     console.log(`  ${pc.green('✓')} .atta/scripts/hooks/ (${scriptCount} hook scripts)`);
+  }
+
+  // Write agent constraints manifest for enforcement hooks
+  const constraints = generateAgentConstraints(claudeRoot, options.selectedAgents);
+  if (Object.keys(constraints).length) {
+    writeAgentConstraints(targetDir, constraints);
+    results.files++;
   }
 
   // Copy shared content to .atta/ (team, project, scripts, metadata)

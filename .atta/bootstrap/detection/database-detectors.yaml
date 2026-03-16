@@ -420,6 +420,8 @@ orms:
   # Django ORM (Python)
   - name: Django ORM
     identifier: django-orm
+    requires:
+      - django
     detection:
       files:
         - requirements.txt
@@ -511,6 +513,8 @@ orms:
   # Eloquent (PHP)
   - name: Eloquent
     identifier: eloquent
+    requires:
+      - laravel
     detection:
       files:
         - composer.json
@@ -579,6 +583,8 @@ migrations:
   # Alembic (Python)
   - name: Alembic
     identifier: alembic
+    requires:
+      - python
     detection:
       files:
         - requirements.txt

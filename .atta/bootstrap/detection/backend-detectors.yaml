@@ -29,6 +29,23 @@ python:
       project_indicators:
         - manage.py
         - settings.py
+    content_analysis:
+      - file: "requirements.txt"
+        pattern: "djangorestframework|rest_framework"
+        label: drf
+        description: "Uses Django REST Framework"
+      - file: "requirements.txt"
+        pattern: "celery"
+        label: async-tasks
+        description: "Uses Celery for async task processing"
+      - file: "**/settings.py"
+        pattern: "CHANNEL_LAYERS|channels"
+        label: websockets
+        description: "Uses Django Channels (WebSockets)"
+      - file: "**/settings.py"
+        pattern: "REST_FRAMEWORK"
+        label: drf
+        description: "REST Framework configured in settings"
     version_detection:
       command: "python -c 'import django; print(django.get_version())'"
       fallback_file: requirements.txt
@@ -193,6 +210,19 @@ nodejs:
       package_json:
         dependencies:
           - express
+    content_analysis:
+      - file: "package.json"
+        pattern: "socket\\.io|ws\"|engine\\.io"
+        label: websockets
+        description: "Uses WebSocket support"
+      - file: "**/*.{js,ts}"
+        pattern: "express\\.Router\\(|router\\.(get|post|put|delete|patch)"
+        label: modular-routing
+        description: "Uses modular Express Router pattern"
+      - file: "package.json"
+        pattern: "passport|express-session|jsonwebtoken"
+        label: auth-middleware
+        description: "Uses authentication middleware"
     metadata:
       type: backend_framework
       language: nodejs
@@ -222,6 +252,19 @@ nodejs:
         dependencies:
           - "@nestjs/core"
           - "@nestjs/common"
+    content_analysis:
+      - file: "package.json"
+        pattern: "@nestjs/graphql|@nestjs/apollo"
+        label: graphql
+        description: "Uses NestJS GraphQL module"
+      - file: "package.json"
+        pattern: "@nestjs/microservices"
+        label: microservices
+        description: "Uses NestJS microservices architecture"
+      - file: "package.json"
+        pattern: "@nestjs/websockets|@nestjs/platform-socket\\.io"
+        label: websockets
+        description: "Uses NestJS WebSockets"
     metadata:
       type: backend_framework
       language: nodejs

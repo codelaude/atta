@@ -35,6 +35,14 @@ From file generation to enforcement infrastructure generation. 14 tracks, 13 PRs
 
 **Detection**
 - 6 new YAML detectors: co-located/separate test organization, Next.js App Router/Pages Router (with `src/` prefix support), pnpm and npm/yarn workspaces — all using existing detection mechanisms
+- **Compound detection**: `requires:` field in YAML — detectors validate dependencies before activating (e.g., Next.js requires React, Pinia requires Vue). Two-pass detection: scan all, then prune unmet dependencies
+- **Semantic detection**: `content_analysis:` field — scans file contents for deeper project understanding. Supports `match_type: exists` (directory structure) and `pattern:` (regex). Labels enrich project-context.md: "Next.js (App Router, Server Actions)" instead of just "Next.js". 6 frameworks covered with 20+ labels
+
+**Agent Enforcement**
+- **Agent constraints manifest**: `agent-constraints.json` generated from agent frontmatter `disallowedTools` and `allowedFiles` fields
+- **`agent-enforce.sh` hook**: blocks disallowed tools for the active agent on Copilot (`permissionDecision: deny`), Cursor and Gemini (`exit 2`). Tool name normalization via `TOOL_ALIASES` map (Edit↔EditFile, Bash↔Shell) for cross-adapter consistency
+- **File-regex constraints**: `allowedFiles:` in agent frontmatter restricts file access. Enforced via prompt hooks on Claude Code and Cursor, advisory on others
+- **Convention prompt hooks**: component naming and import convention checking via AI-evaluated `PreToolUse`/`PostToolUse` hooks. Generated conditionally when frontend or TypeScript detected. Claude Code + Cursor only (prompt hooks not supported elsewhere)
 
 **Review & Validation**
 - **Confidence-scored reviews**: each `/atta-review` finding gets HIGH/MEDIUM/LOW confidence based on clear criteria. `--strict` shows HIGH confidence only, `--quiet` shows CRITICAL/HIGH severity + HIGH confidence. Verdicts based on HIGH confidence findings only.

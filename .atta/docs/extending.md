@@ -15,22 +15,59 @@ Add to the appropriate file in `.atta/bootstrap/detection/`:
 
 **Example: Adding Remix support**
 ```yaml
-# frontend-detectors.yaml
-remix:
-  file_indicators:
-    - path: "remix.config.js"
-    - path: "remix.config.ts"
-  dependency_indicators:
-    - name: "@remix-run/react"
-      type: "dependency"
-  version_extraction:
-    source: "package.json"
-    path: "dependencies.@remix-run/react"
-  metadata:
-    category: "frontend_framework"
-    framework_type: "full-stack"
-    requires_node: true
+# frontend-detectors.yaml, under frameworks:
+  - name: Remix
+    identifier: remix
+    requires:                          # Only activate if React is also detected
+      - react
+    detection:
+      package_json:
+        dependencies:
+          - "@remix-run/react"
+      config_files:
+        - remix.config.js
+        - remix.config.ts
+    content_analysis:                  # Semantic labels for deeper context
+      - file: "app/routes/**/*.{tsx,jsx}"
+        match_type: exists
+        label: file-based-routing
+        description: "Uses file-based routing"
+      - file: "app/**/*.{tsx,jsx}"
+        pattern: "useLoaderData|loader"
+        label: loader-pattern
+        description: "Uses Remix loader pattern for data fetching"
+    version_detection:
+      file: package.json
+      path: dependencies["@remix-run/react"]
+    metadata:
+      type: frontend_framework
+      component_model: hooks
+      needs_coordinator: true
+      specialist_type: framework
+      extends: react
+      owasp_type: fullstack
 ```
+
+#### Detection YAML Schema Reference
+
+| Field | Type | Purpose |
+|-------|------|---------|
+| `identifier` | string | Unique kebab-case ID |
+| `requires` | string[] | Other identifiers that must be detected first |
+| `detection` | object | File/package/config matching rules |
+| `content_analysis` | array | Semantic analysis entries (see below) |
+| `version_detection` | object | Version extraction from files or commands |
+| `metadata` | object | Classification (type, language, specialist_type, etc.) |
+
+**`content_analysis` entries:**
+
+| Field | Type | Purpose |
+|-------|------|---------|
+| `file` | string | Glob pattern for files to check |
+| `match_type` | string | `exists` — check if matching files exist (no content scan) |
+| `pattern` | string | Regex to match against file content (sampled, up to 5 files) |
+| `label` | string | Machine-readable label (kebab-case) |
+| `description` | string | Human-readable description for project-context.md |
 
 ### 2. Add Agent Mapping
 

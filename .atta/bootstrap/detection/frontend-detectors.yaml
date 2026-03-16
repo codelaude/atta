@@ -29,6 +29,15 @@ frameworks:
         dependencies:
           - react
           - react-dom
+    content_analysis:
+      - file: "**/*.{tsx,jsx}"
+        pattern: "React\\.createClass|extends React\\.Component|extends Component"
+        label: class-components
+        description: "Uses class components (legacy pattern)"
+      - file: "**/*.{tsx,jsx}"
+        pattern: "React\\.lazy|Suspense|import\\(|React\\.startTransition"
+        label: concurrent-features
+        description: "Uses React concurrent features (lazy, Suspense, transitions)"
     version_detection:
       file: package.json
       path: dependencies.react
@@ -41,6 +50,8 @@ frameworks:
   # Next.js
   - name: Next.js
     identifier: nextjs
+    requires:
+      - react
     detection:
       package_json:
         dependencies:
@@ -49,6 +60,27 @@ frameworks:
         - next.config.js
         - next.config.mjs
         - next.config.ts
+    content_analysis:
+      - file: "app/**/layout.{tsx,jsx,ts,js}"
+        match_type: exists
+        label: app-router
+        description: "Uses App Router (not Pages Router)"
+      - file: "pages/**/*.{tsx,jsx,ts,js}"
+        match_type: exists
+        label: pages-router
+        description: "Uses Pages Router"
+      - file: "**/*.{tsx,jsx,ts,js}"
+        pattern: "'use server'|\"use server\""
+        label: server-actions
+        description: "Uses Server Actions"
+      - file: "**/*.{tsx,jsx,ts,js}"
+        pattern: "'use client'|\"use client\""
+        label: client-components
+        description: "Mix of Server and Client Components"
+      - file: "next.config.{js,mjs,ts}"
+        pattern: "output.*export|output.*standalone"
+        label: static-export
+        description: "Configured for static export or standalone"
     version_detection:
       file: package.json
       path: dependencies.next
@@ -99,6 +131,8 @@ frameworks:
   # Nuxt
   - name: Nuxt
     identifier: nuxt
+    requires:
+      - vue
     detection:
       package_json:
         dependencies:
@@ -106,6 +140,19 @@ frameworks:
       config_files:
         - nuxt.config.js
         - nuxt.config.ts
+    content_analysis:
+      - file: "app.vue"
+        match_type: exists
+        label: app-component
+        description: "Uses single app.vue entry point"
+      - file: "server/api/**/*.{ts,js}"
+        match_type: exists
+        label: server-routes
+        description: "Uses Nitro server routes"
+      - file: "nuxt.config.{js,ts}"
+        pattern: "ssr.*false"
+        label: spa-mode
+        description: "Configured as SPA (SSR disabled)"
     version_detection:
       file: package.json
       path: dependencies.nuxt
@@ -229,6 +276,8 @@ state_management:
   # Pinia (Vue)
   - name: Pinia
     identifier: pinia
+    requires:
+      - vue
     detection:
       package_json:
         dependencies:
@@ -241,6 +290,8 @@ state_management:
   # Vuex (Vue)
   - name: Vuex
     identifier: vuex
+    requires:
+      - vue
     detection:
       package_json:
         dependencies:
@@ -253,6 +304,8 @@ state_management:
   # Redux (React)
   - name: Redux
     identifier: redux
+    requires:
+      - react
     detection:
       package_json:
         dependencies:
@@ -267,6 +320,8 @@ state_management:
   # Zustand (React)
   - name: Zustand
     identifier: zustand
+    requires:
+      - react
     detection:
       package_json:
         dependencies:
@@ -279,6 +334,8 @@ state_management:
   # MobX
   - name: MobX
     identifier: mobx
+    requires:
+      - react
     detection:
       package_json:
         dependencies:
@@ -293,6 +350,8 @@ state_management:
   # Jotai (React)
   - name: Jotai
     identifier: jotai
+    requires:
+      - react
     detection:
       package_json:
         dependencies:

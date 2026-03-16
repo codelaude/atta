@@ -491,13 +491,18 @@ This gives the CI reviewer the same context as your local agents — resulting i
 | Feature | Claude Code | Copilot | Codex | Gemini | Cursor |
 |---------|:-----------:|:-------:|:-----:|:------:|:------:|
 | Tech stack detection | Yes | Yes | Yes | Yes | Yes |
+| Compound detection (`requires:`) | Yes | Yes | Yes | Yes | Yes |
+| Semantic detection (`content_analysis:`) | Yes | Yes | Yes | Yes | Yes |
 | Agent generation | Yes | Yes | Yes | Yes | Yes |
 | Agent definitions | Yes | Yes | Yes | Yes | Yes |
 | Agent invocation | Yes | Yes | Yes | Yes | Via AGENTS.md |
+| Agent enforcement (`disallowedTools`) | Native | Blocking (hook) | Advisory | Blocking (hook) | Blocking (hook) |
+| File-regex constraints (`allowedFiles`) | Prompt hook | Advisory | Advisory | Advisory | Prompt hook |
 | Skill execution | Yes | Yes | Yes | Yes | Yes |
 | Skill commands | `/atta-name` | `/atta-name` | `$atta-name` | `/atta-name` | `@atta-name` |
+| Convention hooks | Prompt hooks | — | — | — | Prompt hooks |
 | Review guidance | REVIEW.md | .instructions.md | AGENTS.md appendix | styleguide.md + config.yaml | BUGBOT.md + .mdc |
-| Hooks config | Yes (17 events) | Placeholders (6) | — | Placeholders (10) | Placeholders (10) |
+| Hooks config | Yes (17 events) | Active (6) | — | Active (10) | Active (10) |
 | Plugin manifest | plugin.json | — | — | — | — |
 | Session tracking | Yes | — | — | — | — |
 | Pattern detection | Yes | — | — | — | — |
@@ -506,10 +511,10 @@ This gives the CI reviewer the same context as your local agents — resulting i
 | Implicit skill match | — | Yes | Yes | — | Yes (via description) |
 | Custom instructions | CLAUDE.md | Multi-source | Multi-level | Hierarchical | AGENTS.md |
 | Path-scoped rules | `.claude/rules/` | `.github/instructions/` | `AGENTS.md` | `.gemini/styleguide.md` | `.cursor/rules/` |
-| Model targeting | Yes (native frontmatter) | Blocking (hook) | N/A | Blocking (hook) | Blocking (hook) |
+| Model targeting | Yes (native frontmatter) | Blocking (hook) | N/A | Blocking (hook) | Advisory |
 | Update system | Yes | — | — | — | — |
 
-**Legend**: Yes = full support, Gen-time = generation-time only (via `/atta`), Blocking = hook detects model and blocks if tier mismatch, Placeholders = hook config generated but requires tool-native support, — = not available
+**Legend**: Yes = full support, Native = enforced by tool's own frontmatter, Gen-time = generation-time only (via `/atta`), Blocking = hook detects and blocks, Advisory = instruction-only (no enforcement), Prompt hooks = AI-evaluated check before/after tool use, — = not available
 
 ---
 
@@ -626,4 +631,4 @@ The `.atta/local/sessions/` directory contains **framework docs** (schema, templ
 ---
 
 *Last updated: 2026-03-16. Based on tool documentation, dry-run testing, and live smoke tests.*
-*Validated against: Copilot CLI v1.0.5 (GA Feb 2026), OpenAI Codex CLI v0.114.0, Gemini CLI v0.33.1. Cursor: documentation-only (dry-run). v3.0.0: skill rename (atta-* namespace), 4 core + 4 optional agents, rich frontmatter, path-scoped rules, enforcement hooks, model targeting. Model-gate hooks live-tested on Copilot CLI and Gemini CLI (March 2026).*
+*Validated against: Copilot CLI v1.0.5 (GA Feb 2026), OpenAI Codex CLI v0.114.0, Gemini CLI v0.33.1, Claude Code v2.1.76. Cursor: documentation + @-mention test (Auto model, no subscription). v3.0.0: skill rename (atta-* namespace), 4 core + 4 optional agents, rich frontmatter, path-scoped rules, enforcement hooks, model targeting, compound/semantic detection, agent enforcement, convention hooks. Model-gate hooks live-tested on Copilot CLI, Gemini CLI, and Claude Code (March 2026). T3Code v0.x: no skill/agent discovery.*

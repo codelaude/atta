@@ -1,4 +1,4 @@
-import { existsSync, readdirSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parseFrontmatter, listSkills } from './claude-code.js';
 import { readVersion } from '../lib/fs-utils.js';
@@ -185,4 +185,44 @@ function formatAgentName(slug) {
     .split('-')
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(' ');
+}
+
+/**
+ * Generate agent constraints manifest from agent frontmatter.
+ * Extracts disallowedTools and allowedFiles from each agent definition.
+ *
+ * @param {string} claudeRoot - Path to .claude/ source
+ * @param {string[]} [selectedAgents] - Agent IDs that were installed
+ * @returns {object} Constraints keyed by agent slug: { "code-reviewer": { disallowedTools: [...], allowedFiles: [...] } }
+ */
+export function generateAgentConstraints(claudeRoot, selectedAgents) {
+  const agentsDir = join(claudeRoot, 'agents');
+  if (!existsSync(agentsDir)) return {};
+
+  const constraints = {};
+
+  const scanDir = (dir) => {
+    if (!existsSync(dir)) return;
+    const files = readdirSync(dir).filter(
+      (f) => f.endsWith('.md') && f !== 'INDEX.md' && f !== 'README.md'
+    );
+    for (const file of files) {
+      const slug = file.replace('.md', '');
+      if (selectedAgents && !selectedAgents.includes(slug)) continue;
+      try {
+        const content = readFileSync(join(dir, file), 'utf8');
+        const fm = parseFrontmatter(content);
+        const entry = {};
+        if (fm.disallowedTools?.length) entry.disallowedTools = fm.disallowedTools;
+        if (fm.allowedFiles?.length) entry.allowedFiles = fm.allowedFiles;
+        if (Object.keys(entry).length) constraints[slug] = entry;
+      } catch { /* skip unparseable files */ }
+    }
+  };
+
+  scanDir(agentsDir);
+  scanDir(join(agentsDir, 'coordinators'));
+  scanDir(join(agentsDir, 'specialists'));
+
+  return constraints;
 }

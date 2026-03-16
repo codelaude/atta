@@ -223,10 +223,10 @@ allowedFiles:
 ### Convention Prompt Hooks
 
 When frontend frameworks are detected, Atta generates prompt hooks that check:
-- **Component naming**: PascalCase, correct directory, no duplicates (fires on `Write`/`CreateFile`)
-- **Import conventions**: Path aliases, import order, circular dependencies (fires on `Edit`/`Write`, TypeScript only)
+- **Component naming**: PascalCase, correct directory, no duplicates (fires on `Write`/`CreateFile`) — Claude Code + Cursor
+- **Import conventions**: Path aliases, import order, circular dependencies (fires on `Edit`/`Write`, TypeScript only) — Claude Code only
 
-These are AI-evaluated (`type: "prompt"`) and only available on Claude Code and Cursor. Other tools get equivalent guidance in their coding rules files (advisory).
+These are AI-evaluated (`type: "prompt"`). Other tools get equivalent guidance in their coding rules files (advisory).
 
 ## See Also
 

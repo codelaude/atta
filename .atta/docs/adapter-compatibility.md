@@ -497,7 +497,7 @@ This gives the CI reviewer the same context as your local agents — resulting i
 | Agent definitions | Yes | Yes | Yes | Yes | Yes |
 | Agent invocation | Yes | Yes | Yes | Yes | Via AGENTS.md |
 | Agent enforcement (`disallowedTools`) | Native | Blocking (hook) | Advisory | Advisory* | Advisory* |
-| File-regex constraints (`allowedFiles`) | Via agent-enforce.sh | Advisory | Advisory | Advisory | Advisory |
+| File-regex constraints (`allowedFiles`) | Native frontmatter | Blocking (hook) | Advisory | Advisory* | Advisory* |
 | Skill execution | Yes | Yes | Yes | Yes | Yes |
 | Skill commands | `/atta-name` | `/atta-name` | `$atta-name` | `/atta-name` | `@atta-name` |
 | Convention hooks | Prompt hooks | — | — | — | Prompt hooks |

@@ -217,7 +217,9 @@ export function generateAgentConstraints(claudeRoot, selectedAgents) {
         if (fm.disallowedTools?.length) entry.disallowedTools = fm.disallowedTools;
         if (fm.allowedFiles?.length) entry.allowedFiles = fm.allowedFiles;
         if (Object.keys(entry).length) constraints[slug] = entry;
-      } catch { /* skip unparseable files */ }
+      } catch (err) {
+        console.warn(`  ⚠ Could not parse agent frontmatter: ${join(dir, file)} — ${err.message}`);
+      }
     }
   };
 

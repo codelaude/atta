@@ -127,13 +127,20 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   createMemoryDirectory(join(targetDir, '.gemini', 'agents'), options);
   results.files++;
 
-  // Always regenerate hooks.json — enforcement hooks may change with detectedTechs
+  // Hooks go in settings.json — Gemini CLI reads hooks from .gemini/settings.json,
+  // NOT hooks.json. Merges with existing settings if present.
   const hooksConfig = generateHooks('gemini', options.detectedTechs);
-  writeFileSync(join(geminiDir, 'hooks.json'), JSON.stringify(hooksConfig, null, 2) + '\n');
+  const settingsPath = join(geminiDir, 'settings.json');
+  let existingSettings = {};
+  if (existsSync(settingsPath)) {
+    try { existingSettings = JSON.parse(readFileSync(settingsPath, 'utf8')); } catch { /* overwrite if corrupt */ }
+  }
+  existingSettings.hooks = hooksConfig.hooks;
+  writeFileSync(settingsPath, JSON.stringify(existingSettings, null, 2) + '\n');
   results.files++;
 
   if (!options.quiet) {
-    console.log(`  ${pc.green('✓')} .gemini/hooks.json (enforcement hooks)`);
+    console.log(`  ${pc.green('✓')} .gemini/settings.json (enforcement hooks)`);
   }
 
   // Write hook scripts for command-type hooks (pre-bash-safety, stop-quality-gate)

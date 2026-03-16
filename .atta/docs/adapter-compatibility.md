@@ -135,7 +135,14 @@ Since v3.0, all skills use the `atta-*` namespace by default (e.g., `/atta-revie
 - Implicit skill matching by description
 - `/atta` skill executes with adapter detection — generates agents to `.github/atta/agents/`, reads bootstrap from `.atta/bootstrap/`
 
+### Model Gate (Validated March 2026, Copilot CLI v1.0.5)
+- **Works**: Two-step relay (`userPromptSubmitted` detects skill → `preToolUse` checks model tier and blocks with `permissionDecision: deny`)
+- **Model detection**: `$COPILOT_MODEL` env var → `~/.copilot/config.json` `model` key
+- **Known limitation**: In-session model switches via `/model` remove the `model` key from config and don't set `$COPILOT_MODEL` — hook falls back to advisory warning. Set `export COPILOT_MODEL=<model>` before launching for reliable enforcement.
+- **Hook scripts**: `skill-detect-copilot.sh` (prompt relay) + `model-gate-copilot.sh` (tier check)
+
 ### Limitations
+- Model gate cannot detect in-session `/model` switches (see above)
 - No session tracking (hooks.json generated as placeholders for future Copilot hook support)
 - No pattern detection or learning
 - No runtime profile re-propagation (generation-time injection works via `/atta`; re-run `/atta --rescan` to re-apply after profile changes)
@@ -205,7 +212,12 @@ Size limit: 32 KiB combined across all AGENTS.md files (configurable via `projec
 - `/skills` browser for discovery
 - Implicit skill matching
 
+### Model Gate (Validated March 2026, OpenAI Codex v0.114.0)
+- **Not supported**: Codex CLI only has 2 experimental hook events (`SessionStart`, `Stop`) behind a feature flag. No `preToolUse` or equivalent event to intercept tool calls.
+- **Config path fix**: `config.toml` agent paths now use `../` prefix to resolve correctly from `.codex/` directory.
+
 ### Limitations
+- No model-gate enforcement (no hook events for tool interception)
 - No session tracking
 - No pattern detection or learning
 - `$` prefix differs from other tools (users may try `/` first). All skills use `atta-*` namespace.
@@ -236,7 +248,7 @@ project/
 │   ├── agents/*.md               # Agent definitions (with placeholder resolution)
 │   ├── styleguide.md             # Review guidance (natural language rules)
 │   ├── config.yaml               # Severity thresholds (MEDIUM default, max 20 comments)
-│   └── hooks.json                # Hook event placeholders (10 events)
+│   └── settings.json             # Hooks config (BeforeModel, BeforeTool events)
 ├── GEMINI.md                     # Project context
 └── GETTING-STARTED.md
 ```
@@ -291,6 +303,12 @@ Also supports `!{shell command}` execution and `@{file/path}` content embedding.
 - Argument passing via `{{args}}`
 - `/memory` commands for context management
 
+### Model Gate (Validated March 2026, Gemini CLI v0.33.1)
+- **Works**: `BeforeModel` hook event provides `llm_request.model` (actual model name) and `llm_request.messages` (scanned for skill references)
+- **Hook script**: `model-gate-gemini.sh` — outputs `decision: deny` JSON on stdout to block
+- **Hooks configured in**: `.gemini/settings.json` (not `hooks.json` — Gemini CLI reads hooks from `settings.json` only)
+- **No known limitations**: Model is always available in `llm_request.model`
+
 ### Limitations
 - No session tracking
 - No pattern detection or learning
@@ -329,7 +347,7 @@ project/
 │   │   └── atta-review.mdc       # Review context for agent/chat
 │   ├── agents/*.md               # Agent definitions (YAML frontmatter filtered to name+description, body rewritten)
 │   ├── BUGBOT.md                 # PR review rules (conditional, blocking vs non-blocking)
-│   └── hooks.json                # Hook event placeholders (10 events)
+│   └── settings.json             # Hooks config (BeforeModel, BeforeTool events)
 ├── AGENTS.md                     # Agent registry (supported natively by Cursor)
 └── GETTING-STARTED.md
 ```
@@ -390,12 +408,17 @@ Full SKILL.md body content here.
 - Intelligent skill application via description matching
 - `@atta` bootstrap generates agents for detected stack
 
+### Model Gate (Tested March 2026, Cursor with Auto model)
+- **Not yet working**: Skills are loaded as `.mdc` rules (context injection), not tool calls. The `preToolUse` hook with `matcher: { tool_name: 'Skill' }` never fires because Cursor doesn't have a "Skill" tool.
+- **Needs**: Cursor-specific approach (similar to Copilot's `userPromptSubmitted` relay or Gemini's `BeforeModel`). Requires Cursor subscription to test model switching.
+- Skills load correctly via `@atta-lint` @-mention.
+
 ### Limitations
+- Model-gate not enforceable (skills aren't tool calls — see above)
 - No session tracking (no hook support)
 - No pattern detection or learning
 - No runtime profile re-propagation (generation-time via `@atta-atta`; rerun to re-apply after profile changes)
 - No slash command invocation — @-mention or intelligent application only
-- Cannot validate without live Cursor environment (dry-run only, see smoke tests)
 
 ### SKILL.md Frontmatter
 
@@ -602,5 +625,5 @@ The `.atta/local/sessions/` directory contains **framework docs** (schema, templ
 
 ---
 
-*Last updated: 2026-03-14. Based on tool documentation, dry-run testing, and live smoke tests.*
-*Validated against: Copilot CLI GA (Feb 2026), Codex CLI, Gemini CLI. Cursor: documentation-only (dry-run). v3.0.0: skill rename (atta-* namespace), 4 core + 4 optional agents, rich frontmatter, path-scoped rules, enforcement hooks, model targeting.*
+*Last updated: 2026-03-16. Based on tool documentation, dry-run testing, and live smoke tests.*
+*Validated against: Copilot CLI v1.0.5 (GA Feb 2026), OpenAI Codex CLI v0.114.0, Gemini CLI v0.33.1. Cursor: documentation-only (dry-run). v3.0.0: skill rename (atta-* namespace), 4 core + 4 optional agents, rich frontmatter, path-scoped rules, enforcement hooks, model targeting. Model-gate hooks live-tested on Copilot CLI and Gemini CLI (March 2026).*

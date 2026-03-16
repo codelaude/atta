@@ -129,7 +129,8 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
       const safeKey = /^[A-Za-z0-9_-]+$/.test(agent.name) ? agent.name : `"${agent.name.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
       tomlLines.push(`[agents.${safeKey}]`);
       tomlLines.push(`description = "${desc}"`);
-      tomlLines.push(`config_file = ".agents/agents/${agent.fileName}"`);
+      // Path is relative to .codex/ directory, so we need ../ to reach project root
+      tomlLines.push(`config_file = "../.agents/agents/${agent.fileName}"`);
       tomlLines.push('');
     }
 

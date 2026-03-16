@@ -51,25 +51,38 @@ Claude Code reads this natively. Other tools treat it as advisory metadata.
 
 ### 3. Model Gate Hook (enforcement)
 
-The `model-gate.sh` hook runs before each skill invocation on Copilot, Cursor, and Gemini. It detects the current model and **blocks** skills running on a more expensive model than needed:
+Each tool uses a **tool-specific** model-gate hook script, because hook events and model detection differ across tools:
 
 ```
-[model-gate] BLOCKED: /atta-lint is a light-tier skill but you're running on claude-opus-4-6 (full tier).
+[model-gate] BLOCKED: /atta-lint is a light-tier skill but you're running on gpt-5.4 (full tier).
 [model-gate] Switch to Claude Haiku 4.5 or GPT-5-mini or re-run with --bypass to override.
 ```
 
-**How it detects the model:**
+**How it works per tool:**
 
-| Tool | Detection Method |
-|------|-----------------|
-| **Claude Code** | Not needed — `model:` frontmatter routes natively |
-| **Copilot** | Reads `$COPILOT_MODEL` environment variable |
-| **Cursor** | Reads `model` field from hook stdin JSON |
-| **Gemini** | Reads `$GEMINI_MODEL` if set (falls back to advisory warning) |
+| Tool | Hook Script | Event | Model Detection | Tested With |
+|------|------------|-------|-----------------|-------------|
+| **Claude Code** | N/A — `model:` frontmatter routes natively | — | — | — |
+| **Copilot** | `model-gate-copilot.sh` | `preToolUse` (via `userPromptSubmitted` relay) | `$COPILOT_MODEL` env var → `~/.copilot/config.json` | Copilot CLI v1.0.5 |
+| **Gemini** | `model-gate-gemini.sh` | `BeforeModel` (has `llm_request.model`) | `llm_request.model` from hook stdin | Gemini CLI v0.33.1 |
+| **Cursor** | `model-gate.sh` (generic) | `preToolUse` | `model` field from hook stdin JSON | Not working — skills are `.mdc` rules, not tool calls. Needs Cursor-specific approach. |
+| **Codex** | N/A — only 2 experimental hook events, no `preToolUse` | — | — | OpenAI Codex v0.114.0 |
+
+**Copilot implementation details:**
+
+Copilot hooks don't expose the model name or skill context in a single event. The model-gate uses a two-step relay:
+1. `userPromptSubmitted` → `skill-detect-copilot.sh` detects the skill name from the user's prompt and writes it to `.atta/local/.active-skill`
+2. `preToolUse` → `model-gate-copilot.sh` reads the temp file, detects the model, and outputs `permissionDecision: deny` JSON to block if the model tier is too expensive
+
+**Known limitation (Copilot):** When switching models via `/model` in-session, Copilot removes the `model` key from `~/.copilot/config.json` and does not set `$COPILOT_MODEL` in hook subprocesses. The hook cannot detect the model in this case and falls back to an advisory warning. For reliable enforcement, set `export COPILOT_MODEL=<model>` in your shell before launching Copilot CLI.
+
+**Gemini implementation details:**
+
+`BeforeModel` is the only Gemini hook event that exposes the model name (in `llm_request.model`). The hook scans `llm_request.messages` in reverse order to detect which skill is active. Hooks are configured in `.gemini/settings.json` (not `hooks.json` — Gemini CLI reads hooks from `settings.json`).
 
 **Behavior:**
-- **Blocks (exit 2)** when the current model tier exceeds the skill's recommended tier — the skill does not run
-- **Falls back to advisory warning** when the model can't be detected (e.g., Gemini without `$GEMINI_MODEL`)
+- **Blocks** when the current model tier exceeds the skill's recommended tier — the skill does not run
+- **Falls back to advisory warning** when the model can't be detected
 - **`--bypass` in skill args** skips the gate for that invocation
 - **`ATTA_MODEL_GATE=off` env var** disables the gate globally (set in your shell profile to opt out entirely)
 
@@ -108,13 +121,13 @@ Re-run init — done. No code changes needed.
 
 ## Cross-Tool Behavior
 
-| Tool | Behavior |
-|------|----------|
-| **Claude Code** | `model:` frontmatter routes to the correct model natively. No hook needed. |
-| **Copilot** | `model-gate.sh` detects model via `$COPILOT_MODEL` and **blocks** if tier mismatch. |
-| **Cursor** | `model-gate.sh` detects model from stdin JSON and **blocks** if tier mismatch. |
-| **Gemini** | `model-gate.sh` reads `$GEMINI_MODEL` if set; blocks or falls back to advisory warning. |
-| **Codex** | N/A — Codex uses its own model, no hook support. |
+| Tool | Enforcement | Limitations |
+|------|------------|-------------|
+| **Claude Code** | Native `model:` frontmatter — routes to the correct model automatically | None |
+| **Copilot** | `model-gate-copilot.sh` — blocks via `permissionDecision: deny` JSON | Model undetectable when switched via `/model` in-session (see above) |
+| **Gemini** | `model-gate-gemini.sh` — blocks via `BeforeModel` event with `decision: deny` | None — model always available in `llm_request.model` |
+| **Cursor** | Not working — skills are `.mdc` rules (context), not tool calls | Needs Cursor-specific hook approach; requires subscription to test model switching |
+| **Codex** | Not supported — only 2 experimental hook events, no `preToolUse` | Hooks system is behind feature flag |
 
 ## Hook Profiles (`ATTA_HOOKS`)
 
@@ -144,7 +157,9 @@ ATTA_HOOKS=off npx atta-dev init   # Skip all enforcement during init
 | Hook Script | `strict` / `standard` | `minimal` | `off` |
 |-------------|----------------------|-----------|-------|
 | `pre-bash-safety.sh` | Runs | Runs | Skips |
-| `model-gate.sh` | Runs | Skips | Skips |
+| `model-gate.sh` (Cursor) | Runs | Skips | Skips |
+| `model-gate-copilot.sh` + `skill-detect-copilot.sh` | Runs | Skips | Skips |
+| `model-gate-gemini.sh` | Runs | Skips | Skips |
 | `stop-quality-gate.sh` | Runs | Skips | Skips |
 
 **Claude Code and Cursor** use **prompt-type hooks** for safety and quality gates — these are AI-evaluated and not controlled by `ATTA_HOOKS`. The model-gate is a command-type hook on Copilot, Cursor, and Gemini and respects `ATTA_HOOKS` on those tools. Claude Code handles model routing natively via `model:` frontmatter.

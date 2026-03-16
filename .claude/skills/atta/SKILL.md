@@ -97,6 +97,15 @@ Load detection rules from `.atta/bootstrap/detection/` YAML files:
 
 Scan `package.json` (dependencies, scripts), lock files (package manager), config files (`tsconfig.json`, `vite.config.*`, etc.), and tool configs at confirmed project root. Match against YAML detector rules.
 
+**Dependency validation**: After initial detection, check `requires:` fields. If a detector has `requires: [react]`, only include it if `react` was also detected. Process in two passes: first detect all techs, then prune any whose `requires:` dependencies are unmet. This prevents false positives (e.g., Pinia detected in a React project that happens to have a stale `pinia` dependency).
+
+**Semantic analysis**: For each detected tech that has a `content_analysis:` section, check the specified files/patterns:
+- `match_type: exists` — check if matching files exist (glob pattern)
+- `pattern:` — check if file content matches the regex pattern (sample up to 5 matching files)
+- Collect matched labels into a `semanticLabels` map: `{ techId: [label1, label2, ...] }`
+- Labels enrich the project context — e.g., Next.js with `[app-router, server-actions]` vs just "Next.js"
+- Labels are written to the `## Detected Stack` section of `project-context.md` in parentheses: `Next.js (App Router, Server Actions)`
+
 #### Security Tools (cross-cutting)
 
 Security detection is handled by `security-detectors.yaml` (dependency security, SAST, secrets scanning, security middleware).
@@ -141,12 +150,12 @@ Write `.atta/project/project-context.md`:
 # Project Context
 
 ## Tech Stack
-- **Frontend**: [Framework] [Version]
+- **Frontend**: [Framework] [Version] ([semantic labels if any, e.g., App Router, Server Actions])
 - **Language**: [TypeScript/JavaScript]
 - **Styling**: [Approach]
 - **Testing**: [Framework]
 - **Build**: [Tool]
-- **Backend**: [Technology] (or N/A)
+- **Backend**: [Technology] ([semantic labels if any, e.g., DRF, Celery]) (or N/A)
 - **Package Manager**: [npm/yarn/pnpm/bun]
 
 ## Key Paths

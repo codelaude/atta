@@ -8,7 +8,9 @@ The core innovation is **dynamic agent generation**. Instead of hardcoding agent
    - Scans `package.json`, `requirements.txt`, `pom.xml`, `go.mod`, etc.
    - Identifies frameworks, languages, databases, testing tools, build systems, and security tools
    - Extracts versions and metadata
-   - Produces a structured detection manifest
+   - **Compound detection**: `requires:` field validates dependencies — e.g., Next.js only activates if React is also detected
+   - **Semantic detection**: `content_analysis:` scans file contents for deeper labels — e.g., "Next.js (App Router, Server Actions)" instead of just "Next.js"
+   - Produces a structured detection manifest with semantic labels
 
 2. **Mapping (40+ Technologies)**
    - Maps detected tech → appropriate agent template

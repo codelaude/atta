@@ -80,6 +80,43 @@ const QUALITY_GATE_PROMPT = [
 ].join(' ');
 
 /**
+ * Convention checking prompt — used by Claude Code and Cursor (prompt type).
+ * Checks component/file naming and potential duplication before file creation.
+ * Only generated when frontend frameworks are detected.
+ */
+const CONVENTION_CHECK_PROMPT = [
+  'Before creating this file, check:',
+  '1. Component/module name follows project conventions (PascalCase for components, camelCase for utils, kebab-case for files if applicable)',
+  '2. No similar component/module already exists (search for similar names in the project)',
+  '3. The file is being created in the correct directory per project structure',
+  'If issues found, return ok:false explaining the convention violation or suggesting the existing file. Input: $ARGUMENTS',
+].join(' ');
+
+/**
+ * Import convention prompt — used by Claude Code and Cursor (prompt type).
+ * Checks that import patterns follow project conventions after file edits.
+ * Only generated when TypeScript is detected.
+ */
+const IMPORT_CHECK_PROMPT = [
+  'Verify the imports in this file follow project conventions:',
+  '1. Path aliases are used when available (e.g., @/ or ~/)',
+  '2. No circular dependencies introduced',
+  '3. Import order follows project style (external, internal, relative)',
+  'If issues found, return ok:false with the specific violation. Input: $ARGUMENTS',
+].join(' ');
+
+/**
+ * Check if detected techs include any frontend framework.
+ * @param {string[]} detectedTechs
+ * @returns {boolean}
+ */
+function hasFrontend(detectedTechs) {
+  if (!detectedTechs) return false;
+  const frontendIds = new Set(['react', 'vue', 'angular', 'svelte', 'nextjs', 'nuxt', 'solid', 'astro']);
+  return detectedTechs.some((t) => frontendIds.has(t));
+}
+
+/**
  * Generate a hooks config for a specific adapter with enforcement hooks.
  * Replaces the old generateHooksConfig() which only produced empty placeholders.
  *
@@ -138,12 +175,32 @@ function generateClaudeCodeHooks(detectedTechs) {
   }
 
   // Pre-bash safety (prompt type — AI evaluates the command)
-  hooks[HOOK_EVENT_MAP.preToolUse['claude-code']] = [
+  const preToolUseHooks = [
     {
       matcher: 'Bash',
       hooks: [{ type: 'prompt', prompt: SAFETY_PROMPT, timeout: 15 }],
     },
   ];
+
+  // Convention check on file creation (only when frontend detected)
+  if (hasFrontend(detectedTechs)) {
+    preToolUseHooks.push({
+      matcher: 'Write',
+      hooks: [{ type: 'prompt', prompt: CONVENTION_CHECK_PROMPT, timeout: 15 }],
+    });
+  }
+
+  hooks[HOOK_EVENT_MAP.preToolUse['claude-code']] = preToolUseHooks;
+
+  // Import convention check after edits (only when TypeScript detected)
+  if (detectedTechs?.includes('typescript')) {
+    const postToolUseHooks = hooks[HOOK_EVENT_MAP.postToolUse['claude-code']] || [];
+    postToolUseHooks.push({
+      matcher: 'Edit|Write',
+      hooks: [{ type: 'prompt', prompt: IMPORT_CHECK_PROMPT, timeout: 15 }],
+    });
+    hooks[HOOK_EVENT_MAP.postToolUse['claude-code']] = postToolUseHooks;
+  }
 
   // Stop quality gate (prompt type)
   hooks[HOOK_EVENT_MAP.stop['claude-code']] = [
@@ -183,6 +240,12 @@ function generateCopilotHooks(detectedTechs) {
       bash: 'ATTA_ADAPTER=copilot bash .atta/scripts/hooks/model-gate-copilot.sh',
       timeoutSec: 5,
       comment: 'Block skills running on costlier models than needed (--bypass to override)',
+    },
+    {
+      type: 'command',
+      bash: 'ATTA_ADAPTER=copilot bash .atta/scripts/hooks/agent-enforce.sh',
+      timeoutSec: 5,
+      comment: 'Block tools disallowed by the active agent role',
     },
   ];
 
@@ -227,7 +290,7 @@ function generateCursorHooks(detectedTechs) {
   }
 
   // Pre-tool safety (prompt type — AI evaluates the command)
-  hooks[HOOK_EVENT_MAP.preToolUse.cursor] = [
+  const cursorPreToolUse = [
     {
       type: 'prompt',
       prompt: SAFETY_PROMPT,
@@ -240,7 +303,24 @@ function generateCursorHooks(detectedTechs) {
       timeout: 5,
       matcher: { tool_name: 'Skill' },
     },
+    {
+      type: 'command',
+      command: 'ATTA_ADAPTER=cursor bash .atta/scripts/hooks/agent-enforce.sh',
+      timeout: 5,
+    },
   ];
+
+  // Convention check on file creation (only when frontend detected)
+  if (hasFrontend(detectedTechs)) {
+    cursorPreToolUse.push({
+      type: 'prompt',
+      prompt: CONVENTION_CHECK_PROMPT,
+      timeout: 15,
+      matcher: { tool_name: 'CreateFile' },
+    });
+  }
+
+  hooks[HOOK_EVENT_MAP.preToolUse.cursor] = cursorPreToolUse;
 
   // Stop quality gate (prompt type)
   hooks[HOOK_EVENT_MAP.stop.cursor] = [
@@ -283,6 +363,17 @@ function generateGeminiHooks(detectedTechs) {
           type: 'command',
           command: 'bash .atta/scripts/hooks/pre-bash-safety.sh',
           timeout: 5000, // Gemini: milliseconds
+        },
+      ],
+    },
+    {
+      hooks: [
+        {
+          type: 'command',
+          command: 'ATTA_ADAPTER=gemini bash .atta/scripts/hooks/agent-enforce.sh',
+          timeout: 5000,
+          name: 'agent-enforce',
+          description: 'Block tools disallowed by the active agent role',
         },
       ],
     },
@@ -845,9 +936,36 @@ print(m.group(1) if m else '')
 if [ -n "\$SKILL" ]; then
   mkdir -p .atta/local
   echo "\$SKILL" > .atta/local/.active-skill
+
+  # If this is an agent invocation (atta-agent), extract the agent ID
+  # /atta-agent code-reviewer → active-agent = code-reviewer
+  if [ "\$SKILL" = "atta-agent" ]; then
+    AGENT_ID="\$(echo "\$INPUT" | python3 -c "
+import json, sys, re
+data = json.load(sys.stdin)
+prompt = data.get('prompt', '')
+# Copilot rewrites '/atta-agent code-reviewer' to something like:
+# 'Use the skill tool to invoke the \"atta-agent\" skill with input \"code-reviewer\"'
+# Strategy: find 'input' or 'argument' followed by a quoted agent slug
+m = re.search(r'(?:input|argument)[^\"]*\"([a-z][\w-]+)\"', prompt)
+if not m:
+    # Fallback: last quoted word that looks like an agent slug (not 'skill', 'atta-agent', etc.)
+    candidates = re.findall(r'\"([a-z][\w-]+)\"', prompt)
+    skip = {'atta-agent', 'skill', 'the', 'invoke', 'follow'}
+    candidates = [c for c in candidates if c not in skip and not c.startswith('atta-')]
+    m_val = candidates[-1] if candidates else ''
+else:
+    m_val = m.group(1)
+print(m_val)
+" 2>/dev/null)"
+    if [ -n "\$AGENT_ID" ]; then
+      echo "\$AGENT_ID" > .atta/local/.active-agent
+    fi
+  fi
 else
-  # Not a skill invocation — clear any stale marker
+  # Not a skill invocation — clear stale markers
   rm -f .atta/local/.active-skill
+  rm -f .atta/local/.active-agent
 fi
 exit 0
 `;
@@ -898,9 +1016,9 @@ if [ -z "\$CURRENT_MODEL" ]; then
   CONFIG_HOME="\${COPILOT_HOME:-\$HOME/.copilot}"
   CONFIG_FILE="\$CONFIG_HOME/config.json"
   if [ -f "\$CONFIG_FILE" ]; then
-    CURRENT_MODEL="\$(python3 -c "
-import json
-with open('\$CONFIG_FILE') as f:
+    CURRENT_MODEL="\$(CONFIG_FILE="\$CONFIG_FILE" python3 -c "
+import json, os
+with open(os.environ['CONFIG_FILE']) as f:
     print(json.load(f).get('model', ''))
 " 2>/dev/null || echo "")"
   fi
@@ -998,6 +1116,138 @@ esac
 `;
 
 /**
+ * Agent enforcement hook script — blocks disallowed tools for the active agent.
+ * Reads .atta/local/.active-agent (set by skill-detect-copilot.sh) and .atta/team/agent-constraints.json.
+ * Currently enforces on Copilot only (temp file relay). Gemini/Cursor hooks are wired but
+ * enforcement is advisory until those tools support agent detection in hook stdin.
+ */
+export const AGENT_ENFORCE_SCRIPT = `#!/bin/bash
+# agent-enforce.sh — Block tools disallowed by the active agent
+# Generated by Atta. Reads agent-constraints.json for per-agent tool restrictions.
+set -euo pipefail
+
+# Hook profiles — respect ATTA_HOOKS env var
+HOOK_PROFILE="\${ATTA_HOOKS:-standard}"
+[ "\$HOOK_PROFILE" = "off" ] && exit 0
+[ "\$HOOK_PROFILE" = "minimal" ] && exit 0
+
+AGENT_FILE=".atta/local/.active-agent"
+CONSTRAINTS=".atta/team/agent-constraints.json"
+
+[ ! -f "\$CONSTRAINTS" ] && exit 0
+
+# Read agent from temp file (set by skill-detect on Copilot).
+# If no file exists (Gemini/Cursor), fall through — enforcement skipped
+# until the tool supports agent detection in hook stdin.
+AGENT=""
+if [ -f "\$AGENT_FILE" ]; then
+  AGENT="\$(cat "\$AGENT_FILE")"
+fi
+[ -z "\$AGENT" ] && exit 0
+
+# Read stdin to get toolName
+INPUT="\$(cat)"
+TOOL_NAME="\$(echo "\$INPUT" | python3 -c "
+import json, sys
+data = json.load(sys.stdin)
+# Copilot: toolName at top level; Gemini/Cursor: tool_input.tool or toolName
+print(data.get('toolName', data.get('tool_input', {}).get('tool', '')))
+" 2>/dev/null || echo "")"
+
+[ -z "\$TOOL_NAME" ] && exit 0
+
+# Check if tool is disallowed for this agent
+# Normalize tool names across adapters: Cursor uses EditFile/CreateFile/Shell,
+# Claude/Copilot use Edit/Write/Bash. Map to canonical Claude names for matching.
+BLOCKED="\$(AGENT="\$AGENT" TOOL="\$TOOL_NAME" CONSTRAINTS_FILE="\$CONSTRAINTS" python3 -c "
+import json, os, sys
+
+# Adapter tool name → canonical name (Claude Code vocabulary)
+TOOL_ALIASES = {
+    'editfile': 'edit', 'createfile': 'write', 'writefile': 'write',
+    'shell': 'bash', 'run_command': 'bash', 'execute_command': 'bash',
+    'readfile': 'read', 'view': 'read', 'viewfile': 'read',
+    'findfiles': 'glob', 'searchfiles': 'grep', 'listfiles': 'glob',
+}
+
+with open(os.environ['CONSTRAINTS_FILE']) as f:
+    constraints = json.load(f)
+agent = os.environ.get('AGENT', '')
+tool = os.environ.get('TOOL', '')
+disallowed = constraints.get(agent, {}).get('disallowedTools', [])
+# Normalize both sides to lowercase, then apply aliases
+tool_lower = tool.lower()
+tool_canonical = TOOL_ALIASES.get(tool_lower, tool_lower)
+disallowed_norm = {TOOL_ALIASES.get(d.lower(), d.lower()) for d in disallowed}
+blocked = tool_canonical in disallowed_norm
+print('yes' if blocked else 'no')
+" 2>/dev/null || echo "no")"
+
+# Check file-path constraints (allowedFiles)
+if [ "\$BLOCKED" = "no" ]; then
+  # Extract target file path from tool args (varies by tool)
+  TARGET_FILE="\$(echo "\$INPUT" | python3 -c "
+import json, sys
+data = json.load(sys.stdin)
+args = data.get('toolArgs', data.get('tool_input', {}))
+if isinstance(args, str):
+    import json as j
+    try: args = j.loads(args)
+    except: args = {}
+# Common file path field names across tools
+for key in ['file_path', 'path', 'target_file', 'filePath', 'file']:
+    val = args.get(key, '')
+    if val:
+        print(val)
+        sys.exit(0)
+print('')
+" 2>/dev/null || echo "")"
+
+  if [ -n "\$TARGET_FILE" ]; then
+    BLOCKED="\$(AGENT="\$AGENT" FILE="\$TARGET_FILE" CONSTRAINTS_FILE="\$CONSTRAINTS" python3 -c "
+import json, os, sys
+from pathlib import PurePosixPath
+with open(os.environ['CONSTRAINTS_FILE']) as f:
+    constraints = json.load(f)
+agent = os.environ.get('AGENT', '')
+target = os.environ.get('FILE', '').lstrip('./')
+allowed = constraints.get(agent, {}).get('allowedFiles', [])
+if not allowed:
+    print('no')
+    sys.exit(0)
+# PurePosixPath.match supports ** globstar correctly
+matched = any(PurePosixPath(target).match(g) for g in allowed)
+print('no' if matched else 'yes')
+" 2>/dev/null || echo "no")"
+    if [ "\$BLOCKED" = "yes" ]; then
+      TOOL_NAME="file-scope"
+    fi
+  fi
+fi
+
+if [ "\$BLOCKED" = "yes" ]; then
+  ADAPTER="\${ATTA_ADAPTER:-}"
+  if [ "\$TOOL_NAME" = "file-scope" ]; then
+    REASON="[agent-enforce] Agent '\$AGENT' cannot access '\$TARGET_FILE'. This file is outside the agent's allowed scope."
+  else
+    REASON="[agent-enforce] Agent '\$AGENT' is not allowed to use '\$TOOL_NAME'. This tool is restricted for this agent role."
+  fi
+  echo "\$REASON" >&2
+  if [ "\$ADAPTER" = "copilot" ]; then
+    # Copilot: stdout JSON with permissionDecision
+    REASON="\$REASON" python3 -c "import json,os; print(json.dumps({'permissionDecision':'deny','permissionDecisionReason':os.environ['REASON']}))" 2>/dev/null \\
+      || echo '{"permissionDecision":"deny","permissionDecisionReason":"agent tool restriction"}'
+    exit 0
+  else
+    # Gemini/Cursor: exit 2 to block
+    exit 2
+  fi
+fi
+
+exit 0
+`;
+
+/**
  * Write hook scripts to .atta/scripts/hooks/ in the target project.
  * Called by adapters that need command-type hooks (Copilot, Cursor, Gemini).
  *
@@ -1015,8 +1265,23 @@ export function writeHookScripts(targetDir) {
   writeFileSync(join(hooksDir, 'model-gate-gemini.sh'), MODEL_GATE_GEMINI_SCRIPT, { mode: 0o755 });
   writeFileSync(join(hooksDir, 'skill-detect-copilot.sh'), SKILL_DETECT_COPILOT_SCRIPT, { mode: 0o755 });
   writeFileSync(join(hooksDir, 'model-gate-copilot.sh'), MODEL_GATE_COPILOT_SCRIPT, { mode: 0o755 });
+  writeFileSync(join(hooksDir, 'agent-enforce.sh'), AGENT_ENFORCE_SCRIPT, { mode: 0o755 });
 
-  return 6;
+  return 7;
+}
+
+/**
+ * Write agent constraints manifest to .atta/team/.
+ * @param {string} targetDir - Project root
+ * @param {object} constraints - From generateAgentConstraints()
+ */
+export function writeAgentConstraints(targetDir, constraints) {
+  const teamDir = join(targetDir, '.atta', 'team');
+  mkdirSync(teamDir, { recursive: true });
+  writeFileSync(
+    join(teamDir, 'agent-constraints.json'),
+    JSON.stringify(constraints, null, 2) + '\n'
+  );
 }
 
 // ─── Frontmatter Parsing ─────────────────────────────────────────────

@@ -160,6 +160,7 @@ ATTA_HOOKS=off npx atta-dev init   # Skip all enforcement during init
 | `model-gate.sh` (Cursor) | Runs | Skips | Skips |
 | `model-gate-copilot.sh` + `skill-detect-copilot.sh` | Runs | Skips | Skips |
 | `model-gate-gemini.sh` | Runs | Skips | Skips |
+| `agent-enforce.sh` | Runs | Skips | Skips |
 | `stop-quality-gate.sh` | Runs | Skips | Skips |
 
 **Claude Code and Cursor** use **prompt-type hooks** for safety and quality gates — these are AI-evaluated and not controlled by `ATTA_HOOKS`. The model-gate is a command-type hook on Copilot, Cursor, and Gemini and respects `ATTA_HOOKS` on those tools. Claude Code handles model routing natively via `model:` frontmatter.
@@ -186,6 +187,46 @@ With model targeting, a typical daily workflow costs significantly less:
 | **Total: ~$1.15/day** | **Total: ~$0.33/day** |
 
 See [Token Usage](token-usage.md) for detailed per-skill estimates.
+
+## Agent Enforcement
+
+Beyond model targeting, Atta enforces agent-level constraints.
+
+### disallowedTools
+
+Agents define `disallowedTools:` in frontmatter (e.g., code-reviewer disallows Edit/Write/Bash). Enforcement varies by tool:
+
+| Tool | Mechanism | Format |
+|------|-----------|--------|
+| **Claude Code** | Native frontmatter enforcement | Built-in — no hook needed |
+| **Copilot** | `agent-enforce.sh` on `preToolUse` | `permissionDecision: deny` JSON |
+| **Cursor** | Hook wired, but advisory until agent detection relay exists | Exit code 2 (when `.active-agent` present) |
+| **Gemini** | Hook wired, but advisory until agent detection relay exists | Exit code 2 (when `.active-agent` present) |
+| **Codex** | Advisory only (body text) | No enforcement hooks |
+
+**Tool name normalization**: Agent frontmatter uses Claude-style names (`Edit`, `Write`, `Bash`). The enforcement script normalizes across adapters using `TOOL_ALIASES` (e.g., Cursor's `EditFile` → `Edit`, `Shell` → `Bash`).
+
+### allowedFiles
+
+Agents can define `allowedFiles:` in frontmatter to restrict file access by glob pattern. Enforcement is in `agent-enforce.sh` (same script as `disallowedTools`) — currently active on Copilot only; advisory on others until agent detection relays exist.
+
+```yaml
+---
+name: test-writer
+allowedFiles:
+  - "**/*.test.*"
+  - "**/*.spec.*"
+  - "__tests__/**/*"
+---
+```
+
+### Convention Prompt Hooks
+
+When frontend frameworks are detected, Atta generates prompt hooks that check:
+- **Component naming**: PascalCase, correct directory, no duplicates (fires on `Write`/`CreateFile`) — Claude Code + Cursor
+- **Import conventions**: Path aliases, import order, circular dependencies (fires on `Edit`/`Write`, TypeScript only) — Claude Code only
+
+These are AI-evaluated (`type: "prompt"`). Other tools get equivalent guidance in their coding rules files (advisory).
 
 ## See Also
 

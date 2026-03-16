@@ -229,30 +229,31 @@ if [ "$AGENT_PLACEHOLDER_COUNT" -gt 0 ]; then
   ERRORS=$((ERRORS + 1))
 fi
 
-# --- Hooks checks (v2.7.1 Track C) ---
+# --- Hooks checks (v2.7.1 Track C, updated v3.0.0) ---
 
-# Check hooks.json exists and is valid JSON with Gemini event names
-if [ ! -f "$WORK_DIR/.gemini/hooks.json" ]; then
-  echo "FAIL: .gemini/hooks.json missing"
+# Gemini CLI reads hooks from settings.json (not hooks.json)
+if [ ! -f "$WORK_DIR/.gemini/settings.json" ]; then
+  echo "FAIL: .gemini/settings.json missing"
   ERRORS=$((ERRORS + 1))
 else
-  python3 - "$WORK_DIR/.gemini/hooks.json" <<'PYEOF' 2>/dev/null || ERRORS=$((ERRORS + 1))
+  python3 - "$WORK_DIR/.gemini/settings.json" <<'PYEOF' 2>/dev/null || ERRORS=$((ERRORS + 1))
 import json, sys
 with open(sys.argv[1]) as f:
     data = json.load(f)
-if 'hooks' not in data:
-    print('FAIL: hooks.json missing top-level "hooks" key')
+hooks = data.get('hooks', {})
+if not hooks:
+    print('FAIL: settings.json missing "hooks" object')
     sys.exit(1)
-# Enforcement hooks: BeforeTool (pre-bash safety)
-for event in ['BeforeTool']:
-    if event not in data['hooks']:
-        print(f'FAIL: hooks.json missing Gemini event: {event}')
+# Enforcement hooks: BeforeTool (pre-bash safety), BeforeModel (model-gate)
+for event in ['BeforeTool', 'BeforeModel']:
+    if event not in hooks:
+        print(f'FAIL: settings.json missing Gemini hook event: {event}')
         sys.exit(1)
 PYEOF
 fi
 
-# Check hook scripts exist and are executable (referenced by hooks.json)
-for script in pre-bash-safety.sh stop-quality-gate.sh model-gate.sh; do
+# Check hook scripts exist and are executable (referenced by settings.json)
+for script in pre-bash-safety.sh stop-quality-gate.sh model-gate.sh model-gate-gemini.sh agent-enforce.sh; do
   if [ ! -x "$WORK_DIR/.atta/scripts/hooks/$script" ]; then
     echo "FAIL: .atta/scripts/hooks/$script missing or not executable"
     ERRORS=$((ERRORS + 1))

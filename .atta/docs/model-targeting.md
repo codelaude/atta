@@ -200,15 +200,15 @@ Agents define `disallowedTools:` in frontmatter (e.g., code-reviewer disallows E
 |------|-----------|--------|
 | **Claude Code** | Native frontmatter enforcement | Built-in — no hook needed |
 | **Copilot** | `agent-enforce.sh` on `preToolUse` | `permissionDecision: deny` JSON |
-| **Cursor** | `agent-enforce.sh` on `preToolUse` | Exit code 2 |
-| **Gemini** | `agent-enforce.sh` on `BeforeTool` | Exit code 2 |
+| **Cursor** | Hook wired, but advisory until agent detection relay exists | Exit code 2 (when `.active-agent` present) |
+| **Gemini** | Hook wired, but advisory until agent detection relay exists | Exit code 2 (when `.active-agent` present) |
 | **Codex** | Advisory only (body text) | No enforcement hooks |
 
 **Tool name normalization**: Agent frontmatter uses Claude-style names (`Edit`, `Write`, `Bash`). The enforcement script normalizes across adapters using `TOOL_ALIASES` (e.g., Cursor's `EditFile` → `Edit`, `Shell` → `Bash`).
 
 ### allowedFiles
 
-Agents can define `allowedFiles:` in frontmatter to restrict file access by glob pattern. Enforcement via prompt hooks on Claude Code and Cursor; advisory on others.
+Agents can define `allowedFiles:` in frontmatter to restrict file access by glob pattern. Enforcement is in `agent-enforce.sh` (same script as `disallowedTools`) — currently active on Copilot only; advisory on others until agent detection relays exist.
 
 ```yaml
 ---

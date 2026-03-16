@@ -496,8 +496,8 @@ This gives the CI reviewer the same context as your local agents — resulting i
 | Agent generation | Yes | Yes | Yes | Yes | Yes |
 | Agent definitions | Yes | Yes | Yes | Yes | Yes |
 | Agent invocation | Yes | Yes | Yes | Yes | Via AGENTS.md |
-| Agent enforcement (`disallowedTools`) | Native | Blocking (hook) | Advisory | Blocking (hook) | Blocking (hook) |
-| File-regex constraints (`allowedFiles`) | Prompt hook | Advisory | Advisory | Advisory | Prompt hook |
+| Agent enforcement (`disallowedTools`) | Native | Blocking (hook) | Advisory | Advisory* | Advisory* |
+| File-regex constraints (`allowedFiles`) | Via agent-enforce.sh | Advisory | Advisory | Advisory | Advisory |
 | Skill execution | Yes | Yes | Yes | Yes | Yes |
 | Skill commands | `/atta-name` | `/atta-name` | `$atta-name` | `/atta-name` | `@atta-name` |
 | Convention hooks | Prompt hooks | — | — | — | Prompt hooks |
@@ -514,7 +514,7 @@ This gives the CI reviewer the same context as your local agents — resulting i
 | Model targeting | Yes (native frontmatter) | Blocking (hook) | N/A | Blocking (hook) | Advisory |
 | Update system | Yes | — | — | — | — |
 
-**Legend**: Yes = full support, Native = enforced by tool's own frontmatter, Gen-time = generation-time only (via `/atta`), Blocking = hook detects and blocks, Advisory = instruction-only (no enforcement), Prompt hooks = AI-evaluated check before/after tool use, — = not available
+**Legend**: Yes = full support, Native = enforced by tool's own frontmatter, Gen-time = generation-time only (via `/atta`), Blocking = hook detects and blocks, Advisory = instruction-only (no enforcement), Advisory* = hook wired but enforcement requires `.active-agent` relay (currently Copilot only), Prompt hooks = AI-evaluated check before/after tool use, — = not available
 
 ---
 

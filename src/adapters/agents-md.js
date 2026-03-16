@@ -1,6 +1,7 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { parseFrontmatter, listSkills } from './claude-code.js';
+import { listSkills } from './claude-code.js';
+import { parseAgentFrontmatter } from './shared.js';
 import { readVersion } from '../lib/fs-utils.js';
 
 /**
@@ -211,7 +212,7 @@ export function generateAgentConstraints(claudeRoot, selectedAgents) {
       if (selectedAgents && !selectedAgents.includes(slug)) continue;
       try {
         const content = readFileSync(join(dir, file), 'utf8');
-        const fm = parseFrontmatter(content);
+        const { frontmatter: fm } = parseAgentFrontmatter(content);
         const entry = {};
         if (fm.disallowedTools?.length) entry.disallowedTools = fm.disallowedTools;
         if (fm.allowedFiles?.length) entry.allowedFiles = fm.allowedFiles;

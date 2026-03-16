@@ -1117,8 +1117,9 @@ esac
 
 /**
  * Agent enforcement hook script — blocks disallowed tools for the active agent.
- * Reads .atta/local/.active-agent (set by skill-detect) and .atta/team/agent-constraints.json.
- * Works across Copilot (stdout JSON deny), Gemini (exit 2), and Cursor (exit 2).
+ * Reads .atta/local/.active-agent (set by skill-detect-copilot.sh) and .atta/team/agent-constraints.json.
+ * Currently enforces on Copilot only (temp file relay). Gemini/Cursor hooks are wired but
+ * enforcement is advisory until those tools support agent detection in hook stdin.
  */
 export const AGENT_ENFORCE_SCRIPT = `#!/bin/bash
 # agent-enforce.sh — Block tools disallowed by the active agent

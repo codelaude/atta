@@ -40,8 +40,8 @@ From file generation to enforcement infrastructure generation. 14 tracks, 13 PRs
 
 **Agent Enforcement**
 - **Agent constraints manifest**: `agent-constraints.json` generated from agent frontmatter `disallowedTools` and `allowedFiles` fields
-- **`agent-enforce.sh` hook**: blocks disallowed tools for the active agent on Copilot (`permissionDecision: deny`), Cursor and Gemini (`exit 2`). Tool name normalization via `TOOL_ALIASES` map (Edit↔EditFile, Bash↔Shell) for cross-adapter consistency
-- **File-regex constraints**: `allowedFiles:` in agent frontmatter restricts file access. Enforced via prompt hooks on Claude Code and Cursor, advisory on others
+- **`agent-enforce.sh` hook**: blocks disallowed tools for the active agent. Currently enforces on Copilot (`permissionDecision: deny`) via `.active-agent` temp file relay. Gemini/Cursor hooks wired but advisory until agent detection relay exists. Tool name normalization via `TOOL_ALIASES` map (Edit↔EditFile, Bash↔Shell) for cross-adapter consistency
+- **File-regex constraints**: `allowedFiles:` in agent frontmatter restricts file access. Enforced in `agent-enforce.sh` (Copilot active, others advisory)
 - **Convention prompt hooks**: component naming and import convention checking via AI-evaluated `PreToolUse`/`PostToolUse` hooks. Generated conditionally when frontend or TypeScript detected. Claude Code + Cursor only (prompt hooks not supported elsewhere)
 
 **Review & Validation**

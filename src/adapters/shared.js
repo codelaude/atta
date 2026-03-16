@@ -1205,17 +1205,18 @@ print('')
 
   if [ -n "\$TARGET_FILE" ]; then
     BLOCKED="\$(AGENT="\$AGENT" FILE="\$TARGET_FILE" CONSTRAINTS_FILE="\$CONSTRAINTS" python3 -c "
-import json, os, sys, fnmatch
+import json, os, sys
+from pathlib import PurePosixPath
 with open(os.environ['CONSTRAINTS_FILE']) as f:
     constraints = json.load(f)
 agent = os.environ.get('AGENT', '')
-target = os.environ.get('FILE', '')
+target = os.environ.get('FILE', '').lstrip('./')
 allowed = constraints.get(agent, {}).get('allowedFiles', [])
 if not allowed:
     print('no')
     sys.exit(0)
-# Check if target matches any allowed glob
-matched = any(fnmatch.fnmatch(target, g) or fnmatch.fnmatch(os.path.basename(target), g) for g in allowed)
+# PurePosixPath.match supports ** globstar correctly
+matched = any(PurePosixPath(target).match(g) for g in allowed)
 print('no' if matched else 'yes')
 " 2>/dev/null || echo "no")"
     if [ "\$BLOCKED" = "yes" ]; then

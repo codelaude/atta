@@ -2,7 +2,7 @@
 
 ## Base Branch Resolution
 
-Detect base branch dynamically (same logic as `/atta-review`):
+Detect base branch dynamically (similar to `/atta-review`, with additional local-branch fallback):
 
 ```bash
 # Try remote branches first, then local branches, then fallback
@@ -25,7 +25,7 @@ fi
 ```
 
 **If `$BASE` is empty** (no remote base), use this complete fallback for all derived values:
-- `files_changed`: `git diff HEAD --name-only 2>/dev/null | wc -l` (staged + unstaged vs HEAD; if HEAD doesn't exist either, use `git status --porcelain | wc -l`)
+- `files_changed`: count of `git diff HEAD --name-only 2>/dev/null` plus `git ls-files --others --exclude-standard` (staged + unstaged + untracked; if HEAD doesn't exist, use `git status --porcelain | wc -l`)
 - `commit_count`: treat as `1` (uncommitted work = single logical change)
 - `file_commit_ratio`: `files_changed / 1`
 - `new_files`: `git diff HEAD --diff-filter=A --name-only 2>/dev/null` plus `git ls-files --others --exclude-standard` (staged new files + untracked files)
@@ -41,9 +41,9 @@ Infer task type from branch name and commit messages to select the correct thres
 | `fix/*`, `bugfix/*`, `hotfix/*` | Bug fix |
 | `refactor/*`, `cleanup/*` | Refactor |
 | `docs/*`, `documentation/*` | Documentation |
-| `feature/*`, `feat/*` (default) | Feature (small if <15 files, medium if >=15) |
+| `feature/*`, `feat/*` (default) | Feature (small if ≤30 files, medium if >30) |
 
-Apply the matching row from the **Task-Type Thresholds** table in `.atta/team/kiss-thresholds.md`. If the matched row has `varies` for its thresholds (e.g., Refactor), use global defaults from the frontmatter (`max_files`, `file_commit_ratio`). If no task type matched at all, use Feature (small) defaults.
+Apply the matching row from the **Task-Type Thresholds** table in `.atta/team/kiss-thresholds.md`. If the matched row shows `(global defaults)` for its thresholds (e.g., Refactor), use global defaults from the frontmatter (`max_files`, `file_commit_ratio`). If no task type matched at all, use Feature (small) defaults.
 
 ## Threshold Extraction
 

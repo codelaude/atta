@@ -44,11 +44,7 @@ Thresholds vary by task type, inferred from branch name or commit messages.
 
 ## Strict Mode
 
-```
-strict: false
-```
-
-When `strict: true`, any individual FLAG becomes a BLOCK. Useful for teams with chronic over-engineering issues.
+When `strict: true` (set in frontmatter above), any individual FLAG becomes a BLOCK. Useful for teams with chronic over-engineering issues. Edit the `thresholds.strict` value in the frontmatter at the top of this file to change.
 
 ## Exempt Patterns
 

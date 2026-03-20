@@ -15,7 +15,7 @@ Operational guidance for routing decisions. Loaded when deciding which agent or 
 | project-owner | Orchestrator — routes tasks, synthesizes multi-agent output | Complex features, cross-domain work, task decomposition | Simple single-domain tasks, code implementation, PR review |
 | code-reviewer | Code quality, patterns, security | Code review, pattern checks, pre-PR review | Test execution (use /atta-test), architecture decisions (use architect), fixing code |
 | librarian | Knowledge capture, directives, corrections | "Remember to...", "Always...", "Never...", corrections | Code review (use code-reviewer), architecture decisions (use architect) |
-| architect | System design, ADRs, tech decisions, implementation blueprints | Architecture decisions, scalability analysis, API design | Direct feature implementation (use specialists), PR review (use code-reviewer) |
+| architect | System design, ADRs, tech decisions, implementation blueprints | Architecture decisions, scalability analysis, API design, building from plans | Code quality review (use code-reviewer), task routing (use project-owner) |
 
 ## Optional Agents (installed during init)
 

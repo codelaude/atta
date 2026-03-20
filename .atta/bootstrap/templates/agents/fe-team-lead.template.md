@@ -1,6 +1,6 @@
 ---
 name: fe-team-lead
-description: Frontend coordination hub. Use when decomposing UI features, coordinating frontend specialists, or resolving cross-domain frontend conflicts.
+description: Frontend coordination hub. Use when decomposing UI features, coordinating frontend specialists, or resolving cross-domain frontend conflicts. Does NOT implement code directly (delegates to frontend specialists) or handle backend tasks (use be-team-lead).
 model: inherit
 tools:
   - Read

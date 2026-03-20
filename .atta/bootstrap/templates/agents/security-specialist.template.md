@@ -1,6 +1,6 @@
 ---
 name: security-specialist
-description: Application security, OWASP Top 10, and secure coding patterns. Use for security audits, vulnerability assessment, and secure design guidance.
+description: Application security, OWASP Top 10, and secure coding patterns. Use for security audits, vulnerability assessment, and secure design guidance. Does NOT fix vulnerabilities (provides guidance only). For automated OWASP scanning, use /atta-security-audit.
 model: inherit
 tools:
   - Read

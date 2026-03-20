@@ -1,6 +1,6 @@
 ---
 name: be-team-lead
-description: Backend coordination hub. Use when decomposing backend features, coordinating backend specialists, or resolving cross-domain backend conflicts.
+description: Backend coordination hub. Use when decomposing backend features, coordinating backend specialists, or resolving cross-domain backend conflicts. Does NOT implement code directly (delegates to backend specialists) or handle frontend tasks (use fe-team-lead).
 model: inherit
 tools:
   - Read

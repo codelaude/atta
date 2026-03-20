@@ -1,6 +1,6 @@
 ---
 name: {{TESTING_ID}}-testing-specialist
-description: {{TESTING_NAME}} testing patterns, test quality, and coverage strategies. Use for testing guidance, test review, or test strategy decisions.
+description: {{TESTING_NAME}} testing patterns, test quality, and coverage strategies. Use for testing guidance, test review, or test strategy decisions. Does NOT execute tests (provides testing guidance only). For test execution, use /atta-test.
 model: inherit
 tools:
   - Read

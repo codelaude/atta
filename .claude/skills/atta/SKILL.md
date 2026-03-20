@@ -211,6 +211,12 @@ If convention detection produced results, update `.atta/project/project-profile.
 
 > Only pre-fill sections without existing `[x]` checkboxes. Never overwrite user selections.
 
+### KISS Thresholds (auto-populated)
+
+Write `.atta/team/kiss-thresholds.md` using detection results from Phase 2. Read `{bootstrapDir}/mappings/kiss-mappings.yaml` for the mapping rules: which detectors trigger which exempt patterns, always-flag paths, and scope limit overrides. Uncomment matching entries in the template's `<!-- auto-populated -->` sections.
+
+> On `--rescan`: re-detect and update auto-populated sections. Preserve user-added entries and manually adjusted thresholds.
+
 ### Agent Generation from Templates
 
 When generating specialists and coordinators from `{bootstrapDir}/templates/agents/`:

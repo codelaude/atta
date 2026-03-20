@@ -75,6 +75,13 @@
       "description": "Pre-PR validation skill",
       "framework_hash": null
     },
+    "skills/atta-preflight/references/": {
+      "source": "framework",
+      "customized": false,
+      "safe_to_replace": true,
+      "description": "Preflight skill reference files (auto-fix-protocol, static-analysis, error-recovery)",
+      "framework_hash": null
+    },
     "skills/atta-team-lead/SKILL.md": {
       "source": "framework",
       "customized": false,
@@ -87,6 +94,13 @@
       "customized": false,
       "safe_to_replace": true,
       "description": "Interactive onboarding tutorial skill",
+      "framework_hash": null
+    },
+    "skills/atta-tutorial/references/": {
+      "source": "framework",
+      "customized": false,
+      "safe_to_replace": true,
+      "description": "Tutorial skill reference files (team-introduction, first-task-demo, quick-reference-card)",
       "framework_hash": null
     },
     "skills/atta-security-audit/SKILL.md": {
@@ -115,6 +129,13 @@
       "customized": false,
       "safe_to_replace": true,
       "description": "Developer profile preferences skill",
+      "framework_hash": null
+    },
+    "skills/atta-profile/references/": {
+      "source": "framework",
+      "customized": false,
+      "safe_to_replace": true,
+      "description": "Profile skill reference files (update-questions, complete-mode, apply-format, ci-review-mode)",
       "framework_hash": null
     },
     "skills/atta-patterns/SKILL.md": {
@@ -332,6 +353,7 @@
       "bootstrap/**/*",
       "docs/**/*",
       "skills/*/SKILL.md",
+      "skills/*/references/**/*",
       "team/templates/**/*",
       "team/model-registry.json"
     ],

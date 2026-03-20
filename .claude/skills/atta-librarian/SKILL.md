@@ -1,6 +1,6 @@
 ---
 name: atta-librarian
-description: Invoke Librarian for knowledge capture and directive management. Use when capturing learnings, directives, or persistent rules.
+description: Invoke Librarian for knowledge capture and directive management. Use when capturing learnings, directives, or persistent rules. Does NOT perform code review (use /atta-review) or pattern analysis (use /atta-patterns).
 argument-hint: "[directive] [--migrate]"
 ---
 

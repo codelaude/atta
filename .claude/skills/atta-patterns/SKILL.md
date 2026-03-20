@@ -1,6 +1,6 @@
 ---
 name: atta-patterns
-description: Pattern detection and learning system. Analyze correction history, view suggested patterns, and promote corrections to directives or pattern files.
+description: Pattern detection and learning system. Analyze correction history, view suggested patterns, and promote corrections to directives or pattern files. Does NOT capture directives (use /atta-librarian) or perform code review (use /atta-review).
 disable-model-invocation: true
 model: haiku
 argument-hint: "<subcommand> [--directives]"

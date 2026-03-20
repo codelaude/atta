@@ -1,6 +1,6 @@
 ---
 name: atta-team-lead
-description: Invoke a generated Team Lead for task decomposition and specialist coordination. Use when starting a new feature or complex task.
+description: Invoke a generated Team Lead for task decomposition and specialist coordination. Use when starting a new feature or complex task. Does NOT handle simple single-domain tasks (use /atta-agent directly) or multi-agent review (use /atta-collaborate).
 argument-hint: "<task>"
 ---
 

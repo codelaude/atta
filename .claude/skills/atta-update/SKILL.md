@@ -1,6 +1,6 @@
 ---
 name: atta-update
-description: Check for and apply framework updates while preserving user customizations. Smart merge system that separates framework files from user content.
+description: Check for and apply framework updates while preserving user customizations. Smart merge system that separates framework files from user content. Does NOT handle version migration (use /atta-migrate) or project initialization (use /atta).
 disable-model-invocation: true
 model: haiku
 argument-hint: "[check|pull|rollback] [--dry-run] [--from path]"

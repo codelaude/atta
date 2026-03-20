@@ -1,6 +1,6 @@
 ---
 name: atta-test
-description: Run tests with auto-detection, E2E support, coverage analysis, and watch mode.
+description: Run tests with auto-detection, E2E support, coverage analysis, and watch mode. Does NOT write tests or analyze test quality (use /atta-review for test review).
 disable-model-invocation: true
 model: haiku
 argument-hint: "[path] [--e2e] [--coverage] [--watch]"

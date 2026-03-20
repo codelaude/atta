@@ -1,6 +1,6 @@
 ---
 name: atta-optimize
-description: Enrich prompts with project context for better results. Use within the current session to rephrase a question that didn't get a good answer, or to prepare prompts for other AI tools (Codex, Copilot, ChatGPT, Gemini) with full project context.
+description: Enrich prompts with project context for better results. Use within the current session to rephrase a question that didn't get a good answer, or to prepare prompts for other AI tools (Codex, Copilot, ChatGPT, Gemini) with full project context. Does NOT execute the optimized prompt or perform code changes.
 argument-hint: "<prompt> [--rephrase] [--target codex|copilot|chatgpt|gemini|claude]"
 ---
 

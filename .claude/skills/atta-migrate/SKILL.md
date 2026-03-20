@@ -1,6 +1,6 @@
 ---
 name: atta-migrate
-description: Migrate older Atta installations to the current version — skill reference renames, directory restructure verification, and user content preservation. Shows diff before applying.
+description: Migrate older Atta installations to the current version — skill reference renames, directory restructure verification, and user content preservation. Shows diff before applying. Does NOT handle framework updates (use /atta-update) or project initialization (use /atta).
 argument-hint: "[--dry-run] [--rollback]"
 ---
 

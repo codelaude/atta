@@ -1,6 +1,6 @@
 ---
 name: architect
-description: System design, architecture decisions, and implementation blueprints. Use for technology selection, scalability analysis, ADR creation, API design, and building features from architectural plans.
+description: System design, architecture decisions, and implementation blueprints. Use for technology selection, scalability analysis, ADR creation, API design, and building features from architectural plans. Does NOT implement features directly (use specialists) or review PRs (use code-reviewer).
 model: inherit
 tools:
   - Read

@@ -1,6 +1,6 @@
 ---
 name: prompt-engineer
-description: Optimizes prompts for better AI results. Use for rephrasing questions, enriching context, or preparing prompts for other AI tools.
+description: Optimizes prompts for better AI results. Use for rephrasing questions, enriching context, or preparing prompts for other AI tools. Does NOT execute prompts or make code changes (use /atta-optimize for full prompt enrichment workflow).
 model: inherit
 tools:
   - Read

@@ -1,6 +1,6 @@
 ---
 name: project-owner
-description: Main orchestrator that routes tasks to specialist agents and synthesizes multi-agent responses. Use when coordinating cross-team work or deciding which agent should handle a task.
+description: Main orchestrator that routes tasks to specialist agents and synthesizes multi-agent responses. Use when coordinating cross-team work or deciding which agent should handle a task. Does NOT implement code or review PRs (delegates to specialists).
 model: inherit
 tools:
   - Read

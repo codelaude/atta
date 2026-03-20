@@ -10,21 +10,21 @@ Operational guidance for routing decisions. Loaded when deciding which agent or 
 
 ## Core Agents (always available)
 
-| Agent | Role | When to invoke |
-|-------|------|----------------|
-| project-owner | Orchestrator — routes tasks, synthesizes multi-agent output | Complex features, cross-domain work, task decomposition |
-| code-reviewer | Code quality, patterns, security | Code review, pattern checks, pre-PR review |
-| librarian | Knowledge capture, directives, corrections | "Remember to...", "Always...", "Never...", corrections |
-| architect | System design, ADRs, tech decisions, implementation blueprints | Architecture decisions, scalability analysis, API design |
+| Agent | Role | When to invoke | When NOT to invoke |
+|-------|------|----------------|---------------------|
+| project-owner | Orchestrator — routes tasks, synthesizes multi-agent output | Complex features, cross-domain work, task decomposition | Simple single-domain tasks, code implementation, PR review |
+| code-reviewer | Code quality, patterns, security | Code review, pattern checks, pre-PR review | Test execution (use /atta-test), architecture decisions (use architect), fixing code |
+| librarian | Knowledge capture, directives, corrections | "Remember to...", "Always...", "Never...", corrections | Code review (use code-reviewer), architecture decisions (use architect) |
+| architect | System design, ADRs, tech decisions, implementation blueprints | Architecture decisions, scalability analysis, API design | Direct feature implementation (use specialists), PR review (use code-reviewer) |
 
 ## Optional Agents (installed during init)
 
-| Agent | Role | When to invoke |
-|-------|------|----------------|
-| business-analyst | Requirements, acceptance criteria, edge cases | Clarifying business logic, defining ACCs |
-| qa-validator | ACC validation, test scenario creation | Checking if code meets requirements |
-| pr-manager | PR descriptions, commit messages, completion criteria | Preparing PRs, writing commit messages |
-| rubber-duck | Guided learning, problem exploration | When user wants to think through a problem |
+| Agent | Role | When to invoke | When NOT to invoke |
+|-------|------|----------------|---------------------|
+| business-analyst | Requirements, acceptance criteria, edge cases | Clarifying business logic, defining ACCs | Code implementation, code quality review (use code-reviewer) |
+| qa-validator | ACC validation, test scenario creation | Checking if code meets requirements | Writing tests, fixing bugs, test execution (use /atta-test) |
+| pr-manager | PR descriptions, commit messages, completion criteria | Preparing PRs, writing commit messages | Code review (use code-reviewer), full validation (use /atta-preflight) |
+| rubber-duck | Guided learning, problem exploration | When user wants to think through a problem | When user needs direct answers or implementation |
 
 > Optional agents may not be installed. If invoked and absent, fall back to the closest core agent (e.g., code-reviewer for QA, project-owner for PR/requirements).
 

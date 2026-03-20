@@ -3,7 +3,7 @@ name: atta-ship
 description: Completion workflow — run tests, validate ACCs, generate PR description, and capture learnings. Use after /atta-preflight passes. Does NOT run full quality pipeline (use /atta-preflight) or detailed code review (use /atta-review).
 disable-model-invocation: true
 model: haiku
-argument-hint: "[--skip-tests]"
+argument-hint: "[--skip-tests] [--skip-kiss]"
 ---
 
 You are now running the **ship** completion workflow. This finalizes work for PR submission.
@@ -13,6 +13,7 @@ You are now running the **ship** completion workflow. This finalizes work for PR
 ```
 /atta-ship                    # Full completion workflow
 /atta-ship --skip-tests       # Skip test execution (if already verified)
+/atta-ship --skip-kiss        # Skip simplicity review (adds note to PR description)
 ```
 
 ---
@@ -55,6 +56,20 @@ If the result is `HEAD` or empty (detached HEAD state), trigger the "No Git Bran
 Look for patterns: `feature/ABC-123`, `bugfix/ABC-123`, `fix/ABC-123`, `hotfix/ABC-123`.
 
 If no ticket ID is found, note "No ticket ID detected" and continue.
+
+### Step 2.5: Simplicity Review (KISS Gate)
+
+Evaluate the changeset for proportionality and unnecessary complexity. This is NOT a code quality or security check — those are handled by `/atta-review` and `/atta-security-audit`. This checks whether the solution is appropriately sized for the problem.
+
+> Skip if `--skip-kiss` flag is set. If skipped, add to PR Notes: "KISS simplicity review was skipped by developer."
+
+Read `references/kiss-gate.md` for the full protocol: base branch resolution, task type inference, threshold extraction, signal evaluation, and block decision logic.
+
+**Summary:** Resolve base branch, infer task type from branch name, load thresholds from `.atta/team/kiss-thresholds.md`, evaluate 5 signals (Scope, New Infrastructure, Reinvention, Abstractions, Consistency). BLOCK if any signal blocks or 3+ FLAGs accumulate. FLAGGED warnings go into PR Notes. `--skip-kiss` overrides with a visible note.
+
+**If BLOCKED:** Present specific concerns. Ask developer to address or override with `--skip-kiss`.
+**If FLAGGED:** Include warnings in PR description Notes section. Continue to Step 3.
+**If PASS:** Continue to Step 3 silently.
 
 ### Step 3: Validate Acceptance Criteria
 
@@ -119,6 +134,17 @@ Recovery:
 1. Ensure you're in a git repository
 2. Check that you're on a feature/bugfix branch
 3. Rerun `/atta-ship`
+```
+
+### Simplicity Review Blocked
+
+```markdown
+Simplicity review flagged disproportionate changes — cannot generate PR description.
+
+Recovery:
+1. Address the flagged concerns (reduce scope, remove unnecessary abstractions, use existing utilities)
+2. Rerun `/atta-ship`
+3. Override with `/atta-ship --skip-kiss` if the complexity is intentionally justified (adds note to PR)
 ```
 
 ### PR File Already Exists

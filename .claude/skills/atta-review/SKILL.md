@@ -135,6 +135,17 @@ After automated checks, review for these language-agnostic concerns. For tech-sp
 - [ ] Type coercion doesn't produce unexpected results
 - [ ] Race conditions between async operations considered
 
+#### Simplicity & Design
+> This is NOT a security or performance check — it catches over-engineering and unnecessary complexity.
+> For project-specific conventions, apply rules loaded in Step 0b.
+
+- [ ] No unnecessary abstraction layers (wrappers that only delegate to a single call)
+- [ ] No premature generalization (generic solution for a single use case)
+- [ ] Solution complexity is proportional to problem complexity
+- [ ] No reinventing what the project or standard library already provides
+- [ ] No defensive code guarding impossible states in pure internal logic (defense-in-depth at boundaries and security-sensitive paths is acceptable)
+- [ ] New indirection (factories, strategies, decorators) justified by 2+ consumers
+
 ### Step 5: Generate Review Output
 
 Categorize each finding by **severity** (CRITICAL / HIGH / MEDIUM / LOW) and **confidence** (HIGH / MEDIUM / LOW).
@@ -168,6 +179,7 @@ Categorize each finding by **severity** (CRITICAL / HIGH / MEDIUM / LOW) and **c
 | Security | [status] | X | X |
 | Performance | [status] | X | X |
 | Bug & Logic | [status] | X | X |
+| Simplicity | [status] | X | X |
 | Accessibility | [status] | X | X |
 | Testing | [status] | X | X |
 

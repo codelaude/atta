@@ -52,7 +52,7 @@ If `$FILES` is empty, also check unstaged changes (`git diff --name-only`). If s
 
 ### Step 1.5: Static Analysis (New Files Only)
 
-Using the same base branch resolved in Step 1, check for newly added files: `git diff --diff-filter=A --name-only origin/{resolved-base}...HEAD`. When Step 1 fell back to local diffs, use `git diff --diff-filter=A --name-only` plus `git ls-files --others --exclude-standard` (untracked files). If any new files exist, read `references/static-analysis.md` and follow its instructions. If no new files, report "Static Analysis: N/A — no new files" and skip to Step 2.
+Reuse the same `origin/main`, `origin/master`, or `origin/develop` base branch resolved in Step 1. Check for newly added files: `git diff --diff-filter=A --name-only origin/{base}...HEAD` (substituting the same branch). When Step 1 fell back to local diffs, use `git diff --diff-filter=A --name-only` plus `git ls-files --others --exclude-standard` (untracked files). If any new files exist, read `references/static-analysis.md` and follow its instructions. If no new files, report "Static Analysis: N/A — no new files" and skip to Step 2.
 
 ### Step 2: Lint Check
 

@@ -76,11 +76,11 @@ Options:
 
 Ask conversationally (not AskUserQuestion): naming preferences for functions, constants, CSS classes (camelCase/snake_case/PascalCase/UPPER_SNAKE_CASE/kebab-case/BEM). "Skip" leaves defaults.
 
-If the user provides specific naming preferences, update the Naming Conventions section in `developer-profile.md` with those answers; if they say "skip" or provide no preferences, leave that section unchanged.
+If the user provides specific naming preferences, update the Naming Conventions section in `.atta/local/developer-profile.md` with those answers; if they say "skip" or provide no preferences, leave that section unchanged.
 
 ## Write Profile Updates
 
-Write all sections to **`developer-profile.md`** only (personal, gitignored):
+Write all sections to **`.atta/local/developer-profile.md`** only (personal, gitignored):
 
 - Map C1 → "Exception Cases" section
 - Map C2 → "Output Format" section

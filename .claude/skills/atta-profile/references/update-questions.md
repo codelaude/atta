@@ -54,7 +54,7 @@ Options:
 
 ## Write Profile
 
-Update checkboxes based on the user's answers — written to **`developer-profile.md`** only (personal, gitignored):
+Update checkboxes based on the user's answers — written to **`.atta/local/developer-profile.md`** only (personal, gitignored):
 
 - Map Q1 → "AI Collaboration Approach" section
 - Map Q2 → "Response Style" section

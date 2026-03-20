@@ -47,7 +47,7 @@ Recovery options:
 ## Review Blocked
 
 ```markdown
-Preflight stopped: critical code review findings found.
+Preflight stopped: critical code review findings.
 
 Recovery options:
 1. Fix CRITICAL review findings first, then rerun `/atta-preflight`

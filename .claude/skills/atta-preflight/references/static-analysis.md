@@ -3,7 +3,7 @@
 Derive the new-file subset using the same base-branch range from Step 1 with `--diff-filter=A`:
 
 ```bash
-git diff --diff-filter=A --name-only origin/main...HEAD
+git diff --diff-filter=A --name-only "$BASE_REF"...HEAD
 ```
 
 When Step 1 falls back to local diffs, or to ensure untracked files are also analyzed, additionally collect untracked files:

@@ -70,6 +70,20 @@ while IFS= read -r -d '' skill; do
   fi
 done < <(find "$WORK_DIR/.github/skills" -name "SKILL.md" -print0 2>/dev/null)
 
+# Positive check: disable-model-invocation should be preserved when present in source
+DMI_FOUND=0
+while IFS= read -r -d '' skill; do
+  if head -15 "$skill" | grep -q "^disable-model-invocation:"; then
+    DMI_FOUND=$((DMI_FOUND + 1))
+  fi
+done < <(find "$WORK_DIR/.github/skills" -name "SKILL.md" -print0 2>/dev/null)
+if [ "$DMI_FOUND" -eq 0 ]; then
+  echo "FAIL: No skills have 'disable-model-invocation:' preserved (expected at least 1)"
+  ERRORS=$((ERRORS + 1))
+else
+  echo "PASS: disable-model-invocation preserved in $DMI_FOUND skill(s)"
+fi
+
 # Check agent definitions exist in .github/atta/agents/ with .agent.md extension
 if [ -d "$WORK_DIR/.github/atta/agents" ]; then
   AGENT_COUNT=$(find "$WORK_DIR/.github/atta/agents" -name "*.agent.md" -not -path "*/memory/*" 2>/dev/null | wc -l | tr -d ' ')

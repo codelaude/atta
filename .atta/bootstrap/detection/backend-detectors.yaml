@@ -212,7 +212,7 @@ nodejs:
           - express
     content_analysis:
       - file: "package.json"
-        pattern: "socket\\.io|ws\"|engine\\.io"
+        pattern: "socket\\.io|\"ws\"\\s*:|engine\\.io"
         label: websockets
         description: "Uses WebSocket support"
       - file: "**/*.{js,ts}"

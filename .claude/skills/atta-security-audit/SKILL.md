@@ -1,6 +1,6 @@
 ---
 name: atta-security-audit
-description: Security audit scanning for vulnerabilities, secrets, and insecure patterns. Covers OWASP Top 10 (2025), dependency vulnerabilities, and hardcoded credentials.
+description: Security audit scanning for vulnerabilities, secrets, and insecure patterns. Covers OWASP Top 10 (2025), dependency vulnerabilities, and hardcoded credentials. Does NOT fix vulnerabilities or perform code quality review (use /atta-review).
 allowed-tools: Read, Grep, Glob, Bash(git:*), Bash(npm:*), Bash(pip-audit:*), Bash(bash .atta/scripts/pattern-log.sh:*), Bash(bash .atta/scripts/pattern-analyze.sh:*)
 model: opus
 argument-hint: "[path] [--dependencies] [--secrets] [--quick]"

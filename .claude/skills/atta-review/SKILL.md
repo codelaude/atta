@@ -1,6 +1,6 @@
 ---
 name: atta-review
-description: Comprehensive code review with automated pattern checks. Use when reviewing changed files against framework, language, styling, accessibility, performance, and testing conventions.
+description: Comprehensive code review with automated pattern checks. Use when reviewing changed files against framework, language, styling, accessibility, performance, and testing conventions. Does NOT run tests (use /atta-test), fix code, or perform deep security analysis (use /atta-security-audit).
 allowed-tools: Read, Grep, Glob, Bash(git:*), Bash(bash .atta/scripts/pattern-log.sh:*), Bash(bash .atta/scripts/pattern-analyze.sh:*)
 argument-hint: "[file|folder] [--quick] [--strict] [--quiet]"
 ---

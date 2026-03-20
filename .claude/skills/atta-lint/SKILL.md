@@ -1,6 +1,6 @@
 ---
 name: atta-lint
-description: Run code quality checks based on project patterns. Use when checking code against established framework, language, styling, and testing conventions.
+description: Run code quality checks based on project patterns. Use when checking code against established framework, language, styling, and testing conventions. Does NOT perform deep security analysis (use /atta-security-audit) or comprehensive code review (use /atta-review).
 allowed-tools: Read, Grep, Glob, Bash(git:*)
 model: haiku
 argument-hint: "[file|folder]"

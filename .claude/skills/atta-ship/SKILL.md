@@ -1,6 +1,6 @@
 ---
 name: atta-ship
-description: Completion workflow — run tests, validate ACCs, generate PR description, and capture learnings. Use after /atta-preflight passes.
+description: Completion workflow — run tests, validate ACCs, generate PR description, and capture learnings. Use after /atta-preflight passes. Does NOT run full quality pipeline (use /atta-preflight) or detailed code review (use /atta-review).
 disable-model-invocation: true
 model: haiku
 argument-hint: "[--skip-tests]"

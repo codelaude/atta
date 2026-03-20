@@ -37,6 +37,7 @@ project/
 │   │   ├── session-track.sh      # Session tracking hook
 │   │   └── hooks.json            # Hook event definitions
 │   ├── skills/*/SKILL.md         # Skill definitions (frontmatter flags)
+│   ├── skills/*/references/*.md  # Progressive disclosure (Claude Code only)
 │   └── settings.local.json       # Permissions
 ├── .atta/                        # Tool-agnostic shared content
 │   ├── bootstrap/                # Tech detection + templates
@@ -65,6 +66,7 @@ project/
 - **Enforcement hooks**: lint-on-edit, pre-bash safety, stop quality gate
 - **Path-scoped rules**: Tech-specific coding rules in `.claude/rules/*.md`
 - **Model targeting**: `model-registry.json` + `model:` frontmatter + `model-gate.sh` hook
+- **Progressive disclosure**: Skills with `references/` subdirectories load detailed content on-demand per step. Claude reads reference files only when the corresponding flag/mode is active, reducing per-invocation context. Other tools receive the trimmed SKILL.md which is self-contained.
 
 ### Limitations
 - None significant — this is the reference implementation

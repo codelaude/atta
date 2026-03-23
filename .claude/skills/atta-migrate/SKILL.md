@@ -157,7 +157,7 @@ Different tools use different skill invocation prefixes. Apply the rename map us
 | Copilot | "/review" | "/atta-review" |
 | Codex | `$review` | `$atta-review` |
 | Gemini | "/review" | "/atta-review" |
-| Cursor | "@review" | `@atta-review` |
+| Cursor | "@review" | "@atta-review" |
 
 For Codex specifically, scan for both `$skillname` and "/skillname" forms (AGENTS.md may use slash notation in descriptions while `$` is the invocation form).
 

@@ -10,6 +10,10 @@ HOOKS_DIR="$(git -C "$REPO_ROOT" rev-parse --git-path hooks)"
 
 install_hook() {
   local name="$1"
+  if [ ! -f "$HOOKS_SRC/$name" ]; then
+    echo "ERROR: hook source not found: $HOOKS_SRC/$name" >&2
+    exit 1
+  fi
   cp "$HOOKS_SRC/$name" "$HOOKS_DIR/$name"
   chmod +x "$HOOKS_DIR/$name"
   echo "  installed: $name"

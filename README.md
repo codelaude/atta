@@ -56,9 +56,9 @@ Ask any specialist for help — Atta routes to the right agent based on your sta
 ### Review and ship
 
 ```
-/atta-review                Review changed files (includes security checks)
+/atta-review                Review changed files (includes simplicity + security checks)
 /atta-preflight             Full pre-PR pipeline: lint + security + test + review
-/atta-ship                  Completion workflow — tests, validation, PR description
+/atta-ship                  Completion workflow — tests, KISS gate, validation, PR description
 ```
 
 ### Set up CI review (optional)

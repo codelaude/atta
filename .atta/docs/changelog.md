@@ -6,7 +6,7 @@ Full version history for the Atta framework.
 
 ## v3.0.0 (2026-03-14) — Enforcement Infrastructure
 
-From file generation to enforcement infrastructure generation. 14 tracks, 13 PRs.
+From file generation to enforcement infrastructure generation. 22 tracks, 19 PRs.
 
 **Directory Restructure**
 - `.atta/` split into `team/` (committed, shared) and `local/` (gitignored, personal)
@@ -56,6 +56,44 @@ From file generation to enforcement infrastructure generation. 14 tracks, 13 PRs
 - Cross-tool skill rename during migration (handles `/`, `$`, `@` prefixes per adapter)
 - Backup-before-change, dry-run-before-apply, idempotent
 - Two-step flow: `npx atta init` (mechanical) + `/atta-migrate` (intelligent)
+
+**Hook Hardening (PR #70)**
+- 28-test behavior suite for model-gate, pre-bash-safety, and stop-quality-gate scripts
+- `ATTA_HOOKS` profile env var: `strict`/`standard`/`minimal`/`off` controls enforcement level
+
+**Detection Additions (PR #71)**
+- 6 new YAML detectors: co-located/separate test organization, Next.js App Router/Pages Router, pnpm and npm/yarn workspaces
+- Template audit confirmed no changes needed
+
+**Confidence-Scored Reviews (PR #72)**
+- Each `/atta-review` finding gets HIGH/MEDIUM/LOW confidence
+- `--strict` (HIGH confidence only), `--quiet` (CRITICAL/HIGH severity + HIGH confidence)
+- Consensus confidence in `/atta-collaborate`: findings from 2+ agents score HIGH automatically
+
+**Intelligence Track (PR #73)**
+- Compound detection (`requires:` field): 10 entries, two-pass dependency pruning
+- Semantic detection (`content_analysis:` field): 6 frameworks, 20+ labels
+- Agent enforcement hooks: `disallowedTools` enforced on Copilot, advisory on Cursor/Gemini
+- File-regex constraints (`allowedFiles:`) in agent frontmatter
+- Convention prompt hooks (component naming, import conventions): CC + Cursor only
+- Model-gate fix: live-tested on 5 tools (Copilot, Gemini, Codex, Cursor, Claude Code)
+
+**Progressive Disclosure (PR #74)**
+- 3 largest skills moved to `references/` subdirectories: `atta-profile` (489→110 lines), `atta-preflight` (337→152), `atta-tutorial` (340→132)
+- Negative triggers ("Does NOT...") on all 14 user-invocable skill descriptions
+
+**Agent Negative Triggers (PR #75)**
+- Negative triggers on 8 core agents, 2 coordinator templates, 3 specialist templates
+- Agent descriptions follow 3-part pattern: what it does → when to use → does NOT
+- Missing body sections added: Constraints (5 agents), Escalation (6 agents), Context Sources (3 agents)
+
+**KISS Review System (PR #76)**
+- **KISS gate** in `/atta-ship` Step 2.5: evaluates 5 signals (Scope, New Infrastructure, Reinvention, Abstractions, Consistency) with block/flag/pass thresholds
+- **Simplicity & Design** domain in `/atta-review` Step 4: 6 code-level checks for unnecessary abstractions, premature generalization, reinvention
+- **AI validation reminder** in `/atta-checklist`: "AI tools over-generate code. Remove code > Add code."
+- **Team-configurable thresholds** via `.atta/team/kiss-thresholds.md` with YAML frontmatter, task-type file limits, always-flag infrastructure paths, strict mode
+- **Auto-population** from detected stack during `/atta` init via `kiss-mappings.yaml` (migration exemptions, monorepo scope overrides)
+- `--skip-kiss` flag to override with visible note in PR description
 
 ---
 

@@ -236,6 +236,7 @@ After `/atta-review`:
 - Run `/atta-security-audit` for deep security analysis (OWASP Top 10, deps, secrets)
 - Run `/atta-lint` for pattern-only checks
 - Run `/atta-preflight` for full pre-PR validation
+- Run `/atta-ship` for proportionality review (KISS gate — scope-level over-engineering checks)
 - Use `/atta-collaborate` for multi-agent cross-domain review
 
 ### Multi-Agent Collaboration

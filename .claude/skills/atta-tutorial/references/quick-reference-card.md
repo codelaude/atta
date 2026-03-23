@@ -19,8 +19,9 @@
 | Command | What it does |
 |---------|-------------|
 | `/atta-lint [file]` | Fast pattern check on a file or folder |
-| `/atta-review` | Full code review against project conventions |
+| `/atta-review` | Full code review against project conventions (includes simplicity checks) |
 | `/atta-preflight` | Complete pre-PR validation |
+| `/atta-ship` | Completion workflow — tests, KISS gate, validation, PR description |
 
 ### Knowledge & Memory
 | Command | What it does |

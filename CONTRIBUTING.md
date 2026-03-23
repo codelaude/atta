@@ -81,6 +81,7 @@ bin/              # CLI entry point
 - Keep PRs focused — one feature or fix per PR
 - Include a clear description of what changed and why
 - Ensure `validate-framework.sh` passes
+- Ensure `/atta-ship` KISS gate passes (or use `--skip-kiss` with documented justification)
 - Add new validation assertions if you add new framework features
 
 ## Reporting Issues

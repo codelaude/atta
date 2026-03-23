@@ -24,4 +24,4 @@ Specialists are generated from universal templates in `.atta/bootstrap/templates
 
 ## Manual Creation
 
-You can also create specialist agents manually. Place the file here with the technology ID as the filename (e.g., `graphql.md`). The `/agent` skill will find it automatically.
+You can also create specialist agents manually. Place the file here with the technology ID as the filename (e.g., `graphql.md`). The `/atta-agent` skill will find it automatically.

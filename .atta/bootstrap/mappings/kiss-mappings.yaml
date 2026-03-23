@@ -1,0 +1,57 @@
+# KISS Threshold Mappings
+# Maps detection results from Phase 2 to auto-populated values in kiss-thresholds.md
+#
+# Used by /atta Phase 4 when writing .atta/team/kiss-thresholds.md
+# On --rescan: re-detect and update auto-populated sections, preserve manual edits
+
+# Exempt Patterns — files excluded from scope counts
+exempt_patterns:
+  # Always exempt (no detection needed)
+  always:
+    - "*.lock"
+    - "*.lockb"
+    - "pnpm-lock.yaml"
+    - "package-lock.json"
+    - "yarn.lock"
+    - "*.snap"
+    - "*.generated.*"
+
+  # Detection-triggered: if detector identifier matched, uncomment corresponding pattern
+  detected:
+    # Migration tools → exempt migration directories
+    - detectors: [flyway, liquibase, alembic, knex, prisma, typeorm, sequelize, django-orm, activerecord, diesel, entity-framework]
+      patterns:
+        - "migrations/"
+        - "db/migrate/"
+        - "db/migration/"
+        - "prisma/migrations/"
+
+# Always Flag — new files in these paths trigger a FLAG
+# Default paths (CI/CD, Docker, K8s) are always-on in kiss-thresholds.md template.
+# Detection-triggered entries below ADD to the defaults for project-specific paths.
+always_flag:
+  # Terraform / IaC (only flagged if detected — not a universal default)
+  - detectors: [terraform]
+    patterns:
+      - "*.tf"
+      - ".terraform/"
+
+  - detectors: [travis]
+    patterns:
+      - ".travis.yml"
+
+  - detectors: [azure-pipelines]
+    patterns:
+      - "azure-pipelines.yml"
+
+# Scope Limit Overrides — adjust defaults based on project scale
+scope_overrides:
+  monorepo:
+    detectors: [nx, lerna, turborepo, pnpm-workspaces, npm-workspaces]
+    max_files: 80
+    file_commit_ratio: 15
+
+  # Default (no override matched)
+  default:
+    max_files: 50
+    file_commit_ratio: 10

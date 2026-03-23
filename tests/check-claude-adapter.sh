@@ -18,9 +18,9 @@ ERRORS=0
 
 # Check expected paths exist
 for path in \
-  ".claude/skills/review/SKILL.md" \
-  ".claude/skills/preflight/SKILL.md" \
-  ".claude/skills/collaborate/SKILL.md" \
+  ".claude/skills/atta-review/SKILL.md" \
+  ".claude/skills/atta-preflight/SKILL.md" \
+  ".claude/skills/atta-collaborate/SKILL.md" \
   ".claude/skills/atta/SKILL.md" \
   ".claude/agents/project-owner.md" \
   ".claude/agents/code-reviewer.md" \
@@ -81,8 +81,8 @@ elif [ ! -f "$WORK_DIR/.atta/bootstrap/generator.md" ]; then
   ERRORS=$((ERRORS + 1))
 fi
 
-if [ ! -d "$WORK_DIR/.atta/knowledge" ]; then
-  echo "FAIL: .atta/knowledge/ directory missing"
+if [ ! -d "$WORK_DIR/.atta/team" ]; then
+  echo "FAIL: .atta/team/ directory missing"
   ERRORS=$((ERRORS + 1))
 fi
 
@@ -110,10 +110,26 @@ else
   fi
 fi
 
+# --- Review loading: Step 0b references canonical source ---
+REVIEW_SKILL="$WORK_DIR/.claude/skills/atta-review/SKILL.md"
+if [ -f "$REVIEW_SKILL" ]; then
+  if ! grep -Fq '.atta/team/rules/' "$REVIEW_SKILL"; then
+    echo "FAIL: atta-review SKILL.md Step 0b missing .atta/team/rules/ reference"
+    ERRORS=$((ERRORS + 1))
+  fi
+  # Verify no stale per-adapter paths as primary loading targets
+  for stale_path in '.github/instructions/atta-review' '.cursor/rules/atta-review' '.gemini/styleguide.md'; do
+    if grep -Fq "$stale_path" "$REVIEW_SKILL"; then
+      echo "FAIL: atta-review SKILL.md still references stale path: $stale_path"
+      ERRORS=$((ERRORS + 1))
+    fi
+  done
+fi
+
 # --- Skill flags checks (v2.7.1 Track C) ---
 
 # Check action skills have disable-model-invocation
-for skill in preflight test ship update migrate atta patterns; do
+for skill in atta-preflight atta-test atta-ship atta-update atta-migrate atta atta-patterns; do
   SKILL_FILE="$WORK_DIR/.claude/skills/$skill/SKILL.md"
   if [ -f "$SKILL_FILE" ] && ! head -10 "$SKILL_FILE" | grep -q "disable-model-invocation: true"; then
     echo "FAIL: $skill/SKILL.md missing 'disable-model-invocation: true'"
@@ -122,7 +138,7 @@ for skill in preflight test ship update migrate atta patterns; do
 done
 
 # Check read-only skills have allowed-tools
-for skill in review lint security-audit; do
+for skill in atta-review atta-lint atta-security-audit; do
   SKILL_FILE="$WORK_DIR/.claude/skills/$skill/SKILL.md"
   if [ -f "$SKILL_FILE" ] && ! head -10 "$SKILL_FILE" | grep -q "allowed-tools:"; then
     echo "FAIL: $skill/SKILL.md missing 'allowed-tools:'"
@@ -131,10 +147,61 @@ for skill in review lint security-audit; do
 done
 
 # Check skills have argument-hint
-for skill in review preflight test agent collaborate; do
+for skill in atta-review atta-preflight atta-test atta-agent atta-collaborate; do
   SKILL_FILE="$WORK_DIR/.claude/skills/$skill/SKILL.md"
   if [ -f "$SKILL_FILE" ] && ! head -10 "$SKILL_FILE" | grep -q "argument-hint:"; then
     echo "FAIL: $skill/SKILL.md missing 'argument-hint:'"
+    ERRORS=$((ERRORS + 1))
+  fi
+done
+
+# --- Model targeting checks (v3.0 Track H) ---
+
+# Check model-registry.json exists and is valid JSON with expected structure
+if [ ! -f "$WORK_DIR/.atta/team/model-registry.json" ]; then
+  echo "FAIL: .atta/team/model-registry.json missing"
+  ERRORS=$((ERRORS + 1))
+else
+  python3 - "$WORK_DIR/.atta/team/model-registry.json" <<'PYEOF' 2>/dev/null || ERRORS=$((ERRORS + 1))
+import json, sys
+with open(sys.argv[1]) as f:
+    reg = json.load(f)
+if 'tiers' not in reg:
+    print('FAIL: model-registry.json missing "tiers"')
+    sys.exit(1)
+if 'skills' not in reg:
+    print('FAIL: model-registry.json missing "skills"')
+    sys.exit(1)
+for tier in ['light', 'mid', 'full']:
+    if tier not in reg['tiers']:
+        print(f'FAIL: model-registry.json missing tier: {tier}')
+        sys.exit(1)
+PYEOF
+fi
+
+# Check Tier 0/1 skills have model: haiku
+for skill in atta atta-preflight atta-ship atta-test atta-update atta-patterns atta-migrate atta-profile atta-tutorial atta-lint atta-agent; do
+  SKILL_FILE="$WORK_DIR/.claude/skills/$skill/SKILL.md"
+  if [ -f "$SKILL_FILE" ] && ! head -10 "$SKILL_FILE" | grep -q "model: haiku"; then
+    echo "FAIL: $skill/SKILL.md missing 'model: haiku'"
+    ERRORS=$((ERRORS + 1))
+  fi
+done
+
+# Check Tier 3 skills have model: opus
+for skill in atta-security-audit atta-collaborate; do
+  SKILL_FILE="$WORK_DIR/.claude/skills/$skill/SKILL.md"
+  if [ -f "$SKILL_FILE" ] && ! head -10 "$SKILL_FILE" | grep -q "model: opus"; then
+    echo "FAIL: $skill/SKILL.md missing 'model: opus'"
+    ERRORS=$((ERRORS + 1))
+  fi
+done
+
+# Check Tier 2 skills do NOT have model: field (they use default/inherit)
+for skill in atta-review atta-optimize atta-librarian atta-team-lead atta-route atta-checklist; do
+  SKILL_FILE="$WORK_DIR/.claude/skills/$skill/SKILL.md"
+  if [ -f "$SKILL_FILE" ] && head -10 "$SKILL_FILE" | grep -q "^model:"; then
+    echo "FAIL: $skill/SKILL.md should NOT have model: field (Tier 2 = default)"
     ERRORS=$((ERRORS + 1))
   fi
 done
@@ -145,8 +212,13 @@ if [ -f "$WORK_DIR/.claude/hooks/hooks.json" ]; then
 import json, sys
 with open(sys.argv[1]) as f:
     data = json.load(f)
-for event in ['PostToolUse', 'Stop']:
-    if event not in data:
+if 'hooks' not in data:
+    print('FAIL: hooks.json missing top-level "hooks" key')
+    sys.exit(1)
+hooks = data['hooks']
+# Enforcement hooks: PreToolUse (safety), Stop (quality gate + session-track), PostToolUse (session-track)
+for event in ['PreToolUse', 'Stop', 'PostToolUse']:
+    if event not in hooks:
         print(f'FAIL: hooks.json missing event: {event}')
         sys.exit(1)
 PYEOF

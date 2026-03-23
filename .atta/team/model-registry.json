@@ -1,0 +1,54 @@
+{
+  "_version": "2026-03-14",
+  "_description": "Model tier mappings per tool. Single source of truth for skill-to-tier classification and per-tool model names. Update this file when new models are released — no code changes needed.",
+  "_update_instructions": "Change model names below, run 'npx atta-dev init --update', done.",
+
+  "tiers": {
+    "light": {
+      "claude-code": "haiku",
+      "copilot": "Claude Haiku 4.5 or GPT-5-mini",
+      "cursor": "haiku",
+      "gemini": "Gemini Flash",
+      "codex": "n/a",
+      "description": "Cheapest available. For deterministic/scripted skills and simple tasks."
+    },
+    "mid": {
+      "claude-code": "sonnet",
+      "copilot": "Claude Sonnet 4.6 or GPT-5.3-Codex",
+      "cursor": "sonnet",
+      "gemini": "Gemini Pro",
+      "codex": "n/a",
+      "description": "Default. For code review, analysis, and synthesis tasks."
+    },
+    "full": {
+      "claude-code": "opus",
+      "copilot": "Claude Opus 4.6 or GPT-5.4",
+      "cursor": "opus",
+      "gemini": "Gemini Pro (highest available)",
+      "codex": "n/a",
+      "description": "Maximum capability. For security audit and multi-agent orchestration."
+    }
+  },
+
+  "skills": {
+    "atta":                "light",
+    "atta-preflight":      "light",
+    "atta-ship":           "light",
+    "atta-test":           "light",
+    "atta-update":         "light",
+    "atta-patterns":       "light",
+    "atta-migrate":        "light",
+    "atta-profile":        "light",
+    "atta-tutorial":       "light",
+    "atta-lint":           "light",
+    "atta-agent":          "light",
+    "atta-review":         "mid",
+    "atta-optimize":       "mid",
+    "atta-librarian":      "mid",
+    "atta-team-lead":      "mid",
+    "atta-route":          "mid",
+    "atta-checklist":      "mid",
+    "atta-security-audit": "full",
+    "atta-collaborate":    "full"
+  }
+}

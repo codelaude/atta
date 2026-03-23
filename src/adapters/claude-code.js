@@ -6,13 +6,15 @@ import {
   renameSync,
   readFileSync,
   readdirSync,
+  unlinkSync,
 } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { join } from 'node:path';
 import pc from 'picocolors';
 import { generateAgentsMd } from './agents-md.js';
 import { readVersion, countFiles } from '../lib/fs-utils.js';
-import { copySharedContent, copyBootstrap } from './shared.js';
+import { copySharedContent, copyBootstrap, generateHooks, checkSkillConflicts } from './shared.js';
 import { generateReviewRules, formatClaudeCode } from './review-guidance.js';
+import { generateRules, writeToolAgnosticRules, installClaudeCodeRules } from './rules-generator.js';
 
 /** Directories to copy from .claude/ source (discovery-required, tool-specific) */
 const CLAUDE_DIRS = ['agents', 'hooks', 'skills'];
@@ -22,7 +24,7 @@ const CLAUDE_DIRS = ['agents', 'hooks', 'skills'];
  * generates settings and plugin manifest.
  *
  * @param {string} claudeRoot - Path to .claude/ source (agents, skills, hooks)
- * @param {string} attaRoot - Path to .atta/ source (knowledge, project, scripts, metadata, context)
+ * @param {string} attaRoot - Path to .atta/ source (team, project, scripts, metadata)
  * @param {string} targetDir - Project root
  * @param {object} [options]
  */
@@ -47,33 +49,64 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
     }
   }
 
+  // Filter agents based on selection (remove unselected optional agents)
+  // Only delete agents that exist in the framework source — never touch user-created custom agents
+  if (options.selectedAgents) {
+    const agentsDir = join(claudeDir, 'agents');
+    const srcAgentsDir = join(claudeRoot, 'agents');
+    if (existsSync(agentsDir) && existsSync(srcAgentsDir)) {
+      const frameworkAgentIds = new Set(
+        readdirSync(srcAgentsDir).filter(
+          (f) => f.endsWith('.md') && f !== 'INDEX.md' && f !== 'README.md'
+        ).map((f) => f.replace(/\.md$/, ''))
+      );
+      const agentFiles = readdirSync(agentsDir).filter(
+        (f) => f.endsWith('.md') && f !== 'INDEX.md' && f !== 'README.md'
+      );
+      for (const file of agentFiles) {
+        const agentId = file.replace(/\.md$/, '');
+        if (frameworkAgentIds.has(agentId) && !options.selectedAgents.includes(agentId)) {
+          unlinkSync(join(agentsDir, file));
+          results.files--;
+        }
+      }
+    }
+  }
+
+  // Check for naming conflicts with Claude Code built-in commands
+  const skills = listSkills(claudeRoot);
+  checkSkillConflicts(skills, 'claude-code', options);
+
   // Generate hooks.json for plugin manifest (hooks field must be a file path per spec)
+  // Merges session-track.sh hooks with enforcement hooks from generateHooks()
+  // Always regenerate hooks.json — enforcement hooks may change with detectedTechs
   const hooksDir = join(claudeDir, 'hooks');
   const hooksJsonPath = join(hooksDir, 'hooks.json');
-  if (!existsSync(hooksJsonPath)) {
-    mkdirSync(hooksDir, { recursive: true });
-    const hookCmd = '"$CLAUDE_PROJECT_DIR"/.claude/hooks/session-track.sh';
-    const hooksConfig = {
-      PostToolUse: [
-        {
-          matcher: 'Skill',
-          hooks: [{ type: 'command', command: hookCmd, async: true }],
-        },
-      ],
-      Stop: [
-        {
-          hooks: [{ type: 'command', command: hookCmd, async: true }],
-        },
-      ],
-    };
-    const tmpHooks = hooksJsonPath + '.tmp';
-    writeFileSync(tmpHooks, JSON.stringify(hooksConfig, null, 2) + '\n');
-    renameSync(tmpHooks, hooksJsonPath);
-    results.files++;
+  mkdirSync(hooksDir, { recursive: true });
 
-    if (!options.quiet) {
-      console.log(`  ${pc.green('✓')} .claude/hooks/hooks.json (session tracking hooks)`);
-    }
+  // Start with enforcement hooks from the data-driven generator
+  const enforcementConfig = generateHooks('claude-code', options.detectedTechs);
+  const hooks = enforcementConfig.hooks;
+
+  // Add session-track.sh hooks (preserved from existing behavior)
+  const hookCmd = '"$CLAUDE_PROJECT_DIR"/.claude/hooks/session-track.sh';
+  if (!hooks.PostToolUse) hooks.PostToolUse = [];
+  hooks.PostToolUse.push({
+    matcher: 'Skill',
+    hooks: [{ type: 'command', command: hookCmd, async: true }],
+  });
+  if (!hooks.Stop) hooks.Stop = [];
+  hooks.Stop.push({
+    hooks: [{ type: 'command', command: hookCmd, async: true }],
+  });
+
+  const tmpHooks = hooksJsonPath + '.tmp';
+  writeFileSync(tmpHooks, JSON.stringify({ hooks }, null, 2) + '\n');
+  renameSync(tmpHooks, hooksJsonPath);
+  results.files++;
+
+  if (!options.quiet) {
+    console.log(`  ${pc.green('✓')} .claude/hooks/hooks.json (session tracking + enforcement hooks)`);
   }
 
   // Copy shared content to .atta/
@@ -85,6 +118,7 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
   results.files += bootstrapCount;
 
   // Generate default settings (only if none exist)
+  // Hooks are NOT included here — they live in .claude/hooks/hooks.json (plugin auto-merges)
   const settingsPath = join(claudeDir, 'settings.local.json');
   if (!existsSync(settingsPath)) {
     const defaultSettings = {
@@ -95,41 +129,14 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
           'Bash(bash .atta/scripts/generate-context.sh:*)',
           'Bash(bash .atta/scripts/pattern-log.sh:*)',
           'Bash(bash .atta/scripts/pattern-analyze.sh:*)',
-          // Context files (recent work summary)
-          'Edit(./.atta/.context/**)',
+          // Local files (context, sessions, developer profile)
+          'Edit(./.atta/local/**)',
           // Agent memory (directives, learnings)
           'Edit(./.claude/agents/memory/**)',
-          // Knowledge capture (patterns, developer profile)
-          'Edit(./.atta/knowledge/**)',
+          // Team knowledge (patterns, ci-suppressions, review guidance)
+          'Edit(./.atta/team/**)',
           // Project files (team-shared: project-context, project-profile)
           'Edit(./.atta/project/**)',
-        ],
-      },
-      hooks: {
-        PostToolUse: [
-          {
-            matcher: 'Skill',
-            hooks: [
-              {
-                type: 'command',
-                command:
-                  '"$CLAUDE_PROJECT_DIR"/.claude/hooks/session-track.sh',
-                async: true,
-              },
-            ],
-          },
-        ],
-        Stop: [
-          {
-            hooks: [
-              {
-                type: 'command',
-                command:
-                  '"$CLAUDE_PROJECT_DIR"/.claude/hooks/session-track.sh',
-                async: true,
-              },
-            ],
-          },
         ],
       },
     };
@@ -141,75 +148,12 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
     if (!options.quiet) {
       console.log(`  ${pc.green('✓')} .claude/settings.local.json (default permissions)`);
     }
-  } else {
-    // Existing settings — ensure hook config is present (safe merge, additive only)
-    try {
-      const existing = JSON.parse(readFileSync(settingsPath, 'utf-8'));
-      const hookCmd =
-        '"$CLAUDE_PROJECT_DIR"/.claude/hooks/session-track.sh';
-      let modified = false;
-
-      if (!existing.hooks) {
-        existing.hooks = {};
-      }
-
-      // Check if a hook command already exists anywhere in a hook array
-      const hasHookCmd = (entries) =>
-        Array.isArray(entries) &&
-        entries.some(
-          (entry) =>
-            entry &&
-            typeof entry === 'object' &&
-            Array.isArray(entry.hooks) &&
-            entry.hooks.some((h) => h.command === hookCmd)
-        );
-
-      // Add PostToolUse hook if session-track not present
-      if (!hasHookCmd(existing.hooks.PostToolUse)) {
-        if (!Array.isArray(existing.hooks.PostToolUse)) {
-          existing.hooks.PostToolUse = [];
-        }
-        existing.hooks.PostToolUse.push({
-          matcher: 'Skill',
-          hooks: [{ type: 'command', command: hookCmd, async: true }],
-        });
-        modified = true;
-      }
-
-      // Add Stop hook if session-track not present
-      if (!hasHookCmd(existing.hooks.Stop)) {
-        if (!Array.isArray(existing.hooks.Stop)) {
-          existing.hooks.Stop = [];
-        }
-        existing.hooks.Stop.push({
-          hooks: [{ type: 'command', command: hookCmd, async: true }],
-        });
-        modified = true;
-      }
-
-      if (modified) {
-        const tmpSettings = settingsPath + '.tmp';
-        writeFileSync(
-          tmpSettings,
-          JSON.stringify(existing, null, 2) + '\n'
-        );
-        renameSync(tmpSettings, settingsPath);
-
-        if (!options.quiet) {
-          console.log(
-            `  ${pc.green('✓')} .claude/settings.local.json (added session tracking hooks)`
-          );
-        }
-      }
-    } catch {
-      // Ignore — don't break install if settings can't be parsed
-    }
   }
 
   // Generate CLAUDE.md (only if none exist)
   const claudeMdPath = join(targetDir, 'CLAUDE.md');
   if (!existsSync(claudeMdPath)) {
-    const claudeMd = generateClaudeMd(claudeRoot, attaRoot);
+    const claudeMd = generateClaudeMd(claudeRoot, attaRoot, options);
     const tmpClaudeMd = claudeMdPath + '.tmp';
     writeFileSync(tmpClaudeMd, claudeMd);
     renameSync(tmpClaudeMd, claudeMdPath);
@@ -232,6 +176,19 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
 
     if (!options.quiet) {
       console.log(`  ${pc.green('✓')} REVIEW.md (code review guidance)`);
+    }
+  }
+
+  // Generate path-scoped rules (.claude/rules/*.md + .atta/team/rules/)
+  const rules = generateRules(attaRoot, options.detectedTechs);
+  if (rules.length > 0) {
+    const agnosticCount = writeToolAgnosticRules(targetDir, rules);
+    const nativeCount = installClaudeCodeRules(targetDir, rules);
+    results.files += agnosticCount + nativeCount;
+
+    if (!options.quiet) {
+      console.log(`  ${pc.green('✓')} .atta/team/rules/ (${agnosticCount} rule files)`);
+      console.log(`  ${pc.green('✓')} .claude/rules/ (${nativeCount} path-scoped rules)`);
     }
   }
 
@@ -274,15 +231,15 @@ export function install(claudeRoot, attaRoot, targetDir, options = {}) {
  * Generate CLAUDE.md — instruction file for Claude Code.
  * Based on AGENTS.md content with Claude Code-specific framing.
  */
-export function generateClaudeMd(claudeRoot, attaRoot) {
-  const agentsMd = generateAgentsMd(claudeRoot, attaRoot);
+export function generateClaudeMd(claudeRoot, attaRoot, options = {}) {
+  const agentsMd = generateAgentsMd(claudeRoot, attaRoot, { includeHiddenSkills: true, selectedAgents: options.selectedAgents });
 
   const sessionStart = [
     '',
     '## On Every Session Start',
     '',
     '1. Read `.claude/agents/memory/directives.md` for persistent project rules (if it exists)',
-    '   - This file contains **universal rules only** — agent-specific directives are loaded automatically when you invoke `/agent`',
+    '   - This file contains **universal rules only** — agent-specific directives are loaded automatically when you invoke `/atta-agent`',
     '   - Do NOT read `directives-*.md` files at session start — they are scoped and loaded on demand',
     '',
   ].join('\n');
@@ -296,7 +253,7 @@ export function generateClaudeMd(claudeRoot, attaRoot) {
     );
 }
 
-/** Parse SKILL.md frontmatter and return skill metadata */
+/** Parse SKILL.md frontmatter and return skill metadata including flags */
 export function listSkills(claudeRoot) {
   const skillsDir = join(claudeRoot, 'skills');
   if (!existsSync(skillsDir)) return [];
@@ -309,12 +266,17 @@ export function listSkills(claudeRoot) {
     const skillFile = join(skillsDir, entry.name, 'SKILL.md');
     if (!existsSync(skillFile)) continue;
 
-    const { name, description } = parseFrontmatter(skillFile);
+    const fm = parseFrontmatter(skillFile);
     skills.push({
-      name: name || entry.name,
+      name: fm.name || entry.name,
       dirName: entry.name,
-      description: description || '',
+      description: fm.description || '',
       path: `.claude/skills/${entry.name}/SKILL.md`,
+      userInvocable: fm['user-invocable'] !== 'false',
+      // Skill flags (used by adapters for cross-tool translation)
+      disableModelInvocation: fm['disable-model-invocation'] === 'true',
+      allowedTools: fm['allowed-tools'] || null,
+      argumentHint: fm['argument-hint'] || null,
     });
   }
 

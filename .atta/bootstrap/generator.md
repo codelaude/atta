@@ -13,7 +13,7 @@
 
 ## Overview
 
-The bootstrap system transforms the `.claude/` framework into an adaptive system that generates appropriate agents for ANY tech stack.
+The bootstrap system transforms the framework into an adaptive system that generates appropriate agents for ANY tech stack, across all supported AI tools.
 
 **Architecture**:
 ```
@@ -237,7 +237,7 @@ for (const [id, mapping] of Object.entries(utility_agents)):
   generation_queue.push({ id, mapping })
 ```
 
-Currently: `prompt-engineer` (context enrichment specialist for `/optimize`).
+Currently: `prompt-engineer` (context enrichment specialist for `/atta-optimize`).
 
 ### Agent Generation Queue
 
@@ -354,15 +354,19 @@ Result:
    // description: derive from template title or variables
    //              (e.g., "Vue.js frontend framework specialist")
    // model: inherit (always — Claude Code resolves this at runtime)
-   frontmatter = `---\nname: ${agent_key}\ndescription: ${agent_description}\nmodel: inherit\n---\n`
-   generated_content = frontmatter + generated_content
+   // Templates already include frontmatter with name/description/model.
+   // If the template has no frontmatter, prepend a minimal block:
+   if (!generated_content.startsWith('---')) {
+     frontmatter = `---\nname: ${agent_key}\ndescription: ${agent_description}\nmodel: inherit\n---\n`
+     generated_content = frontmatter + generated_content
+   }
    ```
 
-   > **Formatting rules**: Frontmatter values MUST be single-line plain scalars.
-   > Do NOT use multiline YAML (`>`, `|`), block sequences, or nested objects.
+   > **Formatting rules**: Frontmatter supports single-line scalars and block sequences (lists).
+   > Multiline YAML (`>`, `|`) and nested objects are NOT supported.
    > Values containing `: `, ` #`, or YAML-special leading chars (`!`, `*`, `{`, `[`, etc.)
-   > must be double-quoted. Non-Claude adapters parse this with a simple key-value regex
-   > and will reject unsupported syntax during `atta init`.
+   > must be double-quoted. The parser (`parseAgentFrontmatter` in `shared.js`) handles
+   > key-value pairs, block lists (`  - item`), and inline flow lists (`[a, b]`).
 
 5. **Append Developer Preferences** (see [Profile Injection](#profile-injection-post-processing) below):
    ```javascript
@@ -393,7 +397,7 @@ After all template substitution is complete, append a `## Developer Preferences`
 **Step 1: Parse profile**
 
 Read both profile files:
-- `.atta/knowledge/developer-profile.md` (personal, may not exist if gitignored)
+- `.atta/local/developer-profile.md` (personal, may not exist if gitignored)
 - `.atta/project/project-profile.md` (team conventions)
 
 If neither file exists or has `[x]` checkboxes, skip profile injection entirely.
@@ -444,7 +448,7 @@ For each agent that has `pattern_file` specified:
 1. Check if rich pattern template exists: `bootstrap/templates/patterns/{tech}-patterns.template.md`
 2. **If template exists**: load and substitute variables (full rich content)
 3. **If template does NOT exist**: generate a basic pattern file from the agent mapping's `rules` and `anti_patterns` arrays — this ensures every detected technology gets a pattern file
-4. Write to `knowledge/patterns/{pattern_file}`
+4. Write to `team/patterns/{pattern_file}`
 5. Link agent to pattern file in Knowledge Base section
 
 ---
@@ -631,9 +635,9 @@ Write `.metadata/generated-manifest.json`:
       }
     ],
     "patterns": [
-      "knowledge/patterns/vue-patterns.md",
-      "knowledge/patterns/typescript-patterns.md",
-      "knowledge/patterns/django-patterns.md"
+      "team/patterns/vue-patterns.md",
+      "team/patterns/typescript-patterns.md",
+      "team/patterns/django-patterns.md"
     ],
     "skills": [],
     "config": [
@@ -715,7 +719,7 @@ If a required variable is missing:
 
 - Coordinators in `agents/coordinators/`
 - Specialists in `agents/specialists/`
-- Patterns in `knowledge/patterns/`
+- Patterns in `team/patterns/`
 - Generated skills in `skills/generated/`
 - Never modify core agents at `agents/` root (universal agents)
 

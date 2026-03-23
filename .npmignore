@@ -13,7 +13,10 @@ dev/
 .atta/scripts/validate-framework.sh
 
 # Generated runtime files (should not ship in npm package)
-.atta/.context/recent.md
+# Note: package.json "files" array takes precedence — template docs in
+# local/context/ and local/sessions/ are still shipped. This catches
+# any other local/ files that slip through (e.g. generated ACCs, PR docs).
+.atta/local/
 
 # GitHub community files (not needed in npm package)
 .github/

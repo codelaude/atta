@@ -1,7 +1,8 @@
 ---
 name: atta
-description: Interactive project setup that detects tech stack, asks clarifying questions, and generates tailored knowledge files and agent configuration. Run this when starting with a new project.
+description: Interactive project setup that detects tech stack, asks clarifying questions, and generates tailored knowledge files and agent configuration. Run this when starting with a new project. Does NOT perform code review (use /atta-review), run tests (use /atta-test), or invoke agents (use /atta-agent).
 disable-model-invocation: true
+model: haiku
 argument-hint: "[--rescan]"
 ---
 
@@ -30,8 +31,9 @@ Determine which AI tool is running this skill by checking which directories exis
 | Path variable | Claude Code | Copilot (`.github/skills/`) | Codex (`.agents/skills/`) | Gemini (`.gemini/commands/`) |
 |---------------|-------------|---------------------------|-------------------------|---------------------------|
 | `{bootstrapDir}` | `.atta/bootstrap` | `.atta/bootstrap` | `.atta/bootstrap` | `.atta/bootstrap` |
-| `{knowledgeDir}` | `.atta/knowledge` | `.atta/knowledge` | `.atta/knowledge` | `.atta/knowledge` |
+| `{teamDir}` | `.atta/team` | `.atta/team` | `.atta/team` | `.atta/team` |
 | `{agentsDir}` | `.claude/agents` | `.github/atta/agents` | `.agents/agents` | `.gemini/agents` |
+| `{localDir}` | `.atta/local` | `.atta/local` | `.atta/local` | `.atta/local` |
 | `{metadataDir}` | `.atta/.metadata` | `.atta/.metadata` | `.atta/.metadata` | `.atta/.metadata` |
 
 **Sub-detect non-Claude adapter** (if `.atta/bootstrap/` was found):
@@ -39,7 +41,7 @@ Determine which AI tool is running this skill by checking which directories exis
 - Else if `.agents/skills/` exists → Codex → agents go to `.agents/agents/`
 - Else if `.gemini/commands/` exists → Gemini → agents go to `.gemini/agents/`
 
-**All paths below use these variables.** Substitute `.atta/bootstrap/` → `{bootstrapDir}/`, `.atta/knowledge/` → `{knowledgeDir}/`, `.claude/agents/` → `{agentsDir}/`, `.atta/.metadata/` → `{metadataDir}/`.
+**All paths below use these variables.** Substitute `.atta/bootstrap/` → `{bootstrapDir}/`, `.atta/team/` → `{teamDir}/`, `.atta/local/` → `{localDir}/`, `.claude/agents/` → `{agentsDir}/`, `.atta/.metadata/` → `{metadataDir}/`.
 
 ---
 
@@ -95,6 +97,15 @@ Load detection rules from `.atta/bootstrap/detection/` YAML files:
 
 Scan `package.json` (dependencies, scripts), lock files (package manager), config files (`tsconfig.json`, `vite.config.*`, etc.), and tool configs at confirmed project root. Match against YAML detector rules.
 
+**Dependency validation**: After initial detection, check `requires:` fields. If a detector has `requires: [react]`, only include it if `react` was also detected. Process in two passes: first detect all techs, then prune any whose `requires:` dependencies are unmet. This prevents false positives (e.g., Pinia detected in a React project that happens to have a stale `pinia` dependency).
+
+**Semantic analysis**: For each detected tech that has a `content_analysis:` section, check the specified files/patterns:
+- `match_type: exists` — check if matching files exist (glob pattern)
+- `pattern:` — check if file content matches the regex pattern (sample up to 5 matching files)
+- Collect matched labels into a `semanticLabels` map: `{ techId: [label1, label2, ...] }`
+- Labels enrich the project context — e.g., Next.js with `[app-router, server-actions]` vs just "Next.js"
+- Labels are written to the `## Detected Stack` section of `project-context.md` in parentheses: `Next.js (App Router, Server Actions)`
+
 #### Security Tools (cross-cutting)
 
 Security detection is handled by `security-detectors.yaml` (dependency security, SAST, secrets scanning, security middleware).
@@ -139,12 +150,12 @@ Write `.atta/project/project-context.md`:
 # Project Context
 
 ## Tech Stack
-- **Frontend**: [Framework] [Version]
+- **Frontend**: [Framework] [Version] ([semantic labels if any, e.g., App Router, Server Actions])
 - **Language**: [TypeScript/JavaScript]
 - **Styling**: [Approach]
 - **Testing**: [Framework]
 - **Build**: [Tool]
-- **Backend**: [Technology] (or N/A)
+- **Backend**: [Technology] ([semantic labels if any, e.g., DRF, Celery]) (or N/A)
 - **Package Manager**: [npm/yarn/pnpm/bun]
 
 ## Key Paths
@@ -188,7 +199,7 @@ Each pattern file: key rules from existing code, anti-patterns, conventions, doc
 
 ### PR Template (conditional)
 
-If a PR template was detected: overwrite `.atta/knowledge/templates/pr-template.md` with a mapped version keeping Atta frontmatter + structure, adding the project template verbatim in a code block, a section mapping table, and instructions to format PR descriptions matching the project's structure while preserving Atta content.
+If a PR template was detected: overwrite `.atta/team/templates/pr-template.md` with a mapped version keeping Atta frontmatter + structure, adding the project template verbatim in a code block, a section mapping table, and instructions to format PR descriptions matching the project's structure while preserving Atta content.
 
 If no PR template detected: do nothing (default `pr-template.md` is already in place).
 
@@ -199,6 +210,12 @@ If convention detection produced results, update `.atta/project/project-profile.
 - **Documentation**: check the matching checkbox (jsdoc/inline/minimal). Leave unchecked if "mixed".
 
 > Only pre-fill sections without existing `[x]` checkboxes. Never overwrite user selections.
+
+### KISS Thresholds (auto-populated)
+
+Write `.atta/team/kiss-thresholds.md` using detection results from Phase 2. Read `{bootstrapDir}/mappings/kiss-mappings.yaml` for the mapping rules: which detectors trigger which exempt patterns, always-flag paths, and scope limit overrides. Uncomment matching entries in the template's `<!-- auto-populated -->` sections.
+
+> On `--rescan`: re-detect and update auto-populated sections. Preserve user-added entries and manually adjusted thresholds.
 
 ### Agent Generation from Templates
 
@@ -260,7 +277,7 @@ Also write `.atta/.metadata/framework-version` and `.atta/.metadata/update-histo
 
 ## Phase 9: Report
 
-Display initialization summary: files created/updated, active agents table, quick start commands (`/agent fe-team-lead`, `/review`, `/preflight`), next steps (`/atta --rescan`, `/agent librarian`).
+Display initialization summary: files created/updated, active agents table, quick start commands (`/atta-agent fe-team-lead`, `/atta-review`, `/atta-preflight`), next steps (`/atta --rescan`, `/atta-agent librarian`).
 
 ---
 
@@ -268,7 +285,7 @@ Display initialization summary: files created/updated, active agents table, quic
 
 Skip interview (reuse `project-context.md`). Re-detect: tech stack, architectural patterns (preserve manual additions), PR templates. Update pattern files. Preserve manual edits.
 
-**Profile sync**: If either profile file has checked items, run `/profile --apply` logic (Steps 5-6) — write `## Preferences` to `project-context.md`.
+**Profile sync**: If either profile file has checked items, run `/atta-profile --apply` logic (Steps 5-6) — write `## Preferences` to `project-context.md`.
 
 **Staleness reset**: Record mtimes of detection source files in `generated-manifest.json` `detection_sources`.
 
@@ -289,10 +306,10 @@ Report what changed.
 
 ## Related Skills
 
-- `/agent librarian` — Capture additional patterns and directives
-- `/agent fe-team-lead` / `/agent be-team-lead` — Task decomposition
-- `/review` — Review against generated patterns
-- `/preflight` — Full pre-PR validation
+- `/atta-agent librarian` — Capture additional patterns and directives
+- `/atta-agent fe-team-lead` / `/atta-agent be-team-lead` — Task decomposition
+- `/atta-review` — Review against generated patterns
+- `/atta-preflight` — Full pre-PR validation
 
 ---
 

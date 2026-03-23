@@ -9,22 +9,22 @@ The developer profile tells your AI team how you prefer to work. Instead of ever
 ## Quick Start
 
 ```
-/profile              # View your current preferences
-/profile --update     # Set core preferences (5 questions, ~2 min)
-/profile --complete   # Extended preferences (3 rounds, ~5 min)
-/profile --apply      # Re-apply profile to project without changing answers
+/atta-profile             # View your current preferences
+/atta-profile --update     # Set core preferences (5 questions, ~2 min)
+/atta-profile --complete   # Extended preferences (3 rounds, ~5 min)
+/atta-profile --apply      # Re-apply profile to project without changing answers
 ```
 
 ## How It Works
 
 Profile preferences propagate through two layers:
 
-1. **Runtime** — `/profile --apply` writes a distilled `## Preferences` section to `project-context.md`. Every agent that reads project context picks up your preferences automatically.
+1. **Runtime** — `/atta-profile --apply` writes a distilled `## Preferences` section to `project-context.md`. Every agent that reads project context picks up your preferences automatically.
 
 2. **Generation-time** — When `/atta` generates agents, it reads your profile and appends a `## Developer Preferences` section to each agent file. This bakes preferences directly into agents with zero runtime cost.
 
 Both layers are updated automatically:
-- `/profile --update` and `--complete` chain to `--apply` when done
+- `/atta-profile --update` and `--complete` chain to `--apply` when done
 - `/atta --rescan` re-applies the profile as part of regeneration
 
 ## What Gets Configured
@@ -61,7 +61,7 @@ These are objective project facts, not personal preferences.
 
 | File | Purpose | Who reads it |
 |------|---------|-------------|
-| `developer-profile.md` | Source of truth (all preferences) | `/profile` skill only |
+| `developer-profile.md` | Source of truth (all preferences) | `/atta-profile` skill only |
 | `project-context.md` `## Preferences` | Distilled 3-5 line summary | All agents at runtime |
 | Generated agent files `## Developer Preferences` | Baked into each agent | Each agent directly |
 
@@ -74,20 +74,20 @@ The full profile is **not** read at runtime by agents — only the distilled ver
 ```
 npx atta-dev init        # CLI asks 5 core questions, pre-fills profile
 /atta                    # Detects tech stack, generates agents with profile
-/profile --complete      # (Optional) Fill in extended preferences
+/atta-profile --complete      # (Optional) Fill in extended preferences
 ```
 
 ### Updating preferences later
 
 ```
-/profile --update        # Change core preferences → auto-applies
+/atta-profile --update        # Change core preferences → auto-applies
 /atta --rescan           # Regenerate agents with updated profile
 ```
 
 ### Just re-applying (no changes)
 
 ```
-/profile --apply         # Re-propagate existing profile to project-context.md
+/atta-profile --apply         # Re-propagate existing profile to project-context.md
 ```
 
 ## Connection to `/atta`
@@ -98,7 +98,7 @@ npx atta-dev init        # CLI asks 5 core questions, pre-fills profile
 
 ## Example Output
 
-After running `/profile --apply`, your `project-context.md` gains:
+After running `/atta-profile --apply`, your `project-context.md` gains:
 
 ```markdown
 ## Preferences

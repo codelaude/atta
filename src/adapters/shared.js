@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, cpSync, lstatSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, cpSync, lstatSync, readdirSync, readFileSync, writeFileSync, unlinkSync } from 'node:fs';
 import { join, dirname, relative } from 'node:path';
 import pc from 'picocolors';
 
@@ -7,115 +7,1294 @@ import pc from 'picocolors';
  */
 
 /**
- * Cross-tool hook event mapping — reference-only compatibility table.
- * Documents equivalent event names across all 5 tools with hook support.
- * Not wired into generateHooksConfig() or runtime hook emitters (each adapter
- * hardcodes its own subset). Kept as a canonical reference for documentation,
- * external tooling, and future dynamic generation.
+ * Cross-tool hook event mapping — canonical compatibility table.
+ * Maps semantic event names to each tool's native event name.
+ * Used by generateHooks() to produce per-adapter hook configs.
  *
- * Event counts: Claude Code 17, Cursor 19+, Gemini 10, Copilot 6, Codex 2 (approval only).
+ * Event counts (verified March 2026):
+ *   Claude Code: 18 events, 4 types (command, http, prompt, agent)
+ *   Cursor: 20 events, 2 types (command, prompt)
+ *   Gemini: 11 events, 1 type (command)
+ *   Copilot: 8 events (Coding Agent) / 6 (CLI), 1 type (command)
+ *   Codex: 2 events (experimental, behind feature flag), 1 type (command)
  *
  * @type {Object<string, Object<string, string|null>>}
  */
 export const HOOK_EVENT_MAP = {
   // Session lifecycle
-  sessionStart:       { 'claude-code': 'SessionStart',       copilot: 'sessionStart',        cursor: 'sessionStart',         gemini: 'SessionStart',      codex: null },
-  sessionEnd:         { 'claude-code': 'SessionEnd',         copilot: 'sessionEnd',          cursor: 'sessionEnd',           gemini: 'SessionEnd',        codex: null },
-  stop:               { 'claude-code': 'Stop',               copilot: null,                  cursor: 'stop',                 gemini: null,                codex: 'after_agent' },
+  sessionStart:        { 'claude-code': 'SessionStart',       copilot: 'sessionStart',        cursor: 'sessionStart',           gemini: 'SessionStart',        codex: 'SessionStart' },
+  sessionEnd:          { 'claude-code': 'SessionEnd',         copilot: 'sessionEnd',          cursor: 'sessionEnd',             gemini: 'SessionEnd',          codex: null },
+  stop:                { 'claude-code': 'Stop',               copilot: 'agentStop',           cursor: 'stop',                   gemini: null,                  codex: 'Stop' },
   // Tool lifecycle
-  preToolUse:         { 'claude-code': 'PreToolUse',         copilot: 'preToolUse',          cursor: 'preToolUse',           gemini: 'BeforeTool',        codex: null },
-  postToolUse:        { 'claude-code': 'PostToolUse',        copilot: 'postToolUse',         cursor: 'postToolUse',          gemini: 'AfterTool',         codex: 'after_tool_use' },
-  postToolUseFailure: { 'claude-code': 'PostToolUseFailure', copilot: 'errorOccurred',       cursor: 'postToolUseFailure',   gemini: null,                codex: null },
+  preToolUse:          { 'claude-code': 'PreToolUse',         copilot: 'preToolUse',          cursor: 'preToolUse',             gemini: 'BeforeTool',          codex: null },
+  postToolUse:         { 'claude-code': 'PostToolUse',        copilot: 'postToolUse',         cursor: 'postToolUse',            gemini: 'AfterTool',           codex: null },
+  postToolUseFailure:  { 'claude-code': 'PostToolUseFailure', copilot: 'errorOccurred',       cursor: 'postToolUseFailure',     gemini: null,                  codex: null },
   // User interaction
-  userPromptSubmit:   { 'claude-code': 'UserPromptSubmit',   copilot: 'userPromptSubmitted', cursor: 'beforeSubmitPrompt',    gemini: null,                codex: null },
+  userPromptSubmit:    { 'claude-code': 'UserPromptSubmit',   copilot: 'userPromptSubmitted', cursor: 'beforeSubmitPrompt',      gemini: null,                  codex: null },
   // Agent lifecycle
-  subagentStart:      { 'claude-code': 'SubagentStart',      copilot: null,                  cursor: 'subagentStart',        gemini: 'BeforeAgent',       codex: null },
-  subagentStop:       { 'claude-code': 'SubagentStop',       copilot: null,                  cursor: 'subagentStop',         gemini: 'AfterAgent',        codex: null },
+  subagentStart:       { 'claude-code': 'SubagentStart',      copilot: null,                  cursor: 'subagentStart',          gemini: 'BeforeAgent',         codex: null },
+  subagentStop:        { 'claude-code': 'SubagentStop',       copilot: 'subagentStop',        cursor: 'subagentStop',           gemini: 'AfterAgent',          codex: null },
   // Context management
-  preCompact:         { 'claude-code': 'PreCompact',         copilot: null,                  cursor: 'preCompact',           gemini: 'PreCompress',       codex: null },
-  notification:       { 'claude-code': 'Notification',       copilot: null,                  cursor: null,                   gemini: 'Notification',      codex: null },
-  // Cursor-only file events
-  afterFileEdit:      { 'claude-code': null,                 copilot: null,                  cursor: 'afterFileEdit',        gemini: null,                codex: null },
-  beforeShellExec:    { 'claude-code': null,                 copilot: null,                  cursor: 'beforeShellExecution', gemini: null,                codex: null },
+  preCompact:          { 'claude-code': 'PreCompact',         copilot: null,                  cursor: 'preCompact',             gemini: 'PreCompress',         codex: null },
+  notification:        { 'claude-code': 'Notification',       copilot: null,                  cursor: null,                     gemini: 'Notification',        codex: null },
+  // File events
+  afterFileEdit:       { 'claude-code': null,                 copilot: null,                  cursor: 'afterFileEdit',          gemini: null,                  codex: null },
+  beforeShellExec:     { 'claude-code': null,                 copilot: null,                  cursor: 'beforeShellExecution',   gemini: null,                  codex: null },
   // Claude Code-only events
-  permissionRequest:  { 'claude-code': 'PermissionRequest',  copilot: null,                  cursor: null,                   gemini: null,                codex: null },
-  configChange:       { 'claude-code': 'ConfigChange',       copilot: null,                  cursor: null,                   gemini: null,                codex: null },
+  permissionRequest:   { 'claude-code': 'PermissionRequest',  copilot: null,                  cursor: null,                     gemini: null,                  codex: null },
+  taskCompleted:       { 'claude-code': 'TaskCompleted',      copilot: null,                  cursor: null,                     gemini: null,                  codex: null },
+  configChange:        { 'claude-code': 'ConfigChange',       copilot: null,                  cursor: null,                     gemini: null,                  codex: null },
   // Gemini-only events
-  beforeModel:        { 'claude-code': null,                 copilot: null,                  cursor: null,                   gemini: 'BeforeModel',       codex: null },
-  afterModel:         { 'claude-code': null,                 copilot: null,                  cursor: null,                   gemini: 'AfterModel',        codex: null },
+  beforeModel:         { 'claude-code': null,                 copilot: null,                  cursor: null,                     gemini: 'BeforeModel',         codex: null },
+  afterModel:          { 'claude-code': null,                 copilot: null,                  cursor: null,                     gemini: 'AfterModel',          codex: null },
+  beforeToolSelection: { 'claude-code': null,                 copilot: null,                  cursor: null,                     gemini: 'BeforeToolSelection', codex: null },
 };
 
+// ─── Hook Generation ────────────────────────────────────────────────
+
 /**
- * Generate a hooks.json config for a specific adapter.
- * Returns placeholder hooks with the adapter's native event names.
- * Claude Code generates its own hooks (session-track.sh); this is for other adapters.
- *
- * @param {'copilot'|'cursor'|'gemini'} adapter - Target adapter
- * @returns {object} hooks.json content ready to serialize
+ * Pre-bash safety prompt — used by Claude Code and Cursor (prompt type).
+ * Evaluates whether a shell command is destructive before execution.
  */
-export function generateHooksConfig(adapter) {
-  if (adapter === 'copilot') {
-    // Copilot: 6 events, command hooks only (versioned schema for forward compat)
-    return {
-      version: 1,
-      hooks: {
-        sessionStart: [],
-        sessionEnd: [],
-        preToolUse: [],
-        postToolUse: [],
-        errorOccurred: [],
-        userPromptSubmitted: [],
-      },
-    };
-  }
+const SAFETY_PROMPT = [
+  'Review the proposed shell command for safety.',
+  'Block (return ok:false) if the command would:',
+  '- Delete files recursively (rm -rf, git clean -fdx)',
+  '- Force-push or reset git history (git push --force, git reset --hard)',
+  '- Drop database tables or truncate data',
+  '- Modify system files outside the project directory',
+  '- Run curl/wget piped to shell (curl | sh)',
+  'Allow all other commands. Input: $ARGUMENTS',
+].join(' ');
 
-  if (adapter === 'cursor') {
-    // Cursor: 19+ events, command + prompt hooks
-    return {
-      hooks: {
-        sessionStart: [],
-        sessionEnd: [],
-        stop: [],
-        preToolUse: [],
-        postToolUse: [],
-        afterFileEdit: [],
-        beforeShellExecution: [],
-        subagentStart: [],
-        subagentStop: [],
-        preCompact: [],
-      },
-    };
-  }
+/**
+ * Stop quality gate prompt — used by Claude Code and Cursor (prompt type).
+ * Checks whether the agent completed its work properly.
+ */
+const QUALITY_GATE_PROMPT = [
+  'Before ending, verify:',
+  '1. All requested tasks are complete',
+  '2. No TODO/FIXME comments were left unresolved',
+  '3. No files were left in a broken state',
+  'If issues remain, return ok:false with a brief reason. Input: $ARGUMENTS',
+].join(' ');
 
-  if (adapter === 'gemini') {
-    // Gemini: 10 events, JSON stdin/stdout hooks
-    return {
-      hooks: {
-        SessionStart: [],
-        SessionEnd: [],
-        BeforeTool: [],
-        AfterTool: [],
-        BeforeAgent: [],
-        AfterAgent: [],
-        BeforeModel: [],
-        AfterModel: [],
-        Notification: [],
-        PreCompress: [],
-      },
-    };
-  }
+/**
+ * Convention checking prompt — used by Claude Code and Cursor (prompt type).
+ * Checks component/file naming and potential duplication before file creation.
+ * Only generated when frontend frameworks are detected.
+ */
+const CONVENTION_CHECK_PROMPT = [
+  'Before creating this file, check:',
+  '1. Component/module name follows project conventions (PascalCase for components, camelCase for utils, kebab-case for files if applicable)',
+  '2. No similar component/module already exists (search for similar names in the project)',
+  '3. The file is being created in the correct directory per project structure',
+  'If issues found, return ok:false explaining the convention violation or suggesting the existing file. Input: $ARGUMENTS',
+].join(' ');
 
-  throw new Error(`generateHooksConfig: unknown adapter "${adapter}" (expected copilot, cursor, or gemini)`);
+/**
+ * Import convention prompt — used by Claude Code and Cursor (prompt type).
+ * Checks that import patterns follow project conventions after file edits.
+ * Only generated when TypeScript is detected.
+ */
+const IMPORT_CHECK_PROMPT = [
+  'Verify the imports in this file follow project conventions:',
+  '1. Path aliases are used when available (e.g., @/ or ~/)',
+  '2. No circular dependencies introduced',
+  '3. Import order follows project style (external, internal, relative)',
+  'If issues found, return ok:false with the specific violation. Input: $ARGUMENTS',
+].join(' ');
+
+/**
+ * Check if detected techs include any frontend framework.
+ * @param {string[]} detectedTechs
+ * @returns {boolean}
+ */
+function hasFrontend(detectedTechs) {
+  if (!detectedTechs) return false;
+  const frontendIds = new Set(['react', 'vue', 'angular', 'svelte', 'nextjs', 'nuxt', 'solid', 'astro']);
+  return detectedTechs.some((t) => frontendIds.has(t));
 }
 
 /**
+ * Generate a hooks config for a specific adapter with enforcement hooks.
+ * Replaces the old generateHooksConfig() which only produced empty placeholders.
+ *
+ * Generates enforcement hooks per adapter (varies by tool capability):
+ *   1. Post-edit lint (when linter detected) — runs linter after file edits
+ *   2. Pre-bash safety — blocks destructive shell commands
+ *   3. Stop quality gate — checks task completion before ending
+ *
+ * Not all tools support all hooks:
+ *   - Gemini lacks a stop event → no quality gate
+ *   - Codex is experimental → empty placeholder events only
+ *
+ * Cross-tool hook type support:
+ *   Claude Code + Cursor: prompt type for safety/quality gates
+ *   Copilot + Gemini: command type with exit-code/stdout blocking
+ *
+ * @param {'claude-code'|'copilot'|'cursor'|'gemini'|'codex'} adapter
+ * @param {string[]} [detectedTechs] - Detected technology identifiers (for linter hooks)
+ * @returns {object} hooks.json content ready to serialize
+ */
+export function generateHooks(adapter, detectedTechs) {
+  if (adapter === 'claude-code') return generateClaudeCodeHooks(detectedTechs);
+  if (adapter === 'copilot') return generateCopilotHooks(detectedTechs);
+  if (adapter === 'cursor') return generateCursorHooks(detectedTechs);
+  if (adapter === 'gemini') return generateGeminiHooks(detectedTechs);
+  if (adapter === 'codex') return generateCodexHooks();
+
+  throw new Error(`generateHooks: unknown adapter "${adapter}"`);
+}
+
+/**
+ * @deprecated Use generateHooks() instead. Kept for backwards compatibility.
+ */
+export function generateHooksConfig(adapter) {
+  return generateHooks(adapter);
+}
+
+// ─── Per-Adapter Hook Generators ─────────────────────────────────────
+
+/**
+ * Claude Code hooks — 4 types supported (command, http, prompt, agent).
+ * Format: { "hooks": { "EventName": [{ matcher?, hooks: [{ type, command|prompt, ... }] }] } }
+ */
+function generateClaudeCodeHooks(detectedTechs) {
+  const hooks = {};
+
+  // Post-edit lint hook (when linter detected)
+  const lintCmd = detectLintCommand(detectedTechs);
+  if (lintCmd) {
+    hooks[HOOK_EVENT_MAP.postToolUse['claude-code']] = [
+      {
+        matcher: 'Edit|Write',
+        hooks: [{ type: 'command', command: lintCmd, timeout: 30 }],
+      },
+    ];
+  }
+
+  // Pre-bash safety (prompt type — AI evaluates the command)
+  const preToolUseHooks = [
+    {
+      matcher: 'Bash',
+      hooks: [{ type: 'prompt', prompt: SAFETY_PROMPT, timeout: 15 }],
+    },
+  ];
+
+  // Convention check on file creation (only when frontend detected)
+  if (hasFrontend(detectedTechs)) {
+    preToolUseHooks.push({
+      matcher: 'Write',
+      hooks: [{ type: 'prompt', prompt: CONVENTION_CHECK_PROMPT, timeout: 15 }],
+    });
+  }
+
+  hooks[HOOK_EVENT_MAP.preToolUse['claude-code']] = preToolUseHooks;
+
+  // Import convention check after edits (only when TypeScript detected)
+  if (detectedTechs?.includes('typescript')) {
+    const postToolUseHooks = hooks[HOOK_EVENT_MAP.postToolUse['claude-code']] || [];
+    postToolUseHooks.push({
+      matcher: 'Edit|Write',
+      hooks: [{ type: 'prompt', prompt: IMPORT_CHECK_PROMPT, timeout: 15 }],
+    });
+    hooks[HOOK_EVENT_MAP.postToolUse['claude-code']] = postToolUseHooks;
+  }
+
+  // Stop quality gate (prompt type)
+  hooks[HOOK_EVENT_MAP.stop['claude-code']] = [
+    {
+      hooks: [{ type: 'prompt', prompt: QUALITY_GATE_PROMPT, timeout: 15 }],
+    },
+  ];
+
+  return { hooks };
+}
+
+/**
+ * Copilot hooks — command type only, uses bash/powershell fields.
+ * Format: { version: 1, hooks: { eventName: [{ type, bash, timeoutSec, ... }] } }
+ */
+function generateCopilotHooks(detectedTechs) {
+  const hooks = {};
+
+  // Post-edit lint hook (when linter detected)
+  const lintCmd = detectLintCommand(detectedTechs);
+  if (lintCmd) {
+    hooks[HOOK_EVENT_MAP.postToolUse.copilot] = [
+      { type: 'command', bash: lintCmd, timeoutSec: 30 },
+    ];
+  }
+
+  // Pre-tool safety (command type — stdout permissionDecision to block)
+  hooks[HOOK_EVENT_MAP.preToolUse.copilot] = [
+    {
+      type: 'command',
+      bash: 'bash .atta/scripts/hooks/pre-bash-safety.sh',
+      timeoutSec: 5,
+      comment: 'Block destructive shell commands (rm -rf, git push --force, etc.)',
+    },
+    {
+      type: 'command',
+      bash: 'ATTA_ADAPTER=copilot bash .atta/scripts/hooks/model-gate-copilot.sh',
+      timeoutSec: 5,
+      comment: 'Block skills running on costlier models than needed (--bypass to override)',
+    },
+    {
+      type: 'command',
+      bash: 'ATTA_ADAPTER=copilot bash .atta/scripts/hooks/agent-enforce.sh',
+      timeoutSec: 5,
+      comment: 'Block tools disallowed by the active agent role',
+    },
+  ];
+
+  // Skill detection relay — userPromptSubmitted fires when user types /atta-lint etc.
+  // Output is ignored by Copilot, but we stash the skill name to a temp file
+  // so the preToolUse model-gate hook can read it on the next tool call.
+  hooks[HOOK_EVENT_MAP.userPromptSubmit.copilot] = [
+    {
+      type: 'command',
+      bash: 'ATTA_ADAPTER=copilot bash .atta/scripts/hooks/skill-detect-copilot.sh',
+      timeoutSec: 2,
+      comment: 'Detect /atta-* skill invocation and stash for model-gate enforcement',
+    },
+  ];
+
+  // Agent stop quality gate (command type)
+  hooks[HOOK_EVENT_MAP.stop.copilot] = [
+    {
+      type: 'command',
+      bash: 'bash .atta/scripts/hooks/stop-quality-gate.sh',
+      timeoutSec: 5,
+      comment: 'Placeholder — customize with project-specific completion checks',
+    },
+  ];
+
+  return { version: 1, hooks };
+}
+
+/**
+ * Cursor hooks — command + prompt types supported.
+ * Format: { version: 1, hooks: { eventName: [{ type, command|prompt, timeout, ... }] } }
+ */
+function generateCursorHooks(detectedTechs) {
+  const hooks = {};
+
+  // Post-edit lint hook (when linter detected) — scoped to file-edit tools
+  const lintCmd = detectLintCommand(detectedTechs);
+  if (lintCmd) {
+    hooks[HOOK_EVENT_MAP.postToolUse.cursor] = [
+      { type: 'command', command: lintCmd, timeout: 30, matcher: { tool_name: 'EditFile' } },
+    ];
+  }
+
+  // Pre-tool safety (prompt type — AI evaluates the command)
+  const cursorPreToolUse = [
+    {
+      type: 'prompt',
+      prompt: SAFETY_PROMPT,
+      timeout: 15,
+      matcher: { tool_name: 'Shell' },
+    },
+    {
+      type: 'command',
+      command: 'ATTA_ADAPTER=cursor bash .atta/scripts/hooks/model-gate.sh',
+      timeout: 5,
+      matcher: { tool_name: 'Skill' },
+    },
+    {
+      type: 'command',
+      command: 'ATTA_ADAPTER=cursor bash .atta/scripts/hooks/agent-enforce.sh',
+      timeout: 5,
+    },
+  ];
+
+  // Convention check on file creation (only when frontend detected)
+  if (hasFrontend(detectedTechs)) {
+    cursorPreToolUse.push({
+      type: 'prompt',
+      prompt: CONVENTION_CHECK_PROMPT,
+      timeout: 15,
+      matcher: { tool_name: 'CreateFile' },
+    });
+  }
+
+  hooks[HOOK_EVENT_MAP.preToolUse.cursor] = cursorPreToolUse;
+
+  // Stop quality gate (prompt type)
+  hooks[HOOK_EVENT_MAP.stop.cursor] = [
+    {
+      type: 'prompt',
+      prompt: QUALITY_GATE_PROMPT,
+      timeout: 15,
+      loop_limit: 3,
+    },
+  ];
+
+  return { version: 1, hooks };
+}
+
+/**
+ * Gemini hooks — command type only, PascalCase events.
+ * Format: { hooks: { EventName: [{ matcher?, hooks: [{ type, command, timeout }] }] } }
+ */
+function generateGeminiHooks(detectedTechs) {
+  const hooks = {};
+
+  // Post-edit lint hook (when linter detected)
+  const lintCmd = detectLintCommand(detectedTechs);
+  if (lintCmd) {
+    hooks[HOOK_EVENT_MAP.postToolUse.gemini] = [
+      {
+        matcher: 'write_file|replace',
+        hooks: [{ type: 'command', command: lintCmd, timeout: 30000 }], // Gemini: milliseconds
+      },
+    ];
+  }
+
+  // Pre-tool safety (command type — exit code 2 to block)
+  // Scoped to shell/command tools only (Gemini tool names vary by model)
+  hooks[HOOK_EVENT_MAP.preToolUse.gemini] = [
+    {
+      matcher: 'run_command|execute_command|shell|bash',
+      hooks: [
+        {
+          type: 'command',
+          command: 'bash .atta/scripts/hooks/pre-bash-safety.sh',
+          timeout: 5000, // Gemini: milliseconds
+        },
+      ],
+    },
+    {
+      hooks: [
+        {
+          type: 'command',
+          command: 'ATTA_ADAPTER=gemini bash .atta/scripts/hooks/agent-enforce.sh',
+          timeout: 5000,
+          name: 'agent-enforce',
+          description: 'Block tools disallowed by the active agent role',
+        },
+      ],
+    },
+  ];
+
+  // Model-gate via BeforeModel — the only Gemini event that exposes the model name.
+  // Scans llm_request.messages for atta skill references and checks model tier.
+  hooks[HOOK_EVENT_MAP.beforeModel.gemini] = [
+    {
+      hooks: [
+        {
+          type: 'command',
+          command: 'ATTA_ADAPTER=gemini bash .atta/scripts/hooks/model-gate-gemini.sh',
+          timeout: 5000,
+          name: 'model-gate',
+          description: 'Block skills running on costlier models than needed (--bypass to override)',
+        },
+      ],
+    },
+  ];
+
+  return { hooks };
+}
+
+/**
+ * Codex hooks — experimental, behind feature flag.
+ * Only SessionStart and Stop events supported.
+ */
+function generateCodexHooks() {
+  return {
+    hooks: {
+      [HOOK_EVENT_MAP.sessionStart.codex]: [],
+      [HOOK_EVENT_MAP.stop.codex]: [],
+    },
+  };
+}
+
+// ─── Linter Detection ────────────────────────────────────────────────
+
+/**
+ * Map detected tech identifiers to lint commands.
+ * Returns a shell command string or null if no linter is detected.
+ *
+ * Note: detectedTechs is populated by the bootstrap system (tool-detectors.yaml)
+ * after the user runs `/atta` to detect their stack. On fresh `init --yes`,
+ * detectedTechs is empty — lint hooks activate on subsequent re-init after detection.
+ *
+ * @param {string[]} [detectedTechs]
+ * @returns {string|null}
+ */
+function detectLintCommand(detectedTechs) {
+  if (!detectedTechs || detectedTechs.length === 0) return null;
+
+  const techs = new Set(detectedTechs);
+
+  // JavaScript/TypeScript ecosystem (lint-only, no auto-fix — hook fires on every edit)
+  if (techs.has('eslint')) return 'npx eslint --quiet .';
+  if (techs.has('biome')) return 'npx biome check .';
+  if (techs.has('prettier')) return 'npx prettier --check --log-level warn .';
+
+  // Python ecosystem
+  if (techs.has('ruff')) return 'ruff check --quiet .';
+  if (techs.has('black')) return 'black --check --quiet .';
+  if (techs.has('flake8')) return 'flake8 --quiet .';
+
+  // Go
+  if (techs.has('go') || techs.has('gofmt')) return 'test -z "$(gofmt -l .)"';
+
+  // Rust
+  if (techs.has('rust')) return 'cargo fmt --check --quiet';
+
+  return null;
+}
+
+// ─── Hook Scripts ────────────────────────────────────────────────────
+
+/**
+ * Pre-bash safety hook script content — for tools that only support command hooks.
+ * Reads tool input from stdin JSON, checks for destructive patterns.
+ * Exit code 2 = block (Claude Code, Gemini); stdout JSON = block (Copilot).
+ */
+export const PRE_BASH_SAFETY_SCRIPT = `#!/bin/bash
+# pre-bash-safety.sh — Block destructive shell commands
+# Generated by Atta. Works with Copilot (stdout JSON) and Gemini (exit code 2).
+# CRITICAL safety hook — runs on all profiles except "off".
+set -euo pipefail
+
+# Hook profile check (ATTA_HOOKS env var)
+[ "\${ATTA_HOOKS:-}" = "off" ] && exit 0
+
+INPUT=$(cat)
+
+# Extract the command from stdin JSON (tool_input.command or toolArgs)
+CMD=$(echo "$INPUT" | python3 -c "
+import json, sys
+data = json.load(sys.stdin)
+# Claude Code / Cursor / Gemini
+if 'tool_input' in data:
+    ti = data['tool_input']
+    print(ti.get('command', '') if isinstance(ti, dict) else '')
+# Copilot
+elif 'toolArgs' in data:
+    try:
+        args = json.loads(data['toolArgs'])
+        print(args.get('command', ''))
+    except:
+        print('')
+else:
+    print('')
+" 2>/dev/null || echo "")
+
+if [ -z "$CMD" ]; then
+  exit 0
+fi
+
+# Check for destructive patterns
+BLOCKED=""
+case "$CMD" in
+  *"rm -rf /"*|*"rm -rf ~"*|*"rm -rf ."*|*"rm -r -f "*|*"rm --recursive --force"*)
+    BLOCKED="Recursive force delete" ;;
+  *"git push --force"*|*"git push -f "*|*"git push -f\\"*"|*"git push --force-with-lease"*)
+    BLOCKED="Force push can destroy remote history" ;;
+  *"git reset --hard"*)
+    BLOCKED="Hard reset discards uncommitted changes" ;;
+  *"git clean -f"*|*"git clean -fd"*)
+    BLOCKED="Clean removes untracked files permanently" ;;
+  *"| sh"*|*"| bash"*)
+    BLOCKED="Piping to shell is unsafe" ;;
+  *"DROP TABLE"*|*"drop table"*|*"TRUNCATE"*|*"truncate"*)
+    BLOCKED="Destructive database operation" ;;
+esac
+
+if [ -n "$BLOCKED" ]; then
+  # Copilot: stdout JSON with permissionDecision (env var avoids shell injection)
+  BLOCKED="$BLOCKED" python3 -c "import json,os; print(json.dumps({'permissionDecision':'deny','permissionDecisionReason':os.environ['BLOCKED']}))" 2>/dev/null || echo '{"permissionDecision":"deny","permissionDecisionReason":"blocked"}'
+  # Gemini / Claude Code: exit code 2 = block
+  exit 2
+fi
+
+exit 0
+`;
+
+/**
+ * Stop quality gate hook script content — for tools that only support command hooks.
+ * Passive placeholder — exits 0 without blocking. Customize with project-specific checks.
+ */
+export const STOP_QUALITY_GATE_SCRIPT = `#!/bin/bash
+# stop-quality-gate.sh — Placeholder for project-specific completion checks
+# Generated by Atta. Customize this script to add quality gates on agent stop.
+set -euo pipefail
+
+# Hook profile check (ATTA_HOOKS env var)
+HOOK_PROFILE="\${ATTA_HOOKS:-standard}"
+[ "\$HOOK_PROFILE" = "off" ] && exit 0
+[ "\$HOOK_PROFILE" = "minimal" ] && exit 0
+
+# This is a passive placeholder — does not block or produce output.
+# For AI-powered quality gates, use Claude Code or Cursor (prompt type hooks).
+exit 0
+`;
+
+/**
+ * Model gate hook script — blocks skills running on a more expensive model than needed.
+ * Reads skill tier from .atta/team/model-registry.json, detects the current model
+ * from the tool environment (Copilot: $COPILOT_MODEL, Cursor: stdin JSON model field,
+ * Gemini: $GEMINI_MODEL), and compares against the skill's recommended tier.
+ *
+ * Behavior:
+ *   - Blocks (exit 2) when the current model tier exceeds the skill's tier
+ *   - Falls back to advisory warning when model can't be detected
+ *   - --bypass flag in skill args skips the gate entirely
+ *   - ATTA_MODEL_GATE=off env var disables the gate globally
+ *
+ * Claude Code is excluded — it handles model routing natively via model: frontmatter.
+ */
+export const MODEL_GATE_SCRIPT = `#!/bin/bash
+# model-gate.sh — Block skills running on costlier models than needed
+# Generated by Atta. Reads model-registry.json for tier + tool-specific model names.
+# Detects the current model from the tool environment and blocks mismatches.
+# Use --bypass in skill args or ATTA_MODEL_GATE=off to disable.
+set -euo pipefail
+
+# Hook profile check (ATTA_HOOKS env var)
+HOOK_PROFILE="\${ATTA_HOOKS:-standard}"
+[ "\$HOOK_PROFILE" = "off" ] && exit 0
+[ "\$HOOK_PROFILE" = "minimal" ] && exit 0
+
+# Global opt-out via env var
+[ "\${ATTA_MODEL_GATE:-}" = "off" ] && exit 0
+
+INPUT=$(cat)
+
+# Extract skill name, args, and model (Cursor provides model in stdin JSON)
+# Uses | delimiter to avoid word-splitting on spaces in args or model names
+IFS='|' read -r SKILL ARGS STDIN_MODEL <<< "$(echo "\$INPUT" | python3 -c "
+import json, sys
+data = json.load(sys.stdin)
+ti = data.get('tool_input', {})
+skill = ''
+args = ''
+if isinstance(ti, dict):
+    skill = ti.get('skill', '')
+    args = ti.get('args', '')
+elif 'toolArgs' in data:
+    try:
+        ta = json.loads(data['toolArgs'])
+        skill = ta.get('skill', '')
+        args = ta.get('args', '')
+    except: pass
+model = data.get('model', '')
+print(f'{skill}|{args}|{model}')
+" 2>/dev/null || echo "||")"
+
+[ -z "\$SKILL" ] && exit 0
+
+# Check for --bypass flag (exact word match to avoid substring false positives)
+if echo " \$ARGS " | grep -qw -- '--bypass'; then
+  exit 0
+fi
+
+# Detect which tool is running this hook
+ADAPTER="\${ATTA_ADAPTER:-}"
+if [ -z "\$ADAPTER" ]; then
+  [ -d ".claude/skills" ] && ADAPTER="claude-code"
+  [ -d ".github/skills" ] && ADAPTER="copilot"
+  [ -d ".cursor/rules" ] && ADAPTER="cursor"
+  [ -d ".gemini/commands" ] && ADAPTER="gemini"
+fi
+
+# Look up skill tier, recommended model name, and all tier model patterns from registry
+REGISTRY=".atta/team/model-registry.json"
+[ ! -f "\$REGISTRY" ] && exit 0
+
+# Detect current model from the tool environment
+CURRENT_MODEL=""
+case "\$ADAPTER" in
+  copilot)
+    CURRENT_MODEL="\${COPILOT_MODEL:-}"
+    ;;
+  cursor)
+    CURRENT_MODEL="\$STDIN_MODEL"
+    ;;
+  gemini)
+    CURRENT_MODEL="\${GEMINI_MODEL:-}"
+    ;;
+esac
+
+# All comparison logic in Python — avoids macOS sed issues and handles
+# normalization of model slugs vs human-readable registry labels.
+# Outputs: RESULT|TIER|MODEL_NAME|CURRENT_TIER
+# RESULT is one of: block, allow, warn, skip
+IFS='|' read -r RESULT TIER MODEL_NAME CURRENT_TIER <<< "$(REGISTRY="\$REGISTRY" SKILL="\$SKILL" ADAPTER="\$ADAPTER" CURRENT_MODEL="\$CURRENT_MODEL" python3 -c "
+import json, os, re, sys
+
+with open(os.environ['REGISTRY']) as f:
+    reg = json.load(f)
+
+skill = os.environ.get('SKILL', '')
+tier = reg.get('skills', {}).get(skill, '')
+if not tier:
+    print('skip|||')
+    sys.exit(0)
+
+adapter = os.environ.get('ADAPTER', '') or 'claude-code'
+model_name = reg.get('tiers', {}).get(tier, {}).get(adapter, tier)
+current_model = os.environ.get('CURRENT_MODEL', '')
+
+if not current_model:
+    # Cannot detect model — advisory for light-tier skills only
+    if tier == 'light':
+        print(f'warn|{tier}|{model_name}|')
+    else:
+        print('skip|||')
+    sys.exit(0)
+
+# Normalize model string: lowercase, replace separators with spaces
+def normalize(s):
+    return re.sub(r'[-_./]', ' ', s.lower()).strip()
+
+current_norm = normalize(current_model)
+
+# Extract keyword patterns from registry model names.
+# 'Claude Opus 4.6 or GPT-5.4' → keywords ['opus'] + full labels ['claude opus 4 6', 'gpt 5 4']
+# 'haiku' → keywords ['haiku'] + full label ['haiku']
+# Keywords are distinctive family words; full normalized labels handle version-specific matching
+def extract_keywords(label):
+    label_lower = label.lower()
+    # Split on ' or ' for multi-option labels
+    parts = label_lower.split(' or ')
+    keywords = []
+    for part in parts:
+        norm = normalize(part)
+        # Extract distinctive model family keywords (avoids ambiguous words like 'pro')
+        for kw in ['opus', 'sonnet', 'haiku', 'flash']:
+            if kw in norm:
+                keywords.append(kw)
+        # Also try the full normalized part for specific version matches
+        keywords.append(norm)
+    return keywords
+
+# Determine current model tier by checking against registry tier labels
+tier_rank = {'light': 1, 'mid': 2, 'full': 3}
+current_tier = None  # None = unrecognized
+
+for check_tier in ['full', 'mid', 'light']:
+    label = reg.get('tiers', {}).get(check_tier, {}).get(adapter, '')
+    if not label:
+        continue
+    keywords = extract_keywords(label)
+    for kw in keywords:
+        if kw and kw in current_norm:
+            current_tier = check_tier
+            break
+    if current_tier is not None:
+        break
+
+if current_tier is None:
+    # Model detected but unrecognized — warn, don't silently allow
+    print(f'unknown|{tier}|{model_name}|')
+else:
+    current_rank = tier_rank.get(current_tier, 0)
+    skill_rank = tier_rank.get(tier, 0)
+    if current_rank > skill_rank:
+        print(f'block|{tier}|{model_name}|{current_tier}')
+    else:
+        print('allow|||')
+" 2>/dev/null || echo "skip|||")"
+
+case "\$RESULT" in
+  block)
+    REASON="[model-gate] /\$SKILL is a \$TIER-tier skill but you're on \$CURRENT_MODEL (\$CURRENT_TIER tier). Switch to \$MODEL_NAME or use --bypass."
+    echo "[model-gate] BLOCKED: /\$SKILL is a \$TIER-tier skill but you're running on \$CURRENT_MODEL (\$CURRENT_TIER tier)." >&2
+    echo "[model-gate] Switch to \$MODEL_NAME or re-run with --bypass to override." >&2
+    # Copilot: stdout JSON with permissionDecision (env var avoids shell injection)
+    if [ "\$ADAPTER" = "copilot" ]; then
+      REASON="\$REASON" python3 -c "import json,os; print(json.dumps({'permissionDecision':'deny','permissionDecisionReason':os.environ['REASON']}))" 2>/dev/null || echo '{"permissionDecision":"deny","permissionDecisionReason":"model tier mismatch"}'
+    fi
+    exit 2
+    ;;
+  warn)
+    echo "[model-gate] /\$SKILL is a lightweight skill — consider using \$MODEL_NAME for cost savings." >&2
+    exit 0
+    ;;
+  unknown)
+    echo "[model-gate] Unrecognized model '\$CURRENT_MODEL' — cannot verify tier for /\$SKILL (\$TIER). Allowing, but consider using \$MODEL_NAME." >&2
+    exit 0
+    ;;
+  *)
+    exit 0
+    ;;
+esac
+`;
+
+/**
+ * Gemini-specific model-gate script — uses BeforeModel event.
+ * BeforeModel is the only Gemini event that exposes the model name (in llm_request.model).
+ * Scans llm_request.messages for atta skill references to detect active skills.
+ * Outputs Gemini-preferred JSON on stdout: {"decision":"deny","reason":"..."} to block.
+ *
+ * Key differences from the generic model-gate.sh:
+ * - Input: llm_request.model + llm_request.messages (not tool_input or toolArgs)
+ * - Output: stdout JSON with decision field (not exit 2 + stderr)
+ * - Fires on every LLM call — fast-exits when no skill detected in messages
+ * - Tier matching checks light→mid→full (lowest match wins — handles Gemini Pro at both mid+full)
+ */
+export const MODEL_GATE_GEMINI_SCRIPT = `#!/bin/bash
+# model-gate-gemini.sh — Block skills running on costlier Gemini models than needed
+# Generated by Atta. Uses BeforeModel event (llm_request.model + messages).
+# Scans messages for atta skill references and checks model tier.
+# Use ATTA_MODEL_GATE=off to disable.
+set -euo pipefail
+
+# Hook profile check
+HOOK_PROFILE="\${ATTA_HOOKS:-standard}"
+[ "\$HOOK_PROFILE" = "off" ] && exit 0
+[ "\$HOOK_PROFILE" = "minimal" ] && exit 0
+
+# Global opt-out
+[ "\${ATTA_MODEL_GATE:-}" = "off" ] && exit 0
+
+INPUT=\$(cat)
+
+# Extract model and detect skill from messages
+# BeforeModel input: { "llm_request": { "model": "...", "messages": [...] } }
+IFS='|' read -r SKILL CURRENT_MODEL <<< "\$(echo "\$INPUT" | python3 -c "
+import json, sys, re
+
+data = json.load(sys.stdin)
+llm = data.get('llm_request', {})
+model = llm.get('model', '')
+
+# Scan messages in REVERSE — the user's /atta-lint prompt and loaded skill
+# instructions are in the most recent messages; agent definitions (atta-agent etc.)
+# appear earlier and would cause false matches if scanned first-to-last.
+messages = llm.get('messages', [])
+skill = ''
+pattern = re.compile(r'(?:^|/|\\\\b)(atta-[\\\\w-]+)')
+
+for msg in reversed(messages):
+    content = ''
+    if isinstance(msg, str):
+        content = msg
+    elif isinstance(msg, dict):
+        # Gemini message format: parts array with text fields
+        parts = msg.get('parts', [])
+        for p in parts:
+            if isinstance(p, dict):
+                content += p.get('text', '') + ' '
+            elif isinstance(p, str):
+                content += p + ' '
+        # Fallback: content field (other formats)
+        if not content.strip():
+            c = msg.get('content', '')
+            if isinstance(c, str):
+                content = c
+            elif isinstance(c, list):
+                for item in c:
+                    if isinstance(item, dict):
+                        content += item.get('text', '') + ' '
+    matches = pattern.findall(content)
+    for m in matches:
+        name = m.strip()
+        if name.startswith('atta-') and name != 'atta-' and len(name) > 5:
+            skill = name
+            break
+    if skill:
+        break
+
+print(f'{skill}|{model}')
+" 2>/dev/null || echo "|")"
+
+# Fast exit — no skill detected in messages (normal non-skill LLM calls)
+[ -z "\$SKILL" ] && exit 0
+
+REGISTRY=".atta/team/model-registry.json"
+[ ! -f "\$REGISTRY" ] && exit 0
+
+# Tier comparison in Python
+# Check order: light → mid → full (lowest match wins — Gemini Pro appears at both mid and full)
+IFS='|' read -r RESULT TIER MODEL_NAME CURRENT_TIER <<< "\$(REGISTRY="\$REGISTRY" SKILL="\$SKILL" CURRENT_MODEL="\$CURRENT_MODEL" python3 -c "
+import json, os, re, sys
+
+with open(os.environ['REGISTRY']) as f:
+    reg = json.load(f)
+
+skill = os.environ.get('SKILL', '')
+tier = reg.get('skills', {}).get(skill, '')
+if not tier:
+    print('skip|||')
+    sys.exit(0)
+
+adapter = 'gemini'
+model_name = reg.get('tiers', {}).get(tier, {}).get(adapter, tier)
+current_model = os.environ.get('CURRENT_MODEL', '')
+
+if not current_model:
+    if tier == 'light':
+        print(f'warn|{tier}|{model_name}|')
+    else:
+        print('skip|||')
+    sys.exit(0)
+
+def normalize(s):
+    return re.sub(r'[-_./]', ' ', s.lower()).strip()
+
+current_norm = normalize(current_model)
+
+def extract_keywords(label):
+    parts = label.lower().split(' or ')
+    keywords = []
+    for part in parts:
+        norm = normalize(part)
+        for kw in ['opus', 'sonnet', 'haiku', 'flash', 'pro']:
+            if kw in norm:
+                keywords.append(kw)
+        keywords.append(norm)
+    return keywords
+
+tier_rank = {'light': 1, 'mid': 2, 'full': 3}
+current_tier = None
+
+# Check light → mid → full (lowest match wins)
+for check_tier in ['light', 'mid', 'full']:
+    label = reg.get('tiers', {}).get(check_tier, {}).get(adapter, '')
+    if not label:
+        continue
+    keywords = extract_keywords(label)
+    for kw in keywords:
+        if kw and kw in current_norm:
+            current_tier = check_tier
+            break
+    if current_tier is not None:
+        break
+
+if current_tier is None:
+    print(f'unknown|{tier}|{model_name}|')
+else:
+    current_rank = tier_rank.get(current_tier, 0)
+    skill_rank = tier_rank.get(tier, 0)
+    if current_rank > skill_rank:
+        print(f'block|{tier}|{model_name}|{current_tier}')
+    else:
+        print('allow|||')
+" 2>/dev/null || echo "skip|||")"
+
+case "\$RESULT" in
+  block)
+    # Gemini: stdout JSON with decision deny (preferred over exit 2)
+    echo "[model-gate] BLOCKED: /\$SKILL is a \$TIER-tier skill but on \$CURRENT_MODEL (\$CURRENT_TIER tier)." >&2
+    REASON="[model-gate] /\$SKILL is a \$TIER-tier skill but you're on \$CURRENT_MODEL (\$CURRENT_TIER tier). Switch to \$MODEL_NAME or use --bypass." \\
+    python3 -c "import json,os; print(json.dumps({'decision':'deny','reason':os.environ['REASON']}))" 2>/dev/null \\
+      || echo '{"decision":"deny","reason":"model tier mismatch"}'
+    exit 0
+    ;;
+  warn)
+    echo "[model-gate] /\$SKILL is a lightweight skill — consider using \$MODEL_NAME for cost savings." >&2
+    exit 0
+    ;;
+  unknown)
+    echo "[model-gate] Unrecognized model '\$CURRENT_MODEL' — cannot verify tier for /\$SKILL (\$TIER)." >&2
+    exit 0
+    ;;
+  *)
+    exit 0
+    ;;
+esac
+`;
+
+/**
+ * Copilot skill-detect script — runs on userPromptSubmitted event.
+ * Detects /atta-* skill invocations from the user's prompt and stashes the
+ * skill name to a temp file. The preToolUse model-gate hook reads this file
+ * on the next tool call to enforce model tier restrictions.
+ *
+ * userPromptSubmitted output is ignored by Copilot — this script only writes
+ * the temp file as a side effect.
+ */
+export const SKILL_DETECT_COPILOT_SCRIPT = `#!/bin/bash
+# skill-detect-copilot.sh — Detect /atta-* skill from user prompt
+# Runs on userPromptSubmitted. Stashes skill name for model-gate-copilot.sh.
+set -euo pipefail
+
+[ "\${ATTA_HOOKS:-standard}" = "off" ] && exit 0
+[ "\${ATTA_HOOKS:-standard}" = "minimal" ] && exit 0
+[ "\${ATTA_MODEL_GATE:-}" = "off" ] && exit 0
+
+INPUT=\$(cat)
+
+# Extract skill name from the prompt field
+# Copilot rewrites /atta-lint to: 'Use the skill tool to invoke the "atta-lint" skill...'
+# so we match atta-* anywhere in the prompt (quotes, slashes, whitespace boundaries)
+SKILL="\$(echo "\$INPUT" | python3 -c "
+import json, sys, re
+data = json.load(sys.stdin)
+prompt = data.get('prompt', '')
+m = re.search(r'(atta-[\\\\w-]+)', prompt)
+print(m.group(1) if m else '')
+" 2>/dev/null)"
+
+if [ -n "\$SKILL" ]; then
+  mkdir -p .atta/local
+  echo "\$SKILL" > .atta/local/.active-skill
+
+  # If this is an agent invocation (atta-agent), extract the agent ID
+  # /atta-agent code-reviewer → active-agent = code-reviewer
+  if [ "\$SKILL" = "atta-agent" ]; then
+    AGENT_ID="\$(echo "\$INPUT" | python3 -c "
+import json, sys, re
+data = json.load(sys.stdin)
+prompt = data.get('prompt', '')
+# Copilot rewrites '/atta-agent code-reviewer' to something like:
+# 'Use the skill tool to invoke the \"atta-agent\" skill with input \"code-reviewer\"'
+# Strategy: find 'input' or 'argument' followed by a quoted agent slug
+m = re.search(r'(?:input|argument)[^\"]*\"([a-z][\w-]+)\"', prompt)
+if not m:
+    # Fallback: last quoted word that looks like an agent slug (not 'skill', 'atta-agent', etc.)
+    candidates = re.findall(r'\"([a-z][\w-]+)\"', prompt)
+    skip = {'atta-agent', 'skill', 'the', 'invoke', 'follow'}
+    candidates = [c for c in candidates if c not in skip and not c.startswith('atta-')]
+    m_val = candidates[-1] if candidates else ''
+else:
+    m_val = m.group(1)
+print(m_val)
+" 2>/dev/null)"
+    if [ -n "\$AGENT_ID" ]; then
+      echo "\$AGENT_ID" > .atta/local/.active-agent
+    fi
+  fi
+else
+  # Not a skill invocation — clear stale markers
+  rm -f .atta/local/.active-skill
+  rm -f .atta/local/.active-agent
+fi
+exit 0
+`;
+
+/**
+ * Copilot model-gate script — runs on preToolUse event.
+ * Reads the active skill from the temp file written by skill-detect-copilot.sh.
+ * Detects the model from COPILOT_MODEL env var or ~/.copilot/config.json.
+ * Outputs permissionDecision JSON to stdout to block tool execution.
+ *
+ * Model detection precedence (matches Copilot CLI behavior):
+ * 1. COPILOT_MODEL env var (user sets in shell)
+ * 2. ~/.copilot/config.json "model" key
+ * 3. If neither found → advisory warning only
+ */
+export const MODEL_GATE_COPILOT_SCRIPT = `#!/bin/bash
+# model-gate-copilot.sh — Block skills running on costlier models than needed (Copilot)
+# Generated by Atta. Uses temp file relay from skill-detect-copilot.sh.
+# Detects model from COPILOT_MODEL env var or ~/.copilot/config.json.
+set -euo pipefail
+
+# Hook profile check
+HOOK_PROFILE="\${ATTA_HOOKS:-standard}"
+[ "\$HOOK_PROFILE" = "off" ] && exit 0
+[ "\$HOOK_PROFILE" = "minimal" ] && exit 0
+[ "\${ATTA_MODEL_GATE:-}" = "off" ] && exit 0
+
+# Read active skill from temp file (set by skill-detect-copilot.sh)
+SKILL_FILE=".atta/local/.active-skill"
+[ ! -f "\$SKILL_FILE" ] && exit 0
+
+SKILL="\$(cat "\$SKILL_FILE")"
+[ -z "\$SKILL" ] && exit 0
+
+# Consume stdin (Copilot sends preToolUse JSON — we don't need it for skill detection)
+cat > /dev/null
+
+# Keep the file — block ALL tool calls while a mismatched skill is active.
+# File is cleaned up by skill-detect-copilot.sh on the next non-skill prompt.
+
+REGISTRY=".atta/team/model-registry.json"
+[ ! -f "\$REGISTRY" ] && exit 0
+
+# Detect current model: env var → config file → empty
+CURRENT_MODEL="\${COPILOT_MODEL:-}"
+if [ -z "\$CURRENT_MODEL" ]; then
+  # Try reading from Copilot config
+  CONFIG_HOME="\${COPILOT_HOME:-\$HOME/.copilot}"
+  CONFIG_FILE="\$CONFIG_HOME/config.json"
+  if [ -f "\$CONFIG_FILE" ]; then
+    CURRENT_MODEL="\$(CONFIG_FILE="\$CONFIG_FILE" python3 -c "
+import json, os
+with open(os.environ['CONFIG_FILE']) as f:
+    print(json.load(f).get('model', ''))
+" 2>/dev/null || echo "")"
+  fi
+fi
+
+# Tier comparison in Python (same logic as other adapters)
+ADAPTER="copilot"
+IFS='|' read -r RESULT TIER MODEL_NAME CURRENT_TIER <<< "\$(REGISTRY="\$REGISTRY" SKILL="\$SKILL" ADAPTER="\$ADAPTER" CURRENT_MODEL="\$CURRENT_MODEL" python3 -c "
+import json, os, re, sys
+
+with open(os.environ['REGISTRY']) as f:
+    reg = json.load(f)
+
+skill = os.environ.get('SKILL', '')
+tier = reg.get('skills', {}).get(skill, '')
+if not tier:
+    print('skip|||')
+    sys.exit(0)
+
+adapter = os.environ.get('ADAPTER', 'copilot')
+model_name = reg.get('tiers', {}).get(tier, {}).get(adapter, tier)
+current_model = os.environ.get('CURRENT_MODEL', '')
+
+if not current_model:
+    if tier == 'light':
+        print(f'warn|{tier}|{model_name}|')
+    else:
+        print('skip|||')
+    sys.exit(0)
+
+def normalize(s):
+    return re.sub(r'[-_./]', ' ', s.lower()).strip()
+
+current_norm = normalize(current_model)
+
+def extract_keywords(label):
+    parts = label.lower().split(' or ')
+    keywords = []
+    for part in parts:
+        norm = normalize(part)
+        for kw in ['opus', 'sonnet', 'haiku', 'flash', 'pro', 'mini']:
+            if kw in norm:
+                keywords.append(kw)
+        keywords.append(norm)
+    return keywords
+
+tier_rank = {'light': 1, 'mid': 2, 'full': 3}
+current_tier = None
+
+# Check full → mid → light (highest first — prevents generic keywords from
+# incorrectly classifying expensive models at a lower tier)
+for check_tier in ['full', 'mid', 'light']:
+    label = reg.get('tiers', {}).get(check_tier, {}).get(adapter, '')
+    if not label:
+        continue
+    keywords = extract_keywords(label)
+    for kw in keywords:
+        if kw and kw in current_norm:
+            current_tier = check_tier
+            break
+    if current_tier is not None:
+        break
+
+if current_tier is None:
+    print(f'unknown|{tier}|{model_name}|')
+else:
+    current_rank = tier_rank.get(current_tier, 0)
+    skill_rank = tier_rank.get(tier, 0)
+    if current_rank > skill_rank:
+        print(f'block|{tier}|{model_name}|{current_tier}')
+    else:
+        print('allow|||')
+" 2>/dev/null || echo "skip|||")"
+
+case "\$RESULT" in
+  block)
+    # Copilot: exit 0 with deny JSON on stdout (exit 2 is treated as script error)
+    REASON="[model-gate] /\$SKILL is a \$TIER-tier skill but you're on \$CURRENT_MODEL (\$CURRENT_TIER tier). Switch to \$MODEL_NAME or use --bypass."
+    REASON="\$REASON" python3 -c "import json,os; print(json.dumps({'permissionDecision':'deny','permissionDecisionReason':os.environ['REASON']}))" 2>/dev/null \\
+      || echo '{"permissionDecision":"deny","permissionDecisionReason":"model tier mismatch"}'
+    exit 0
+    ;;
+  warn)
+    echo "[model-gate] /\$SKILL is a lightweight skill — consider using \$MODEL_NAME for cost savings." >&2
+    exit 0
+    ;;
+  unknown)
+    echo "[model-gate] Unrecognized model '\$CURRENT_MODEL' — cannot verify tier for /\$SKILL (\$TIER). Allowing, but consider using \$MODEL_NAME." >&2
+    exit 0
+    ;;
+  *)
+    exit 0
+    ;;
+esac
+`;
+
+/**
+ * Agent enforcement hook script — blocks disallowed tools for the active agent.
+ * Reads .atta/local/.active-agent (set by skill-detect-copilot.sh) and .atta/team/agent-constraints.json.
+ * Currently enforces on Copilot only (temp file relay). Gemini/Cursor hooks are wired but
+ * enforcement is advisory until those tools support agent detection in hook stdin.
+ */
+export const AGENT_ENFORCE_SCRIPT = `#!/bin/bash
+# agent-enforce.sh — Block tools disallowed by the active agent
+# Generated by Atta. Reads agent-constraints.json for per-agent tool restrictions.
+set -euo pipefail
+
+# Hook profiles — respect ATTA_HOOKS env var
+HOOK_PROFILE="\${ATTA_HOOKS:-standard}"
+[ "\$HOOK_PROFILE" = "off" ] && exit 0
+[ "\$HOOK_PROFILE" = "minimal" ] && exit 0
+
+AGENT_FILE=".atta/local/.active-agent"
+CONSTRAINTS=".atta/team/agent-constraints.json"
+
+[ ! -f "\$CONSTRAINTS" ] && exit 0
+
+# Read agent from temp file (set by skill-detect on Copilot).
+# If no file exists (Gemini/Cursor), fall through — enforcement skipped
+# until the tool supports agent detection in hook stdin.
+AGENT=""
+if [ -f "\$AGENT_FILE" ]; then
+  AGENT="\$(cat "\$AGENT_FILE")"
+fi
+[ -z "\$AGENT" ] && exit 0
+
+# Read stdin to get toolName
+INPUT="\$(cat)"
+TOOL_NAME="\$(echo "\$INPUT" | python3 -c "
+import json, sys
+data = json.load(sys.stdin)
+# Copilot: toolName at top level; Gemini/Cursor: tool_input.tool or toolName
+print(data.get('toolName', data.get('tool_input', {}).get('tool', '')))
+" 2>/dev/null || echo "")"
+
+[ -z "\$TOOL_NAME" ] && exit 0
+
+# Check if tool is disallowed for this agent
+# Normalize tool names across adapters: Cursor uses EditFile/CreateFile/Shell,
+# Claude/Copilot use Edit/Write/Bash. Map to canonical Claude names for matching.
+BLOCKED="\$(AGENT="\$AGENT" TOOL="\$TOOL_NAME" CONSTRAINTS_FILE="\$CONSTRAINTS" python3 -c "
+import json, os, sys
+
+# Adapter tool name → canonical name (Claude Code vocabulary)
+TOOL_ALIASES = {
+    'editfile': 'edit', 'createfile': 'write', 'writefile': 'write',
+    'shell': 'bash', 'run_command': 'bash', 'execute_command': 'bash',
+    'readfile': 'read', 'view': 'read', 'viewfile': 'read',
+    'findfiles': 'glob', 'searchfiles': 'grep', 'listfiles': 'glob',
+}
+
+with open(os.environ['CONSTRAINTS_FILE']) as f:
+    constraints = json.load(f)
+agent = os.environ.get('AGENT', '')
+tool = os.environ.get('TOOL', '')
+disallowed = constraints.get(agent, {}).get('disallowedTools', [])
+# Normalize both sides to lowercase, then apply aliases
+tool_lower = tool.lower()
+tool_canonical = TOOL_ALIASES.get(tool_lower, tool_lower)
+disallowed_norm = {TOOL_ALIASES.get(d.lower(), d.lower()) for d in disallowed}
+blocked = tool_canonical in disallowed_norm
+print('yes' if blocked else 'no')
+" 2>/dev/null || echo "no")"
+
+# Check file-path constraints (allowedFiles)
+if [ "\$BLOCKED" = "no" ]; then
+  # Extract target file path from tool args (varies by tool)
+  TARGET_FILE="\$(echo "\$INPUT" | python3 -c "
+import json, sys
+data = json.load(sys.stdin)
+args = data.get('toolArgs', data.get('tool_input', {}))
+if isinstance(args, str):
+    import json as j
+    try: args = j.loads(args)
+    except: args = {}
+# Common file path field names across tools
+for key in ['file_path', 'path', 'target_file', 'filePath', 'file']:
+    val = args.get(key, '')
+    if val:
+        print(val)
+        sys.exit(0)
+print('')
+" 2>/dev/null || echo "")"
+
+  if [ -n "\$TARGET_FILE" ]; then
+    BLOCKED="\$(AGENT="\$AGENT" FILE="\$TARGET_FILE" CONSTRAINTS_FILE="\$CONSTRAINTS" python3 -c "
+import json, os, sys
+from pathlib import PurePosixPath
+with open(os.environ['CONSTRAINTS_FILE']) as f:
+    constraints = json.load(f)
+agent = os.environ.get('AGENT', '')
+target = os.environ.get('FILE', '').lstrip('./')
+allowed = constraints.get(agent, {}).get('allowedFiles', [])
+if not allowed:
+    print('no')
+    sys.exit(0)
+# PurePosixPath.match supports ** globstar correctly
+matched = any(PurePosixPath(target).match(g) for g in allowed)
+print('no' if matched else 'yes')
+" 2>/dev/null || echo "no")"
+    if [ "\$BLOCKED" = "yes" ]; then
+      TOOL_NAME="file-scope"
+    fi
+  fi
+fi
+
+if [ "\$BLOCKED" = "yes" ]; then
+  ADAPTER="\${ATTA_ADAPTER:-}"
+  if [ "\$TOOL_NAME" = "file-scope" ]; then
+    REASON="[agent-enforce] Agent '\$AGENT' cannot access '\$TARGET_FILE'. This file is outside the agent's allowed scope."
+  else
+    REASON="[agent-enforce] Agent '\$AGENT' is not allowed to use '\$TOOL_NAME'. This tool is restricted for this agent role."
+  fi
+  echo "\$REASON" >&2
+  if [ "\$ADAPTER" = "copilot" ]; then
+    # Copilot: stdout JSON with permissionDecision
+    REASON="\$REASON" python3 -c "import json,os; print(json.dumps({'permissionDecision':'deny','permissionDecisionReason':os.environ['REASON']}))" 2>/dev/null \\
+      || echo '{"permissionDecision":"deny","permissionDecisionReason":"agent tool restriction"}'
+    exit 0
+  else
+    # Gemini/Cursor: exit 2 to block
+    exit 2
+  fi
+fi
+
+exit 0
+`;
+
+/**
+ * Write hook scripts to .atta/scripts/hooks/ in the target project.
+ * Called by adapters that need command-type hooks (Copilot, Cursor, Gemini).
+ *
+ * @param {string} targetDir - Project root
+ * @returns {number} Number of scripts written
+ */
+export function writeHookScripts(targetDir) {
+  const hooksDir = join(targetDir, '.atta', 'scripts', 'hooks');
+  mkdirSync(hooksDir, { recursive: true });
+
+  // Always overwrite — keep scripts in sync with hooks.json (which is also always regenerated)
+  writeFileSync(join(hooksDir, 'pre-bash-safety.sh'), PRE_BASH_SAFETY_SCRIPT, { mode: 0o755 });
+  writeFileSync(join(hooksDir, 'stop-quality-gate.sh'), STOP_QUALITY_GATE_SCRIPT, { mode: 0o755 });
+  writeFileSync(join(hooksDir, 'model-gate.sh'), MODEL_GATE_SCRIPT, { mode: 0o755 });
+  writeFileSync(join(hooksDir, 'model-gate-gemini.sh'), MODEL_GATE_GEMINI_SCRIPT, { mode: 0o755 });
+  writeFileSync(join(hooksDir, 'skill-detect-copilot.sh'), SKILL_DETECT_COPILOT_SCRIPT, { mode: 0o755 });
+  writeFileSync(join(hooksDir, 'model-gate-copilot.sh'), MODEL_GATE_COPILOT_SCRIPT, { mode: 0o755 });
+  writeFileSync(join(hooksDir, 'agent-enforce.sh'), AGENT_ENFORCE_SCRIPT, { mode: 0o755 });
+
+  return 7;
+}
+
+/**
+ * Write agent constraints manifest to .atta/team/.
+ * @param {string} targetDir - Project root
+ * @param {object} constraints - From generateAgentConstraints()
+ */
+export function writeAgentConstraints(targetDir, constraints) {
+  const teamDir = join(targetDir, '.atta', 'team');
+  mkdirSync(teamDir, { recursive: true });
+  writeFileSync(
+    join(teamDir, 'agent-constraints.json'),
+    JSON.stringify(constraints, null, 2) + '\n'
+  );
+}
+
+// ─── Frontmatter Parsing ─────────────────────────────────────────────
+
+/**
  * Parse YAML frontmatter from an agent markdown file.
- * Handles flat key-value pairs only — multiline YAML values are rejected
- * with a clear error rather than silently truncated.
+ * Handles key-value pairs, block lists (  - item), inline flow lists ([a, b]),
+ * and scalar type conversion (booleans, numbers). Multiline YAML values are
+ * rejected with a clear error rather than silently truncated.
  *
  * @param {string} content - Full markdown content with optional frontmatter
- * @returns {{ frontmatter: Object<string,string>, body: string }}
- * @throws {Error} If frontmatter contains multiline YAML or malformed lines
+ * @returns {{ frontmatter: Object<string, string|string[]|boolean|number>, body: string }}
+ * @throws {Error} If frontmatter contains multiline YAML, orphan list items, or malformed lines
  */
 export function parseAgentFrontmatter(content) {
   // Normalize CRLF → LF for cross-platform compatibility (Windows-edited files)
@@ -134,26 +1313,68 @@ export function parseAgentFrontmatter(content) {
   }
 
   const fm = {};
-  for (const line of match[1].split('\n')) {
+  const fmLines = match[1].split('\n');
+  let currentKey = null;
+
+  for (let i = 0; i < fmLines.length; i++) {
+    const line = fmLines[i];
     // Skip empty lines and YAML comments
     if (!line.trim() || line.trim().startsWith('#')) continue;
+
+    // YAML list item (  - value) — append to current key's array
+    // Only valid if the current key was declared as an array (empty value after colon)
+    const listMatch = line.match(/^\s+-\s+(.+)$/);
+    if (listMatch) {
+      if (currentKey && Array.isArray(fm[currentKey])) {
+        const itemValue = listMatch[1].trim();
+        // Strip quotes from list items
+        const qm = itemValue.match(/^(['"])(.*)\1$/);
+        fm[currentKey].push(qm ? qm[2] : itemValue);
+        continue;
+      }
+      throw new Error(
+        `Orphan list item in agent frontmatter: "${line.trim()}". ` +
+        `List items must follow a key declared as an array (e.g., "tools:" on its own line).`
+      );
+    }
 
     const kvMatch = line.match(/^([\w][\w-]*)\s*:\s*(.*)$/);
     if (!kvMatch) {
       throw new Error(
         `Malformed agent frontmatter line: "${line}". ` +
-        `Only single-line key: value pairs are supported.`
+        `Only key: value pairs and list items (  - value) are supported.`
       );
     }
 
+    currentKey = kvMatch[1];
     const value = kvMatch[2].trim();
 
     // Detect multiline YAML block indicators — fail fast instead of silent truncation
     if (/^[>|][+-]?$/.test(value)) {
       throw new Error(
         `Unsupported multiline YAML value for "${kvMatch[1]}" (found "${value}"). ` +
-        `Agent frontmatter only supports single-line key: value pairs.`
+        `Agent frontmatter only supports single-line values and lists.`
       );
+    }
+
+    // Empty value after colon — next lines may be list items
+    if (!value) {
+      fm[currentKey] = [];
+      continue;
+    }
+
+    // Inline flow list: key: [a, b, c]
+    const flowListMatch = value.match(/^\[(.*)\]$/);
+    if (flowListMatch) {
+      fm[currentKey] = flowListMatch[1]
+        .split(',')
+        .map(item => item.trim())
+        .filter(Boolean)
+        .map(item => {
+          const qm = item.match(/^(['"])(.*)\1$/);
+          return qm ? qm[2] : item;
+        });
+      continue;
     }
 
     // Strip surrounding quotes and unescape if present (both single and double)
@@ -164,9 +1385,10 @@ export function parseAgentFrontmatter(content) {
       if (quoteMatch[1] === '"') {
         inner = inner.replace(/\\(["\\])/g, '$1');
       }
-      fm[kvMatch[1]] = inner;
+      fm[currentKey] = inner;
     } else {
-      fm[kvMatch[1]] = value;
+      // Convert YAML scalars: booleans and numbers (ensures round-trip with serializeFrontmatter)
+      fm[currentKey] = convertYamlScalar(value);
     }
   }
 
@@ -177,13 +1399,27 @@ export function parseAgentFrontmatter(content) {
  * Serialize a frontmatter object back to YAML fences.
  * Values containing YAML-significant characters are double-quoted.
  *
- * @param {Object<string,string>} fm - Frontmatter key-value pairs
+ * @param {Object<string, string|string[]|boolean|number>} fm - Frontmatter key-value pairs (supports arrays, booleans, numbers)
  * @returns {string} YAML frontmatter block (with --- delimiters)
  */
 function serializeFrontmatter(fm) {
   const lines = ['---'];
   for (const [key, value] of Object.entries(fm)) {
-    lines.push(`${key}: ${yamlQuoteIfNeeded(value)}`);
+    if (Array.isArray(value)) {
+      if (value.length === 0) {
+        lines.push(`${key}: []`);
+      } else {
+        lines.push(`${key}:`);
+        for (const item of value) {
+          lines.push(`  - ${yamlQuoteIfNeeded(item)}`);
+        }
+      }
+    } else if (typeof value === 'boolean' || typeof value === 'number') {
+      // Booleans and numbers are emitted unquoted (YAML native types)
+      lines.push(`${key}: ${value}`);
+    } else {
+      lines.push(`${key}: ${yamlQuoteIfNeeded(value)}`);
+    }
   }
   lines.push('---');
   return lines.join('\n');
@@ -194,6 +1430,19 @@ function serializeFrontmatter(fm) {
  * misinterpreted by a YAML parser (colon-space, space-hash, indicator
  * chars, boolean/null literals, leading/trailing whitespace, or is empty).
  */
+/**
+ * Convert unquoted YAML scalar strings to native JS types.
+ * Handles booleans (true/false/yes/no) and numbers.
+ * Returns the original string if no conversion applies.
+ */
+function convertYamlScalar(value) {
+  if (/^(true|yes|on)$/i.test(value)) return true;
+  if (/^(false|no|off)$/i.test(value)) return false;
+  if (/^-?\d+$/.test(value)) return parseInt(value, 10);
+  if (/^-?\d+\.\d+$/.test(value)) return parseFloat(value);
+  return value;
+}
+
 function yamlQuoteIfNeeded(value) {
   if (value === undefined || value === null) return '""';
   const str = String(value);
@@ -210,6 +1459,130 @@ function yamlQuoteIfNeeded(value) {
   return str;
 }
 
+// ─── Skill Conflict Detection ────────────────────────────────────────
+
+/**
+ * Known built-in commands per tool that would conflict with custom skills.
+ * A conflicting name can silently break ALL custom commands in some tools
+ * (e.g., Claude Code — see GitHub issue #13586).
+ *
+ * Lists are intentionally minimal — only commands confirmed to cause conflicts.
+ * Atta skills use the atta-* prefix which avoids most collisions.
+ */
+const BUILTIN_COMMANDS = {
+  'claude-code': new Set([
+    'help', 'clear', 'compact', 'model', 'cost', 'status', 'login', 'logout',
+    'config', 'permissions', 'doctor', 'bug', 'init', 'review', 'memory',
+    'skill', 'agent', 'hooks', 'mcp', 'listen', 'vim', 'fast',
+  ]),
+  copilot: new Set([
+    'help', 'clear', 'review', 'agent', 'update', 'test', 'fix', 'explain',
+    'doc', 'generate', 'workspace', 'terminal',
+  ]),
+  cursor: new Set([
+    'help', 'clear', 'review', 'chat', 'edit', 'generate', 'fix', 'explain',
+    'doc', 'test', 'terminal', 'web',
+  ]),
+  codex: new Set([
+    'help', 'clear', 'model', 'approval', 'history',
+  ]),
+  gemini: new Set([
+    'help', 'clear', 'chat', 'memory', 'stats', 'tools', 'compress',
+    'restore', 'save',
+  ]),
+};
+
+/**
+ * Check for naming conflicts between custom skills and tool built-in commands.
+ * Emits non-blocking warnings to console. Does not prevent init.
+ *
+ * @param {Array<{name: string, dirName: string}>} skills - Skills from listSkills()
+ * @param {'claude-code'|'copilot'|'cursor'|'gemini'|'codex'} adapter - Target adapter
+ * @param {object} [options]
+ * @param {boolean} [options.quiet] - Suppress output
+ * @returns {string[]} Array of conflicting skill names (empty if none)
+ */
+export function checkSkillConflicts(skills, adapter, options = {}) {
+  const builtins = BUILTIN_COMMANDS[adapter];
+  if (!builtins) return [];
+
+  const conflicts = [];
+  for (const skill of skills) {
+    // Check both the directory name and the name field (may differ)
+    const namesToCheck = new Set([skill.dirName, skill.name]);
+    for (const name of namesToCheck) {
+      if (builtins.has(name)) {
+        conflicts.push(name);
+        if (!options.quiet) {
+          console.warn(
+            `  ${pc.yellow('⚠')} Skill "${name}" conflicts with ${adapter} built-in "/${name}" — may shadow built-in command`
+          );
+        }
+      }
+    }
+  }
+
+  return conflicts;
+}
+
+// ─── Skill Frontmatter Field Sets ────────────────────────────────────
+
+/**
+ * Frontmatter fields preserved per adapter when installing SKILL.md files.
+ * Fields outside these sets are stripped during install to avoid
+ * validator warnings (Copilot) or noise (Codex).
+ *
+ * Claude Code: no filtering needed (source IS the install, all fields native)
+ * Cursor: uses MDC conversion (all frontmatter stripped, NL embedding instead)
+ * Gemini: uses TOML conversion (all frontmatter stripped, NL embedding instead)
+ */
+
+/** Copilot: name, description, license (spec), disable-model-invocation, user-invocable (runtime) */
+export const COPILOT_SKILL_FIELDS = new Set([
+  'name', 'description', 'license',
+  'disable-model-invocation', 'user-invocable',
+]);
+
+/** Cursor: Agent Skills spec fields (strict validation rejects unknown fields) */
+export const CURSOR_SKILL_FIELDS = new Set([
+  'name', 'description', 'license',
+  'allowed-tools', 'metadata', 'model',
+  'disable-model-invocation', 'user-invocable',
+]);
+
+/** Codex: only reads name + description from SKILL.md frontmatter */
+export const CODEX_SKILL_FIELDS = new Set(['name', 'description']);
+
+// ─── Skill Frontmatter Filtering ─────────────────────────────────────
+
+/**
+ * Filter SKILL.md frontmatter to only include fields supported by a specific adapter.
+ * Takes the raw frontmatter block (including --- delimiters) and returns a filtered version.
+ *
+ * @param {string} frontmatterBlock - Raw frontmatter including --- delimiters and trailing newline
+ * @param {Set<string>} allowedFields - Set of field names to preserve
+ * @returns {string} Filtered frontmatter block with --- delimiters
+ */
+export function filterSkillFrontmatter(frontmatterBlock, allowedFields) {
+  const lines = frontmatterBlock.split('\n');
+  const filtered = ['---'];
+
+  for (const line of lines) {
+    if (line === '---' || line.trim() === '') continue;
+    const colonIdx = line.indexOf(':');
+    if (colonIdx === -1) continue;
+    const key = line.slice(0, colonIdx).trim();
+    if (allowedFields.has(key)) {
+      filtered.push(line);
+    }
+  }
+
+  filtered.push('---');
+  return filtered.join('\n') + '\n';
+}
+
+// ─── File Operations ─────────────────────────────────────────────────
+
 /**
  * Copy agent definition .md files from framework source to target directory.
  * Copies core agents, coordinators, and specialists.
@@ -222,10 +1595,11 @@ function yamlQuoteIfNeeded(value) {
  * @param {string} [options.extension='.md'] - Output file extension (e.g., '.agent.md' for Copilot)
  * @param {function} [options.transformFrontmatter] - Transform frontmatter object before writing
  * @param {function} [options.transformBody] - Transform body text before writing
+ * @param {string[]} [options.selectedAgents] - Agent IDs to install (filters root agents). If omitted, all agents are copied.
  * @returns {number} Number of files copied
  */
 export function copyAgentFiles(claudeRoot, destAgentsDir, options = {}) {
-  const { extension = '.md', transformFrontmatter, transformBody } = options;
+  const { extension = '.md', transformFrontmatter, transformBody, selectedAgents } = options;
   const srcAgentsDir = join(claudeRoot, 'agents');
   if (!existsSync(srcAgentsDir)) return 0;
 
@@ -256,18 +1630,45 @@ export function copyAgentFiles(claudeRoot, destAgentsDir, options = {}) {
     count++;
   }
 
-  // Core agents (root .md files, skip INDEX, README, and subdirectories)
+  // Root agents (core + optional .md files, skip INDEX, README, and subdirectories)
+  // When selectedAgents is provided, only copy agents in the list
   const rootFiles = readdirSync(srcAgentsDir, { withFileTypes: true })
     .filter(
       (f) =>
         f.isFile() &&
         f.name.endsWith('.md') &&
         f.name !== 'INDEX.md' &&
-        f.name !== 'README.md'
+        f.name !== 'README.md' &&
+        (!selectedAgents || selectedAgents.includes(f.name.replace(/\.md$/, '')))
     );
 
   for (const file of rootFiles) {
     processFile(join(srcAgentsDir, file.name), destAgentsDir, file.name);
+  }
+
+  // Remove stale framework-provided root agents from destination that are no longer selected
+  // (handles re-init with a narrower agent selection)
+  // Only delete agents that exist in the framework source — never touch user-created custom agents
+  if (selectedAgents && existsSync(destAgentsDir)) {
+    const frameworkAgentIds = new Set(
+      readdirSync(srcAgentsDir, { withFileTypes: true })
+        .filter((f) => f.isFile() && f.name.endsWith('.md') && f.name !== 'INDEX.md' && f.name !== 'README.md')
+        .map((f) => f.name.replace(/\.md$/, ''))
+    );
+    const existingFiles = readdirSync(destAgentsDir, { withFileTypes: true })
+      .filter(
+        (f) =>
+          f.isFile() &&
+          f.name.endsWith(extension) &&
+          f.name !== 'INDEX.md' &&
+          f.name !== 'README.md'
+      );
+    for (const file of existingFiles) {
+      const agentId = file.name.slice(0, -extension.length);
+      if (frameworkAgentIds.has(agentId) && !selectedAgents.includes(agentId)) {
+        unlinkSync(join(destAgentsDir, file.name));
+      }
+    }
   }
 
   // Coordinators
@@ -297,13 +1698,16 @@ export function copyAgentFiles(claudeRoot, destAgentsDir, options = {}) {
 
 /**
  * List canonical agent files from .claude/agents/ with parsed frontmatter.
- * Returns flat array of { name, description, fileName } for all core agents.
+ * Returns flat array of { name, description, fileName } for all root agents (core + optional).
  * Used by adapters that need to generate tool-specific agent configs (e.g., Codex TOML).
  *
  * @param {string} claudeRoot - Path to .claude/ source
+ * @param {object} [options]
+ * @param {string[]} [options.selectedAgents] - Agent IDs to include. If omitted, all agents are returned.
  * @returns {Array<{ name: string, description: string, fileName: string }>}
  */
-export function listAgentDefs(claudeRoot) {
+export function listAgentDefs(claudeRoot, options = {}) {
+  const { selectedAgents } = options;
   const srcAgentsDir = join(claudeRoot, 'agents');
   if (!existsSync(srcAgentsDir)) return [];
 
@@ -314,7 +1718,8 @@ export function listAgentDefs(claudeRoot) {
         f.isFile() &&
         f.name.endsWith('.md') &&
         f.name !== 'INDEX.md' &&
-        f.name !== 'README.md'
+        f.name !== 'README.md' &&
+        (!selectedAgents || selectedAgents.includes(f.name.replace(/\.md$/, '')))
     );
 
   for (const file of rootFiles) {
@@ -367,33 +1772,36 @@ export function copyBootstrap(attaRoot, targetDir, options = {}) {
  * Paths are relative to their respective directory inside .atta/.
  */
 const USER_OWNED_FILES = {
-  knowledge: new Set(['developer-profile.md']),
+  // local/ is not in SHARED_DIRS (copied via SHARED_FILES instead).
+  // developer-profile.md is protected by init.js (only written if absent).
   project: new Set(['project-context.md', 'project-profile.md']),
+  // team/ files that /atta generates or users customize — don't overwrite on re-init.
+  team: new Set(['quick-reference.md', 'templates/pr-template.md']),
 };
 
 /** Shared directories to copy from .atta/ source to .atta/ in the target */
 const SHARED_DIRS = [
-  'knowledge',
+  'team',
   'project',
   'scripts',
   '.metadata',
-  '.context',
   // Note: 'docs' intentionally excluded — Atta meta-docs don't ship to user projects.
   // Users can read them at https://github.com/nicholasgasior/atta-dev
 ];
 
-/** Individual shared files to copy */
+/** Individual shared files to copy to .atta/local/ */
 const SHARED_FILES = [
-  '.sessions/schema.json',
-  '.sessions/README.md',
-  '.sessions/TRACKING_GUIDE.md',
-  '.sessions/SKILL_TEMPLATE.md',
-  '.sessions/INTEGRATION_EXAMPLE.md',
+  'local/sessions/schema.json',
+  'local/sessions/README.md',
+  'local/sessions/TRACKING_GUIDE.md',
+  'local/sessions/SKILL_TEMPLATE.md',
+  'local/sessions/INTEGRATION_EXAMPLE.md',
+  'local/context/README.md',
 ];
 
 /**
  * Copy shared (tool-agnostic) content from .atta/ source to .atta/ in the target project.
- * Copies knowledge, scripts, metadata, context, and session schema. Does not copy docs.
+ * Copies team content, scripts, metadata, and local templates. Does not copy docs.
  *
  * @param {string} attaRoot - Path to .atta/ source
  * @param {string} targetDir - Project root where .atta/ will be populated
@@ -443,7 +1851,7 @@ export function copySharedContent(attaRoot, targetDir, options = {}) {
   }
 
   if (!options.quiet && SHARED_FILES.length > 0) {
-    console.log(`  ${pc.green('✓')} .atta/.sessions/ (schema + templates)`);
+    console.log(`  ${pc.green('✓')} .atta/local/ (sessions schema + context template)`);
   }
 
   return totalCount;
@@ -458,7 +1866,7 @@ export function copySharedContent(attaRoot, targetDir, options = {}) {
  * @param {string} config.agentsPath - Agent directory path (e.g., '.github/atta/agents', '.agents/agents')
  * @param {string} config.memoryPath - Memory directory path (e.g., '.github/atta/agents/memory')
  * @param {Object<string,string>} [config.commandMap] - Map of original→rewritten commands (e.g., { review: '/atta-review' })
- * @param {boolean} [config.resolveAttaPlaceholders=false] - Resolve {attaDir}/{agentsDir}/{bootstrapDir}/{knowledgeDir}/{metadataDir} to literal paths
+ * @param {boolean} [config.resolveAttaPlaceholders=false] - Resolve {attaDir}/{agentsDir}/{bootstrapDir}/{teamDir}/{localDir}/{metadataDir} to literal paths
  * @returns {string} Rewritten skill body
  */
 export function rewriteSkillBody(body, config) {
@@ -479,7 +1887,7 @@ export function rewriteSkillBody(body, config) {
   result = result.replace(/\.claude\/agents\//g, `${agentsPath}/`);
   result = result.replace(/\.claude\/agents(?=[`\s]|$)/g, agentsPath);
 
-  // 3. Replace slash-command references: `/review`, `/agent`, etc.
+  // 3. Replace slash-command references: `/atta-review`, `/atta-agent`, etc.
   //    Use capturing group for prefix instead of lookbehind (valid across all Node versions)
   for (const [original, replacement] of Object.entries(commandMap)) {
     const pattern = new RegExp(
@@ -522,7 +1930,9 @@ export function rewriteSkillBody(body, config) {
     result = result.replace(/\{attaDir\}/g, '.atta');
     result = result.replace(/\{agentsDir\}/g, agentsPath);
     result = result.replace(/\{bootstrapDir\}/g, '.atta/bootstrap');
-    result = result.replace(/\{knowledgeDir\}/g, '.atta/knowledge');
+    result = result.replace(/\{knowledgeDir\}/g, '.atta/team');
+    result = result.replace(/\{teamDir\}/g, '.atta/team');
+    result = result.replace(/\{localDir\}/g, '.atta/local');
     result = result.replace(/\{metadataDir\}/g, '.atta/.metadata');
   }
 
@@ -578,4 +1988,49 @@ function countFiles(dir) {
     }
   }
   return count;
+}
+
+// ─── Cross-Tool Name Mappings ───────────────────────────────────────
+
+/**
+ * Map Claude Code tool names to Copilot tool names.
+ * Verified against GitHub docs (copilot/reference/custom-agents-configuration.md).
+ * Copilot accepts aliases case-insensitively; this map uses exact CC tool names as keys.
+ *
+ * @param {string[]|string} tools - Claude Code tool names
+ * @returns {string[]} Copilot tool names (deduplicated)
+ */
+export function mapToolsToCopilot(tools) {
+  const CC_TO_COPILOT = {
+    Read: 'read', Edit: 'edit', Write: 'edit',
+    Grep: 'search', Glob: 'search', Bash: 'execute', Agent: 'agent',
+  };
+  const list = Array.isArray(tools) ? tools : tools.split(/,\s*/);
+  const mapped = new Set();
+  for (const tool of list) {
+    const name = CC_TO_COPILOT[tool.trim()];
+    if (name) mapped.add(name);
+  }
+  return [...mapped];
+}
+
+/**
+ * Map Claude Code tool names to Gemini tool names.
+ * Verified against gemini-cli docs (docs/tools/file-system.md, docs/tools/shell.md).
+ *
+ * @param {string[]|string} tools - Claude Code tool names
+ * @returns {string[]} Gemini tool names (deduplicated)
+ */
+export function mapToolsToGemini(tools) {
+  const CC_TO_GEMINI = {
+    Read: 'read_file', Edit: 'replace', Write: 'write_file',
+    Grep: 'grep_search', Glob: 'glob', Bash: 'run_shell_command',
+  };
+  const list = Array.isArray(tools) ? tools : tools.split(/,\s*/);
+  const mapped = new Set();
+  for (const tool of list) {
+    const name = CC_TO_GEMINI[tool.trim()];
+    if (name) mapped.add(name);
+  }
+  return [...mapped];
 }

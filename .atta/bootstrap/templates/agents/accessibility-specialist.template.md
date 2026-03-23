@@ -1,3 +1,20 @@
+---
+name: accessibility
+description: Web accessibility, WCAG compliance, and ARIA patterns. Use for accessibility audits, remediation guidance, and inclusive design.
+model: inherit
+tools:
+  - Read
+  - Grep
+  - Glob
+disallowedTools:
+  - Edit
+  - Write
+  - Bash
+  - Agent
+maxTurns: 20
+permissionMode: plan
+---
+
 # Agent: Accessibility (WCAG/ARIA Specialist)
 
 > Web accessibility, WCAG compliance, and inclusive design.
@@ -108,7 +125,7 @@ When multiple specialists needed, coordinate through fe-team-lead.
 
 ## Knowledge Base
 
-- **Patterns**: `.atta/knowledge/patterns/accessibility-patterns.md` (if exists)
+- **Patterns**: `.atta/team/patterns/accessibility-patterns.md` (if exists)
 - **Docs**:
   - [WCAG 2.1 Quick Reference](https://www.w3.org/WAI/WCAG21/quickref/)
   - [WAI-ARIA APG](https://www.w3.org/WAI/ARIA/apg/)

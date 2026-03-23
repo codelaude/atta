@@ -7,14 +7,17 @@
 # need generation. They are referenced by mcp-mappings.yaml and skills.
 #
 #   project-owner    — Strategic coordinator, escalation endpoint
-#   librarian        — Knowledge capture and directive management
-#   rubber-duck      — Brainstorming and problem decomposition
 #   code-reviewer    — Code review and quality checks
-#   qa-validator     — Quality assurance and validation
-#   business-analyst — Requirements and business logic analysis
-#   pr-manager       — Pull request workflow management
+#   librarian        — Knowledge capture and directive management
+#   architect        — System design, ADRs, and implementation blueprints
 #
-# These core agents are always available regardless of detected tech stack.
+# OPTIONAL AGENTS (installed during init, user selects):
+#   business-analyst — Requirements and business logic analysis
+#   qa-validator     — Quality assurance and validation
+#   pr-manager       — Pull request workflow management
+#   rubber-duck      — Brainstorming and problem decomposition
+#
+# Core agents are always installed. Optional agents depend on user selection.
 
 # Coordinator Mappings (always generated when applicable)
 coordinators:

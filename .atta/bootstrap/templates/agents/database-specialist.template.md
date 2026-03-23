@@ -1,3 +1,20 @@
+---
+name: {{DATABASE_ID}}-database-specialist
+description: {{DATABASE_NAME}} database schemas, queries, migrations, and performance. Use for database design guidance and query optimization.
+model: inherit
+tools:
+  - Read
+  - Grep
+  - Glob
+disallowedTools:
+  - Edit
+  - Write
+  - Bash
+  - Agent
+maxTurns: 20
+permissionMode: plan
+---
+
 # Agent: {{DATABASE_NAME}} (Database Specialist)
 
 > {{DATABASE_NAME}} schemas, queries, performance, and best practices.

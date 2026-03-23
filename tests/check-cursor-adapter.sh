@@ -45,17 +45,72 @@ elif ! grep -q "^alwaysApply: true" "$WORK_DIR/.cursor/rules/atta.mdc"; then
   ERRORS=$((ERRORS + 1))
 fi
 
-# Check .mdc files have valid frontmatter with globs: []
+# Check .mdc files have valid frontmatter (description + globs field)
 while IFS= read -r -d '' mdc; do
   if ! head -5 "$mdc" | grep -q "^description:"; then
     echo "FAIL: $mdc missing 'description:' frontmatter"
     ERRORS=$((ERRORS + 1))
   fi
-  if ! head -5 "$mdc" | grep -q "^globs: \[\]"; then
-    echo "FAIL: $mdc has invalid globs format (expected 'globs: []')"
+  # Skill .mdc files use globs: [] (no scoping), rule .mdc files use globs: [] or globs: with entries
+  if ! head -10 "$mdc" | grep -q "^globs:"; then
+    echo "FAIL: $mdc missing 'globs:' frontmatter"
     ERRORS=$((ERRORS + 1))
   fi
 done < <(find "$WORK_DIR/.cursor/rules" -name "*.mdc" -print0 2>/dev/null)
+
+# --- Skill flag handling in MDC (Track E) ---
+# Cursor MDC should NOT contain raw CC frontmatter fields (they are stripped during conversion)
+while IFS= read -r -d '' mdc; do
+  if head -10 "$mdc" | grep -q "^disable-model-invocation:"; then
+    echo "FAIL: $mdc contains raw 'disable-model-invocation:' (should be stripped in MDC)"
+    ERRORS=$((ERRORS + 1))
+  fi
+  if head -10 "$mdc" | grep -q "^allowed-tools:"; then
+    echo "FAIL: $mdc contains raw 'allowed-tools:' (should be stripped in MDC)"
+    ERRORS=$((ERRORS + 1))
+  fi
+  if head -10 "$mdc" | grep -q "^argument-hint:"; then
+    echo "FAIL: $mdc contains raw 'argument-hint:' (should be stripped in MDC)"
+    ERRORS=$((ERRORS + 1))
+  fi
+  if head -10 "$mdc" | grep -q "^user-invocable:"; then
+    echo "FAIL: $mdc contains raw 'user-invocable:' (should be stripped in MDC)"
+    ERRORS=$((ERRORS + 1))
+  fi
+done < <(find "$WORK_DIR/.cursor/rules" -name "*.mdc" -print0 2>/dev/null)
+
+# Check that action skills have NL instruction for disable-model-invocation in MDC body
+# Derived from source SKILL.md frontmatter — not hardcoded, so new flagged skills are caught.
+# Note: 'atta' is excluded — atta.mdc is always-applied passive context (alwaysApply: true),
+# not an invocable skill, so disable-model-invocation semantics don't apply.
+CLAUDE_SKILLS_DIR="$(cd "$SCRIPT_DIR/../.claude/skills" 2>/dev/null && pwd)"
+if [ -d "$CLAUDE_SKILLS_DIR" ]; then
+  while IFS= read -r -d '' src_skill; do
+    SKILL_DIR_NAME="$(basename "$(dirname "$src_skill")")"
+    # Skip 'atta' — converted to always-applied context, not an individual MDC
+    [ "$SKILL_DIR_NAME" = "atta" ] && continue
+    if head -10 "$src_skill" | grep -q "^disable-model-invocation: true"; then
+      MDC_FILE="$WORK_DIR/.cursor/rules/${SKILL_DIR_NAME}.mdc"
+      if [ -f "$MDC_FILE" ]; then
+        if ! grep -q "Execute this skill" "$MDC_FILE"; then
+          echo "FAIL: $MDC_FILE missing disable-model-invocation NL instruction"
+          ERRORS=$((ERRORS + 1))
+        fi
+      fi
+    fi
+  done < <(find "$CLAUDE_SKILLS_DIR" -name "SKILL.md" -print0 2>/dev/null)
+fi
+
+# Check path-scoped rule files exist (at least security, always generated)
+if [ ! -s "$WORK_DIR/.cursor/rules/atta-security.mdc" ]; then
+  echo "FAIL: .cursor/rules/atta-security.mdc missing or empty (path-scoped rules not generated)"
+  ERRORS=$((ERRORS + 1))
+else
+  if ! head -8 "$WORK_DIR/.cursor/rules/atta-security.mdc" | grep -q "^alwaysApply: true"; then
+    echo "FAIL: atta-security.mdc should have alwaysApply: true (universal rule)"
+    ERRORS=$((ERRORS + 1))
+  fi
+fi
 
 # Check agent definitions exist in .cursor/agents/
 if [ -d "$WORK_DIR/.cursor/agents" ]; then
@@ -98,13 +153,13 @@ else
   fi
 fi
 
-# Check atta-review.mdc exists with review guidance
-if [ ! -s "$WORK_DIR/.cursor/rules/atta-review.mdc" ]; then
-  echo "FAIL: .cursor/rules/atta-review.mdc missing or empty"
+# Check atta-review-guidance.mdc exists with review guidance (distinct from atta-review skill)
+if [ ! -s "$WORK_DIR/.cursor/rules/atta-review-guidance.mdc" ]; then
+  echo "FAIL: .cursor/rules/atta-review-guidance.mdc missing or empty"
   ERRORS=$((ERRORS + 1))
 else
-  if ! grep -q "## Always Check" "$WORK_DIR/.cursor/rules/atta-review.mdc"; then
-    echo "FAIL: atta-review.mdc missing '## Always Check' section"
+  if ! grep -q "## Always Check" "$WORK_DIR/.cursor/rules/atta-review-guidance.mdc"; then
+    echo "FAIL: atta-review-guidance.mdc missing '## Always Check' section"
     ERRORS=$((ERRORS + 1))
   fi
 fi
@@ -161,6 +216,14 @@ done < <(find "$WORK_DIR/.cursor/agents" -name "*.md" -not -path "*/memory/*" -p
 
 # --- Hooks checks (v2.7.1 Track C) ---
 
+# Check hook scripts exist and are executable (referenced by hooks.json)
+for script in pre-bash-safety.sh stop-quality-gate.sh model-gate.sh; do
+  if [ ! -x "$WORK_DIR/.atta/scripts/hooks/$script" ]; then
+    echo "FAIL: .atta/scripts/hooks/$script missing or not executable"
+    ERRORS=$((ERRORS + 1))
+  fi
+done
+
 # Check hooks.json exists and is valid JSON
 if [ ! -f "$WORK_DIR/.cursor/hooks.json" ]; then
   echo "FAIL: .cursor/hooks.json missing"
@@ -170,10 +233,14 @@ else
 import json, sys
 with open(sys.argv[1]) as f:
     data = json.load(f)
+if 'version' not in data or data['version'] != 1:
+    print('FAIL: hooks.json missing or wrong "version" field (expected 1)')
+    sys.exit(1)
 if 'hooks' not in data:
     print('FAIL: hooks.json missing top-level "hooks" key')
     sys.exit(1)
-for event in ['sessionStart', 'postToolUse', 'afterFileEdit', 'preCompact']:
+# Enforcement hooks: preToolUse (safety prompt), stop (quality gate prompt)
+for event in ['preToolUse', 'stop']:
     if event not in data['hooks']:
         print(f'FAIL: hooks.json missing event: {event}')
         sys.exit(1)

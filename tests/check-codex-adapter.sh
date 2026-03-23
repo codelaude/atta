@@ -42,6 +42,27 @@ while IFS= read -r -d '' skill; do
   fi
 done < <(find "$WORK_DIR/.agents/skills" -name "SKILL.md" -print0 2>/dev/null)
 
+# --- Skill flag handling (Track E) ---
+# Codex only reads name + description. All other frontmatter fields should be stripped.
+while IFS= read -r -d '' skill; do
+  if head -15 "$skill" | grep -q "^disable-model-invocation:"; then
+    echo "FAIL: $skill contains 'disable-model-invocation:' (should be stripped for Codex)"
+    ERRORS=$((ERRORS + 1))
+  fi
+  if head -15 "$skill" | grep -q "^allowed-tools:"; then
+    echo "FAIL: $skill contains 'allowed-tools:' (should be stripped for Codex)"
+    ERRORS=$((ERRORS + 1))
+  fi
+  if head -15 "$skill" | grep -q "^argument-hint:"; then
+    echo "FAIL: $skill contains 'argument-hint:' (should be stripped for Codex)"
+    ERRORS=$((ERRORS + 1))
+  fi
+  if head -15 "$skill" | grep -q "^user-invocable:"; then
+    echo "FAIL: $skill contains 'user-invocable:' (should be stripped for Codex)"
+    ERRORS=$((ERRORS + 1))
+  fi
+done < <(find "$WORK_DIR/.agents/skills" -name "SKILL.md" -print0 2>/dev/null)
+
 # Check agent definitions exist in .agents/agents/
 if [ -d "$WORK_DIR/.agents/agents" ]; then
   AGENT_COUNT=$(find "$WORK_DIR/.agents/agents" -name "*.md" -not -path "*/memory/*" | wc -l | tr -d ' ')

@@ -4,18 +4,18 @@
 
 ## Overview
 
-The `/collaborate` skill invokes 2-4 specialist agents in parallel to review the same code from different domain perspectives. Their findings are collected into a normalized format, checked for conflicts, and synthesized into a single actionable report.
+The `/atta-collaborate` skill invokes 2-4 specialist agents in parallel to review the same code from different domain perspectives. Their findings are collected into a normalized format, checked for conflicts, and synthesized into a single actionable report.
 
-This solves a real problem: running `/agent security-specialist` and then `/agent accessibility` separately gives you two disconnected reviews. `/collaborate` runs them in parallel and detects when their recommendations contradict each other.
+This solves a real problem: running `/atta-agent security-specialist` and then `/atta-agent accessibility` separately gives you two disconnected reviews. `/atta-collaborate` runs them in parallel and detects when their recommendations contradict each other.
 
 ## How It Works
 
 ### 1. You run the skill
 
 ```
-/collaborate                                          # Auto-routes based on git diff
-/collaborate src/components/UserProfile.tsx           # Specific file
-/collaborate --agents security-specialist,accessibility # Explicit agents
+/atta-collaborate                                         # Auto-routes based on git diff
+/atta-collaborate src/components/UserProfile.tsx           # Specific file
+/atta-collaborate --agents security-specialist,accessibility # Explicit agents
 ```
 
 ### 2. Auto-routing selects agents
@@ -70,9 +70,9 @@ The output shows:
 File-level code review with severity-rated findings.
 
 ```
-/collaborate                       # Review git diff
-/collaborate src/components/       # Review folder
-/collaborate --quick               # CRITICAL + HIGH only
+/atta-collaborate                      # Review git diff
+/atta-collaborate src/components/       # Review folder
+/atta-collaborate --quick               # CRITICAL + HIGH only
 ```
 
 Output: Finding tables, conflict detection, prioritized action items, verdict.
@@ -82,8 +82,8 @@ Output: Finding tables, conflict detection, prioritized action items, verdict.
 Architecture and design feedback without line-level findings.
 
 ```
-/collaborate --mode feedback
-/collaborate --mode feedback src/auth/
+/atta-collaborate --mode feedback
+/atta-collaborate --mode feedback src/auth/
 ```
 
 Output: Per-agent perspectives, synthesis of agreement/divergence, prioritized recommendations.
@@ -93,8 +93,8 @@ Output: Per-agent perspectives, synthesis of agreement/divergence, prioritized r
 Structured option analysis with each agent rating alternatives from their domain.
 
 ```
-/collaborate --mode decision "REST vs GraphQL?"
-/collaborate --mode decision "Monorepo vs separate repos?"
+/atta-collaborate --mode decision "REST vs GraphQL?"
+/atta-collaborate --mode decision "Monorepo vs separate repos?"
 ```
 
 Output: Decision matrix, weighted consensus, dissent notes, tradeoff summary.
@@ -118,7 +118,7 @@ All agents produce findings in a normalized markdown table:
 | agent_id | domain | severity | file:line | finding | recommendation | conflicts_with |
 ```
 
-This standardized format is what enables automated conflict detection and cross-agent comparison. It's defined in `.atta/knowledge/templates/collaboration-finding.md`.
+This standardized format is what enables automated conflict detection and cross-agent comparison. It's defined inline in `.claude/skills/atta-collaborate/SKILL.md`.
 
 **Domains**: framework, language, styling, accessibility, security, testing, architecture, performance, database
 
@@ -130,28 +130,28 @@ The schema is intentionally simple — markdown tables are portable across Claud
 
 - **Minimum: 2** — collaboration requires at least 2 perspectives. If only 1 matches, `code-reviewer` is added automatically.
 - **Maximum: 4** — if more than 4 match, prioritized by: security > accessibility > framework > language > styling > testing > database > code-reviewer.
-- **No specialists?** — falls back to `code-reviewer` + `qa-validator` with a suggestion to run `/atta`.
+- **No specialists?** — falls back to `code-reviewer` + `architect` with a suggestion to run `/atta`.
 
 ## Integration with Other Skills
 
-### /review suggests /collaborate
+### /atta-review suggests /atta-collaborate
 
-When `/review` finishes and the scope spans multiple domains, it suggests:
+When `/atta-review` finishes and the scope spans multiple domains, it suggests:
 
 ```
 Multi-Agent Collaboration Available
-Run /collaborate for cross-domain analysis with conflict detection.
+Run /atta-collaborate for cross-domain analysis with conflict detection.
 ```
 
 This is a suggestion, not automatic — you decide whether the deeper analysis is worth the extra time.
 
-### /preflight
+### /atta-preflight
 
-Run `/preflight` after resolving collaboration findings to validate everything passes.
+Run `/atta-preflight` after resolving collaboration findings to validate everything passes.
 
-### /agent
+### /atta-agent
 
-For deeper analysis in one specific domain, use `/agent {id}` directly. Collaboration is for cross-cutting concerns; single-agent invocation is for focused deep dives.
+For deeper analysis in one specific domain, use `/atta-agent {id}` directly. Collaboration is for cross-cutting concerns; single-agent invocation is for focused deep dives.
 
 ## Session Tracking
 
@@ -201,10 +201,10 @@ The skill handles 8 error scenarios with 3 recovery options each:
 |----------|-------------|
 | Empty scope | Suggests explicit target, staging files, or feedback mode |
 | Agent not found | Lists available agents, suggests `/atta` or auto-routing |
-| No agents available | Suggests `/atta`, `/review`, or core agent fallback |
-| Single agent only | Adds second agent or suggests `/agent` for single-specialist review |
+| No agents available | Suggests `/atta`, `/atta-review`, or core agent fallback |
+| Single agent only | Adds second agent or suggests `/atta-agent` for single-specialist review |
 | Agent failure | Continues with remaining agents, notes the failure |
-| All agents fail | Suggests retry, fewer agents, or `/review` fallback |
+| All agents fail | Suggests retry, fewer agents, or `/atta-review` fallback |
 | Unparseable output | Includes raw output as-is, notes parsing issue |
 | Too many files | Suggests narrowing scope, `--quick` flag, or batching |
 
@@ -223,9 +223,9 @@ The normalized finding schema (markdown tables) is the portable contract:
 
 ### Framework Files (Committed)
 ```
-.claude/skills/collaborate/SKILL.md                      # The skill itself
-.atta/knowledge/templates/collaboration-finding.md     # Normalized finding schema
-.atta/.sessions/schema.json                            # Extended with collaboration metadata
+.claude/skills/atta-collaborate/SKILL.md                      # The skill itself
+# Finding schema is inlined in SKILL.md (no separate file)
+.atta/local/sessions/schema.json                            # Extended with collaboration metadata
 ```
 
 ### Referenced Files
@@ -233,7 +233,7 @@ The normalized finding schema (markdown tables) is the portable contract:
 .claude/agents/INDEX.md                                  # Agent registry (for discovery)
 .atta/project/project-context.md             # Tech stack context (for routing)
 .claude/agents/specialists/*.md                          # Specialist definitions (read per agent)
-.atta/knowledge/patterns/*.md                          # Pattern files (passed to agents)
+.atta/team/patterns/*.md                          # Pattern files (passed to agents)
 ```
 
 ## FAQ
@@ -242,7 +242,7 @@ The normalized finding schema (markdown tables) is the portable contract:
 A: Roughly N times single-agent cost (where N is the number of agents), plus synthesis overhead. Use `--quick` to reduce token usage on large scopes.
 
 **Q: Can I use collaboration without running /atta?**
-A: Yes. Without `/atta`, it gracefully degrades to `code-reviewer` + `qa-validator`. For full specialist auto-routing, run `/atta` first.
+A: Yes. Without `/atta`, it gracefully degrades to `code-reviewer` + `architect`. For full specialist auto-routing, run `/atta` first.
 
 **Q: What if two agents give contradictory advice?**
 A: That's the point. The conflict detection highlights the disagreement, shows both perspectives with reasoning, and presents resolution options. You decide.

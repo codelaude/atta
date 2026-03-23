@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, writeFileSync, renameSync, mkdirSync, rmSync, cpSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, renameSync, mkdirSync, rmSync, cpSync, readdirSync } from 'node:fs';
 import { resolve, join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as p from '@clack/prompts';
@@ -9,10 +9,12 @@ import { install as installCodex } from '../adapters/codex.js';
 import { install as installGemini } from '../adapters/gemini.js';
 import { install as installCursor } from '../adapters/cursor.js';
 import { install as installGithubAction } from '../adapters/github-action.js';
-import { runSetupPrompts, generateProfile } from '../prompts/setup.js';
+import { runSetupPrompts, generateProfile, CORE_AGENTS } from '../prompts/setup.js';
 import { generateGettingStarted } from '../guides/getting-started.js';
 import { printBanner } from '../banner.js';
 import { countFiles } from '../lib/fs-utils.js';
+import { parseInitOutput } from '../lib/init-parser.js';
+import { writeOwaspScope } from '../lib/owasp-scope.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -29,8 +31,8 @@ const ADAPTERS = {
     label: 'Claude Code',
     nextSteps: [
       `Run ${pc.cyan('/atta')} in Claude Code to generate agents for your stack`,
-      `Run ${pc.cyan('/tutorial')} for a 5-minute interactive walkthrough`,
-      `Run ${pc.cyan('/review')} to review your code`,
+      `Run ${pc.cyan('/atta-tutorial')} for a 5-minute interactive walkthrough`,
+      `Run ${pc.cyan('/atta-review')} to review your code`,
     ],
   },
   copilot: {
@@ -48,7 +50,7 @@ const ADAPTERS = {
     nextSteps: [
       `Open your project in Codex CLI`,
       `See ${pc.cyan('AGENTS.md')} for available agents and commands`,
-      `Try mentioning ${pc.cyan('$review')} or ${pc.cyan('$preflight')} to activate skills`,
+      `Try mentioning ${pc.cyan('$atta-review')} or ${pc.cyan('$atta-preflight')} to activate skills`,
     ],
   },
   gemini: {
@@ -56,7 +58,7 @@ const ADAPTERS = {
     label: 'Gemini CLI',
     nextSteps: [
       `Open your project in Gemini CLI`,
-      `Use ${pc.cyan('/review')} or ${pc.cyan('/preflight')} as slash commands`,
+      `Use ${pc.cyan('/atta-review')} or ${pc.cyan('/atta-preflight')} as slash commands`,
       `See ${pc.cyan('GEMINI.md')} for agent context`,
     ],
   },
@@ -113,17 +115,17 @@ export async function init(options) {
     process.exit(1);
   }
 
-  // Non-interactive mode (--yes flag)
+  // Non-interactive mode (--yes flag) — core agents only, no optionals
   if (options.yes) {
     printBanner();
-    return runInstall(targetDir, options.adapter || 'claude-code', dryRun, null, { authBackend, provider });
+    return runInstall(targetDir, options.adapter || 'claude-code', dryRun, null, { authBackend, provider, selectedAgents: [...CORE_AGENTS] });
   }
 
   // Interactive setup — only pass adapter if explicitly provided via --adapter flag
   const answers = await runSetupPrompts({ adapter: options.adapter || null });
 
-  // Run installation with chosen adapter
-  await runInstall(targetDir, answers.adapter, dryRun, answers, { authBackend, provider });
+  // Run installation with chosen adapter — pass agent selection
+  await runInstall(targetDir, answers.adapter, dryRun, answers, { authBackend, provider, selectedAgents: answers.selectedAgents });
 }
 
 async function runInstall(targetDir, adapterName, dryRun, answers, adapterOptions = {}) {
@@ -142,7 +144,11 @@ async function runInstall(targetDir, adapterName, dryRun, answers, adapterOption
   const isUpdate = existsSync(claudeDir) || existsSync(attaDir);
 
   // Detect pre-v2.7 layout (shared content in .claude/ instead of .atta/)
-  const needsMigration = existsSync(join(claudeDir, 'knowledge')) && !existsSync(join(attaDir, 'knowledge'));
+  // Also require .atta/knowledge/ to be absent — if it exists, this is a v2.7 install
+  // and migrateToAtta()'s cpSync would overwrite user-modified .atta/knowledge/ content.
+  const needsMigration = existsSync(join(claudeDir, 'knowledge')) && !existsSync(join(attaDir, 'team')) && !existsSync(join(attaDir, 'knowledge'));
+  // Detect pre-v3.0 layout (.atta/knowledge/ instead of .atta/team/ + .atta/local/)
+  const needsV3Migration = existsSync(join(attaDir, 'knowledge')) && !existsSync(join(attaDir, 'team'));
 
   if (isUpdate) {
     if (needsMigration) {
@@ -172,14 +178,32 @@ async function runInstall(targetDir, adapterName, dryRun, answers, adapterOption
   s.start('Installing framework files...');
 
   let results;
+  let initSeeds = null;
   try {
     // Migrate pre-v2.7 layout if needed (move shared content from .claude/ to .atta/)
     if (needsMigration) {
       migrateToAtta(targetDir);
     }
 
+    // Migrate pre-v3.0 layout if needed (.atta/knowledge/ → .atta/team/ + .atta/local/)
+    // Re-evaluate: migrateToAtta() may have just created .atta/knowledge/
+    const runV3Migration = needsV3Migration ||
+      (needsMigration && existsSync(join(attaDir, 'knowledge')) && !existsSync(join(attaDir, 'team')));
+    if (runV3Migration) {
+      migrateToV3(targetDir);
+    }
+
+    // Parse existing init output (Phase 0.5: absorb native init conventions)
+    initSeeds = parseInitOutput(targetDir, adapterName);
+
     // Run the adapter
-    results = adapter.install(CLAUDE_ROOT, ATTA_ROOT, targetDir, { quiet: true, ...adapterOptions });
+    results = adapter.install(CLAUDE_ROOT, ATTA_ROOT, targetDir, { quiet: true, ...adapterOptions, initSeeds });
+
+    // Generate pre-computed OWASP scope from detected tech stack (all adapters)
+    // Scopes security checks to relevant categories — avoids wasting CI tokens on irrelevant checks
+    // Handles undefined detectedTechs gracefully (defaults to conservative backend scope)
+    writeOwaspScope(targetDir, adapterOptions.detectedTechs, ATTA_ROOT);
+    results.files++;
 
     // Gitignore runtime & personal content; keep only team-shared files
     ensureAttaGitignored(targetDir, adapterName);
@@ -187,13 +211,12 @@ async function runInstall(targetDir, adapterName, dryRun, answers, adapterOption
     // Pre-fill developer profile if we have answers
     if (answers) {
       const profileContent = generateProfile(answers);
-      const profileDir = join(attaDir, 'knowledge');
+      const profileDir = join(attaDir, 'local');
       mkdirSync(profileDir, { recursive: true });
       const profilePath = join(profileDir, 'developer-profile.md');
       writeFileSync(profilePath + '.tmp', profileContent);
       renameSync(profilePath + '.tmp', profilePath);
       results.files++;
-
     }
 
     // Generate GETTING-STARTED.md
@@ -206,9 +229,9 @@ async function runInstall(targetDir, adapterName, dryRun, answers, adapterOption
     // Remove tutorial skill if user opted out
     if (answers && !answers.includeTutorial) {
       const tutorialPaths = [
-        join(claudeDir, 'skills', 'tutorial'),               // Claude Code
-        join(targetDir, '.github', 'skills', 'tutorial'),     // Copilot
-        join(targetDir, '.agents', 'skills', 'tutorial'),     // Codex
+        join(claudeDir, 'skills', 'atta-tutorial'),               // Claude Code
+        join(targetDir, '.github', 'skills', 'atta-tutorial'),     // Copilot
+        join(targetDir, '.agents', 'skills', 'atta-tutorial'),     // Codex
         join(targetDir, '.gemini', 'commands', 'tutorial.toml'), // Gemini
         join(targetDir, '.cursor', 'rules', 'atta-tutorial.mdc'), // Cursor
       ];
@@ -232,12 +255,23 @@ async function runInstall(targetDir, adapterName, dryRun, answers, adapterOption
 
   // Print welcome summary
   console.log('');
-  printWelcome(adapterName, adapter, answers, adapterOptions);
+  printWelcome(adapterName, adapter, answers, adapterOptions, initSeeds);
 }
 
-function printWelcome(adapterName, adapter, answers, adapterOptions = {}) {
+function printWelcome(adapterName, adapter, answers, adapterOptions = {}, initSeeds = null) {
   console.log(pc.bold(pc.green('Setup complete!')));
   console.log('');
+
+  // Show init absorption summary if seeds were found
+  if (initSeeds) {
+    const parts = [];
+    if (initSeeds.buildCmd.length > 0) parts.push(`${initSeeds.buildCmd.length} build command(s)`);
+    if (initSeeds.testCmd.length > 0) parts.push(`${initSeeds.testCmd.length} test command(s)`);
+    if (initSeeds.conventions.length > 0) parts.push(`${initSeeds.conventions.length} convention(s)`);
+    console.log(pc.dim(`Found existing ${initSeeds.source} — detected ${parts.join(', ')}`));
+    console.log(pc.dim('These conventions were detected from your existing setup.'));
+    console.log('');
+  }
 
   // Quick reference
   console.log(pc.bold('Quick Reference'));
@@ -246,11 +280,11 @@ function printWelcome(adapterName, adapter, answers, adapterOptions = {}) {
   if (adapterName === 'github-action') {
     // GitHub Action: automated CI, no interactive commands
     console.log(`  ${pc.cyan('.github/workflows/atta-review.yml')}   Auto-runs on every PR`);
-    console.log(`  ${pc.cyan('.atta/knowledge/ci-suppressions.md')}  False positive management`);
+    console.log(`  ${pc.cyan('.atta/team/ci-suppressions.md')}       False positive management`);
   } else if (adapterName === 'cursor') {
     // Cursor uses @-mention invocation, not slash commands
     console.log(`  ${pc.cyan('atta.mdc')}             Framework context (auto-applied)`);
-    console.log(`  ${pc.cyan('@atta-atta')}           Set up agents for your stack`);
+    console.log(`  ${pc.cyan('@atta')}               Set up agents for your stack`);
     console.log(`  ${pc.cyan('@atta-review')}         Code review against conventions`);
     console.log(`  ${pc.cyan('@atta-preflight')}      Full pre-PR validation`);
     console.log(`  ${pc.cyan('@atta-agent')} <id>     Invoke any agent directly`);
@@ -259,16 +293,14 @@ function printWelcome(adapterName, adapter, answers, adapterOptions = {}) {
     }
   } else {
     const prefix = adapterName === 'codex' ? '$' : '/';
-    const agent = adapterName === 'copilot' ? 'atta-agent' : 'agent';
-    const review = adapterName === 'copilot' ? 'atta-review' : 'review';
 
-    console.log(`  ${pc.cyan(`${prefix}atta`)}          Set up agents for your stack`);
-    console.log(`  ${pc.cyan(`${prefix}${review}`)}        Code review against conventions`);
-    console.log(`  ${pc.cyan(`${prefix}preflight`)}     Full pre-PR validation`);
-    console.log(`  ${pc.cyan(`${prefix}${agent} <id>`)}    Invoke any agent directly`);
+    console.log(`  ${pc.cyan(`${prefix}atta`)}              Set up agents for your stack`);
+    console.log(`  ${pc.cyan(`${prefix}atta-review`)}       Code review against conventions`);
+    console.log(`  ${pc.cyan(`${prefix}atta-preflight`)}    Full pre-PR validation`);
+    console.log(`  ${pc.cyan(`${prefix}atta-agent <id>`)}   Invoke any agent directly`);
 
     if (answers?.includeTutorial !== false) {
-      console.log(`  ${pc.cyan(`${prefix}tutorial`)}      5-minute interactive walkthrough`);
+      console.log(`  ${pc.cyan(`${prefix}atta-tutorial`)}    5-minute interactive walkthrough`);
     }
   }
 
@@ -277,10 +309,10 @@ function printWelcome(adapterName, adapter, answers, adapterOptions = {}) {
   if (answers) {
     console.log('');
     console.log(
-      pc.dim('Your preferences were saved to .atta/knowledge/developer-profile.md (personal, gitignored)')
+      pc.dim('Your preferences were saved to .atta/local/developer-profile.md (personal, gitignored)')
     );
     console.log(pc.dim('Team conventions: .atta/project/project-profile.md (committed)'));
-    console.log(pc.dim('Runtime content (.context/, .sessions/) is gitignored automatically.'));
+    console.log(pc.dim('Personal & runtime content (.atta/local/) is gitignored automatically.'));
     console.log(pc.dim('Edit both anytime to refine how agents and CI work with you.'));
   }
 
@@ -327,7 +359,7 @@ function listFrameworkFiles() {
   // Tool-specific (from .claude/)
   const CLAUDE_DIRS = ['agents', 'hooks', 'skills'];
   // Shared (from .atta/)
-  const ATTA_DIRS = ['bootstrap', 'knowledge', 'project', 'scripts', '.context', '.metadata'];
+  const ATTA_DIRS = ['bootstrap', 'team', 'project', 'scripts', 'local', '.metadata'];
 
   console.log(pc.dim('.claude/ (tool-specific):'));
   for (const dir of CLAUDE_DIRS) {
@@ -348,8 +380,8 @@ function listFrameworkFiles() {
 
 /**
  * Write the Atta gitignore block if not already present.
- * Gitignores runtime/personal content (.context/, .sessions/, personal profile, .claude/).
- * Team-shared files (patterns, suppressions, project/) are committed by default.
+ * v3.0: Single `.atta/local/` rule replaces per-file gitignore entries.
+ * Team-shared files (.atta/team/, .atta/project/) are committed by default.
  * .claude/ is personal — each dev runs init and generates agents for their own role/tool.
  * Adapter memory directories are per-developer (directives, corrections) — not committed.
  * Uses a sentinel comment for idempotency.
@@ -360,19 +392,25 @@ function ensureAttaGitignored(targetDir, adapterName) {
   const SENTINEL = '# Atta — runtime & personal';
 
   if (existing.includes(SENTINEL)) {
-    // Upgrade path: old installs had `.atta/knowledge/` which blocks CI suppressions.
-    // Line-based: replace first bare rule with specific file, remove any duplicates.
-    // Idempotent — safe to run even when developer-profile.md line already exists.
-    let hasProfile = existing.includes('.atta/knowledge/developer-profile.md');
+    // Upgrade path: replace old per-file rules with single .atta/local/ rule
+    const OLD_RULES = [
+      '.atta/.context/',
+      '.atta/.sessions/',
+      '.atta/.metadata/generated-manifest.json',
+      '.atta/knowledge/developer-profile.md',
+      '.atta/knowledge/',
+      '.atta/knowledge',
+    ];
     let changed = false;
+    let hasLocal = existing.includes('.atta/local/');
     const lines = existing.split('\n');
     const updated = lines.map((line) => {
       const trimmed = line.trim();
-      if (trimmed === '.atta/knowledge/' || trimmed === '.atta/knowledge') {
+      if (OLD_RULES.includes(trimmed)) {
         changed = true;
-        if (hasProfile) return null; // already have specific rule, drop leftover
-        hasProfile = true; // first occurrence becomes the specific rule
-        return line.replace(/\.atta\/knowledge\/?/, '.atta/knowledge/developer-profile.md');
+        if (hasLocal) return null; // already have .atta/local/, drop old rule
+        hasLocal = true; // first old rule becomes .atta/local/
+        return '.atta/local/';
       }
       return line;
     }).filter((line) => line !== null);
@@ -380,7 +418,6 @@ function ensureAttaGitignored(targetDir, adapterName) {
     // Append adapter memory path if missing (upgrade from pre-v2.7.1 installs)
     const memoryPath = getAdapterMemoryPath(adapterName);
     if (memoryPath && !existing.includes(memoryPath)) {
-      // Insert before trailing empty string (from split) to preserve file structure
       const insertIdx = updated.length > 0 && updated[updated.length - 1] === ''
         ? updated.length - 1
         : updated.length;
@@ -398,10 +435,7 @@ function ensureAttaGitignored(targetDir, adapterName) {
   const block = [
     '',
     '# Atta — runtime & personal',
-    '.atta/.context/',
-    '.atta/.sessions/',
-    '.atta/.metadata/generated-manifest.json',
-    '.atta/knowledge/developer-profile.md',
+    '.atta/local/',
     '.claude/',
     '.claude-plugin/',
     ...(memoryPath ? [memoryPath] : []),
@@ -469,4 +503,73 @@ function migrateToAtta(targetDir) {
         'You can safely delete them from .claude/ manually.'
     );
   }
+}
+
+/**
+ * Migrate v2.x → v3.0 layout: .atta/knowledge/ → .atta/team/ + .atta/local/.
+ * - knowledge/developer-profile.md → local/developer-profile.md (personal, gitignored)
+ * - knowledge/* (everything else) → team/* (committed, team-shared)
+ * - .context/ → local/context/
+ * - .sessions/ → local/sessions/
+ * Note: .metadata/generated-manifest.json stays in .metadata/ (referenced by multiple consumers).
+ * Preserves user customizations — copies then removes originals.
+ */
+function migrateToV3(targetDir) {
+  const attaDir = join(targetDir, '.atta');
+  const knowledgeDir = join(attaDir, 'knowledge');
+  const teamDir = join(attaDir, 'team');
+  const localDir = join(attaDir, 'local');
+
+  mkdirSync(teamDir, { recursive: true });
+  mkdirSync(localDir, { recursive: true });
+
+  // Move developer-profile.md to local/ (personal, gitignored)
+  // Guard: don't overwrite an existing v3 profile with the older v2 version
+  const profileSrc = join(knowledgeDir, 'developer-profile.md');
+  const profileDest = join(localDir, 'developer-profile.md');
+  if (existsSync(profileSrc)) {
+    if (!existsSync(profileDest)) {
+      cpSync(profileSrc, profileDest);
+    }
+    rmSync(profileSrc);
+  }
+
+  // Move everything else in knowledge/ to team/
+  // If dest already exists (partial migration), skip the copy but still clean up source
+  if (existsSync(knowledgeDir)) {
+    for (const entry of readdirSync(knowledgeDir, { withFileTypes: true })) {
+      const src = join(knowledgeDir, entry.name);
+      const dest = join(teamDir, entry.name);
+      if (!existsSync(dest)) {
+        cpSync(src, dest, { recursive: true });
+      }
+      // Only remove source after successful copy or if dest already had the content
+      rmSync(src, { recursive: true });
+    }
+    // Remove empty knowledge/ dir
+    try { rmSync(knowledgeDir, { recursive: true }); } catch { /* may not be empty */ }
+  }
+
+  // Move .context/ → local/context/
+  const contextDir = join(attaDir, '.context');
+  if (existsSync(contextDir)) {
+    const destContext = join(localDir, 'context');
+    mkdirSync(destContext, { recursive: true });
+    cpSync(contextDir, destContext, { recursive: true });
+    rmSync(contextDir, { recursive: true });
+  }
+
+  // Move .sessions/ → local/sessions/
+  const sessionsDir = join(attaDir, '.sessions');
+  if (existsSync(sessionsDir)) {
+    const destSessions = join(localDir, 'sessions');
+    mkdirSync(destSessions, { recursive: true });
+    cpSync(sessionsDir, destSessions, { recursive: true });
+    rmSync(sessionsDir, { recursive: true });
+  }
+
+  // Note: .metadata/generated-manifest.json stays in .metadata/ — it's referenced by
+  // generate-context.sh, /atta skill, /atta-update skill, and generator.md. Not moved.
+
+  console.log(pc.dim('  Migrated .atta/ to v3.0 layout (team/ + local/)'));
 }

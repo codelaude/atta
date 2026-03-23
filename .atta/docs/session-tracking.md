@@ -78,7 +78,7 @@ Since v2.5.3, session tracking is handled automatically by **Claude Code hooks**
 ### 1. You run a skill
 
 ```bash
-/review
+/atta-review
 ```
 
 ### 2. Hook creates session file
@@ -109,16 +109,16 @@ The hook script `.claude/hooks/session-track.sh` handles the full lifecycle:
 | `PostToolUse` (Skill) | Create session JSON with status `in_progress` |
 | `Stop` | Finalize latest in-progress session, run cleanup + context generation |
 
-Hook configuration is generated in `.claude/settings.local.json` by the Claude Code adapter during `npx atta-dev init`.
+Hook configuration is generated in `.claude/hooks/hooks.json` by the Claude Code adapter during `npx atta-dev init`.
 
-**Other tools** (Copilot, Codex, Gemini) do not support hooks — session tracking is Claude Code only.
+**Other tools** (Copilot, Cursor, Gemini) support enforcement hooks but not session tracking hooks — session tracking is Claude Code only.
 
 ## Pattern Detection (v2.5)
 
 Session history enables the pattern detection system:
 - Correction logging and aggregation
 - Per-agent acceptance rates and learning profiles
-- `/patterns dashboard` with velocity trends and recommendations
+- `/atta-patterns dashboard` with velocity trends and recommendations
 - Pattern promotion from corrections to directives or pattern files
 
 See [Changelog](changelog.md) for full details on the v2.5 pattern detection system.
@@ -127,9 +127,9 @@ See [Changelog](changelog.md) for full details on the v2.5 pattern detection sys
 
 If you're building custom skills or want to understand the internals:
 
-- **[Integration Guide](../.sessions/TRACKING_GUIDE.md)** - Hook-based tracking details
-- **[Skill Template](../.sessions/SKILL_TEMPLATE.md)** - Ready-to-use template
-- **[Schema Reference](../.sessions/schema.json)** - Full JSON Schema
+- **[Integration Guide](../local/sessions/TRACKING_GUIDE.md)** - Hook-based tracking details
+- **[Skill Template](../local/sessions/SKILL_TEMPLATE.md)** - Ready-to-use template
+- **[Schema Reference](../local/sessions/schema.json)** - Full JSON Schema
 
 ## Disabling Session Tracking
 
@@ -140,7 +140,7 @@ If you prefer not to use session tracking, you can:
    rm -rf {claudeDir}/.sessions/*.json
    ```
 
-2. **Remove the hook**: Delete the `session-track.sh` entry from `.claude/settings.local.json`
+2. **Remove the hook**: Delete the `session-track.sh` entry from `.claude/hooks/hooks.json`
 
 Note: Disabling session tracking will prevent pattern detection features from working.
 
@@ -151,7 +151,7 @@ Note: Disabling session tracking will prevent pattern detection features from wo
 .claude/hooks/
 └── session-track.sh         # Hook script (lifecycle management)
 
-.atta/.sessions/
+.atta/local/sessions/
 ├── README.md                # Technical overview
 ├── schema.json              # JSON Schema definition
 ├── TRACKING_GUIDE.md        # Developer integration guide
@@ -165,7 +165,7 @@ Note: Disabling session tracking will prevent pattern detection features from wo
 
 ### Generated Files (Local, Gitignored)
 
-> **Note**: Session JSON files are always written to `{claudeDir}/.sessions/` — separate from the framework docs in `.atta/.sessions/`. By default `{claudeDir}` = `.claude`, so sessions land in `.claude/.sessions/`. The `.gitignore` pattern `*.json` in `.sessions/` ensures generated session files are not committed.
+> **Note**: Session JSON files are always written to `{claudeDir}/.sessions/` — separate from the framework docs in `.atta/local/sessions/`. By default `{claudeDir}` = `.claude`, so sessions land in `.claude/.sessions/`. The `.gitignore` pattern `*.json` in `.sessions/` ensures generated session files are not committed.
 
 ```
 {claudeDir}/.sessions/
@@ -202,7 +202,7 @@ A: No. Session tracking requires Claude Code hooks. Other tools skip tracking en
 ## See Also
 
 - **[Bootstrap System](bootstrap-system.md)** - How agent generation works
-- **[Multi-Agent Collaboration](collaboration.md)** - How `/collaborate` uses session tracking
+- **[Multi-Agent Collaboration](collaboration.md)** - How `/atta-collaborate` uses session tracking
 - **[MCP Setup](mcp-setup.md)** - Configure Model Context Protocol
 - **[Extending the System](extending.md)** - Add custom agents
 - **[Design Philosophy](philosophy.md)** - Framework principles

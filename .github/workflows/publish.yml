@@ -30,7 +30,7 @@ jobs:
         run: npm install
 
       - name: Install Python test dependencies
-        run: pip3 install pyyaml jsonschema
+        run: python3 -m pip install pyyaml jsonschema
 
       - name: Run tests
         run: bash tests/check-all.sh

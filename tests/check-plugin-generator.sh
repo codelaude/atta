@@ -260,6 +260,30 @@ if [ "$CDX_SLASH_COUNT" -gt 0 ]; then
   ERRORS=$((ERRORS + 1))
 fi
 
+# atta-migrate adapter table: each row must use the correct invocation form.
+# Claude Code/Copilot/Gemini rows must keep quoted "/atta-review" (not rewritten to $atta-review).
+# Codex row must keep backtick `$atta-review`.
+# Checks target the adapter table rows specifically (old-form + new-form on the same line).
+CDX_MIGRATE_SKILL="$DIR/skills/atta-migrate/SKILL.md"
+if [ -f "$CDX_MIGRATE_SKILL" ]; then
+  if ! grep -q 'Claude Code.*"/review".*"/atta-review"' "$CDX_MIGRATE_SKILL"; then
+    echo 'FAIL: [codex] atta-migrate Claude Code adapter row should use quoted "/atta-review"'
+    ERRORS=$((ERRORS + 1))
+  fi
+  if ! grep -q 'Copilot.*"/review".*"/atta-review"' "$CDX_MIGRATE_SKILL"; then
+    echo 'FAIL: [codex] atta-migrate Copilot adapter row should use quoted "/atta-review"'
+    ERRORS=$((ERRORS + 1))
+  fi
+  if ! grep -q 'Gemini.*"/review".*"/atta-review"' "$CDX_MIGRATE_SKILL"; then
+    echo 'FAIL: [codex] atta-migrate Gemini adapter row should use quoted "/atta-review"'
+    ERRORS=$((ERRORS + 1))
+  fi
+  if ! grep -q 'Codex.*`$review`.*`$atta-review`' "$CDX_MIGRATE_SKILL"; then
+    echo 'FAIL: [codex] atta-migrate Codex adapter row should use `$atta-review`'
+    ERRORS=$((ERRORS + 1))
+  fi
+fi
+
 # Agents should not contain model: inherit
 CDX_MODEL_INHERIT=$({ grep -rl 'model: inherit' "$DIR/agents" 2>/dev/null || true; } | wc -l | tr -d ' ')
 if [ "$CDX_MODEL_INHERIT" -gt 0 ]; then

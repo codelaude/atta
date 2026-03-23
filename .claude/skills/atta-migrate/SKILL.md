@@ -2,6 +2,8 @@
 name: atta-migrate
 description: Migrate older Atta installations to the current version — skill reference renames, directory restructure verification, and user content preservation. Shows diff before applying. Does NOT handle framework updates (use /atta-update) or project initialization (use /atta).
 argument-hint: "[--dry-run] [--rollback]"
+disable-model-invocation: true
+model: haiku
 ---
 
 You are running the **migrate** skill to complete an Atta version upgrade.
@@ -18,7 +20,7 @@ You are running the **migrate** skill to complete an Atta version upgrade.
 
 `npx atta init --adapter <tool>` handles the heavy lifting: directory restructure, agent installation (in the correct per-adapter format), hooks, gitignore, model registry, and architect agent creation.
 
-This skill handles what `init` cannot: **renaming old skill references** in user-edited files. These are files that `init` doesn't touch — config files, custom documentation, and user content that references old skill names like `/review` instead of `/atta-review`.
+This skill handles what `init` cannot: **renaming old skill references** in user-edited files. These are files that `init` doesn't touch — config files, custom documentation, and user content that references old skill names like "/review" instead of "/atta-review".
 
 Additionally, this skill:
 - Verifies the directory restructure completed correctly
@@ -43,7 +45,7 @@ Report to the user:
 
 Check for migration markers — any of these indicate migration is needed:
 
-- Old skill names (`/review`, `$review`, `@review` instead of `/atta-review`) in config files or agent files
+- Old skill names ("/review", "$review", "@review" instead of "/atta-review") in config files or agent files
 - Old `.atta/knowledge/` directory still present (dir restructure incomplete)
 - Missing `.atta/team/model-registry.json`
 
@@ -116,30 +118,30 @@ This is the primary purpose of this skill. Scan **config files and user-edited c
 
 | Old Reference | New Reference |
 |--------------|---------------|
-| `/agent` | `/atta-agent` |
-| `/collaborate` | `/atta-collaborate` |
-| `/librarian` | `/atta-librarian` |
-| `/lint` | `/atta-lint` |
-| `/migrate` | `/atta-migrate` |
-| `/optimize` | `/atta-optimize` |
-| `/patterns` | `/atta-patterns` |
-| `/preflight` | `/atta-preflight` |
-| `/profile` | `/atta-profile` |
-| `/review` | `/atta-review` |
-| `/security-audit` | `/atta-security-audit` |
-| `/ship` | `/atta-ship` |
-| `/team-lead` | `/atta-team-lead` |
-| `/test` | `/atta-test` |
-| `/tutorial` | `/atta-tutorial` |
-| `/update` | `/atta-update` |
+| /agent | `/atta-agent` |
+| /collaborate | `/atta-collaborate` |
+| /librarian | `/atta-librarian` |
+| /lint | `/atta-lint` |
+| /migrate | `/atta-migrate` |
+| /optimize | `/atta-optimize` |
+| /patterns | `/atta-patterns` |
+| /preflight | `/atta-preflight` |
+| /profile | `/atta-profile` |
+| /review | `/atta-review` |
+| /security-audit | `/atta-security-audit` |
+| /ship | `/atta-ship` |
+| /team-lead | `/atta-team-lead` |
+| /test | `/atta-test` |
+| /tutorial | `/atta-tutorial` |
+| /update | `/atta-update` |
 
 ### Matching Rules
 
 - Match the skill prefix + name with **both** left and right word boundaries:
   - **Left boundary**: preceded by backtick, quote, space, or start of line
   - **Right boundary**: followed by space, backtick, quote, punctuation, end of line, or whitespace
-- Do NOT match partial words — e.g., `/reviews`, `/reviewers`, `/review-old` must NOT match `/review`
-- Do NOT rename `/atta` itself (the init skill has always been named `/atta`)
+- Do NOT match partial words — e.g., "/reviews", "/reviewers", "/review-old" must NOT match "/review"
+- Do NOT rename "/atta" itself (the init skill has always been named "/atta")
 - In YAML frontmatter `skills:` arrays, match bare skill names as complete list entries:
   - `- review` → `- atta-review` (the entry is the entire value after `- `)
   - `- collaborate` → `- atta-collaborate`
@@ -151,13 +153,13 @@ Different tools use different skill invocation prefixes. Apply the rename map us
 
 | Adapter | Old form | New form |
 |---------|----------|----------|
-| Claude Code | `/review` | `/atta-review` |
-| Copilot | `/review` | `/atta-review` |
+| Claude Code | "/review" | "/atta-review" |
+| Copilot | "/review" | "/atta-review" |
 | Codex | `$review` | `$atta-review` |
-| Gemini | `/review` | `/atta-review` |
-| Cursor | `@review` | `@atta-review` |
+| Gemini | "/review" | "/atta-review" |
+| Cursor | "@review" | `@atta-review` |
 
-For Codex specifically, scan for both `$skillname` and `/skillname` forms (AGENTS.md may use slash notation in descriptions while `$` is the invocation form).
+For Codex specifically, scan for both `$skillname` and "/skillname" forms (AGENTS.md may use slash notation in descriptions while `$` is the invocation form).
 
 ### Files to Scan
 

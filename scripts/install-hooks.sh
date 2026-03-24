@@ -7,6 +7,10 @@ set -euo pipefail
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 HOOKS_SRC="$REPO_ROOT/scripts/hooks"
 HOOKS_DIR="$(git -C "$REPO_ROOT" rev-parse --git-path hooks)"
+case "$HOOKS_DIR" in
+  /*) ;;
+  *) HOOKS_DIR="$REPO_ROOT/$HOOKS_DIR" ;;
+esac
 
 install_hook() {
   local name="$1"

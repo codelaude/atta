@@ -11,11 +11,10 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  publish:
+  test:
     runs-on: ubuntu-latest
     permissions:
-      id-token: write
-      contents: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
         with:
@@ -35,9 +34,28 @@ jobs:
       - name: Run tests
         run: bash tests/check-all.sh
 
+  publish:
+    if: github.event_name == 'push'
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-tags: true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: npm install
+
       - name: Check if version changed
         id: version
-        if: github.event_name == 'push'
         run: |
           NAME=$(node -p "require('./package.json').name")
           CURRENT=$(node -p "require('./package.json').version")
@@ -54,17 +72,17 @@ jobs:
           fi
 
       - name: Upgrade npm for OIDC trusted publishing
-        if: github.event_name == 'push' && steps.version.outputs.skip == 'false'
+        if: steps.version.outputs.skip == 'false'
         run: |
           npm install -g npm@^11.5.1
           npm --version
 
       - name: Publish with provenance
-        if: github.event_name == 'push' && steps.version.outputs.skip == 'false'
+        if: steps.version.outputs.skip == 'false'
         run: npm publish --provenance
 
       - name: Create Git tag
-        if: github.event_name == 'push' && steps.version.outputs.skip == 'false'
+        if: steps.version.outputs.skip == 'false'
         run: |
           TAG="v${{ steps.version.outputs.version }}"
           if git ls-remote --tags origin "refs/tags/$TAG" | grep -q .; then
@@ -75,7 +93,7 @@ jobs:
           fi
 
       - name: Create GitHub Release
-        if: github.event_name == 'push' && steps.version.outputs.skip == 'false'
+        if: steps.version.outputs.skip == 'false'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |

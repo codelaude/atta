@@ -7,13 +7,11 @@ tools:
   - Grep
   - Glob
   - Bash
+  - Skill
 disallowedTools:
   - Edit
   - Write
   - Agent
-skills:
-  - atta-review
-  - atta-lint
 maxTurns: 20
 permissionMode: plan
 ---
@@ -34,6 +32,7 @@ permissionMode: plan
 - Does NOT validate requirements (that's qa-validator)
 - Does NOT make technical decisions or implement code
 - Generates PR artifacts only
+- For pre-PR quality checks, invoke `/atta-preflight` or `/atta-review` first
 
 ## Context Sources
 

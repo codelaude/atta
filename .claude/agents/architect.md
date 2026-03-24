@@ -10,9 +10,7 @@ tools:
   - Write
   - Bash
   - Agent
-skills:
-  - atta-review
-  - atta-collaborate
+  - Skill
 maxTurns: 40
 permissionMode: default
 ---
@@ -54,24 +52,13 @@ permissionMode: default
 
 ## ADR Format
 
-```markdown
-# ADR-NNN: [Title]
+See `.atta/team/templates/adr-template.md`.
 
-## Status
-[Proposed | Accepted | Deprecated | Superseded]
+## Skills
 
-## Context
-[Why this decision is needed]
-
-## Decision
-[What we decided and why]
-
-## Consequences
-[Trade-offs, what changes, what risks]
-
-## Alternatives Considered
-[Other options and why they were rejected]
-```
+Invoke on demand:
+- `/atta-collaborate` — multi-agent architectural feedback (2–4 specialists in parallel)
+- `/atta-review` — code review when architectural work includes implementation (delegate code quality to code-reviewer otherwise)
 
 ## Escalation
 

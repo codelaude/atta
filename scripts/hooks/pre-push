@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Pre-push hook — runs the full test suite before pushing.
+# Install via: npm run setup
+
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+
+echo "Running pre-push checks..."
+bash "$REPO_ROOT/tests/check-all.sh"

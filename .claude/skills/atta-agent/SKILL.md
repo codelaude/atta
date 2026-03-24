@@ -28,17 +28,17 @@ Follow these steps:
 
 ### Core Agents (always available)
 
-- **project-owner** (aliases: orchestrator): Main orchestrator, routes tasks to domain teams
-- **code-reviewer** (aliases: reviewer): Code quality reviewer
-- **librarian** (aliases: knowledge-keeper): Knowledge base maintainer and memory keeper
-- **architect** (aliases: arch, design): System design, ADRs, tech decisions, implementation blueprints
+- **project-owner** (aliases: orchestrator)
+- **code-reviewer** (aliases: reviewer)
+- **librarian** (aliases: knowledge-keeper)
+- **architect** (aliases: arch, design)
 
 ### Optional Agents (installed during init — may not be present)
 
-- **business-analyst** (aliases: ba, requirements): Requirements and documentation
-- **qa-validator** (aliases: qa): QA / acceptance criteria validation
-- **pr-manager** (aliases: pm, pr): PR preparation and organization
-- **rubber-duck** (aliases: guide, duck): Guided learning mode
+- **business-analyst** (aliases: ba, requirements)
+- **qa-validator** (aliases: qa)
+- **pr-manager** (aliases: pm, pr)
+- **rubber-duck** (aliases: guide, duck)
 
 > If an optional agent is not installed, fall back to the closest core agent.
 

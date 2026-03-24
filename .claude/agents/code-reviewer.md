@@ -7,14 +7,11 @@ tools:
   - Grep
   - Glob
   - Agent
+  - Skill
 disallowedTools:
   - Edit
   - Write
   - Bash
-skills:
-  - atta-review
-  - atta-lint
-  - atta-security-audit
 maxTurns: 30
 permissionMode: plan
 ---
@@ -42,6 +39,13 @@ permissionMode: plan
 - Does NOT run tests or execute commands
 - Does NOT make architecture decisions (escalate to architect)
 - Reads and reviews only — all tools are read-only
+
+## Skills
+
+Invoke on demand:
+- `/atta-review` — full review protocol with pattern checks
+- `/atta-lint` — quick pattern-only checks
+- `/atta-security-audit` — dedicated OWASP security audit
 
 ## Review Checklist
 

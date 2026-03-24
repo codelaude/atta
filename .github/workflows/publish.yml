@@ -3,13 +3,40 @@ name: Publish to npm
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
 
 concurrency:
-  group: publish-npm
-  cancel-in-progress: false
+  group: ${{ github.event_name == 'pull_request' && format('ci-pr-{0}', github.ref) || 'publish-npm' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-tags: true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Python test dependencies
+        run: python3 -m pip install pyyaml jsonschema
+
+      - name: Run tests
+        run: bash tests/check-all.sh
+
   publish:
+    if: github.event_name == 'push'
+    needs: test
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -23,6 +50,9 @@ jobs:
         with:
           node-version: 22
           registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: npm install
 
       - name: Check if version changed
         id: version
@@ -47,14 +77,6 @@ jobs:
           npm install -g npm@^11.5.1
           npm --version
 
-      - name: Install dependencies
-        if: steps.version.outputs.skip == 'false'
-        run: npm install
-
-      - name: Run tests
-        if: steps.version.outputs.skip == 'false'
-        run: bash tests/check-all.sh
-
       - name: Publish with provenance
         if: steps.version.outputs.skip == 'false'
         run: npm publish --provenance
@@ -71,6 +93,7 @@ jobs:
           fi
 
       - name: Create GitHub Release
+        if: steps.version.outputs.skip == 'false'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |

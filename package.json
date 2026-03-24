@@ -18,6 +18,10 @@
   },
   "license": "MIT",
   "author": "CodeLaude",
+  "scripts": {
+    "test": "bash tests/check-all.sh",
+    "setup": "bash scripts/install-hooks.sh"
+  },
   "type": "module",
   "bin": {
     "atta": "bin/atta.js",

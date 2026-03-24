@@ -51,6 +51,15 @@ Is it architecture / system design / ADR?
 Is it a specific specialist domain?
   → /atta-agent <specialist-id>
 
+Is it a FE task?
+  → /atta-agent fe-team-lead (if generated, else code-reviewer)
+
+Is it a BE task?
+  → /atta-agent be-team-lead (if generated, else code-reviewer)
+
+Does it touch FE + BE?
+  → fe-team-lead + be-team-lead in parallel, then synthesize
+
 Does it touch multiple domains?
   → /atta-agent project-owner decomposes, delegates to specialists in parallel
 

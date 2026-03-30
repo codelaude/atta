@@ -9,7 +9,7 @@ v3.0 is a significant release with structural changes. If you're upgrading from 
 | Situation | What to do |
 |-----------|-----------|
 | **New project** | `npx atta-dev init` — you get v3.0 from scratch |
-| **Existing v2.7.x project** | Run `npx atta-dev init --update` then `/atta-migrate` |
+| **Existing v2.7.x project** | Run `npx atta-dev init` then `/atta-migrate` |
 | **Existing v2.6.x or older** | Run `npx atta-dev init` fresh (backup first) |
 
 ## What Changed in v3.0
@@ -44,7 +44,7 @@ v3.0 is a significant release with structural changes. If you're upgrading from 
 ### Step 1: Update the framework (mechanical)
 
 ```bash
-npx atta-dev init --update
+npx atta-dev init
 ```
 
 This handles:
@@ -58,7 +58,7 @@ This handles:
 /atta-migrate
 ```
 
-`init --update` handles the heavy lifting (agents, hooks, model registry, architect). This skill handles what `init` can't — **renaming old skill references in user-edited files**:
+`init` handles the heavy lifting (agents, hooks, model registry, architect). This skill handles what `init` can't — **renaming old skill references in user-edited files**:
 
 - **Skill reference renames** — updates `/review` → `/atta-review` etc. in your config files, custom docs, and user content that `init` doesn't touch
 - **Directory restructure verification** — confirms the team/local split completed

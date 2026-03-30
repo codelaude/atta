@@ -1,7 +1,7 @@
 {
   "_version": "2026-03-14",
   "_description": "Model tier mappings per tool. Single source of truth for skill-to-tier classification and per-tool model names. Update this file when new models are released — no code changes needed.",
-  "_update_instructions": "Change model names below, run 'npx atta-dev init --update', done.",
+  "_update_instructions": "Change model names below, run 'npx atta-dev init', done.",
 
   "tiers": {
     "light": {

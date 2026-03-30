@@ -947,10 +947,10 @@ prompt = data.get('prompt', '')
 # Copilot rewrites '/atta-agent code-reviewer' to something like:
 # 'Use the skill tool to invoke the \"atta-agent\" skill with input \"code-reviewer\"'
 # Strategy: find 'input' or 'argument' followed by a quoted agent slug
-m = re.search(r'(?:input|argument)[^\"]*\"([a-z][\w-]+)\"', prompt)
+m = re.search(r'(?:input|argument)[^\\"]*\\"([a-z][\\\\w-]+)\\"', prompt)
 if not m:
     # Fallback: last quoted word that looks like an agent slug (not 'skill', 'atta-agent', etc.)
-    candidates = re.findall(r'\"([a-z][\w-]+)\"', prompt)
+    candidates = re.findall(r'\\"([a-z][\\\\w-]+)\\"', prompt)
     skip = {'atta-agent', 'skill', 'the', 'invoke', 'follow'}
     candidates = [c for c in candidates if c not in skip and not c.startswith('atta-')]
     m_val = candidates[-1] if candidates else ''

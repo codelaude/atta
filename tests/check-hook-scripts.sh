@@ -16,11 +16,12 @@ ERRORS=0
 # ─── Extract hook scripts from shared.js ─────────────────────────────
 # Uses node to import the constants and write them to temp files
 node --input-type=module <<JSEOF
-import { MODEL_GATE_SCRIPT, PRE_BASH_SAFETY_SCRIPT, STOP_QUALITY_GATE_SCRIPT } from '$REPO_ROOT/src/adapters/shared.js';
+import { MODEL_GATE_SCRIPT, PRE_BASH_SAFETY_SCRIPT, STOP_QUALITY_GATE_SCRIPT, SKILL_DETECT_COPILOT_SCRIPT } from '$REPO_ROOT/src/adapters/shared.js';
 import { writeFileSync } from 'node:fs';
 writeFileSync('$WORK_DIR/model-gate.sh', MODEL_GATE_SCRIPT, { mode: 0o755 });
 writeFileSync('$WORK_DIR/pre-bash-safety.sh', PRE_BASH_SAFETY_SCRIPT, { mode: 0o755 });
 writeFileSync('$WORK_DIR/stop-quality-gate.sh', STOP_QUALITY_GATE_SCRIPT, { mode: 0o755 });
+writeFileSync('$WORK_DIR/skill-detect-copilot.sh', SKILL_DETECT_COPILOT_SCRIPT, { mode: 0o755 });
 JSEOF
 
 # Create a minimal model-registry.json for model-gate tests
@@ -229,11 +230,58 @@ assert_exit "profile: ATTA_HOOKS=off skips stop-quality-gate → exit 0" 0
 run_hook "stop-quality-gate.sh" '{}' "ATTA_HOOKS=minimal"
 assert_exit "profile: ATTA_HOOKS=minimal skips stop-quality-gate → exit 0" 0
 
+# ─── Copilot Skill-Detect Hook Tests ─────────────────────────────────
+
+echo ""
+echo "=== Copilot Skill-Detect Hook Tests ==="
+
+# Test 29: bash -n syntax check on generated script (catches quoting bugs)
+if bash -n "$WORK_DIR/skill-detect-copilot.sh" 2>/dev/null; then
+  echo "PASS: skill-detect-copilot: bash -n syntax check passes"
+else
+  echo "FAIL: skill-detect-copilot: bash -n syntax check failed"
+  ERRORS=$((ERRORS + 1))
+fi
+
+# Test 30: Detects skill name from prompt
+run_hook "skill-detect-copilot.sh" '{"prompt":"Use the skill tool to invoke the \"atta-review\" skill"}'
+if [ -f "$WORK_DIR/.atta/local/.active-skill" ] && [ "$(cat "$WORK_DIR/.atta/local/.active-skill")" = "atta-review" ]; then
+  echo "PASS: skill-detect-copilot: extracts skill name (atta-review)"
+else
+  echo "FAIL: skill-detect-copilot: expected .active-skill=atta-review, got $(cat "$WORK_DIR/.atta/local/.active-skill" 2>/dev/null || echo 'missing')"
+  ERRORS=$((ERRORS + 1))
+fi
+
+# Test 31: Detects agent ID from atta-agent invocation
+run_hook "skill-detect-copilot.sh" '{"prompt":"Use the skill tool to invoke the \"atta-agent\" skill with input \"code-reviewer\""}'
+if [ -f "$WORK_DIR/.atta/local/.active-agent" ] && [ "$(cat "$WORK_DIR/.atta/local/.active-agent")" = "code-reviewer" ]; then
+  echo "PASS: skill-detect-copilot: extracts agent ID (code-reviewer)"
+else
+  echo "FAIL: skill-detect-copilot: expected .active-agent=code-reviewer, got $(cat "$WORK_DIR/.atta/local/.active-agent" 2>/dev/null || echo 'missing')"
+  ERRORS=$((ERRORS + 1))
+fi
+
+# Test 32: Non-skill prompt clears stale markers
+rm -f "$WORK_DIR/.atta/local/.active-skill" "$WORK_DIR/.atta/local/.active-agent"
+# Seed markers to verify they get cleared
+mkdir -p "$WORK_DIR/.atta/local"
+echo "stale" > "$WORK_DIR/.atta/local/.active-skill"
+run_hook "skill-detect-copilot.sh" '{"prompt":"just a normal question about code"}'
+if [ ! -f "$WORK_DIR/.atta/local/.active-skill" ]; then
+  echo "PASS: skill-detect-copilot: non-skill prompt clears stale markers"
+else
+  echo "FAIL: skill-detect-copilot: stale .active-skill not cleared"
+  ERRORS=$((ERRORS + 1))
+fi
+
+# Clean up markers for subsequent tests
+rm -f "$WORK_DIR/.atta/local/.active-skill" "$WORK_DIR/.atta/local/.active-agent"
+
 # ─── Results ──────────────────────────────────────────────────────────
 echo ""
 if [ "$ERRORS" -gt 0 ]; then
   echo "FAILED: $ERRORS test(s) failed"
   exit 1
 else
-  echo "ALL TESTS PASSED (28 tests)"
+  echo "ALL TESTS PASSED (32 tests)"
 fi

@@ -72,6 +72,7 @@ tools:
       HYPOTHESIS: verify .agents/skills/ path convention.
       AGENTS.md is the primary instruction channel.
       Skills invoked via /skills menu or $skill-name mention.
+      Native [agents.*] registration is disabled until Codex role-file schema is verified.
 
   gemini-cli:
     id: gemini-cli

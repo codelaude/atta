@@ -52,7 +52,7 @@ Edit the relevant file in `.atta/team/rules/`:
 
 Then re-run init to propagate to your adapter:
 ```bash
-npx atta-dev init --update
+npx atta-dev init
 ```
 
 ### Remove a rule

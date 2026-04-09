@@ -102,7 +102,7 @@ Edit `.atta/team/model-registry.json`:
 
 Then re-run init to update SKILL.md frontmatter:
 ```bash
-npx atta-dev init --update
+npx atta-dev init
 ```
 
 ### Update model names

@@ -36,9 +36,11 @@ Determine which AI tool is running this skill by checking which directories exis
 | `{localDir}` | `.atta/local` | `.atta/local` | `.atta/local` | `.atta/local` |
 | `{metadataDir}` | `.atta/.metadata` | `.atta/.metadata` | `.atta/.metadata` | `.atta/.metadata` |
 
+> **Codex agent files**: Codex uses two locations. Agent markdown files (human-readable, referenced in AGENTS.md) go to `{agentsDir}` (`.agents/agents/`). Additionally, each agent needs a TOML config file that Codex can load: write `.codex/agents/{subdir}/{name}.toml` with a `system_prompt` field, and add a corresponding `[agents.{name}]` entry to `.codex/config.toml`. See generator.md Phase 4 step 6b for the exact format and escaping rules.
+
 **Sub-detect non-Claude adapter** (if `.atta/bootstrap/` was found):
 - If `.github/skills/` exists → Copilot → agents go to `.github/atta/agents/`
-- Else if `.agents/skills/` exists → Codex → agents go to `.agents/agents/`
+- Else if `.agents/skills/` exists → Codex → agents go to `.agents/agents/` (markdown) **and** `.codex/agents/` (TOML — see above)
 - Else if `.gemini/commands/` exists → Gemini → agents go to `.gemini/agents/`
 
 **All paths below use these variables.** Substitute `.atta/bootstrap/` → `{bootstrapDir}/`, `.atta/team/` → `{teamDir}/`, `.atta/local/` → `{localDir}/`, `.claude/agents/` → `{agentsDir}/`, `.atta/.metadata/` → `{metadataDir}/`.

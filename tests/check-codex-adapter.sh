@@ -140,10 +140,10 @@ if [ ! -s "$WORK_DIR/.codex/config.toml" ]; then
   echo "FAIL: .codex/config.toml missing or empty"
   ERRORS=$((ERRORS + 1))
 else
-  # Validate TOML is parseable and has agent sections
+  # Validate config.toml TOML structure and per-agent TOML files
   # Use || to prevent set -e from exiting the script on python3 failure
-  if ! python3 - "$WORK_DIR/.codex/config.toml" <<'PYEOF'
-import sys
+  if ! python3 - "$WORK_DIR/.codex/config.toml" "$WORK_DIR/.codex" <<'PYEOF'
+import sys, os
 try:
     import tomllib
 except ImportError:
@@ -153,12 +153,14 @@ except ImportError:
         print('FAIL: No TOML parser available. Install Python 3.11+ (tomllib) or the "tomli" package.')
         sys.exit(1)
 
-path = sys.argv[1]
+config_path = sys.argv[1]
+codex_dir = sys.argv[2]
+
 try:
-    with open(path, 'rb') as f:
+    with open(config_path, 'rb') as f:
         data = tomllib.load(f)
 except Exception as e:
-    print(f'FAIL: {path} is not valid TOML: {e}')
+    print(f'FAIL: {config_path} is not valid TOML: {e}')
     sys.exit(1)
 
 if 'agents' not in data:
@@ -170,7 +172,7 @@ if len(agents) == 0:
     print('FAIL: config.toml has no agent definitions')
     sys.exit(1)
 
-# Each agent must have description and config_file
+# Each agent must have description and config_file pointing to a valid .toml
 for name, agent in agents.items():
     if 'description' not in agent or not agent['description'].strip():
         print(f'FAIL: agents.{name} missing or empty description')
@@ -178,10 +180,36 @@ for name, agent in agents.items():
     if 'config_file' not in agent or not agent['config_file'].strip():
         print(f'FAIL: agents.{name} missing or empty config_file')
         sys.exit(1)
+    config_file = agent['config_file']
+    if not config_file.endswith('.toml'):
+        print(f'FAIL: agents.{name} config_file must be a .toml file, got: {config_file}')
+        sys.exit(1)
+    # Resolve path relative to .codex/ directory
+    agent_toml_path = os.path.join(codex_dir, config_file)
+    if not os.path.isfile(agent_toml_path):
+        print(f'FAIL: agents.{name} config_file not found: {agent_toml_path}')
+        sys.exit(1)
+    # Verify agent TOML file is valid and has system_prompt
+    try:
+        with open(agent_toml_path, 'rb') as f:
+            agent_data = tomllib.load(f)
+    except Exception as e:
+        print(f'FAIL: {agent_toml_path} is not valid TOML: {e}')
+        sys.exit(1)
+    if 'system_prompt' not in agent_data or not agent_data['system_prompt'].strip():
+        print(f'FAIL: {agent_toml_path} missing or empty system_prompt')
+        sys.exit(1)
 PYEOF
   then
     ERRORS=$((ERRORS + 1))
   fi
+fi
+
+# Check: .codex/agents/ directory exists with at least one .toml file
+TOML_AGENT_COUNT=$(find "$WORK_DIR/.codex/agents" -name "*.toml" 2>/dev/null | wc -l | tr -d ' ')
+if [ "$TOML_AGENT_COUNT" -eq 0 ]; then
+  echo "FAIL: No agent TOML files in .codex/agents/"
+  ERRORS=$((ERRORS + 1))
 fi
 
 # Check: agent .md files have valid frontmatter (no model: inherit)
@@ -197,7 +225,7 @@ while IFS= read -r -d '' agent; do
 done < <(find "$WORK_DIR/.agents/agents" -name "*.md" -not -path "*/memory/*" -print0 2>/dev/null)
 
 if [ $ERRORS -eq 0 ]; then
-  echo "PASS: Codex adapter — structure + content correct ($SKILL_COUNT skills, $AGENT_COUNT agents, config.toml, zero Claude-isms)"
+  echo "PASS: Codex adapter — structure + content correct ($SKILL_COUNT skills, $AGENT_COUNT agents, $TOML_AGENT_COUNT TOML agent files, config.toml, zero Claude-isms)"
   exit 0
 else
   echo "FAIL: $ERRORS errors found"

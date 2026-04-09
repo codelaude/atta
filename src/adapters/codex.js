@@ -36,7 +36,8 @@ function writeAgentToml(srcPath, destPath, rewriteConfig) {
 
   // Escape for TOML multiline basic string (`"""..."""`):
   // 1. Backslashes first (must precede other escapes to avoid double-escaping)
-  // 2. Triple-quotes — break up the closing sequence
+  // 2. Triple-quotes — escape first char to break the closing `"""` sequence
+  //    (e.g. `"""` → `\"\"\"`) and prevent premature termination of the TOML multiline string
   const escapedBody = rewrittenBody
     .replace(/\\/g, '\\\\')
     .replace(/"""/g, '\\"\\"\\"');

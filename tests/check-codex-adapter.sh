@@ -206,10 +206,16 @@ PYEOF
 fi
 
 # Check: .codex/agents/ directory exists with at least one .toml file
-TOML_AGENT_COUNT=$(find "$WORK_DIR/.codex/agents" -name "*.toml" 2>/dev/null | wc -l | tr -d ' ')
-if [ "$TOML_AGENT_COUNT" -eq 0 ]; then
-  echo "FAIL: No agent TOML files in .codex/agents/"
+if [ ! -d "$WORK_DIR/.codex/agents" ]; then
+  echo "FAIL: .codex/agents/ directory missing (expected per-agent TOML config files)"
   ERRORS=$((ERRORS + 1))
+  TOML_AGENT_COUNT=0
+else
+  TOML_AGENT_COUNT=$(find "$WORK_DIR/.codex/agents" -name "*.toml" 2>/dev/null | wc -l | tr -d ' ')
+  if [ "$TOML_AGENT_COUNT" -eq 0 ]; then
+    echo "FAIL: No agent TOML files in .codex/agents/ (directory exists but is empty)"
+    ERRORS=$((ERRORS + 1))
+  fi
 fi
 
 # Check: agent .md files have valid frontmatter (no model: inherit)

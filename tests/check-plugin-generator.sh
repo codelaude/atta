@@ -291,11 +291,11 @@ if [ "$CDX_MODEL_INHERIT" -gt 0 ]; then
   ERRORS=$((ERRORS + 1))
 fi
 
-# config.toml should have [agents.*] sections
+# config.toml should exist but not register native agents yet
 if [ -f "$DIR/.codex/config.toml" ]; then
   CDX_TOML_AGENTS=$({ grep -c '^\[agents\.' "$DIR/.codex/config.toml" 2>/dev/null || true; })
-  if [ "$CDX_TOML_AGENTS" -eq 0 ]; then
-    echo "FAIL: [codex] config.toml has no [agents.*] sections"
+  if [ "$CDX_TOML_AGENTS" -ne 0 ]; then
+    echo "FAIL: [codex] config.toml should not contain native [agents.*] sections"
     ERRORS=$((ERRORS + 1))
   fi
 fi
